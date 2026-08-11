@@ -16,11 +16,27 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('/health (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/health')
       .expect(200)
-      .expect('Hello World!');
+      .expect(
+        ({
+          body,
+        }: {
+          body: {
+            status: string;
+            details: {
+              database: { status: string };
+              redis: { status: string };
+            };
+          };
+        }) => {
+          expect(body.status).toBe('ok');
+          expect(body.details.database.status).toBe('up');
+          expect(body.details.redis.status).toBe('up');
+        },
+      );
   });
 
   afterEach(async () => {
