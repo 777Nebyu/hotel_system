@@ -22,6 +22,8 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { AdminReportingModule } from './modules/admin-reporting/admin-reporting.module';
 import { FavoriteModule } from './modules/favorite/favorite.module';
 import { CouponModule } from './modules/coupon/coupon.module';
+import { InvoiceModule } from './modules/invoice/invoice.module';
+import { JobsModule } from './modules/jobs/jobs.module';
 
 @Module({
   imports: [
@@ -48,6 +50,8 @@ import { CouponModule } from './modules/coupon/coupon.module';
     NotificationModule,
     AdminReportingModule,
     CouponModule,
+    InvoiceModule,
+    JobsModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

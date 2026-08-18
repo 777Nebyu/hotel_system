@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 import type { LoginInput, RegisterInput } from '@repo/shared-types';
 import { User } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { EmailService } from '../../email/email.service';
+import { MailProducer } from '../../jobs/mail.producer';
 import { SafeUser, SENSITIVE_USER_FIELDS } from '../domain';
 
 const BCRYPT_ROUNDS = 12;
@@ -33,7 +33,7 @@ export class IdentityService {
     private readonly db: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
-    private readonly email: EmailService,
+    private readonly mail: MailProducer,
   ) {}
 
   private safeUser(user: User): SafeUser<User> {
@@ -91,7 +91,7 @@ export class IdentityService {
     });
 
     // Fire-and-forget — email delivery must never block registration
-    void this.email.sendVerificationEmail(email, verificationToken);
+    void this.mail.enqueueVerification(email, verificationToken);
 
     return { user: this.safeUser(user), ...(await this.issueTokens(user)) };
   }
@@ -155,7 +155,7 @@ export class IdentityService {
       });
 
       // Fire-and-forget — email delivery must never block the response
-      void this.email.sendPasswordResetEmail(user.email, resetPasswordToken);
+      void this.mail.enqueuePasswordReset(user.email, resetPasswordToken);
     }
     return { message: 'If the account exists, a reset email will be sent' };
   }

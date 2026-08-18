@@ -22,9 +22,11 @@ export const paymentStatusSchema = z.enum([
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 
 export const paymentMethodSchema = z.enum([
-  'CARD',
+  'CREDIT_CARD',
   'PAYPAL',
-  'BANK_TRANSFER',
+  'TELEBIRR',
+  'CBE_BIRR',
+  'CASH',
 ]);
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 
@@ -82,13 +84,17 @@ export const manageBookingsQuerySchema = z.object({
 export type ManageBookingsQuery = z.infer<typeof manageBookingsQuerySchema>;
 
 export const paymentMethodSchemaInput = z.object({
-  method: paymentMethodSchema.default('CARD'),
+  method: paymentMethodSchema,
+  reference: z.string().min(1).max(64).optional(),
 });
 export type PaymentMethodInput = z.infer<typeof paymentMethodSchemaInput>;
 
 export const mockGatewayCallbackSchema = z.object({
-  status: z.enum(['SUCCESS', 'FAILED', 'PENDING']),
+  reference: z.string().min(1).max(64).optional(),
   transactionId: z.string().optional(),
   message: z.string().optional(),
 });
 export type MockGatewayCallback = z.infer<typeof mockGatewayCallbackSchema>;
+
+export const invoiceParamsSchema = z.object({ bookingId: id });
+export type InvoiceParams = z.infer<typeof invoiceParamsSchema>;

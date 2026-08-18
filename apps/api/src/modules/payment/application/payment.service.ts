@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { PaymentGatewayRegistry } from '../infrastructure/gateway-registry';
 import {
   PaymentCompletedEvent,
   PaymentEventNames,
@@ -17,9 +18,14 @@ export class PaymentService {
   constructor(
     private readonly db: PrismaService,
     private readonly emitter: EventEmitter2,
+    private readonly registry: PaymentGatewayRegistry,
   ) {}
 
-  async createIntent(bookingId: string, method: PaymentMethod, userId: string) {
+  async createIntent(
+    bookingId: string,
+    method: PaymentMethod,
+    userId: string,
+  ) {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
       include: { payment: true },
@@ -60,12 +66,18 @@ export class PaymentService {
     });
     if (!payment) throw new NotFoundException('Payment not found');
 
-    if (body.status === 'SUCCESS') {
+    const gateway = this.registry.get(payment.method);
+    const result = await gateway.charge({
+      amount: payment.amount.toNumber(),
+      reference: body.reference ?? payment.providerRef ?? 'default',
+    });
+
+    if (result.approved) {
       const updated = await this.db.payment.update({
         where: { id: payment.id },
         data: {
           status: 'SUCCEEDED',
-          providerRef: body.transactionId ?? null,
+          providerRef: result.providerRef ?? body.transactionId ?? null,
         },
       });
       this.emitter.emit(
@@ -87,7 +99,10 @@ export class PaymentService {
 
     await this.db.payment.update({
       where: { id: payment.id },
-      data: { status: 'FAILED', providerRef: body.transactionId ?? null },
+      data: {
+        status: 'FAILED',
+        providerRef: result.providerRef ?? body.transactionId ?? null,
+      },
     });
     return { status: 'FAILED' as const, paymentId: payment.id };
   }

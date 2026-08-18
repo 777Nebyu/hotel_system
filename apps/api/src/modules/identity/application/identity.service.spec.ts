@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import type { PrismaService } from '../../../prisma/prisma.service';
-import type { EmailService } from '../../email/email.service';
+import type { MailProducer } from '../../jobs/mail.producer';
 import { IdentityService } from './identity.service';
 
 jest.mock('bcrypt', () => ({
@@ -26,9 +26,9 @@ describe('IdentityService', () => {
   let db: { user: UserDelegateMock };
   let jwt: { signAsync: jest.Mock; verifyAsync: jest.Mock };
   let config: { getOrThrow: jest.Mock };
-  let email: {
-    sendVerificationEmail: jest.Mock;
-    sendPasswordResetEmail: jest.Mock;
+  let mail: {
+    enqueueVerification: jest.Mock;
+    enqueuePasswordReset: jest.Mock;
   };
 
   const baseUser = {
@@ -68,15 +68,15 @@ describe('IdentityService', () => {
         return '15m';
       }),
     };
-    email = {
-      sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
-      sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
+    mail = {
+      enqueueVerification: jest.fn().mockResolvedValue(undefined),
+      enqueuePasswordReset: jest.fn().mockResolvedValue(undefined),
     };
     service = new IdentityService(
       db as unknown as PrismaService,
       jwt as unknown as JwtService,
       config as unknown as ConfigService,
-      email as unknown as EmailService,
+      mail as unknown as MailProducer,
     );
   });
 
@@ -116,7 +116,7 @@ describe('IdentityService', () => {
     expect(result.user).not.toHaveProperty('passwordHash');
     expect(result.user).not.toHaveProperty('refreshTokenHash');
     expect(result.accessToken).toBe('mock-access-token');
-    expect(email.sendVerificationEmail).toHaveBeenCalledWith(
+    expect(mail.enqueueVerification).toHaveBeenCalledWith(
       'test@example.com',
       expect.any(String),
     );

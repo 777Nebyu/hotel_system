@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { EmailService } from '../../email/email.service';
+import { MailProducer } from '../../jobs/mail.producer';
 import {
   BookingCancelledEvent,
   BookingCreatedEvent,
@@ -21,7 +21,7 @@ export class NotificationsListener {
   constructor(
     private readonly db: PrismaService,
     private readonly notifications: NotificationService,
-    private readonly email: EmailService,
+    private readonly mail: MailProducer,
   ) {}
 
   @OnEvent(BookingEventNames.CREATED)
@@ -128,6 +128,6 @@ export class NotificationsListener {
       channel: NOTIFICATION_CHANNELS.EMAIL,
       payload,
     });
-    await this.email.send({ to, subject, html });
+    await this.mail.enqueue({ to, subject, html });
   }
 }

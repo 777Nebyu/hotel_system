@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { BookingService } from '../application/booking.service';
@@ -42,5 +51,22 @@ export class BookingController {
   @ApiOperation({ summary: 'Cancel a pending or confirmed booking' })
   cancel(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
     return this.bookings.cancelBooking(params.bookingId, req.user.sub);
+  }
+
+  @Get(':bookingId/invoice')
+  @Throttle({ default: { ttl: 60_000, limit: 60 } })
+  @ApiOperation({ summary: 'Download the booking invoice as PDF' })
+  async invoice(
+    @Param() params: BookingIdParamsDto,
+    @Req() req: AuthedRequest,
+    @Res() res: Response,
+  ) {
+    const pdf = await this.bookings.getInvoice(params.bookingId, req.user.sub);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="invoice-${params.bookingId}.pdf"`,
+    );
+    res.send(pdf);
   }
 }

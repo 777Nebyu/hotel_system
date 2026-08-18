@@ -26,6 +26,7 @@ import { canTransition } from '../domain';
 import { buildQuote } from '../domain/quote';
 import type { BookingQuote } from '../domain/quote';
 import { CouponService } from '../../coupon/application/coupon.service';
+import { InvoiceService } from '../../invoice/application/invoice.service';
 import { applyCoupon } from '../../coupon/domain';
 import type { CheckoutInput, CreateBookingInput } from '@repo/shared-types';
 
@@ -35,6 +36,7 @@ export class BookingService {
     private readonly db: PrismaService,
     private readonly emitter: EventEmitter2,
     private readonly coupons: CouponService,
+    private readonly invoices: InvoiceService,
   ) {}
 
   async checkout(input: CheckoutInput) {
@@ -156,7 +158,7 @@ export class BookingService {
           },
           payment: {
             create: {
-              method: 'CARD',
+              method: 'CREDIT_CARD',
               amount: quote.total,
               status: 'PENDING',
             },
@@ -260,6 +262,18 @@ export class BookingService {
       },
     });
     return { data: bookings };
+  }
+
+  async getInvoice(bookingId: string, userId: string): Promise<Buffer> {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      select: { userId: true },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('You cannot download this invoice');
+    }
+    return this.invoices.generate(bookingId);
   }
 
   // ----- helpers -----
