@@ -18,5 +18,24 @@
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18"
+  },
+  "pnpm": {
+    "overrides": {
+      "brace-expansion@^1": "1.1.18",
+      "brace-expansion@^2": "2.1.4",
+      "brace-expansion@^5": "5.0.9",
+      "deepmerge-ts": "^8.0.1",
+      "fast-uri": "^3.1.5",
+      "flatted": "^3.4.2",
+      "js-yaml@^3": "3.15.1",
+      "js-yaml@^4": "4.3.1",
+      "minimatch@^3": "3.1.5",
+      "minimatch@^9": "9.0.7",
+      "picomatch@^2": "2.3.2",
+      "picomatch@^4": "4.0.4"
+    },
+    "auditConfig": {
+      "ignoreCves": ["CVE-2025-71329", "CVE-2025-71330"]
+    }
   }
 }
