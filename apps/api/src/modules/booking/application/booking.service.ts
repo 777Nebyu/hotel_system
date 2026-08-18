@@ -14,6 +14,10 @@ import {
   BookingEventNames,
 } from '../../events/booking.events';
 import {
+  PaymentEventNames,
+  PaymentRefundedEvent,
+} from '../../events/payment.events';
+import {
   parseDateOnly,
   roomAvailableAcross,
 } from '../../catalog/domain/availability';
@@ -90,6 +94,18 @@ export class BookingService {
         tx,
       );
       this.assertAllRoomsAvailable(rooms, checkIn, checkOut);
+      await this.acquireRoomDateLocks(
+        tx,
+        rooms.map((room) => room.id),
+        checkIn,
+        checkOut,
+      );
+      await this.assertNoOverlappingStays(
+        tx,
+        rooms.map((room) => room.id),
+        checkIn,
+        checkOut,
+      );
 
       const quote = buildQuote({
         hotelId: hotel.id,
@@ -161,6 +177,7 @@ export class BookingService {
   async cancelBooking(bookingId: string, userId: string) {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
+      include: { payment: true },
     });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.userId !== userId) {
@@ -171,21 +188,47 @@ export class BookingService {
         `Booking in "${booking.status}" state cannot be cancelled`,
       );
     }
+    const shouldRefund = booking.payment?.status === 'SUCCEEDED';
 
-    const updated = await this.db.booking.update({
-      where: { id: booking.id },
-      data: { status: 'CANCELLED' },
-      include: {
-        hotel: { select: { id: true, name: true } },
-        details: { include: { room: true } },
-        payment: true,
-      },
+    const updated = await this.db.$transaction(async (tx) => {
+      const cancelled = await tx.booking.update({
+        where: { id: booking.id },
+        data: { status: 'CANCELLED' },
+        include: {
+          hotel: { select: { id: true, name: true } },
+          details: { include: { room: true } },
+          payment: true,
+        },
+      });
+      if (shouldRefund) {
+        await tx.payment.update({
+          where: { bookingId: booking.id },
+          data: { status: 'REFUNDED' },
+        });
+        cancelled.payment = {
+          ...cancelled.payment!,
+          status: 'REFUNDED',
+        };
+      }
+      return cancelled;
     });
 
     this.emitter.emit(
       BookingEventNames.CANCELLED,
       new BookingCancelledEvent(booking.id, userId, booking.hotelId),
     );
+    if (shouldRefund && booking.payment) {
+      this.emitter.emit(
+        PaymentEventNames.REFUNDED,
+        new PaymentRefundedEvent(
+          booking.payment.id,
+          booking.id,
+          userId,
+          booking.payment.amount.toNumber(),
+          booking.payment.method,
+        ),
+      );
+    }
 
     return updated;
   }
@@ -226,6 +269,51 @@ export class BookingService {
         availability: { where: { date: { gte: checkIn, lt: checkOut } } },
       },
     });
+  }
+
+  /**
+   * Serializes concurrent bookers per (room, night) using Postgres advisory
+   * locks so the overlap check below is race-free.
+   */
+  private async acquireRoomDateLocks(
+    client: Prisma.TransactionClient,
+    roomIds: string[],
+    checkIn: Date,
+    checkOut: Date,
+  ): Promise<void> {
+    for (const roomId of roomIds) {
+      for (let d = checkIn.getTime(); d < checkOut.getTime(); d += 86_400_000) {
+        const dateStr = new Date(d).toISOString().slice(0, 10);
+        await client.$queryRaw<never[]>`
+          SELECT pg_advisory_xact_lock(hashtext(${roomId}), hashtext(${dateStr}))
+        `;
+      }
+    }
+  }
+
+  private async assertNoOverlappingStays(
+    client: Prisma.TransactionClient,
+    roomIds: string[],
+    checkIn: Date,
+    checkOut: Date,
+  ): Promise<void> {
+    const overlaps = await client.bookingDetail.findMany({
+      where: {
+        roomId: { in: roomIds },
+        booking: {
+          status: { in: ['CONFIRMED', 'CHECKED_IN'] },
+          checkIn: { lt: checkOut },
+          checkOut: { gt: checkIn },
+        },
+      },
+      select: { roomId: true },
+    });
+    const blocked = Array.from(new Set(overlaps.map((o) => o.roomId)));
+    if (blocked.length > 0) {
+      throw new ConflictException(
+        `Room(s) already booked for this stay: ${blocked.join(', ')}`,
+      );
+    }
   }
 
   private assertAllRoomsAvailable(

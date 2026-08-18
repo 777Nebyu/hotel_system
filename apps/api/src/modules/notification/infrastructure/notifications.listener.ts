@@ -11,6 +11,7 @@ import {
 import {
   PaymentCompletedEvent,
   PaymentEventNames,
+  PaymentRefundedEvent,
 } from '../../events/payment.events';
 import { NotificationService } from '../application/notification.service';
 import { NOTIFICATION_CHANNELS, NOTIFICATION_TYPES } from '../domain';
@@ -87,6 +88,29 @@ export class NotificationsListener {
       },
       `Payment received - $${amount.toFixed(2)}`,
       `<p>Your payment of <strong>$${amount.toFixed(2)}</strong> for ${payment.booking.hotel.name} was received.</p>`,
+    );
+  }
+
+  @OnEvent(PaymentEventNames.REFUNDED)
+  async onPaymentRefunded(event: PaymentRefundedEvent) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: event.bookingId },
+      include: { user: true, hotel: { select: { name: true } } },
+    });
+    if (!booking) return;
+    const amount = event.amount;
+    await this.notifyAndEmail(
+      booking.userId,
+      booking.user.email,
+      NOTIFICATION_TYPES.PAYMENT_RECEIVED,
+      {
+        bookingId: booking.id,
+        hotelName: booking.hotel.name,
+        amount,
+        method: event.method,
+      },
+      `Refund issued - $${amount.toFixed(2)}`,
+      `<p>Your payment of <strong>$${amount.toFixed(2)}</strong> for ${booking.hotel.name} has been refunded.</p>`,
     );
   }
 
