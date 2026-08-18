@@ -4,7 +4,7 @@ FROM node:20-slim AS build
 RUN corepack enable
 WORKDIR /repo
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml prisma.config.ts ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json prisma.config.ts ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
