@@ -17,6 +17,7 @@ COPY packages ./packages
 RUN pnpm turbo run build --filter=api --output-logs=errors-only
 
 RUN pnpm --filter api deploy --prod /out/api
+RUN cp -r apps/api/dist /out/api/dist
 
 FROM node:20-slim AS runtime
 ENV NODE_ENV=production
