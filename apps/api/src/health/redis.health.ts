@@ -21,6 +21,7 @@ export class RedisHealthIndicator extends HealthIndicator {
       retryStrategy: () => null,
       connectTimeout: 5000,
       commandTimeout: 5000,
+      tls: requiresTls(url) ? {} : undefined,
     });
     try {
       await client.connect();
@@ -35,5 +36,14 @@ export class RedisHealthIndicator extends HealthIndicator {
     } finally {
       client.disconnect();
     }
+  }
+}
+
+function requiresTls(url: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(url);
+    return protocol === 'rediss:' || hostname.endsWith('upstash.io');
+  } catch {
+    return false;
   }
 }
