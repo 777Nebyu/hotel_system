@@ -3,7 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { WinstonModule } from 'nest-winston';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { ZodValidationPipe } from 'nestjs-zod';
 import { configuration } from './config/configuration';
 import { createLoggerOptions } from './common/logging/winston.config';
 import { requestIdMiddleware } from './common/logging/request-id.middleware';
@@ -24,7 +25,12 @@ import { AdminReportingModule } from './modules/admin-reporting/admin-reporting.
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
     EventEmitterModule.forRoot(),
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: process.env.NODE_ENV === 'test' ? 100_000 : 100,
+      },
+    ]),
     WinstonModule.forRoot(
       createLoggerOptions(process.env.NODE_ENV ?? 'development'),
     ),
@@ -40,6 +46,7 @@ import { AdminReportingModule } from './modules/admin-reporting/admin-reporting.
     AdminReportingModule,
   ],
   providers: [
+    { provide: APP_PIPE, useClass: ZodValidationPipe },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },

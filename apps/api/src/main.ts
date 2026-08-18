@@ -1,12 +1,14 @@
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
 
   app.use(helmet());
@@ -14,13 +16,13 @@ async function bootstrap() {
     origin: config.get<string>('webOrigin')?.split(',') ?? true,
     credentials: true,
   });
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+
+  const nodeEnv = config.get<string>('nodeEnv');
+  if (nodeEnv !== 'production') {
+    app.useStaticAssets(join(process.cwd(), 'uploads'), {
+      prefix: '/uploads/',
+    });
+  }
 
   const document = SwaggerModule.createDocument(
     app,
@@ -30,7 +32,7 @@ async function bootstrap() {
       .addBearerAuth()
       .build(),
   );
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, cleanupOpenApiDoc(document));
 
   await app.listen(config.get<number>('port') ?? 3001);
 }

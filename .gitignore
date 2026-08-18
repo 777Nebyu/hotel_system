@@ -41,3 +41,6 @@ yarn-error.log*
 
 # Scratch
 work/
+
+# Local dev uploads (StorageService fallback)
+apps/api/uploads

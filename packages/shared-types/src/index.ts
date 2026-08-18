@@ -37,3 +37,5 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 export const forgotPasswordSchema = emailSchema;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export * from './catalog';
