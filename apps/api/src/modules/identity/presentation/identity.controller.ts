@@ -40,6 +40,7 @@ export class IdentityController {
 
   @Post('refresh')
   @Public()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   refresh(
     @Body(new ZodValidationPipe(refreshTokenSchema)) dto: RefreshTokenInput,
   ) {
@@ -55,6 +56,7 @@ export class IdentityController {
 
   @Post('reset-password')
   @Public()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   reset(
     @Body(new ZodValidationPipe(resetPasswordSchema)) dto: ResetPasswordInput,
   ) {
@@ -63,6 +65,7 @@ export class IdentityController {
 
   @Post('verify-email/:token')
   @Public()
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   verify(@Param('token') token: string) {
     return this.service.verifyEmail(token);
   }
