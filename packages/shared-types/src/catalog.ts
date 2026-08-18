@@ -41,6 +41,15 @@ export const seasonalPricingParamsSchema = z.object({
 });
 export type SeasonalPricingParams = z.infer<typeof seasonalPricingParamsSchema>;
 
+export const hotelAmenityParamsSchema = z.object({ id, amenityId: id });
+export type HotelAmenityParams = z.infer<typeof hotelAmenityParamsSchema>;
+
+export const roomAmenityParamsSchema = z.object({ roomId: id, amenityId: id });
+export type RoomAmenityParams = z.infer<typeof roomAmenityParamsSchema>;
+
+export const roomImageParamsSchema = z.object({ roomId: id, imageId: id });
+export type RoomImageParams = z.infer<typeof roomImageParamsSchema>;
+
 // ----- Management inputs -----
 
 export const createHotelSchema = z.object({
