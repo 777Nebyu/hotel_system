@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { AuditService } from '../../common/services/audit.service';
 import { ResourceScopeHelper } from '../../common/guards/resource-scope.helper';
 import { CatalogService } from './application/catalog.service';
 import { ManagerCatalogService } from './application/manager-catalog.service';
@@ -18,6 +19,7 @@ import { ManagerCatalogController } from './presentation/manager-catalog.control
     CatalogService,
     ManagerCatalogService,
     ResourceScopeHelper,
+    AuditService,
     {
       provide: STORAGE_SERVICE,
       useFactory: (config: ConfigService): StorageService => {

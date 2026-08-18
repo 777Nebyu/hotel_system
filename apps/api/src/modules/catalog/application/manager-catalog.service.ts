@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditService } from '../../../common/services/audit.service';
 import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
 import {
   STORAGE_SERVICE,
@@ -31,6 +32,7 @@ export class ManagerCatalogService {
   constructor(
     private readonly db: PrismaService,
     private readonly scope: ResourceScopeHelper,
+    private readonly audit: AuditService,
     @Inject(STORAGE_SERVICE)
     private readonly storage: StorageService,
   ) {}
@@ -53,7 +55,7 @@ export class ManagerCatalogService {
     await this.assertCityExists(dto.cityId);
     const managerId =
       actor.role === 'ADMIN' ? (dto.managerId ?? null) : actor.sub;
-    return this.db.hotel.create({
+    const hotel = await this.db.hotel.create({
       data: {
         name: dto.name,
         description: dto.description,
@@ -70,6 +72,10 @@ export class ManagerCatalogService {
         images: true,
       },
     });
+    await this.audit.record(actor.sub, 'hotel.create', 'Hotel', hotel.id, {
+      name: hotel.name,
+    });
+    return hotel;
   }
 
   async updateHotel(id: string, dto: UpdateHotelInput, actor: CatalogActor) {
@@ -86,7 +92,7 @@ export class ManagerCatalogService {
     if (dto.managerId !== undefined && actor.role === 'ADMIN') {
       data.manager = { connect: { id: dto.managerId } };
     }
-    return this.db.hotel.update({
+    const hotel = await this.db.hotel.update({
       where: { id },
       data,
       include: {
@@ -94,6 +100,14 @@ export class ManagerCatalogService {
         images: true,
       },
     });
+    await this.audit.record(
+      actor.sub,
+      'hotel.update',
+      'Hotel',
+      id,
+      dto as unknown as Prisma.InputJsonValue,
+    );
+    return hotel;
   }
 
   async deleteHotel(id: string, actor: CatalogActor) {
@@ -105,6 +119,7 @@ export class ManagerCatalogService {
       throw new ConflictException('Hotel has bookings and cannot be deleted');
     }
     await this.db.hotel.delete({ where: { id } });
+    await this.audit.record(actor.sub, 'hotel.delete', 'Hotel', id);
     return { deleted: true };
   }
 
@@ -187,7 +202,7 @@ export class ManagerCatalogService {
   async createRoom(hotelId: string, dto: CreateRoomInput, actor: CatalogActor) {
     await this.assertCanManage(hotelId, actor);
     try {
-      return await this.db.room.create({
+      const room = await this.db.room.create({
         data: {
           hotelId,
           roomNumber: dto.roomNumber,
@@ -201,6 +216,10 @@ export class ManagerCatalogService {
         },
         include: { images: true },
       });
+      await this.audit.record(actor.sub, 'room.create', 'Room', room.id, {
+        roomNumber: room.roomNumber,
+      });
+      return room;
     } catch (error) {
       if (this.isUniqueViolation(error)) {
         throw new ConflictException(
@@ -213,11 +232,19 @@ export class ManagerCatalogService {
 
   async updateRoom(roomId: string, dto: UpdateRoomInput, actor: CatalogActor) {
     const room = await this.getManagedRoom(roomId, actor);
-    return this.db.room.update({
+    const updated = await this.db.room.update({
       where: { id: room.id },
       data: dto,
       include: { images: true },
     });
+    await this.audit.record(
+      actor.sub,
+      'room.update',
+      'Room',
+      room.id,
+      dto as unknown as Prisma.InputJsonValue,
+    );
+    return updated;
   }
 
   async deleteRoom(roomId: string, actor: CatalogActor) {
@@ -231,6 +258,7 @@ export class ManagerCatalogService {
       );
     }
     await this.db.room.delete({ where: { id: room.id } });
+    await this.audit.record(actor.sub, 'room.delete', 'Room', room.id);
     return { deleted: true };
   }
 

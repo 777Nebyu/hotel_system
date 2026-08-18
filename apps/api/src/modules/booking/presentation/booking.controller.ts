@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { BookingService } from '../application/booking.service';
 import {
   BookingIdParamsDto,
@@ -24,6 +25,7 @@ export class BookingController {
   }
 
   @Post()
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Create a booking (payment starts as PENDING)' })
   create(@Body() dto: CreateBookingDto, @Req() req: AuthedRequest) {
     return this.bookings.createBooking(dto, req.user.sub);
@@ -36,6 +38,7 @@ export class BookingController {
   }
 
   @Post(':bookingId/cancel')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Cancel a pending or confirmed booking' })
   cancel(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
     return this.bookings.cancelBooking(params.bookingId, req.user.sub);
