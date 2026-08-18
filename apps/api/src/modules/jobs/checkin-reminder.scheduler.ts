@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { REMINDER_QUEUE } from './jobs.module';
+import { REMINDER_QUEUE } from './jobs.constants';
 
 export const CHECKIN_REMINDER_JOB = 'checkin-reminder';
 

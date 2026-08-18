@@ -6,9 +6,9 @@ import { MailProducer } from './mail.producer';
 import { MailProcessor } from './mail.processor';
 import { CheckInReminderScheduler } from './checkin-reminder.scheduler';
 import { CheckInReminderProcessor } from './checkin-reminder.processor';
+import { MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
 
-export const MAIL_QUEUE = 'mail';
-export const REMINDER_QUEUE = 'reminders';
+export { MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
 
 @Global()
 @Module({

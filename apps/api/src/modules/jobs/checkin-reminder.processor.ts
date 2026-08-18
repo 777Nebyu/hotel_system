@@ -1,7 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
-import { REMINDER_QUEUE } from './jobs.module';
+import { REMINDER_QUEUE } from './jobs.constants';
 import { MailProducer } from './mail.producer';
 import { CHECKIN_REMINDER_JOB } from './checkin-reminder.scheduler';
 import { PrismaService } from '../../prisma/prisma.service';

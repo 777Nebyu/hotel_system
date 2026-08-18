@@ -1,7 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
-import { MAIL_QUEUE } from './jobs.module';
+import { MAIL_QUEUE } from './jobs.constants';
 import { EmailService, type MailJob } from '../email/email.service';
 
 @Processor(MAIL_QUEUE)
