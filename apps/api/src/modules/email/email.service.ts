@@ -21,6 +21,19 @@ export class EmailService {
     });
   }
 
+  async send(input: { to: string; subject: string; html: string }) {
+    try {
+      await this.transporter.sendMail({
+        from: this.config.get<string>('email.from', 'noreply@yayetech.com'),
+        ...input,
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Failed to send "${input.subject}" to ${input.to}: ${err}`,
+      );
+    }
+  }
+
   async sendVerificationEmail(to: string, token: string) {
     const webUrl = this.config.get<string>(
       'webOrigin',

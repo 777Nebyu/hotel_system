@@ -41,3 +41,4 @@ export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export * from './catalog';
 export * from './booking';
 export * from './review';
+export * from './notification';

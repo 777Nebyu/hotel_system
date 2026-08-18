@@ -2,6 +2,7 @@ export type { Notification } from '../../../generated/prisma/client';
 
 export const NOTIFICATION_TYPES = {
   REGISTRATION: 'registration',
+  BOOKING_CREATED: 'booking_created',
   BOOKING_CONFIRMATION: 'booking_confirmation',
   BOOKING_CANCELLATION: 'booking_cancellation',
   PAYMENT_RECEIVED: 'payment_received',
