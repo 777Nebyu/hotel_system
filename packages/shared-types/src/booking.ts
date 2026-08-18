@@ -71,6 +71,14 @@ export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 export const bookingIdParamsSchema = z.object({ bookingId: id });
 export type BookingIdParams = z.infer<typeof bookingIdParamsSchema>;
 
+export const manageBookingsQuerySchema = z.object({
+  status: bookingStatusSchema.optional(),
+  hotelId: id.optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+export type ManageBookingsQuery = z.infer<typeof manageBookingsQuerySchema>;
+
 export const paymentMethodSchemaInput = z.object({
   method: paymentMethodSchema.default('CARD'),
 });
