@@ -19,6 +19,8 @@ export class RedisHealthIndicator extends HealthIndicator {
       lazyConnect: true,
       maxRetriesPerRequest: 1,
       retryStrategy: () => null,
+      connectTimeout: 5000,
+      commandTimeout: 5000,
     });
     try {
       await client.connect();

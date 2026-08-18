@@ -22,7 +22,7 @@ export class HealthController {
   @HealthCheck()
   check() {
     return this.health.check([
-      () => this.prisma.pingCheck('database', this.db),
+      () => this.prisma.pingCheck('database', this.db, { timeout: 5000 }),
       () => this.redis.ping('redis'),
     ]);
   }
