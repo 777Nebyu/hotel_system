@@ -33,7 +33,10 @@ export class InvoiceService {
       doc.on('end', () => resolve(Buffer.concat(chunks)));
     });
 
-    doc.font('Helvetica-Bold').fontSize(20).text('INVOICE', { align: 'center' });
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(20)
+      .text('INVOICE', { align: 'center' });
     doc.moveDown();
     doc.font('Helvetica').fontSize(10).fillColor('gray');
     doc.text(`Invoice No: ${invoiceNo}`, { align: 'center' });
@@ -43,7 +46,9 @@ export class InvoiceService {
     doc.font('Helvetica-Bold').fontSize(12).text(`${booking.hotel.name}`);
     doc.font('Helvetica').fontSize(10);
     doc.text(booking.hotel.address);
-    doc.text(`City: ${booking.hotel.cityId}  |  Stars: ${'★'.repeat(booking.hotel.starRating)}`);
+    doc.text(
+      `City: ${booking.hotel.cityId}  |  Stars: ${'★'.repeat(booking.hotel.starRating)}`,
+    );
     doc.moveDown(1.5);
 
     doc.text(`Billed to: ${booking.user.fullName}`);

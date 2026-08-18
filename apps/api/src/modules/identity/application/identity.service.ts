@@ -1,15 +1,26 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
+import { Inject } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
-import type { LoginInput, RegisterInput } from '@repo/shared-types';
+import type {
+  LoginInput,
+  RegisterInput,
+  UpdateProfileInput,
+} from '@repo/shared-types';
 import { User } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import {
+  STORAGE_SERVICE,
+  type StorageService,
+  type UploadedFile,
+} from '../../../common/storage/storage';
 import { MailProducer } from '../../jobs/mail.producer';
 import { SafeUser, SENSITIVE_USER_FIELDS } from '../domain';
 
@@ -34,6 +45,8 @@ export class IdentityService {
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     private readonly mail: MailProducer,
+    @Inject(STORAGE_SERVICE)
+    private readonly storage: StorageService,
   ) {}
 
   private safeUser(user: User): SafeUser<User> {
@@ -130,6 +143,49 @@ export class IdentityService {
     return this.safeUser(
       await this.db.user.findUniqueOrThrow({ where: { id } }),
     );
+  }
+
+  async updateProfile(
+    id: string,
+    dto: UpdateProfileInput,
+  ): Promise<SafeUser<User>> {
+    const user = await this.db.user.findUniqueOrThrow({ where: { id } });
+    const data: Partial<Pick<User, 'fullName' | 'phone' | 'passwordHash'>> = {};
+    if (dto.fullName !== undefined) data.fullName = dto.fullName;
+    if (dto.phone !== undefined) data.phone = dto.phone;
+    if (dto.newPassword) {
+      if (
+        !dto.currentPassword ||
+        !(await bcrypt.compare(dto.currentPassword, user.passwordHash))
+      ) {
+        throw new UnauthorizedException('Current password is incorrect');
+      }
+      data.passwordHash = await bcrypt.hash(dto.newPassword, BCRYPT_ROUNDS);
+    }
+    const updated = await this.db.user.update({ where: { id }, data });
+    return this.safeUser(updated);
+  }
+
+  async updateProfilePhoto(
+    id: string,
+    file: UploadedFile,
+  ): Promise<SafeUser<User>> {
+    if (!file.mimetype.startsWith('image/')) {
+      throw new BadRequestException('Only image files are allowed');
+    }
+    const existing = await this.db.user.findUniqueOrThrow({ where: { id } });
+    const uploaded = await this.storage.upload(file, 'profiles');
+    const user = await this.db.user.update({
+      where: { id },
+      data: { profilePhotoUrl: uploaded.url },
+    });
+    if (existing.profilePhotoUrl && existing.profilePhotoUrl !== uploaded.url) {
+      await this.storage.remove({
+        url: existing.profilePhotoUrl,
+        publicId: null,
+      });
+    }
+    return this.safeUser(user);
   }
 
   async verifyEmail(token: string): Promise<{ message: string }> {

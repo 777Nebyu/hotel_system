@@ -20,10 +20,7 @@ export const REMINDER_QUEUE = 'reminders';
         connection: { url: config.getOrThrow<string>('redis.url') },
       }),
     }),
-    BullModule.registerQueue(
-      { name: MAIL_QUEUE },
-      { name: REMINDER_QUEUE },
-    ),
+    BullModule.registerQueue({ name: MAIL_QUEUE }, { name: REMINDER_QUEUE }),
   ],
   providers: [
     MailProducer,

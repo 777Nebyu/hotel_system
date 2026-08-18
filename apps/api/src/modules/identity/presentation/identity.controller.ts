@@ -1,5 +1,16 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import {
   emailSchema,
@@ -7,6 +18,7 @@ import {
   refreshTokenSchema,
   registerSchema,
   resetPasswordSchema,
+  updateProfileSchema,
 } from '@repo/shared-types';
 import type {
   EmailInput,
@@ -14,6 +26,7 @@ import type {
   RefreshTokenInput,
   RegisterInput,
   ResetPasswordInput,
+  UpdateProfileInput,
 } from '@repo/shared-types';
 import { Public } from '../../../common/decorators/public.decorator';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
@@ -74,5 +87,31 @@ export class IdentityController {
   @ApiBearerAuth()
   me(@Req() req: { user: { sub: string } }) {
     return this.service.profile(req.user.sub);
+  }
+
+  @Patch('me')
+  @ApiBearerAuth()
+  @Throttle({ default: { ttl: 60000, limit: 20 } })
+  updateProfile(
+    @Body(new ZodValidationPipe(updateProfileSchema)) dto: UpdateProfileInput,
+    @Req() req: { user: { sub: string } },
+  ) {
+    return this.service.updateProfile(req.user.sub, dto);
+  }
+
+  @Post('me/photo')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @Throttle({ default: { ttl: 60000, limit: 20 } })
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  uploadPhoto(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: { user: { sub: string } },
+  ) {
+    return this.service.updateProfilePhoto(req.user.sub, file);
   }
 }

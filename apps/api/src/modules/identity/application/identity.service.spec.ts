@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import type { PrismaService } from '../../../prisma/prisma.service';
 import type { MailProducer } from '../../jobs/mail.producer';
+import type { StorageService } from '../../../common/storage/storage';
 import { IdentityService } from './identity.service';
 
 jest.mock('bcrypt', () => ({
@@ -30,6 +31,7 @@ describe('IdentityService', () => {
     enqueueVerification: jest.Mock;
     enqueuePasswordReset: jest.Mock;
   };
+  let storage: { upload: jest.Mock; remove: jest.Mock };
 
   const baseUser = {
     id: 'user-1',
@@ -72,11 +74,18 @@ describe('IdentityService', () => {
       enqueueVerification: jest.fn().mockResolvedValue(undefined),
       enqueuePasswordReset: jest.fn().mockResolvedValue(undefined),
     };
+    storage = {
+      upload: jest
+        .fn()
+        .mockResolvedValue({ url: '/uploads/profiles/x.jpg', publicId: null }),
+      remove: jest.fn().mockResolvedValue(undefined),
+    };
     service = new IdentityService(
       db as unknown as PrismaService,
       jwt as unknown as JwtService,
       config as unknown as ConfigService,
       mail as unknown as MailProducer,
+      storage as unknown as StorageService,
     );
   });
 
@@ -174,5 +183,64 @@ describe('IdentityService', () => {
         data: expect.objectContaining({ resetPasswordToken: null }),
       }),
     );
+  });
+
+  it('updates profile fields and password when current password matches', async () => {
+    db.user.findUniqueOrThrow.mockResolvedValue(baseUser);
+    db.user.update.mockResolvedValue({
+      ...baseUser,
+      fullName: 'New Name',
+      phone: '123456',
+    });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+    const result = await service.updateProfile('user-1', {
+      fullName: 'New Name',
+      phone: '123456',
+      currentPassword: 'password123',
+      newPassword: 'newpassword123',
+    });
+
+    expect(result.fullName).toBe('New Name');
+    expect(db.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        data: expect.objectContaining({ passwordHash: 'hashed' }),
+      }),
+    );
+  });
+
+  it('rejects a password change with the wrong current password', async () => {
+    db.user.findUniqueOrThrow.mockResolvedValue(baseUser);
+    (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+    await expect(
+      service.updateProfile('user-1', {
+        currentPassword: 'wrong',
+        newPassword: 'newpassword123',
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(db.user.update).not.toHaveBeenCalled();
+  });
+
+  it('uploads a profile photo and stores the new url', async () => {
+    const file = {
+      buffer: Buffer.from('image-bytes'),
+      originalname: 'me.jpg',
+      mimetype: 'image/jpeg',
+    };
+    db.user.findUniqueOrThrow.mockResolvedValue({
+      ...baseUser,
+      profilePhotoUrl: null,
+    });
+    db.user.update.mockResolvedValue({
+      ...baseUser,
+      profilePhotoUrl: '/uploads/profiles/x.jpg',
+    });
+
+    const result = await service.updateProfilePhoto('user-1', file as never);
+
+    expect(result.profilePhotoUrl).toBe('/uploads/profiles/x.jpg');
+    expect(storage.upload).toHaveBeenCalledWith(file, 'profiles');
   });
 });

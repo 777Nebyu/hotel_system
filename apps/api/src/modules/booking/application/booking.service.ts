@@ -244,9 +244,21 @@ export class BookingService {
     return updated;
   }
 
-  async myBookings(userId: string) {
+  async myBookings(userId: string, scope?: 'upcoming' | 'past') {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const where: Prisma.BookingWhereInput = { userId };
+    if (scope === 'upcoming') {
+      where.status = { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] };
+      where.checkOut = { gte: startOfToday };
+    } else if (scope === 'past') {
+      where.OR = [
+        { checkOut: { lt: startOfToday } },
+        { status: { in: ['CHECKED_OUT', 'CANCELLED', 'REJECTED'] } },
+      ];
+    }
     const bookings = await this.db.booking.findMany({
-      where: { userId },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         hotel: {

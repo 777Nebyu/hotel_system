@@ -12,7 +12,7 @@ import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helpe
 import {
   STORAGE_SERVICE,
   type StorageService,
-} from '../infrastructure/storage/storage';
+} from '../../../common/storage/storage';
 import type {
   AvailabilityBulkInput,
   CreateHotelInput,

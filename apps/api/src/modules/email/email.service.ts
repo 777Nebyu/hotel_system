@@ -34,7 +34,9 @@ export class EmailService {
         ...input,
       });
     } catch (err) {
-      this.logger.warn(`Failed to send "${input.subject}" to ${input.to}: ${err}`);
+      this.logger.warn(
+        `Failed to send "${input.subject}" to ${input.to}: ${err}`,
+      );
     }
   }
 

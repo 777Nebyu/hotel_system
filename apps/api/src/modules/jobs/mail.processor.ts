@@ -16,7 +16,9 @@ export class MailProcessor extends WorkerHost {
     try {
       await this.email.send(job.data);
     } catch (err) {
-      this.logger.error(`Failed to send email to ${job.data.to}: ${(err as Error).message}`);
+      this.logger.error(
+        `Failed to send email to ${job.data.to}: ${(err as Error).message}`,
+      );
       throw err;
     }
   }

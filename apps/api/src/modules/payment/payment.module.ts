@@ -27,7 +27,14 @@ import { PaymentService } from './application/payment.service';
         telebirr: TelebirrGateway,
         cbeBirr: CbeBirrGateway,
         cash: CashGateway,
-      ) => new PaymentGatewayRegistry([creditCard, paypal, telebirr, cbeBirr, cash]),
+      ) =>
+        new PaymentGatewayRegistry([
+          creditCard,
+          paypal,
+          telebirr,
+          cbeBirr,
+          cash,
+        ]),
       inject: [
         CreditCardGateway,
         PayPalGateway,

@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { PaymentService } from '../application/payment.service';
@@ -17,6 +17,13 @@ interface AuthedRequest {
 @Controller('payments')
 export class PaymentController {
   constructor(private readonly payments: PaymentService) {}
+
+  @Get('my')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List the current user payment history' })
+  myPayments(@Req() req: AuthedRequest) {
+    return this.payments.myPayments(req.user.sub);
+  }
 
   @Post(':bookingId/intent')
   @Throttle({ default: { ttl: 60_000, limit: 60 } })

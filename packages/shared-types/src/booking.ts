@@ -75,6 +75,11 @@ export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 export const bookingIdParamsSchema = z.object({ bookingId: id });
 export type BookingIdParams = z.infer<typeof bookingIdParamsSchema>;
 
+export const myBookingsQuerySchema = z.object({
+  scope: z.enum(['upcoming', 'past']).optional(),
+});
+export type MyBookingsQuery = z.infer<typeof myBookingsQuerySchema>;
+
 export const manageBookingsQuerySchema = z.object({
   status: bookingStatusSchema.optional(),
   hotelId: id.optional(),

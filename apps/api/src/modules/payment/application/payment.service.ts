@@ -21,11 +21,7 @@ export class PaymentService {
     private readonly registry: PaymentGatewayRegistry,
   ) {}
 
-  async createIntent(
-    bookingId: string,
-    method: PaymentMethod,
-    userId: string,
-  ) {
+  async createIntent(bookingId: string, method: PaymentMethod, userId: string) {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
       include: { payment: true },
@@ -57,6 +53,24 @@ export class PaymentService {
       status: payment.status,
       redirectUrl: `/payments/mock/${booking.id}`,
     };
+  }
+
+  async myPayments(userId: string) {
+    const payments = await this.db.payment.findMany({
+      where: { booking: { userId } },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        booking: {
+          select: {
+            id: true,
+            hotel: { select: { id: true, name: true } },
+            checkIn: true,
+            checkOut: true,
+          },
+        },
+      },
+    });
+    return { data: payments };
   }
 
   async mockCallback(bookingId: string, body: MockGatewayCallback) {

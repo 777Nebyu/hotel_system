@@ -11,6 +11,7 @@ import { requestIdMiddleware } from './common/logging/request-id.middleware';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { PrismaModule } from './prisma/prisma.module';
+import { StorageModule } from './common/storage/storage.module';
 import { HealthModule } from './health/health.module';
 import { EventsModule } from './modules/events/events.module';
 import { IdentityModule } from './modules/identity/identity.module';
@@ -39,6 +40,7 @@ import { JobsModule } from './modules/jobs/jobs.module';
       createLoggerOptions(process.env.NODE_ENV ?? 'development'),
     ),
     PrismaModule,
+    StorageModule,
     HealthModule,
     EventsModule,
     IdentityModule,

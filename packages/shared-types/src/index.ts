@@ -35,6 +35,22 @@ export const resetPasswordSchema = z.object({
 });
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
+export const updateProfileSchema = z
+  .object({
+    fullName: z.string().min(2).max(120).optional(),
+    phone: z.string().min(6).max(32).nullable().optional(),
+    currentPassword: passwordSchema.optional(),
+    newPassword: passwordSchema.optional(),
+  })
+  .refine(
+    (d) => !(d.newPassword && !d.currentPassword),
+    {
+      message: 'currentPassword is required when setting a newPassword',
+      path: ['currentPassword'],
+    },
+  );
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
 export const forgotPasswordSchema = emailSchema;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 

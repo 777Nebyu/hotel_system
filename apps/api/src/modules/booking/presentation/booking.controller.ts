@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   Res,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import {
   BookingIdParamsDto,
   CheckoutDto,
   CreateBookingDto,
+  MyBookingsQueryDto,
 } from './dto/booking.dto';
 
 interface AuthedRequest {
@@ -41,9 +43,11 @@ export class BookingController {
   }
 
   @Get('my')
-  @ApiOperation({ summary: 'List the current user bookings' })
-  myBookings(@Req() req: AuthedRequest) {
-    return this.bookings.myBookings(req.user.sub);
+  @ApiOperation({
+    summary: 'List the current user bookings, optionally split by scope',
+  })
+  myBookings(@Query() query: MyBookingsQueryDto, @Req() req: AuthedRequest) {
+    return this.bookings.myBookings(req.user.sub, query.scope);
   }
 
   @Post(':bookingId/cancel')
