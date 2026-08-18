@@ -45,6 +45,7 @@ export class PaymentController {
 
   @Post('mock/:bookingId')
   @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 60 } })
   @ApiOperation({ summary: 'Mock payment gateway callback' })
   mockCallback(
     @Param() params: PaymentIdParamsDto,

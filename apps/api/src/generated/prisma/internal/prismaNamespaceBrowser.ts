@@ -69,7 +69,8 @@ export const ModelName = {
   Favorite: 'Favorite',
   Coupon: 'Coupon',
   Notification: 'Notification',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  PlatformSetting: 'PlatformSetting'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -95,6 +96,7 @@ export const UserScalarFieldEnum = {
   fullName: 'fullName',
   phone: 'phone',
   role: 'role',
+  isActive: 'isActive',
   profilePhotoUrl: 'profilePhotoUrl',
   emailVerifiedAt: 'emailVerifiedAt',
   verificationToken: 'verificationToken',
@@ -329,6 +331,15 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const PlatformSettingScalarFieldEnum = {
+  key: 'key',
+  value: 'value',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlatformSettingScalarFieldEnum = (typeof PlatformSettingScalarFieldEnum)[keyof typeof PlatformSettingScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -21,6 +21,7 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { ReviewModule } from './modules/review/review.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AdminReportingModule } from './modules/admin-reporting/admin-reporting.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { FavoriteModule } from './modules/favorite/favorite.module';
 import { CouponModule } from './modules/coupon/coupon.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
@@ -51,6 +52,7 @@ import { JobsModule } from './modules/jobs/jobs.module';
     FavoriteModule,
     NotificationModule,
     AdminReportingModule,
+    AdminModule,
     CouponModule,
     InvoiceModule,
     JobsModule,

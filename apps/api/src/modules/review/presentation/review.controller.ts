@@ -9,6 +9,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Role } from '../../../generated/prisma/client';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { ReviewService } from '../application/review.service';
@@ -30,6 +31,7 @@ export class ReviewController {
   constructor(private readonly reviews: ReviewService) {}
 
   @Post()
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @ApiOperation({ summary: 'Submit a review after a completed stay' })
   create(@Body() dto: ReviewDto, @Req() req: AuthedRequest) {
     return this.reviews.create(dto, req.user.sub);
@@ -42,6 +44,7 @@ export class ReviewController {
   }
 
   @Patch(':reviewId')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Update one of your reviews' })
   update(
     @Param() params: ReviewIdParamsDto,
@@ -52,6 +55,7 @@ export class ReviewController {
   }
 
   @Delete(':reviewId')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Delete one of your reviews' })
   remove(@Param() params: ReviewIdParamsDto, @Req() req: AuthedRequest) {
     return this.reviews.remove(params.reviewId, req.user.sub);

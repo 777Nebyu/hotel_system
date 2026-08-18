@@ -1,4 +1,5 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Role } from '../../../generated/prisma/client';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -8,6 +9,10 @@ import {
   MonthsQueryDto,
   TopHotelsQueryDto,
 } from './dto/admin-reporting.dto';
+import {
+  ReportParamsDto,
+  ReportQueryDto,
+} from '../../admin/presentation/dto/admin.dto';
 
 @ApiTags('admin-reporting')
 @ApiBearerAuth()
@@ -50,5 +55,25 @@ export class AdminReportingController {
   @ApiOperation({ summary: 'Hotels ranked by booking count' })
   mostBookedHotels(@Query() query: TopHotelsQueryDto) {
     return this.reporting.mostBookedHotels(query.limit);
+  }
+
+  @Get(':type')
+  @ApiOperation({ summary: 'Export a report as PDF or Excel' })
+  async exportReport(
+    @Param() params: ReportParamsDto,
+    @Query() query: ReportQueryDto,
+    @Res() res: Response,
+  ) {
+    const { buffer, fileName } = await this.reporting.exportReport(
+      params.type,
+      query.format,
+    );
+    const contentType =
+      query.format === 'excel'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/pdf';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.send(buffer);
   }
 }

@@ -30,6 +30,7 @@ export class BookingController {
   constructor(private readonly bookings: BookingService) {}
 
   @Post('checkout')
+  @Throttle({ default: { ttl: 60_000, limit: 60 } })
   @ApiOperation({ summary: 'Preview price and occupancy for a booking' })
   checkout(@Body() dto: CheckoutDto) {
     return this.bookings.checkout(dto);
