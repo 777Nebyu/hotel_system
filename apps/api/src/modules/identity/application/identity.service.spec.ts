@@ -26,7 +26,10 @@ describe('IdentityService', () => {
   let db: { user: UserDelegateMock };
   let jwt: { signAsync: jest.Mock; verifyAsync: jest.Mock };
   let config: { getOrThrow: jest.Mock };
-  let email: { sendVerificationEmail: jest.Mock; sendPasswordResetEmail: jest.Mock };
+  let email: {
+    sendVerificationEmail: jest.Mock;
+    sendPasswordResetEmail: jest.Mock;
+  };
 
   const baseUser = {
     id: 'user-1',
