@@ -21,6 +21,7 @@ import { ReviewModule } from './modules/review/review.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AdminReportingModule } from './modules/admin-reporting/admin-reporting.module';
 import { FavoriteModule } from './modules/favorite/favorite.module';
+import { CouponModule } from './modules/coupon/coupon.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { FavoriteModule } from './modules/favorite/favorite.module';
     FavoriteModule,
     NotificationModule,
     AdminReportingModule,
+    CouponModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

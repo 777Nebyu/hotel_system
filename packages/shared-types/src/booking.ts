@@ -45,6 +45,7 @@ export const checkoutSchema = z
     checkIn: dateOnly,
     checkOut: dateOnly,
     guests: guestsSchema.default({ adults: 1, children: 0 }),
+    promoCode: z.string().min(3).max(20).optional(),
   })
   .refine((d) => d.checkOut > d.checkIn, stayRefine);
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
@@ -64,6 +65,7 @@ export const createBookingSchema = z
     checkOut: dateOnly,
     guests: guestsSchema.default({ adults: 1, children: 0 }),
     guestInfos: z.array(bookingGuestSchema).min(1).max(50),
+    promoCode: z.string().min(3).max(20).optional(),
   })
   .refine((d) => d.checkOut > d.checkIn, stayRefine);
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;

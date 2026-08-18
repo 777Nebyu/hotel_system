@@ -24,6 +24,9 @@ import {
 import { nightlyPrices } from '../../catalog/domain/pricing';
 import { canTransition } from '../domain';
 import { buildQuote } from '../domain/quote';
+import type { BookingQuote } from '../domain/quote';
+import { CouponService } from '../../coupon/application/coupon.service';
+import { applyCoupon } from '../../coupon/domain';
 import type { CheckoutInput, CreateBookingInput } from '@repo/shared-types';
 
 @Injectable()
@@ -31,6 +34,7 @@ export class BookingService {
   constructor(
     private readonly db: PrismaService,
     private readonly emitter: EventEmitter2,
+    private readonly coupons: CouponService,
   ) {}
 
   async checkout(input: CheckoutInput) {
@@ -69,6 +73,7 @@ export class BookingService {
         ).map((night) => night.price),
       })),
     });
+    await this.applyPromo(quote, input.promoCode);
 
     return { hotel: { id: hotel.id, name: hotel.name }, ...quote };
   }
@@ -124,6 +129,10 @@ export class BookingService {
           ).map((night) => night.price),
         })),
       });
+      await this.applyPromo(quote, input.promoCode, tx);
+      if (input.promoCode) {
+        await this.coupons.claim(input.promoCode, tx);
+      }
 
       const guestCount = input.guests.adults + input.guests.children;
       return tx.booking.create({
@@ -254,6 +263,19 @@ export class BookingService {
   }
 
   // ----- helpers -----
+
+  private async applyPromo(
+    quote: BookingQuote,
+    promoCode?: string,
+    client: Prisma.TransactionClient | PrismaService = this.db,
+  ) {
+    if (!promoCode) return;
+    const coupon = await this.coupons.validate(promoCode, client);
+    const applied = applyCoupon(quote.total, coupon);
+    quote.discount = applied.discount;
+    quote.total = applied.total;
+    quote.couponCode = coupon.code;
+  }
 
   private async loadRooms(
     hotelId: string,

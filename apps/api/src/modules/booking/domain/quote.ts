@@ -17,7 +17,9 @@ export interface BookingQuote {
   rooms: QuoteRoomLine[];
   subtotal: number;
   serviceFee: number;
+  discount: number;
   total: number;
+  couponCode?: string;
 }
 
 export interface QuoteRoomSpec {
@@ -33,6 +35,8 @@ export function buildQuote(input: {
   adults: number;
   children: number;
   rooms: QuoteRoomSpec[];
+  discount?: number;
+  couponCode?: string;
 }): BookingQuote {
   const nights = Math.round(
     (input.checkOut.getTime() - input.checkIn.getTime()) / 86_400_000,
@@ -55,7 +59,8 @@ export function buildQuote(input: {
     rooms.reduce((sum, line) => sum + line.roomTotal, 0),
   );
   const serviceFee = roundCurrency(subtotal * 0.05);
-  const total = roundCurrency(subtotal + serviceFee);
+  const discount = roundCurrency(input.discount ?? 0);
+  const total = roundCurrency(subtotal + serviceFee - discount);
   return {
     hotelId: input.hotelId,
     checkIn: input.checkIn,
@@ -65,6 +70,8 @@ export function buildQuote(input: {
     rooms,
     subtotal,
     serviceFee,
+    discount,
     total,
+    couponCode: input.couponCode,
   };
 }
