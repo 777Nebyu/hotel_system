@@ -1,159 +1,217 @@
-# Turborepo starter
+# YayeTech Hotel Booking System
 
-This Turborepo starter is maintained by the Turborepo core team.
+A full-stack hotel booking platform with customer web, mobile, and admin surfaces sharing a single NestJS backend API.
 
-## Using this example
+---
 
-Run the following command:
+## Table of Contents
 
-```sh
-npx create-turbo@latest
+1. [Tech Stack](#tech-stack)
+2. [Monorepo Structure](#monorepo-structure)
+3. [Prerequisites](#prerequisites)
+4. [Local Development Setup](#local-development-setup)
+5. [Environment Variables](#environment-variables)
+6. [Running Tests](#running-tests)
+7. [API Documentation](#api-documentation)
+8. [Deployment](#deployment)
+9. [Authorization Matrix](#authorization-matrix)
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| API Framework | NestJS 11 (Node.js) |
+| Database | PostgreSQL (Neon serverless) |
+| ORM | Prisma 7 |
+| Auth | JWT — Access token (15 min) + Refresh token (7 days) |
+| Queue | BullMQ + Redis (Upstash) |
+| File Storage | Cloudinary (images) |
+| Email | Nodemailer (SMTP) |
+| Validation | Zod + nestjs-zod |
+| API Docs | Swagger / OpenAPI (`@nestjs/swagger`) |
+| Logging | Winston + nest-winston |
+| Rate Limiting | `@nestjs/throttler` |
+| Web App | Next.js (customer + admin) |
+| Mobile App | React Native + Expo |
+| Monorepo | Turborepo + pnpm workspaces |
+| Language | TypeScript 5 (strict) |
+
+---
+
+## Monorepo Structure
+
+```
+hotel_system/
+├── apps/
+│   ├── api/              # NestJS backend — all business logic lives here
+│   │   ├── prisma/       # Schema, migrations, seed
+│   │   └── src/
+│   │       ├── modules/  # Feature modules (identity, catalog, booking, …)
+│   │       ├── common/   # Guards, interceptors, pipes, cache, storage
+│   │       └── config/   # Zod-validated environment configuration
+│   ├── web/              # Next.js customer-facing and admin web app
+│   └── mobile/           # React Native + Expo mobile app
+└── packages/
+    └── shared-types/     # Zod schemas + TypeScript types shared across all apps
 ```
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+## Prerequisites
 
-### Apps and Packages
+| Tool | Minimum version | Notes |
+|---|---|---|
+| Node.js | 20 | LTS recommended |
+| pnpm | 9 | `npm i -g pnpm` |
+| Docker Desktop | any | For local Redis container |
+| Neon account | — | Free tier works: [neon.tech](https://neon.tech) |
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+---
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+## Local Development Setup
 
-### Utilities
+```bash
+# 1. Clone the repository
+git clone https://github.com/777Nebyu/hotel_system.git
+cd hotel_system
 
-This Turborepo has some additional tools already setup for you:
+# 2. Install all dependencies (all workspaces)
+pnpm install
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+# 3. Create your local environment file
+cp apps/api/.env .env.local
+# Then fill in the values — see the Environment Variables section below
 
-### Build
+# 4. Start local Redis
+docker-compose up -d
 
-To build all apps and packages, run the following command:
+# 5. Run database migrations
+pnpm dlx prisma migrate dev
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+# 6. (Optional) Seed the database with sample data
+pnpm --filter=api exec prisma db seed
 
-```sh
-cd my-turborepo
-turbo build
+# 7. Start all apps in development mode
+pnpm dev
+#   API  → http://localhost:3001
+#   Web  → http://localhost:3000
 ```
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+## Environment Variables
+
+Copy the values below into `apps/api/.env`. Variables marked **Required** will cause the app to refuse to start if missing.
+
+| Variable | Description | Required | Default |
+|---|---|---|---|
+| `DATABASE_URL` | PostgreSQL connection string (Neon or local) | ✅ Yes | — |
+| `REDIS_URL` | Redis connection string (`redis://` or `rediss://` for TLS) | ✅ Yes | — |
+| `JWT_ACCESS_SECRET` | Secret for signing access tokens — minimum 32 characters | ✅ Yes | — |
+| `JWT_REFRESH_SECRET` | Secret for signing refresh tokens — minimum 32 characters | ✅ Yes | — |
+| `JWT_ACCESS_TTL` | Access token lifetime (e.g. `15m`, `1h`) | No | `15m` |
+| `JWT_REFRESH_TTL` | Refresh token lifetime (e.g. `7d`, `30d`) | No | `7d` |
+| `PORT` | Port the API server listens on | No | `3001` |
+| `NODE_ENV` | `development` \| `test` \| `production` | No | `development` |
+| `WEB_ORIGIN` | Allowed CORS origin for the web app (e.g. `https://yourdomain.com`) | No | — |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name — required for image uploads | No | — |
+| `CLOUDINARY_API_KEY` | Cloudinary API key | No | — |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret | No | — |
+| `EMAIL_HOST` | SMTP server host (e.g. `smtp.gmail.com`) | No | — |
+| `EMAIL_PORT` | SMTP port (e.g. `587`) | No | — |
+| `EMAIL_USER` | SMTP username | No | — |
+| `EMAIL_PASS` | SMTP password or app password | No | — |
+| `EMAIL_FROM` | Sender address (e.g. `noreply@yayetech.com`) | No | — |
+
+> **Tip:** Without Cloudinary credentials the API starts normally but image uploads fall back to local disk storage. Without email credentials, notification jobs will silently no-op rather than crash.
+
+---
+
+## Running Tests
+
+```bash
+# Run all API unit tests
+pnpm --filter=api exec jest --no-coverage
+
+# Run a specific module's tests
+pnpm --filter=api exec jest --testPathPatterns=booking.domain.spec
+
+# Run tests with coverage report
+pnpm --filter=api exec jest --coverage
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+The test suite covers:
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+| Module | What is tested |
+|---|---|
+| Booking domain | State machine (`canTransition`) + quote builder (`buildQuote`) |
+| Catalog availability | `isAvailableOn`, `availableNights`, `roomAvailableAcross` |
+| Payment gateways | All 5 adapters (approve/decline) + registry |
+| Coupon domain | `applyCoupon` — percentage, fixed, over-discount cap, Decimal type |
+| Identity service | Register, login, refresh, reset password, profile update |
 
-```sh
-turbo build --filter=docs
+---
+
+## API Documentation
+
+Interactive Swagger UI is auto-generated from the code and available at:
+
+| Environment | URL |
+|---|---|
+| Local dev | `http://localhost:3001/api/docs` |
+| Staging (Render) | `https://<your-render-service>.onrender.com/api/docs` |
+
+Raw OpenAPI JSON (for import into Postman or other tools):
+
+```
+GET /api/docs-json
 ```
 
-Without global `turbo`:
+A pre-generated Postman collection is also committed to the repository root:
+[`postman_collection.json`](./postman_collection.json)
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+To regenerate it after API changes:
+```bash
+# API must be running locally on port 3001
+pnpm run export:postman
 ```
 
-### Develop
+---
 
-To develop all apps and packages, run the following command:
+## Deployment
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+| Service | Platform | Notes |
+|---|---|---|
+| API | [Render](https://render.com) | Web Service — Node.js, build: `pnpm build --filter=api`, start: `node apps/api/dist/src/main` |
+| Web App | [Vercel](https://vercel.com) | Auto-deploys from `main` branch |
+| Database | [Neon](https://neon.tech) | Serverless PostgreSQL — free tier supports the full app |
+| Redis | [Upstash](https://upstash.com) | Serverless Redis — used for BullMQ jobs and search cache |
+| Images | [Cloudinary](https://cloudinary.com) | Free tier for up to 25 GB storage |
 
-```sh
-cd my-turborepo
-turbo dev
-```
+---
 
-Without global `turbo`, use your package manager:
+## Authorization Matrix
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+| Endpoint group | Public | Customer | Staff | Manager | Admin |
+|---|---|---|---|---|---|
+| `POST /auth/register` | ✅ | — | — | — | — |
+| `POST /auth/login` | ✅ | — | — | — | — |
+| `POST /auth/refresh` | ✅ | — | — | — | — |
+| `GET /hotels` (search) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `GET /hotels/:id` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `POST /bookings` | — | ✅ | — | — | — |
+| `GET /bookings/me` | — | ✅ | — | — | — |
+| `DELETE /bookings/:id` | — | ✅ (own) | — | — | ✅ |
+| `GET /bookings/:id/invoice` | — | ✅ (own) | — | — | — |
+| `POST /reviews` | — | ✅ | — | — | — |
+| `GET /favorites` | — | ✅ | — | — | — |
+| `GET /notifications` | — | ✅ | ✅ | ✅ | ✅ |
+| `GET /manager/hotels` | — | — | — | ✅ | ✅ |
+| `POST /manager/hotels` | — | — | — | ✅ | ✅ |
+| `PATCH /manager/bookings/:id/status` | — | — | ✅ | ✅ | ✅ |
+| `GET /admin/users` | — | — | — | — | ✅ |
+| `GET /admin/dashboard/*` | — | — | — | — | ✅ |
+| `GET /admin/reporting/export` | — | — | — | — | ✅ |
+| `GET /admin/audit-log` | — | — | — | — | ✅ |
