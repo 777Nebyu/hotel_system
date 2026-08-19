@@ -19,3 +19,5 @@ services:
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true
+      - key: MOCK_PAYMENT_WEBHOOK_SECRET
+        generateValue: true
