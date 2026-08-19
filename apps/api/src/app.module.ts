@@ -12,6 +12,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { PrismaModule } from './prisma/prisma.module';
 import { StorageModule } from './common/storage/storage.module';
+import { CacheModule } from './common/cache/cache.module';
 import { HealthModule } from './health/health.module';
 import { EventsModule } from './modules/events/events.module';
 import { IdentityModule } from './modules/identity/identity.module';
@@ -42,6 +43,7 @@ import { JobsModule } from './modules/jobs/jobs.module';
     ),
     PrismaModule,
     StorageModule,
+    CacheModule,
     HealthModule,
     EventsModule,
     IdentityModule,

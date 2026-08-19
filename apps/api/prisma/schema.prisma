@@ -204,6 +204,11 @@ model Booking {
   details    BookingDetail[]
   payment    Payment?
   review     Review?
+
+  @@index([userId])
+  @@index([hotelId])
+  @@index([status])
+  @@index([checkIn, checkOut])
 }
 
 model BookingDetail {
@@ -226,6 +231,8 @@ model Payment {
   providerRef String?
   invoiceUrl  String?
   createdAt   DateTime      @default(now())
+
+  @@index([status])
 }
 
 model Review {
@@ -240,6 +247,9 @@ model Review {
   comment   String
   photos    Json?
   createdAt DateTime @default(now())
+
+  @@index([hotelId])
+  @@index([userId])
 }
 
 model Favorite {
@@ -273,18 +283,23 @@ model Notification {
   sentAt    DateTime?
   readAt    DateTime?
   createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model AuditLog {
-    id        String   @id @default(cuid())
-    actorId   String?
-    actor     User?    @relation(fields: [actorId], references: [id])
-    action    String
-    entity    String
-    entityId  String
-    diff      Json?
-    createdAt DateTime @default(now())
-  }
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  diff      Json?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([entity, entityId])
+}
 
   model PlatformSetting {
     key       String   @id

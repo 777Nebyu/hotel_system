@@ -1,6 +1,8 @@
+import { createHash } from 'crypto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { CacheService } from '../../../common/cache/cache.service';
 import type {
   AvailabilityWindow,
   Paginated,
@@ -18,6 +20,18 @@ import {
   roomAvailableAcross,
 } from '../domain/availability';
 import { minNightlyPrice, priceRange, roundCurrency } from '../domain/pricing';
+
+/** Produces a stable, order-independent hash of the query object for cache keying. */
+function stableHash(obj: Record<string, unknown>): string {
+  const sorted = Object.fromEntries(
+    Object.entries(obj)
+      .filter(([, v]) => v !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b)),
+  );
+  return createHash('sha256').update(JSON.stringify(sorted)).digest('hex').slice(0, 16);
+}
+
+const SEARCH_CACHE_TTL = 60; // seconds
 
 const hotelQueryInclude = {
   city: { include: { country: true } },
@@ -54,13 +68,30 @@ const roomDetailInclude = {
 
 @Injectable()
 export class CatalogService {
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
   async search(query: SearchHotelsQuery): Promise<Paginated<HotelSummary>> {
     const page = query.page;
     const pageSize = query.pageSize;
-    const where: Prisma.HotelWhereInput = { status: 'ACTIVE' };
 
+    // ── Cache layer ───────────────────────────────────────────────────────
+    const cacheKey = `hotel:search:${stableHash(query as unknown as Record<string, unknown>)}`;
+    const cached = await this.cache.get<HotelSummary[]>(cacheKey);
+    if (cached) {
+      const total = cached.length;
+      const pageCount = pageSize ? Math.max(1, Math.ceil(total / pageSize)) : 1;
+      const start = (page - 1) * pageSize;
+      return {
+        data: cached.slice(start, start + pageSize),
+        meta: { total, page, pageSize, pageCount },
+      };
+    }
+
+    // ── Phase 1: Prisma filter — handles city/country/roomType/amenity WHERE ──
+    const where: Prisma.HotelWhereInput = { status: 'ACTIVE' };
     if (query.city || query.country) {
       where.city = {
         AND: [
@@ -86,59 +117,57 @@ export class CatalogService {
       };
     }
 
-    // NOTE: filtering on computed `minPricePerNight` / `averageRating` and the
-    // prepared sorts are done in-memory because Prisma cannot aggregate in
-    // `orderBy`/`where`. Dataset is small today; revisit with a raw aggregate
-    // query if it grows (perf pass, Week 6).
-    const hotels = await this.db.hotel.findMany({
+    // Get candidate hotel IDs from Prisma (handles all relational filters)
+    const candidates = await this.db.hotel.findMany({
       where,
+      select: { id: true },
+    });
+    const candidateIds = candidates.map((h) => h.id);
+
+    if (candidateIds.length === 0) {
+      return { data: [], meta: { total: 0, page, pageSize, pageCount: 1 } };
+    }
+
+    // ── Phase 2: SQL aggregation — computed columns + ORDER BY in Postgres ──
+    const sort = query.sort ?? 'review_count_desc';
+    type RankedRow = { id: string };
+    const ranked = await this.db.$queryRaw<RankedRow[]>`
+      SELECT h.id
+      FROM   "Hotel" h
+      LEFT JOIN "Room"   r  ON r."hotelId" = h.id
+      LEFT JOIN "Review" rv ON rv."hotelId" = h.id
+      WHERE  h.id = ANY(${candidateIds})
+      GROUP  BY h.id
+      HAVING
+        (${query.priceMin ?? null}::numeric IS NULL OR MIN(r."basePrice") >= ${query.priceMin ?? null}::numeric)
+        AND (${query.priceMax ?? null}::numeric IS NULL OR MIN(r."basePrice") <= ${query.priceMax ?? null}::numeric)
+        AND (${query.minRating ?? null}::numeric IS NULL OR AVG(rv.rating) >= ${query.minRating ?? null}::numeric)
+      ORDER BY
+        CASE WHEN ${sort} = 'price_asc'   THEN MIN(r."basePrice")  END ASC  NULLS LAST,
+        CASE WHEN ${sort} = 'price_desc'  THEN MIN(r."basePrice")  END DESC NULLS LAST,
+        CASE WHEN ${sort} = 'rating_desc' THEN AVG(rv.rating)      END DESC NULLS LAST,
+        COUNT(rv.id) DESC
+    `;
+
+    const rankedIds = ranked.map((r) => r.id);
+    if (rankedIds.length === 0) {
+      return { data: [], meta: { total: 0, page, pageSize, pageCount: 1 } };
+    }
+
+    // ── Phase 3: Load full hotel data for ranked IDs ────────────────────
+    const hotelMap = await this.db.hotel.findMany({
+      where: { id: { in: rankedIds } },
       include: hotelQueryInclude,
     });
+    // Re-order to match SQL rank
+    const idIndex = new Map(rankedIds.map((id, i) => [id, i]));
+    const orderedHotels = [...hotelMap].sort(
+      (a, b) => (idIndex.get(a.id) ?? 0) - (idIndex.get(b.id) ?? 0),
+    );
+    const summaries = orderedHotels.map((h) => this.toSummary(h));
 
-    const summaries = hotels
-      .map((hotel) => this.toSummary(hotel))
-      .filter((summary) => {
-        if (
-          query.priceMin !== undefined &&
-          (summary.minPricePerNight === null ||
-            summary.minPricePerNight < query.priceMin)
-        ) {
-          return false;
-        }
-        if (
-          query.priceMax !== undefined &&
-          (summary.minPricePerNight === null ||
-            summary.minPricePerNight > query.priceMax)
-        ) {
-          return false;
-        }
-        if (
-          query.minRating !== undefined &&
-          (summary.averageRating === null ||
-            summary.averageRating < query.minRating)
-        ) {
-          return false;
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        switch (query.sort) {
-          case 'price_asc':
-            return (
-              (a.minPricePerNight ?? Number.POSITIVE_INFINITY) -
-              (b.minPricePerNight ?? Number.POSITIVE_INFINITY)
-            );
-          case 'price_desc':
-            return (
-              (b.minPricePerNight ?? Number.NEGATIVE_INFINITY) -
-              (a.minPricePerNight ?? Number.NEGATIVE_INFINITY)
-            );
-          case 'rating_desc':
-            return (b.averageRating ?? 0) - (a.averageRating ?? 0);
-          default:
-            return b.reviewCount - a.reviewCount;
-        }
-      });
+    // ── Store in cache (TTL = 60 s) ────────────────────────────────────
+    await this.cache.set(cacheKey, summaries, SEARCH_CACHE_TTL);
 
     const total = summaries.length;
     const pageCount = pageSize ? Math.max(1, Math.ceil(total / pageSize)) : 1;

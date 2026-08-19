@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { CacheService } from '../../../common/cache/cache.service';
 import { exporterFor } from '../infrastructure';
 import type { ReportFormat, ReportRow } from '../infrastructure';
 import type { ReportType } from '../domain';
+
+const DASHBOARD_CACHE_TTL = 300; // 5 minutes
 
 const REPORT_TITLES: Record<ReportType, string> = {
   booking: 'Booking Report',
@@ -14,9 +17,21 @@ const REPORT_TITLES: Record<ReportType, string> = {
 
 @Injectable()
 export class AdminReportingService {
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
   async overview() {
+    const key = 'admin:dashboard:overview';
+    const cached = await this.cache.get<ReturnType<typeof this.computeOverview>>(key);
+    if (cached) return cached;
+    const result = await this.computeOverview();
+    await this.cache.set(key, result, DASHBOARD_CACHE_TTL);
+    return result;
+  }
+
+  private async computeOverview() {
     const [userCount, hotelCount, bookingCount, revenueAgg, bookingsByStatus] =
       await Promise.all([
         this.db.user.count(),
@@ -100,6 +115,15 @@ export class AdminReportingService {
   }
 
   async monthlyRevenue(months = 12) {
+    const key = `admin:dashboard:monthly-revenue:${months}`;
+    const cached = await this.cache.get<{ month: string; revenue: number }[]>(key);
+    if (cached) return cached;
+    const result = await this.computeMonthlyRevenue(months);
+    await this.cache.set(key, result, DASHBOARD_CACHE_TTL);
+    return result;
+  }
+
+  private async computeMonthlyRevenue(months = 12) {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
     start.setDate(1);
@@ -133,6 +157,15 @@ export class AdminReportingService {
   }
 
   async bookingTrends(days = 30) {
+    const key = `admin:dashboard:booking-trends:${days}`;
+    const cached = await this.cache.get<{ date: string; bookings: number }[]>(key);
+    if (cached) return cached;
+    const result = await this.computeBookingTrends(days);
+    await this.cache.set(key, result, DASHBOARD_CACHE_TTL);
+    return result;
+  }
+
+  private async computeBookingTrends(days = 30) {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
     start.setDate(start.getDate() - (days - 1));
@@ -165,6 +198,15 @@ export class AdminReportingService {
   }
 
   async mostBookedHotels(limit = 10) {
+    const key = `admin:dashboard:most-booked-hotels:${limit}`;
+    const cached = await this.cache.get<{ hotelId: string; name: string; bookings: number }[]>(key);
+    if (cached) return cached;
+    const result = await this.computeMostBookedHotels(limit);
+    await this.cache.set(key, result, DASHBOARD_CACHE_TTL);
+    return result;
+  }
+
+  private async computeMostBookedHotels(limit = 10) {
     const grouped = await this.db.booking.groupBy({
       by: ['hotelId'],
       _count: { _all: true },
