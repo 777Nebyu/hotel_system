@@ -79,7 +79,7 @@ export class NotificationsListener {
     await this.notifyAndEmail(
       payment.booking.userId,
       payment.booking.user.email,
-      NOTIFICATION_TYPES.PAYMENT_RECEIVED,
+      NOTIFICATION_TYPES.PAYMENT_REFUNDED,
       {
         bookingId: payment.bookingId,
         hotelName: payment.booking.hotel.name,

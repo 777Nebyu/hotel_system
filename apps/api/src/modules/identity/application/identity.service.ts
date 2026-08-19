@@ -139,6 +139,14 @@ export class IdentityService {
     return { user: this.safeUser(user), ...(await this.issueTokens(user)) };
   }
 
+  async logout(id: string): Promise<{ message: string }> {
+    await this.db.user.update({
+      where: { id },
+      data: { refreshTokenHash: null },
+    });
+    return { message: 'Logged out successfully' };
+  }
+
   async profile(id: string): Promise<SafeUser<User>> {
     return this.safeUser(
       await this.db.user.findUniqueOrThrow({ where: { id } }),

@@ -332,8 +332,11 @@ export class BookingService {
     for (const roomId of roomIds) {
       for (let d = checkIn.getTime(); d < checkOut.getTime(); d += 86_400_000) {
         const dateStr = new Date(d).toISOString().slice(0, 10);
-        await client.$queryRaw<never[]>`
-          SELECT pg_advisory_xact_lock(hashtext(${roomId}), hashtext(${dateStr}))
+        // pg_advisory_xact_lock returns PostgreSQL `void`, which Prisma 7's
+        // driver cannot deserialize. Evaluate it as a boolean expression so
+        // the lock is acquired while the result has a supported type.
+        await client.$queryRaw<{ locked: boolean }[]>`
+          SELECT pg_advisory_xact_lock(hashtext(${roomId}), hashtext(${dateStr})) IS NULL AS locked
         `;
       }
     }

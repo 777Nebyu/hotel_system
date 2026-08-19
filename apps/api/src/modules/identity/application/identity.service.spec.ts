@@ -170,6 +170,18 @@ describe('IdentityService', () => {
     );
   });
 
+  it('invalidates the stored refresh token on logout', async () => {
+    db.user.update.mockResolvedValue({});
+
+    await expect(service.logout('user-1')).resolves.toEqual({
+      message: 'Logged out successfully',
+    });
+    expect(db.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { refreshTokenHash: null },
+    });
+  });
+
   it('resets the password for a valid reset token', async () => {
     db.user.findFirst.mockResolvedValue(baseUser);
     db.user.update.mockResolvedValue({});

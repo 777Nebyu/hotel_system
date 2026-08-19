@@ -24,6 +24,7 @@ const envSchema = z.object({
   EMAIL_USER: z.string().optional(),
   EMAIL_PASS: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
+  MOCK_PAYMENT_WEBHOOK_SECRET: z.string().min(16).default('development-mock-payment-secret'),
 });
 
 export type Environment = z.infer<typeof envSchema>;
@@ -48,6 +49,9 @@ export const emailConfigSchema = z.object({
   pass: z.string().optional(),
   from: z.string().email().optional(),
 });
+export const paymentConfigSchema = z.object({
+  mockWebhookSecret: z.string().min(16),
+});
 
 export const appConfigSchema = z.object({
   nodeEnv: z.enum(['development', 'test', 'production']),
@@ -58,6 +62,7 @@ export const appConfigSchema = z.object({
   redis: redisConfigSchema,
   cloudinary: cloudinaryConfigSchema,
   email: emailConfigSchema,
+  payment: paymentConfigSchema,
 });
 
 export type AppConfig = z.infer<typeof appConfigSchema>;
@@ -71,6 +76,12 @@ export function configuration(): AppConfig {
     throw new Error(`Invalid environment configuration: ${issues}`);
   }
   const env = parsed.data;
+  if (
+    env.NODE_ENV === 'production' &&
+    env.MOCK_PAYMENT_WEBHOOK_SECRET === 'development-mock-payment-secret'
+  ) {
+    throw new Error('MOCK_PAYMENT_WEBHOOK_SECRET must be changed in production');
+  }
   return {
     nodeEnv: env.NODE_ENV,
     port: env.PORT,
@@ -95,5 +106,6 @@ export function configuration(): AppConfig {
       pass: env.EMAIL_PASS,
       from: env.EMAIL_FROM,
     },
+    payment: { mockWebhookSecret: env.MOCK_PAYMENT_WEBHOOK_SECRET },
   };
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { PaymentService } from '../application/payment.service';
@@ -50,7 +50,19 @@ export class PaymentController {
   mockCallback(
     @Param() params: PaymentIdParamsDto,
     @Body() body: MockCallbackDto,
+    @Headers('x-mock-payment-secret') webhookSecret: string | undefined,
   ) {
-    return this.payments.mockCallback(params.bookingId, body);
+    return this.payments.mockCallback(params.bookingId, body, webhookSecret);
+  }
+
+  @Post(':bookingId/refund')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Refund a successful booking payment' })
+  refund(
+    @Param() params: PaymentIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.payments.refund(params.bookingId, req.user);
   }
 }

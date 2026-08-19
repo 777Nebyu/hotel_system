@@ -60,6 +60,12 @@ export class IdentityController {
     return this.service.refresh(dto.refreshToken);
   }
 
+  @Post('logout')
+  @ApiBearerAuth()
+  logout(@Req() req: { user: { sub: string } }) {
+    return this.service.logout(req.user.sub);
+  }
+
   @Post('forgot-password')
   @Public()
   @Throttle({ default: { ttl: 60000, limit: 5 } })

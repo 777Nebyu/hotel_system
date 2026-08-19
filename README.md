@@ -113,6 +113,7 @@ Copy the values below into `apps/api/.env`. Variables marked **Required** will c
 | `JWT_REFRESH_SECRET` | Secret for signing refresh tokens — minimum 32 characters | ✅ Yes | — |
 | `JWT_ACCESS_TTL` | Access token lifetime (e.g. `15m`, `1h`) | No | `15m` |
 | `JWT_REFRESH_TTL` | Refresh token lifetime (e.g. `7d`, `30d`) | No | `7d` |
+| `MOCK_PAYMENT_WEBHOOK_SECRET` | Secret required by the development mock-payment callback | No | development fallback; replace in production |
 | `PORT` | Port the API server listens on | No | `3001` |
 | `NODE_ENV` | `development` \| `test` \| `production` | No | `development` |
 | `WEB_ORIGIN` | Allowed CORS origin for the web app (e.g. `https://yourdomain.com`) | No | — |
@@ -140,6 +141,9 @@ pnpm --filter=api exec jest --testPathPatterns=booking.domain.spec
 
 # Run tests with coverage report
 pnpm --filter=api exec jest --coverage
+
+# Run the PostgreSQL + Redis-backed booking/payment E2E suite
+pnpm --filter=api test:e2e
 ```
 
 The test suite covers:
@@ -151,6 +155,7 @@ The test suite covers:
 | Payment gateways | All 5 adapters (approve/decline) + registry |
 | Coupon domain | `applyCoupon` — percentage, fixed, over-discount cap, Decimal type |
 | Identity service | Register, login, refresh, reset password, profile update |
+| Lifecycle hardening | Logout invalidation, review HTML sanitization, callback secret/idempotency, refund authorization |
 
 ---
 

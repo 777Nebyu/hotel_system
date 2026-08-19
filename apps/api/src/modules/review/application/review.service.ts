@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import sanitizeHtml from 'sanitize-html';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
@@ -42,13 +43,14 @@ export class ReviewService {
       throw new ConflictException('You already reviewed this hotel');
     }
 
+    const comment = this.cleanComment(input.comment);
     const review = await this.db.review.create({
       data: {
         userId,
         hotelId: input.hotelId,
         bookingId: input.bookingId,
         rating: input.rating,
-        comment: input.comment,
+        comment,
         photos: input.photos ?? undefined,
       },
       include: {
@@ -70,13 +72,26 @@ export class ReviewService {
       where: { id: review.id },
       data: {
         rating: input.rating,
-        comment: input.comment,
+        ...(input.comment === undefined
+          ? {}
+          : { comment: this.cleanComment(input.comment) }),
         photos: input.photos ?? undefined,
       },
       include: {
         user: { select: { id: true, fullName: true, profilePhotoUrl: true } },
       },
     });
+  }
+
+  private cleanComment(comment: string): string {
+    const cleaned = sanitizeHtml(comment, {
+      allowedTags: [],
+      allowedAttributes: {},
+    }).trim();
+    if (cleaned.length < 2) {
+      throw new BadRequestException('Review comment must contain readable text');
+    }
+    return cleaned;
   }
 
   async remove(reviewId: string, actorId: string) {

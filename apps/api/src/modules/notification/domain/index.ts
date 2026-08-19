@@ -6,6 +6,7 @@ export const NOTIFICATION_TYPES = {
   BOOKING_CONFIRMATION: 'booking_confirmation',
   BOOKING_CANCELLATION: 'booking_cancellation',
   PAYMENT_RECEIVED: 'payment_received',
+  PAYMENT_REFUNDED: 'payment_refunded',
   CHECK_IN_REMINDER: 'check_in_reminder',
 } as const;
 
