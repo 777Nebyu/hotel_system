@@ -1,18 +1,16 @@
 services:
   - type: web
-    name: hotel-api-staging
-    runtime: docker
+    name: yayetech-hotel-api
+    env: node
     plan: free
-    repo: https://github.com/777Nebyu/hotel_system
-    branch: main
-    dockerfilePath: ./apps/api/Dockerfile
-    autoDeploy: true
+    buildCommand: pnpm install && pnpm --filter=api exec prisma generate && pnpm --filter=api exec nest build
+    startCommand: node apps/api/dist/src/main.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: "3001"
+        value: 3001
       - key: DATABASE_URL
         sync: false
       - key: REDIS_URL
@@ -21,9 +19,3 @@ services:
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true
-      - key: JWT_ACCESS_TTL
-        value: "15m"
-      - key: JWT_REFRESH_TTL
-        value: "7d"
-      - key: WEB_ORIGIN
-        value: "http://localhost:3000"

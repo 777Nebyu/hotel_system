@@ -1,25 +1,14 @@
-/**
- * Postman Collection Export Script
- * ─────────────────────────────────
- * Generates the Postman collection v2.1 from the OpenAPI specification
- * and writes it to postman_collection.json at the repo root.
- *
- * Usage:
- *   pnpm run export:postman
- */
-
+import 'reflect-metadata';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { Converter } = require('openapi-to-postmanv2') as {
-  Converter: {
-    convert(
-      input: { type: 'json'; data: unknown },
-      options: Record<string, unknown>,
-      callback: (err: unknown, result: { result: boolean; output: { data: unknown }[] }) => void,
-    ): void;
-  };
+const openapiToPostman = require('openapi-to-postmanv2') as {
+  convert(
+    input: { type: 'json'; data: unknown },
+    options: Record<string, unknown>,
+    callback: (err: unknown, result: { result: boolean; output: { data: unknown }[] }) => void,
+  ): void;
 };
 
 const API_URL = process.env.API_URL ?? 'http://localhost:3001';
@@ -34,28 +23,23 @@ async function getOpenApiSpec(): Promise<unknown> {
       return await res.json();
     }
   } catch {
-    // Live server not running — proceed to NestJS application bootstrap
+    // Live server not running
   }
 
-  // 2. Generate directly in-memory via NestJS Swagger DocumentBuilder
+  // 2. Generate directly in-memory via NestFactory & SwaggerModule
   console.log('⚙️  Server not running locally — bootstrapping NestJS app in-memory to generate OpenAPI spec...');
-  const { Test } = await import('@nestjs/testing');
+  const { NestFactory } = await import('@nestjs/core');
   const { DocumentBuilder, SwaggerModule } = await import('@nestjs/swagger');
   const { cleanupOpenApiDoc } = await import('nestjs-zod');
-  const { AppModule } = await import('../apps/api/src/app.module');
+  const { AppModule } = await import('../src/app.module.js');
 
   // Provide mock env vars if missing to pass ConfigModule Zod validation
-  process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://mock:mock@localhost:5432/mock';
+  process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://mock:mock@127.0.0.1:5433/hotel_system?schema=public';
   process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
   process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'mock-access-secret-at-least-32-chars-long';
   process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'mock-refresh-secret-at-least-32-chars-long';
 
-  const moduleRef = await Test.createTestingModule({
-    imports: [AppModule],
-  }).compile();
-
-  const app = moduleRef.createNestApplication();
-  await app.init();
+  const app = await NestFactory.create(AppModule, { logger: false });
 
   const config = new DocumentBuilder()
     .setTitle('YayeTech Hotel API')
@@ -76,7 +60,7 @@ async function main() {
   console.log('🔄 Converting OpenAPI spec to Postman Collection v2.1 …');
 
   await new Promise<void>((resolvePromise, reject) => {
-    Converter.convert(
+    openapiToPostman.convert(
       { type: 'json', data: openapi },
       {
         folderStrategy: 'Tags',
