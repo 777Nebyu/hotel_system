@@ -16,9 +16,17 @@ export { MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
     EmailModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: { url: config.getOrThrow<string>('redis.url') },
-      }),
+      useFactory: (config: ConfigService) => {
+        const url = config.getOrThrow<string>('redis.url');
+        const isTls = url.startsWith('rediss://') || url.includes('upstash.io');
+        return {
+          connection: {
+            url,
+            tls: isTls ? { rejectUnauthorized: false } : undefined,
+            maxRetriesPerRequest: null,
+          },
+        };
+      },
     }),
     BullModule.registerQueue({ name: MAIL_QUEUE }, { name: REMINDER_QUEUE }),
   ],

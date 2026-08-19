@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 
 FROM node:20-slim AS build
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 WORKDIR /repo
 
@@ -14,12 +15,14 @@ RUN pnpm install --frozen-lockfile
 COPY apps ./apps
 COPY packages ./packages
 
+RUN pnpm --filter api exec prisma generate
 RUN pnpm turbo run build --filter=api --output-logs=errors-only
 
 RUN pnpm --filter api deploy --prod /out/api
 RUN cp -r apps/api/dist /out/api/dist
 
 FROM node:20-slim AS runtime
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /out/api ./
