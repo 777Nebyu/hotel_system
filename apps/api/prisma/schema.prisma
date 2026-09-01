@@ -48,14 +48,25 @@ model User {
   passwordHash           String
   fullName               String
   phone                  String?
-role                   Role           @default(CUSTOMER)
-    isActive               Boolean        @default(true)
-    profilePhotoUrl        String?
+  role                   Role           @default(CUSTOMER)
+  isActive               Boolean        @default(true)
+  profilePhotoUrl        String?
   emailVerifiedAt        DateTime?
   verificationToken      String?        @unique
   resetPasswordToken     String?        @unique
   resetPasswordExpiresAt DateTime?
   refreshTokenHash       String?
+  /// Token family ID — all refresh tokens in a session share this value.
+  /// When a previously-used token is replayed (possible theft), the whole
+  /// family is invalidated by setting this field to null.
+  refreshTokenFamily     String?
+  /// Timestamp of the most recent successful login (useful for admin visibility
+  /// and dormant-account policies).
+  lastLoginAt            DateTime?
+  /// Rolling count of consecutive failed login attempts. Reset to 0 on success.
+  loginAttempts          Int            @default(0)
+  /// When set, login is rejected until this timestamp passes (account lockout).
+  lockedUntil            DateTime?
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
   hotels                 Hotel[]        @relation("HotelManager")
