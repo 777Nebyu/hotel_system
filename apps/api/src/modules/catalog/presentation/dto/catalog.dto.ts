@@ -3,6 +3,7 @@ import {
   attachAmenitySchema,
   availabilityBulkSchema,
   availabilityWindowSchema,
+  blockMaintenanceSchema,
   createHotelSchema,
   createRoomSchema,
   hotelAmenityParamsSchema,
@@ -16,6 +17,7 @@ import {
   seasonalPricingSchema,
   updateHotelSchema,
   updateRoomSchema,
+  upsertHotelPolicySchema,
 } from '@repo/shared-types';
 
 export class CreateHotelDto extends createZodDto(createHotelSchema) {}
@@ -24,13 +26,13 @@ export class CreateRoomDto extends createZodDto(createRoomSchema) {}
 export class UpdateRoomDto extends createZodDto(updateRoomSchema) {}
 export class SeasonalPricingDto extends createZodDto(seasonalPricingSchema) {}
 export class AvailabilityBulkDto extends createZodDto(availabilityBulkSchema) {}
+export class BlockMaintenanceDto extends createZodDto(blockMaintenanceSchema) {}
+export class UpsertHotelPolicyDto extends createZodDto(upsertHotelPolicySchema) {}
 export class SearchHotelsDto extends createZodDto(searchHotelsSchema) {}
 export class AvailabilityWindowDto extends createZodDto(
   availabilityWindowSchema,
 ) {}
 export class AttachAmenityDto extends createZodDto(attachAmenitySchema) {}
-
-// ----- Params -----
 
 export class HotelIdParamsDto extends createZodDto(hotelIdParamsSchema) {}
 export class RoomIdParamsDto extends createZodDto(roomIdParamsSchema) {}

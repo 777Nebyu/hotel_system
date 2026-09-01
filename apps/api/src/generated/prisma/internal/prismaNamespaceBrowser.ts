@@ -66,12 +66,15 @@ export const ModelName = {
   Booking: 'Booking',
   BookingDetail: 'BookingDetail',
   Payment: 'Payment',
+  PaymentAttempt: 'PaymentAttempt',
   Review: 'Review',
   Favorite: 'Favorite',
   Coupon: 'Coupon',
   Notification: 'Notification',
   AuditLog: 'AuditLog',
-  PlatformSetting: 'PlatformSetting'
+  PlatformSetting: 'PlatformSetting',
+  HotelPolicy: 'HotelPolicy',
+  NotificationPreference: 'NotificationPreference'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -104,8 +107,13 @@ export const UserScalarFieldEnum = {
   resetPasswordToken: 'resetPasswordToken',
   resetPasswordExpiresAt: 'resetPasswordExpiresAt',
   refreshTokenHash: 'refreshTokenHash',
+  refreshTokenFamily: 'refreshTokenFamily',
+  lastLoginAt: 'lastLoginAt',
+  loginAttempts: 'loginAttempts',
+  lockedUntil: 'lockedUntil',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  pushToken: 'pushToken'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -140,6 +148,7 @@ export const HotelScalarFieldEnum = {
   lng: 'lng',
   starRating: 'starRating',
   status: 'status',
+  rejectionReason: 'rejectionReason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -232,12 +241,14 @@ export type SeasonalPricingScalarFieldEnum = (typeof SeasonalPricingScalarFieldE
 
 export const BookingScalarFieldEnum = {
   id: 'id',
+  bookingRef: 'bookingRef',
   userId: 'userId',
   hotelId: 'hotelId',
   checkIn: 'checkIn',
   checkOut: 'checkOut',
   status: 'status',
   totalPrice: 'totalPrice',
+  bookingSource: 'bookingSource',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -264,10 +275,25 @@ export const PaymentScalarFieldEnum = {
   status: 'status',
   providerRef: 'providerRef',
   invoiceUrl: 'invoiceUrl',
+  refundAmount: 'refundAmount',
+  refundedAt: 'refundedAt',
   createdAt: 'createdAt'
 } as const
 
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
+
+
+export const PaymentAttemptScalarFieldEnum = {
+  id: 'id',
+  paymentId: 'paymentId',
+  method: 'method',
+  outcome: 'outcome',
+  providerRef: 'providerRef',
+  errorMessage: 'errorMessage',
+  attemptedAt: 'attemptedAt'
+} as const
+
+export type PaymentAttemptScalarFieldEnum = (typeof PaymentAttemptScalarFieldEnum)[keyof typeof PaymentAttemptScalarFieldEnum]
 
 
 export const ReviewScalarFieldEnum = {
@@ -341,6 +367,37 @@ export const PlatformSettingScalarFieldEnum = {
 } as const
 
 export type PlatformSettingScalarFieldEnum = (typeof PlatformSettingScalarFieldEnum)[keyof typeof PlatformSettingScalarFieldEnum]
+
+
+export const HotelPolicyScalarFieldEnum = {
+  id: 'id',
+  hotelId: 'hotelId',
+  checkInTime: 'checkInTime',
+  checkOutTime: 'checkOutTime',
+  cancellationWindowDays: 'cancellationWindowDays',
+  cancellationFeePercent: 'cancellationFeePercent',
+  allowEarlyCheckIn: 'allowEarlyCheckIn',
+  earlyCheckInFee: 'earlyCheckInFee',
+  allowLateCheckOut: 'allowLateCheckOut',
+  lateCheckOutFee: 'lateCheckOutFee',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HotelPolicyScalarFieldEnum = (typeof HotelPolicyScalarFieldEnum)[keyof typeof HotelPolicyScalarFieldEnum]
+
+
+export const NotificationPreferenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  channel: 'channel',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NotificationPreferenceScalarFieldEnum = (typeof NotificationPreferenceScalarFieldEnum)[keyof typeof NotificationPreferenceScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -56,3 +56,21 @@ export const DiscountType = {
 } as const
 
 export type DiscountType = (typeof DiscountType)[keyof typeof DiscountType]
+
+
+export const BookingSource = {
+  ONLINE: 'ONLINE',
+  WALK_IN: 'WALK_IN'
+} as const
+
+export type BookingSource = (typeof BookingSource)[keyof typeof BookingSource]
+
+
+export const HotelStatus = {
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type HotelStatus = (typeof HotelStatus)[keyof typeof HotelStatus]

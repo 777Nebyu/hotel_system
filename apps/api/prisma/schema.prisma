@@ -47,6 +47,13 @@ enum BookingSource {
   WALK_IN
 }
 
+enum HotelStatus {
+  PENDING_APPROVAL
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
 model User {
   id                     String         @id @default(cuid())
   email                  String         @unique
@@ -67,11 +74,13 @@ model User {
   lockedUntil            DateTime?
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
-  hotels                 Hotel[]        @relation("HotelManager")
+  pushToken              String?
+  hotels                 Hotel[]                  @relation("HotelManager")
   bookings               Booking[]
   reviews                Review[]
   favorites              Favorite[]
   notifications          Notification[]
+  notificationPreferences NotificationPreference[]
   auditLogs              AuditLog[]
 }
 
@@ -103,16 +112,18 @@ model Hotel {
   address     String
   lat         Float?
   lng         Float?
-  starRating  Int            @default(3)
-  status      String         @default("ACTIVE")
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  images      HotelImage[]
-  amenities   HotelAmenity[]
-  rooms       Room[]
-  bookings    Booking[]
-  reviews     Review[]
-  favorites   Favorite[]
+  starRating      Int            @default(3)
+  status          HotelStatus    @default(PENDING_APPROVAL)
+  rejectionReason String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  policy          HotelPolicy?
+  images          HotelImage[]
+  amenities       HotelAmenity[]
+  rooms           Room[]
+  bookings        Booking[]
+  reviews         Review[]
+  favorites       Favorite[]
 }
 
 model HotelImage {
@@ -334,3 +345,33 @@ model AuditLog {
     value     Json
     updatedAt DateTime @updatedAt
   }
+
+model HotelPolicy {
+  id                     String   @id @default(cuid())
+  hotelId                String   @unique
+  hotel                  Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  checkInTime            String   @default("14:00")
+  checkOutTime           String   @default("11:00")
+  cancellationWindowDays Int      @default(3)
+  cancellationFeePercent Decimal  @default(0.00) @db.Decimal(5, 2)
+  allowEarlyCheckIn      Boolean  @default(true)
+  earlyCheckInFee        Decimal  @default(0.00) @db.Decimal(10, 2)
+  allowLateCheckOut      Boolean  @default(true)
+  lateCheckOutFee        Decimal  @default(0.00) @db.Decimal(10, 2)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model NotificationPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  channel   String   @default("EMAIL")
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, type, channel])
+  @@index([userId])
+}

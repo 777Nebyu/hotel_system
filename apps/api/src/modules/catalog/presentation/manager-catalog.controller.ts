@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Req,
   UploadedFiles,
   UseInterceptors,
@@ -25,6 +26,7 @@ import { ManagerCatalogService } from '../application/manager-catalog.service';
 import {
   AttachAmenityDto,
   AvailabilityBulkDto,
+  BlockMaintenanceDto,
   CreateHotelDto,
   CreateRoomDto,
   HotelAmenityParamsDto,
@@ -37,6 +39,7 @@ import {
   SeasonalPricingParamsDto,
   UpdateHotelDto,
   UpdateRoomDto,
+  UpsertHotelPolicyDto,
 } from './dto/catalog.dto';
 
 interface AuthedRequest {
@@ -80,6 +83,27 @@ export class ManagerCatalogController {
   @ApiOperation({ summary: 'Delete a hotel' })
   deleteHotel(@Param() params: HotelIdParamsDto, @Req() req: AuthedRequest) {
     return this.manager.deleteHotel(params.id, req.user);
+  }
+
+  @Get('hotels/:id/policy')
+  @Roles(Role.MANAGER, Role.ADMIN)
+  @ApiOperation({ summary: 'Get hotel policy rules' })
+  getHotelPolicy(
+    @Param() params: HotelIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.manager.getHotelPolicy(params.id, req.user);
+  }
+
+  @Put('hotels/:id/policy')
+  @Roles(Role.MANAGER, Role.ADMIN)
+  @ApiOperation({ summary: 'Configure hotel check-in/out and cancellation policies' })
+  upsertHotelPolicy(
+    @Param() params: HotelIdParamsDto,
+    @Body() dto: UpsertHotelPolicyDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.manager.upsertHotelPolicy(params.id, dto, req.user);
   }
 
   @Post('hotels/:id/images')
@@ -300,5 +324,17 @@ export class ManagerCatalogController {
     @Req() req: AuthedRequest,
   ) {
     return this.manager.upsertAvailability(params.roomId, dto, req.user);
+  }
+
+  @Post('maintenance/block')
+  @Roles(Role.MANAGER, Role.ADMIN)
+  @ApiOperation({
+    summary: 'Block dates for room maintenance (51-availability-calendar-maintenance)',
+  })
+  blockMaintenance(
+    @Body() dto: BlockMaintenanceDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.manager.blockMaintenance(dto, req.user);
   }
 }

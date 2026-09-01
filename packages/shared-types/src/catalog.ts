@@ -16,12 +16,15 @@ export const roomStatusSchema = z.enum([
 ]);
 export type RoomStatus = z.infer<typeof roomStatusSchema>;
 
-export const hotelStatusSchema = z.enum(['ACTIVE', 'INACTIVE']);
+export const hotelStatusSchema = z.enum([
+  'PENDING_APPROVAL',
+  'ACTIVE',
+  'SUSPENDED',
+  'REJECTED',
+]);
 export type HotelStatus = z.infer<typeof hotelStatusSchema>;
 
 const id = z.string().min(1);
-
-// ----- Params -----
 
 export const hotelIdParamsSchema = z.object({ id });
 export type HotelIdParams = z.infer<typeof hotelIdParamsSchema>;
@@ -50,8 +53,6 @@ export type RoomAmenityParams = z.infer<typeof roomAmenityParamsSchema>;
 export const roomImageParamsSchema = z.object({ roomId: id, imageId: id });
 export type RoomImageParams = z.infer<typeof roomImageParamsSchema>;
 
-// ----- Management inputs -----
-
 export const createHotelSchema = z.object({
   name: z.string().min(2).max(120),
   description: z.string().min(10).max(2000),
@@ -60,12 +61,14 @@ export const createHotelSchema = z.object({
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
   starRating: z.number().int().min(1).max(5).default(3),
-  status: hotelStatusSchema.default('ACTIVE'),
+  status: hotelStatusSchema.default('PENDING_APPROVAL'),
   managerId: id.optional(),
 });
 export type CreateHotelInput = z.infer<typeof createHotelSchema>;
 
-export const updateHotelSchema = createHotelSchema.partial();
+export const updateHotelSchema = createHotelSchema.partial().extend({
+  rejectionReason: z.string().max(500).nullable().optional(),
+});
 export type UpdateHotelInput = z.infer<typeof updateHotelSchema>;
 
 export const createRoomSchema = z.object({
@@ -106,10 +109,38 @@ export const availabilityBulkSchema = z.object({
 });
 export type AvailabilityBulkInput = z.infer<typeof availabilityBulkSchema>;
 
+export const blockMaintenanceSchema = z
+  .object({
+    roomId: id.optional(),
+    roomIds: z.array(id).min(1).max(50).optional(),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+    reason: z.string().max(500).optional(),
+  })
+  .refine((d) => d.endDate >= d.startDate, {
+    message: 'endDate must be on or after startDate',
+    path: ['endDate'],
+  })
+  .refine((d) => Boolean(d.roomId || (d.roomIds && d.roomIds.length > 0)), {
+    message: 'Either roomId or roomIds must be provided',
+    path: ['roomId'],
+  });
+export type BlockMaintenanceInput = z.infer<typeof blockMaintenanceSchema>;
+
+export const upsertHotelPolicySchema = z.object({
+  checkInTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Must be HH:mm').default('14:00'),
+  checkOutTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Must be HH:mm').default('11:00'),
+  cancellationWindowDays: z.coerce.number().int().min(0).max(90).default(3),
+  cancellationFeePercent: z.coerce.number().min(0).max(100).default(0),
+  allowEarlyCheckIn: z.boolean().default(true),
+  earlyCheckInFee: z.coerce.number().min(0).default(0),
+  allowLateCheckOut: z.boolean().default(true),
+  lateCheckOutFee: z.coerce.number().min(0).default(0),
+});
+export type UpsertHotelPolicyInput = z.infer<typeof upsertHotelPolicySchema>;
+
 export const attachAmenitySchema = z.object({ amenityId: id });
 export type AttachAmenityInput = z.infer<typeof attachAmenitySchema>;
-
-// ----- Public search -----
 
 export const hotelSortSchema = z.enum([
   'price_asc',
@@ -158,8 +189,6 @@ export const availabilityWindowSchema = z
     path: ['checkOut'],
   });
 export type AvailabilityWindow = z.infer<typeof availabilityWindowSchema>;
-
-// ----- Shared response shape -----
 
 export interface Paginated<T> {
   data: T[];

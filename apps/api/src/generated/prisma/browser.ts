@@ -93,6 +93,11 @@ export type BookingDetail = Prisma.BookingDetailModel
  */
 export type Payment = Prisma.PaymentModel
 /**
+ * Model PaymentAttempt
+ * 
+ */
+export type PaymentAttempt = Prisma.PaymentAttemptModel
+/**
  * Model Review
  * 
  */
@@ -122,3 +127,13 @@ export type AuditLog = Prisma.AuditLogModel
  * 
  */
 export type PlatformSetting = Prisma.PlatformSettingModel
+/**
+ * Model HotelPolicy
+ * 
+ */
+export type HotelPolicy = Prisma.HotelPolicyModel
+/**
+ * Model NotificationPreference
+ * 
+ */
+export type NotificationPreference = Prisma.NotificationPreferenceModel

@@ -34,36 +34,55 @@ export class NotificationsListener {
     const total = booking.totalPrice.toNumber();
     const payload = {
       bookingId: booking.id,
+      bookingRef: booking.bookingRef,
       hotelName: booking.hotel.name,
       checkIn: booking.checkIn.toISOString().slice(0, 10),
       checkOut: booking.checkOut.toISOString().slice(0, 10),
       total,
     };
-    await this.notifyAndEmail(
+
+    await this.dispatchAllChannels(
       booking.userId,
-      booking.user.email,
       NOTIFICATION_TYPES.BOOKING_CREATED,
       payload,
-      `Booking request received at ${booking.hotel.name}`,
-      `<p>Your booking at <strong>${booking.hotel.name}</strong> has been received and is awaiting confirmation.</p><p>Total (incl. 5% service fee): $${total.toFixed(2)}</p>`,
     );
+
+    await this.mail.enqueueBookingConfirmation(booking.user.email, {
+      bookingRef: booking.bookingRef,
+      hotelName: booking.hotel.name,
+      checkIn: booking.checkIn.toISOString().slice(0, 10),
+      checkOut: booking.checkOut.toISOString().slice(0, 10),
+      total,
+    });
   }
 
   @OnEvent(BookingEventNames.CANCELLED)
   async onBookingCancelled(event: BookingCancelledEvent) {
     const booking = await this.db.booking.findUnique({
       where: { id: event.bookingId },
-      include: { user: true, hotel: { select: { name: true } } },
+      include: {
+        user: true,
+        hotel: { select: { name: true } },
+        payment: true,
+      },
     });
     if (!booking) return;
-    await this.notifyAndEmail(
+    const payload = {
+      bookingId: booking.id,
+      bookingRef: booking.bookingRef,
+      hotelName: booking.hotel.name,
+    };
+
+    await this.dispatchAllChannels(
       booking.userId,
-      booking.user.email,
       NOTIFICATION_TYPES.BOOKING_CANCELLATION,
-      { bookingId: booking.id, hotelName: booking.hotel.name },
-      `Booking cancelled at ${booking.hotel.name}`,
-      `<p>Your booking at <strong>${booking.hotel.name}</strong> has been cancelled.</p>`,
+      payload,
     );
+
+    await this.mail.enqueueBookingCancellation(booking.user.email, {
+      bookingRef: booking.bookingRef,
+      refundAmount: booking.payment?.refundAmount?.toNumber(),
+    });
   }
 
   @OnEvent(PaymentEventNames.COMPLETED)
@@ -76,19 +95,27 @@ export class NotificationsListener {
     });
     if (!payment) return;
     const amount = payment.amount.toNumber();
-    await this.notifyAndEmail(
+    const payload = {
+      bookingId: payment.bookingId,
+      bookingRef: payment.booking.bookingRef,
+      hotelName: payment.booking.hotel.name,
+      amount,
+      method: payment.method,
+      providerRef: payment.providerRef,
+    };
+
+    await this.dispatchAllChannels(
       payment.booking.userId,
-      payment.booking.user.email,
-      NOTIFICATION_TYPES.PAYMENT_REFUNDED,
-      {
-        bookingId: payment.bookingId,
-        hotelName: payment.booking.hotel.name,
-        amount,
-        method: payment.method,
-      },
-      `Payment received - $${amount.toFixed(2)}`,
-      `<p>Your payment of <strong>$${amount.toFixed(2)}</strong> for ${payment.booking.hotel.name} was received.</p>`,
+      NOTIFICATION_TYPES.PAYMENT_RECEIVED,
+      payload,
     );
+
+    await this.mail.enqueuePaymentReceipt(payment.booking.user.email, {
+      bookingRef: payment.booking.bookingRef,
+      amount,
+      method: payment.method,
+      providerRef: payment.providerRef,
+    });
   }
 
   @OnEvent(PaymentEventNames.REFUNDED)
@@ -99,35 +126,45 @@ export class NotificationsListener {
     });
     if (!booking) return;
     const amount = event.amount;
-    await this.notifyAndEmail(
+    const payload = {
+      bookingId: booking.id,
+      bookingRef: booking.bookingRef,
+      hotelName: booking.hotel.name,
+      amount,
+      method: event.method,
+    };
+
+    await this.dispatchAllChannels(
       booking.userId,
-      booking.user.email,
-      NOTIFICATION_TYPES.PAYMENT_RECEIVED,
-      {
-        bookingId: booking.id,
-        hotelName: booking.hotel.name,
-        amount,
-        method: event.method,
-      },
-      `Refund issued - $${amount.toFixed(2)}`,
-      `<p>Your payment of <strong>$${amount.toFixed(2)}</strong> for ${booking.hotel.name} has been refunded.</p>`,
+      NOTIFICATION_TYPES.PAYMENT_REFUNDED,
+      payload,
     );
   }
 
-  private async notifyAndEmail(
+  private async dispatchAllChannels(
     userId: string,
-    to: string,
     type: string,
     payload: Prisma.InputJsonValue,
-    subject: string,
-    html: string,
   ) {
-    await this.notifications.notify({
-      userId,
-      type,
-      channel: NOTIFICATION_CHANNELS.EMAIL,
-      payload,
-    });
-    await this.mail.enqueue({ to, subject, html });
+    await Promise.all([
+      this.notifications.notify({
+        userId,
+        type,
+        channel: NOTIFICATION_CHANNELS.IN_APP,
+        payload,
+      }),
+      this.notifications.notify({
+        userId,
+        type,
+        channel: NOTIFICATION_CHANNELS.EMAIL,
+        payload,
+      }),
+      this.notifications.notify({
+        userId,
+        type,
+        channel: NOTIFICATION_CHANNELS.PUSH,
+        payload,
+      }),
+    ]);
   }
 }

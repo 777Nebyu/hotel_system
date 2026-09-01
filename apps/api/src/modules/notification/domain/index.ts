@@ -13,4 +13,5 @@ export const NOTIFICATION_TYPES = {
 export const NOTIFICATION_CHANNELS = {
   EMAIL: 'EMAIL',
   PUSH: 'PUSH',
+  IN_APP: 'IN_APP',
 } as const;

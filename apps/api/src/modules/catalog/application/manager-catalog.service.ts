@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '../../../generated/prisma/client';
+import { HotelStatus, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
 import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
@@ -15,11 +15,13 @@ import {
 } from '../../../common/storage/storage';
 import type {
   AvailabilityBulkInput,
+  BlockMaintenanceInput,
   CreateHotelInput,
   CreateRoomInput,
   SeasonalPricingInput,
   UpdateHotelInput,
   UpdateRoomInput,
+  UpsertHotelPolicyInput,
 } from '@repo/shared-types';
 
 export interface CatalogActor {
@@ -37,8 +39,6 @@ export class ManagerCatalogService {
     private readonly storage: StorageService,
   ) {}
 
-  // ----- hotels -----
-
   async myHotels(userId: string) {
     return this.db.hotel.findMany({
       where: { managerId: userId },
@@ -46,6 +46,7 @@ export class ManagerCatalogService {
       include: {
         city: { include: { country: true } },
         images: true,
+        policy: true,
         _count: { select: { bookings: true, rooms: true } },
       },
     });
@@ -55,6 +56,11 @@ export class ManagerCatalogService {
     await this.assertCityExists(dto.cityId);
     const managerId =
       actor.role === 'ADMIN' ? (dto.managerId ?? null) : actor.sub;
+    const initialStatus =
+      actor.role === 'ADMIN' && dto.status
+        ? (dto.status as HotelStatus)
+        : HotelStatus.PENDING_APPROVAL;
+
     const hotel = await this.db.hotel.create({
       data: {
         name: dto.name,
@@ -64,16 +70,18 @@ export class ManagerCatalogService {
         lat: dto.lat,
         lng: dto.lng,
         starRating: dto.starRating ?? 3,
-        status: dto.status ?? 'ACTIVE',
+        status: initialStatus,
         managerId,
       },
       include: {
         city: { include: { country: true } },
         images: true,
+        policy: true,
       },
     });
     await this.audit.record(actor.sub, 'hotel.create', 'Hotel', hotel.id, {
       name: hotel.name,
+      status: hotel.status,
     });
     return hotel;
   }
@@ -88,7 +96,12 @@ export class ManagerCatalogService {
     if (dto.lat !== undefined) data.lat = dto.lat;
     if (dto.lng !== undefined) data.lng = dto.lng;
     if (dto.starRating !== undefined) data.starRating = dto.starRating;
-    if (dto.status !== undefined) data.status = dto.status;
+    if (dto.status !== undefined && actor.role === 'ADMIN') {
+      data.status = dto.status as HotelStatus;
+    }
+    if (dto.rejectionReason !== undefined && actor.role === 'ADMIN') {
+      data.rejectionReason = dto.rejectionReason;
+    }
     if (dto.managerId !== undefined && actor.role === 'ADMIN') {
       data.manager = { connect: { id: dto.managerId } };
     }
@@ -98,6 +111,7 @@ export class ManagerCatalogService {
       include: {
         city: { include: { country: true } },
         images: true,
+        policy: true,
       },
     });
     await this.audit.record(
@@ -112,157 +126,218 @@ export class ManagerCatalogService {
 
   async deleteHotel(id: string, actor: CatalogActor) {
     await this.assertCanManage(id, actor);
-    const bookings = await this.db.hotel
-      .findUnique({ where: { id } })
-      .bookings({ select: { id: true } });
-    if ((bookings?.length ?? 0) > 0) {
-      throw new ConflictException('Hotel has bookings and cannot be deleted');
-    }
     await this.db.hotel.delete({ where: { id } });
-    await this.audit.record(actor.sub, 'hotel.delete', 'Hotel', id);
+    await this.audit.record(actor.sub, 'hotel.delete', 'Hotel', id, {});
     return { deleted: true };
   }
 
-  // ----- hotel images -----
+  async getHotelPolicy(hotelId: string, actor: CatalogActor) {
+    await this.assertCanManage(hotelId, actor);
+    const policy = await this.db.hotelPolicy.findUnique({
+      where: { hotelId },
+    });
+    if (!policy) {
+      return {
+        hotelId,
+        checkInTime: '14:00',
+        checkOutTime: '11:00',
+        cancellationWindowDays: 3,
+        cancellationFeePercent: 0,
+        allowEarlyCheckIn: true,
+        earlyCheckInFee: 0,
+        allowLateCheckOut: true,
+        lateCheckOutFee: 0,
+      };
+    }
+    return policy;
+  }
+
+  async upsertHotelPolicy(
+    hotelId: string,
+    dto: UpsertHotelPolicyInput,
+    actor: CatalogActor,
+  ) {
+    await this.assertCanManage(hotelId, actor);
+    const policy = await this.db.hotelPolicy.upsert({
+      where: { hotelId },
+      create: {
+        hotelId,
+        checkInTime: dto.checkInTime,
+        checkOutTime: dto.checkOutTime,
+        cancellationWindowDays: dto.cancellationWindowDays,
+        cancellationFeePercent: dto.cancellationFeePercent,
+        allowEarlyCheckIn: dto.allowEarlyCheckIn,
+        earlyCheckInFee: dto.earlyCheckInFee,
+        allowLateCheckOut: dto.allowLateCheckOut,
+        lateCheckOutFee: dto.lateCheckOutFee,
+      },
+      update: {
+        checkInTime: dto.checkInTime,
+        checkOutTime: dto.checkOutTime,
+        cancellationWindowDays: dto.cancellationWindowDays,
+        cancellationFeePercent: dto.cancellationFeePercent,
+        allowEarlyCheckIn: dto.allowEarlyCheckIn,
+        earlyCheckInFee: dto.earlyCheckInFee,
+        allowLateCheckOut: dto.allowLateCheckOut,
+        lateCheckOutFee: dto.lateCheckOutFee,
+      },
+    });
+    await this.audit.record(
+      actor.sub,
+      'hotel.policy.update',
+      'HotelPolicy',
+      policy.id,
+      dto as unknown as Prisma.InputJsonValue,
+    );
+    return policy;
+  }
 
   async addHotelImages(
-    id: string,
+    hotelId: string,
     files: Express.Multer.File[],
     actor: CatalogActor,
   ) {
-    await this.assertCanManage(id, actor);
-    const created: { id: string; url: string; isPrimary: boolean }[] = [];
-    for (const file of files) {
-      const stored = await this.storage.upload(file, 'hotels');
-      const image = await this.db.hotelImage.create({
-        data: { hotelId: id, url: stored.url },
-      });
-      created.push({
-        id: image.id,
-        url: image.url,
-        isPrimary: image.isPrimary,
+    await this.assertCanManage(hotelId, actor);
+    if (!files.length) return [];
+    const hasPrimary = await this.db.hotelImage.findFirst({
+      where: { hotelId, isPrimary: true },
+      select: { id: true },
+    });
+    const records: { hotelId: string; url: string; isPrimary: boolean }[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const uploaded = await this.storage.upload(files[i], 'hotels');
+      records.push({
+        hotelId,
+        url: uploaded.url,
+        isPrimary: !hasPrimary && i === 0,
       });
     }
-    return created;
+    await this.db.hotelImage.createMany({ data: records });
+    return this.db.hotelImage.findMany({ where: { hotelId } });
   }
 
-  async setPrimaryHotelImage(id: string, imageId: string, actor: CatalogActor) {
-    await this.assertCanManage(id, actor);
-    const image = await this.db.hotelImage.findFirst({
-      where: { id: imageId, hotelId: id },
-    });
-    if (!image) throw new NotFoundException('Image not found');
+  async setPrimaryHotelImage(
+    hotelId: string,
+    imageId: string,
+    actor: CatalogActor,
+  ) {
+    await this.assertCanManage(hotelId, actor);
     await this.db.$transaction([
       this.db.hotelImage.updateMany({
-        where: { hotelId: id },
+        where: { hotelId },
         data: { isPrimary: false },
       }),
       this.db.hotelImage.update({
-        where: { id: image.id },
+        where: { id: imageId, hotelId },
         data: { isPrimary: true },
       }),
     ]);
-    return { primaryImageId: image.id };
+    return { success: true };
   }
 
-  async removeHotelImage(id: string, imageId: string, actor: CatalogActor) {
-    await this.assertCanManage(id, actor);
-    const image = await this.db.hotelImage.findFirst({
-      where: { id: imageId, hotelId: id },
-    });
-    if (!image) throw new NotFoundException('Image not found');
-    await this.storage.remove({ url: image.url, publicId: null });
-    await this.db.hotelImage.delete({ where: { id: image.id } });
+  async removeHotelImage(
+    hotelId: string,
+    imageId: string,
+    actor: CatalogActor,
+  ) {
+    await this.assertCanManage(hotelId, actor);
+    const img = await this.db.hotelImage.findUnique({ where: { id: imageId } });
+    if (img) {
+      await this.storage.remove({ url: img.url, publicId: null });
+      await this.db.hotelImage.delete({ where: { id: imageId } });
+    }
     return { deleted: true };
   }
 
-  // ----- hotel amenities -----
-
-  async attachHotelAmenity(id: string, amenityId: string, actor: CatalogActor) {
-    await this.assertCanManage(id, actor);
+  async attachHotelAmenity(
+    hotelId: string,
+    amenityId: string,
+    actor: CatalogActor,
+  ) {
+    await this.assertCanManage(hotelId, actor);
     await this.assertAmenityExists(amenityId);
-    return this.db.hotelAmenity.upsert({
-      where: { hotelId_amenityId: { hotelId: id, amenityId } },
-      create: { hotelId: id, amenityId },
-      update: {},
-      include: { amenity: true },
-    });
+    try {
+      return await this.db.hotelAmenity.create({
+        data: { hotelId, amenityId },
+      });
+    } catch (e) {
+      if (this.isUniqueViolation(e)) {
+        throw new ConflictException('Amenity already attached to hotel');
+      }
+      throw e;
+    }
   }
 
-  async detachHotelAmenity(id: string, amenityId: string, actor: CatalogActor) {
-    await this.assertCanManage(id, actor);
+  async detachHotelAmenity(
+    hotelId: string,
+    amenityId: string,
+    actor: CatalogActor,
+  ) {
+    await this.assertCanManage(hotelId, actor);
     await this.db.hotelAmenity.delete({
-      where: { hotelId_amenityId: { hotelId: id, amenityId } },
+      where: { hotelId_amenityId: { hotelId, amenityId } },
     });
     return { deleted: true };
   }
 
-  // ----- rooms -----
-
-  async createRoom(hotelId: string, dto: CreateRoomInput, actor: CatalogActor) {
+  async createRoom(
+    hotelId: string,
+    dto: CreateRoomInput,
+    actor: CatalogActor,
+  ) {
     await this.assertCanManage(hotelId, actor);
     try {
-      const room = await this.db.room.create({
+      return await this.db.room.create({
         data: {
           hotelId,
           roomNumber: dto.roomNumber,
           type: dto.type,
           capacity: dto.capacity,
-          beds: dto.beds ?? 1,
-          bathroom: dto.bathroom ?? 1,
+          beds: dto.beds,
+          bathroom: dto.bathroom,
           basePrice: dto.basePrice,
-          status: dto.status ?? 'AVAILABLE',
+          status: dto.status,
           description: dto.description,
         },
-        include: { images: true },
       });
-      await this.audit.record(actor.sub, 'room.create', 'Room', room.id, {
-        roomNumber: room.roomNumber,
-      });
-      return room;
-    } catch (error) {
-      if (this.isUniqueViolation(error)) {
+    } catch (e) {
+      if (this.isUniqueViolation(e)) {
         throw new ConflictException(
-          `A room with number "${dto.roomNumber}" already exists`,
+          `Room "${dto.roomNumber}" already exists in this hotel`,
         );
       }
-      throw error;
+      throw e;
     }
   }
 
   async updateRoom(roomId: string, dto: UpdateRoomInput, actor: CatalogActor) {
-    const room = await this.getManagedRoom(roomId, actor);
-    const updated = await this.db.room.update({
-      where: { id: room.id },
-      data: dto,
-      include: { images: true },
-    });
-    await this.audit.record(
-      actor.sub,
-      'room.update',
-      'Room',
-      room.id,
-      dto as unknown as Prisma.InputJsonValue,
-    );
-    return updated;
+    await this.assertCanManageRoom(roomId, actor);
+    const data: Prisma.RoomUpdateInput = {};
+    if (dto.roomNumber !== undefined) data.roomNumber = dto.roomNumber;
+    if (dto.type !== undefined) data.type = dto.type;
+    if (dto.capacity !== undefined) data.capacity = dto.capacity;
+    if (dto.beds !== undefined) data.beds = dto.beds;
+    if (dto.bathroom !== undefined) data.bathroom = dto.bathroom;
+    if (dto.basePrice !== undefined) data.basePrice = dto.basePrice;
+    if (dto.status !== undefined) data.status = dto.status;
+    if (dto.description !== undefined) data.description = dto.description;
+    try {
+      return await this.db.room.update({ where: { id: roomId }, data });
+    } catch (e) {
+      if (this.isUniqueViolation(e)) {
+        throw new ConflictException(
+          `Room "${dto.roomNumber}" already exists in this hotel`,
+        );
+      }
+      throw e;
+    }
   }
 
   async deleteRoom(roomId: string, actor: CatalogActor) {
-    const room = await this.getManagedRoom(roomId, actor);
-    const details = await this.db.bookingDetail.count({
-      where: { roomId: room.id },
-    });
-    if (details > 0) {
-      throw new ConflictException(
-        'Room is referenced by bookings and cannot be deleted',
-      );
-    }
-    await this.db.room.delete({ where: { id: room.id } });
-    await this.audit.record(actor.sub, 'room.delete', 'Room', room.id);
+    await this.assertCanManageRoom(roomId, actor);
+    await this.db.room.delete({ where: { id: roomId } });
     return { deleted: true };
   }
-
-  // ----- room images -----
 
   async addRoomImages(
     roomId: string,
@@ -270,19 +345,22 @@ export class ManagerCatalogService {
     actor: CatalogActor,
   ) {
     await this.assertCanManageRoom(roomId, actor);
-    const created: { id: string; url: string; isPrimary: boolean }[] = [];
-    for (const file of files) {
-      const stored = await this.storage.upload(file, 'rooms');
-      const image = await this.db.roomImage.create({
-        data: { roomId, url: stored.url },
-      });
-      created.push({
-        id: image.id,
-        url: image.url,
-        isPrimary: image.isPrimary,
+    if (!files.length) return [];
+    const hasPrimary = await this.db.roomImage.findFirst({
+      where: { roomId, isPrimary: true },
+      select: { id: true },
+    });
+    const records: { roomId: string; url: string; isPrimary: boolean }[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const uploaded = await this.storage.upload(files[i], 'rooms');
+      records.push({
+        roomId,
+        url: uploaded.url,
+        isPrimary: !hasPrimary && i === 0,
       });
     }
-    return created;
+    await this.db.roomImage.createMany({ data: records });
+    return this.db.roomImage.findMany({ where: { roomId } });
   }
 
   async setPrimaryRoomImage(
@@ -291,35 +369,32 @@ export class ManagerCatalogService {
     actor: CatalogActor,
   ) {
     await this.assertCanManageRoom(roomId, actor);
-    const image = await this.db.roomImage.findFirst({
-      where: { id: imageId, roomId },
-    });
-    if (!image) throw new NotFoundException('Image not found');
     await this.db.$transaction([
       this.db.roomImage.updateMany({
         where: { roomId },
         data: { isPrimary: false },
       }),
       this.db.roomImage.update({
-        where: { id: image.id },
+        where: { id: imageId, roomId },
         data: { isPrimary: true },
       }),
     ]);
-    return { primaryImageId: image.id };
+    return { success: true };
   }
 
-  async removeRoomImage(roomId: string, imageId: string, actor: CatalogActor) {
+  async removeRoomImage(
+    roomId: string,
+    imageId: string,
+    actor: CatalogActor,
+  ) {
     await this.assertCanManageRoom(roomId, actor);
-    const image = await this.db.roomImage.findFirst({
-      where: { id: imageId, roomId },
-    });
-    if (!image) throw new NotFoundException('Image not found');
-    await this.storage.remove({ url: image.url, publicId: null });
-    await this.db.roomImage.delete({ where: { id: image.id } });
+    const img = await this.db.roomImage.findUnique({ where: { id: imageId } });
+    if (img) {
+      await this.storage.remove({ url: img.url, publicId: null });
+      await this.db.roomImage.delete({ where: { id: imageId } });
+    }
     return { deleted: true };
   }
-
-  // ----- room amenities -----
 
   async attachRoomAmenity(
     roomId: string,
@@ -328,12 +403,16 @@ export class ManagerCatalogService {
   ) {
     await this.assertCanManageRoom(roomId, actor);
     await this.assertAmenityExists(amenityId);
-    return this.db.roomAmenity.upsert({
-      where: { roomId_amenityId: { roomId, amenityId } },
-      create: { roomId, amenityId },
-      update: {},
-      include: { amenity: true },
-    });
+    try {
+      return await this.db.roomAmenity.create({
+        data: { roomId, amenityId },
+      });
+    } catch (e) {
+      if (this.isUniqueViolation(e)) {
+        throw new ConflictException('Amenity already attached to room');
+      }
+      throw e;
+    }
   }
 
   async detachRoomAmenity(
@@ -347,8 +426,6 @@ export class ManagerCatalogService {
     });
     return { deleted: true };
   }
-
-  // ----- seasonal pricing -----
 
   async upsertSeasonalPricing(
     roomId: string,
@@ -372,15 +449,11 @@ export class ManagerCatalogService {
     actor: CatalogActor,
   ) {
     await this.assertCanManageRoom(roomId, actor);
-    const pricing = await this.db.seasonalPricing.findFirst({
+    await this.db.seasonalPricing.delete({
       where: { id: pricingId, roomId },
     });
-    if (!pricing) throw new NotFoundException('Seasonal pricing not found');
-    await this.db.seasonalPricing.delete({ where: { id: pricing.id } });
     return { deleted: true };
   }
-
-  // ----- availability -----
 
   async upsertAvailability(
     roomId: string,
@@ -400,7 +473,73 @@ export class ManagerCatalogService {
     return { updated: dto.dates.length };
   }
 
-  // ----- shared room-scoped helpers -----
+  async blockMaintenance(dto: BlockMaintenanceInput, actor: CatalogActor) {
+    const roomIds = dto.roomIds && dto.roomIds.length > 0
+      ? dto.roomIds
+      : dto.roomId
+        ? [dto.roomId]
+        : [];
+
+    if (!roomIds.length) {
+      throw new BadRequestException('No room specified for maintenance blocking');
+    }
+
+    for (const rid of roomIds) {
+      await this.assertCanManageRoom(rid, actor);
+    }
+
+    const startDate = new Date(dto.startDate);
+    const endDate = new Date(dto.endDate);
+
+    const conflictingBookings = await this.db.bookingDetail.findMany({
+      where: {
+        roomId: { in: roomIds },
+        booking: {
+          status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+          checkIn: { lt: endDate },
+          checkOut: { gt: startDate },
+        },
+      },
+      include: {
+        room: { select: { roomNumber: true } },
+      },
+    });
+
+    if (conflictingBookings.length > 0) {
+      const roomNums = Array.from(
+        new Set(conflictingBookings.map((cb) => cb.room.roomNumber)),
+      );
+      throw new ConflictException(
+        `Cannot block maintenance: Room(s) ${roomNums.join(', ')} have active bookings in the selected date range`,
+      );
+    }
+
+    const dates: Date[] = [];
+    const current = new Date(startDate);
+    while (current <= endDate) {
+      dates.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+
+    await this.db.$transaction(
+      roomIds.flatMap((roomId) =>
+        dates.map((date) =>
+          this.db.roomAvailability.upsert({
+            where: { roomId_date: { roomId, date } },
+            create: { roomId, date, status: 'MAINTENANCE' },
+            update: { status: 'MAINTENANCE' },
+          }),
+        ),
+      ),
+    );
+
+    return {
+      success: true,
+      blockedRooms: roomIds.length,
+      blockedDatesPerRoom: dates.length,
+      totalEntries: roomIds.length * dates.length,
+    };
+  }
 
   private async assertCanManage(
     hotelId: string,
@@ -419,13 +558,6 @@ export class ManagerCatalogService {
     });
     if (!room) throw new NotFoundException('Room not found');
     await this.assertCanManage(room.hotelId, actor);
-  }
-
-  private async getManagedRoom(roomId: string, actor: CatalogActor) {
-    const room = await this.db.room.findUnique({ where: { id: roomId } });
-    if (!room) throw new NotFoundException('Room not found');
-    await this.assertCanManage(room.hotelId, actor);
-    return room;
   }
 
   private async assertCityExists(cityId: string): Promise<void> {

@@ -64,10 +64,6 @@ describe('IdentityService', () => {
   };
 
   beforeEach(() => {
-    // Reset call counts on the module-level bcrypt mock so assertions like
-    // "expect(bcrypt.compare).not.toHaveBeenCalled()" are scoped to the
-    // current test only. clearAllMocks() preserves mock implementations
-    // (mockResolvedValue set in jest.mock factory) while wiping call history.
     jest.clearAllMocks();
 
     db = {

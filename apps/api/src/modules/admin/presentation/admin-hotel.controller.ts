@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   Req,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { AdminHotelService } from '../application/admin-hotel.service';
 import {
   AdminHotelsQueryDto,
   ReassignManagerDto,
+  RejectHotelDto,
   UpdateHotelStatusDto,
 } from './dto/admin.dto';
 
@@ -37,6 +39,24 @@ export class AdminHotelController {
   @ApiOperation({ summary: 'List all hotels with status filters' })
   list(@Query() query: AdminHotelsQueryDto) {
     return this.hotels.list(query);
+  }
+
+  @Post(':id/approve')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Approve a hotel listing' })
+  approve(@Param() params: HotelIdParamsDto, @Req() req: AuthedRequest) {
+    return this.hotels.approve(params.id, req.user.sub);
+  }
+
+  @Post(':id/reject')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Reject a hotel listing with reason' })
+  reject(
+    @Param() params: HotelIdParamsDto,
+    @Body() dto: RejectHotelDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.hotels.reject(params.id, dto.reason, req.user.sub);
   }
 
   @Patch(':id/status')

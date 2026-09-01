@@ -26,30 +26,14 @@ import { MailProducer } from '../../jobs/mail.producer';
 import { SafeUser, SENSITIVE_USER_FIELDS } from '../domain';
 
 const BCRYPT_ROUNDS = 12;
-
-/** Maximum consecutive failed login attempts before an account is locked. */
 const MAX_LOGIN_ATTEMPTS = 10;
-
-/** How long (ms) a locked account must wait before it can retry. */
-const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
-
-// ─── JWT payload ────────────────────────────────────────────────────────────
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 
 interface JwtPayload {
   sub: string;
   email: string;
   role: User['role'];
-  /**
-   * The managed hotel ID — present only when role === 'MANAGER'.
-   * Every downstream RBAC / resource-scope guard that needs to verify hotel
-   * ownership reads this field instead of making an extra DB query.
-   */
   hotelId?: string;
-  /**
-   * Token family ID. All refresh tokens issued within one session carry the
-   * same family value. Replaying a used token (= possible theft) causes the
-   * entire family to be revoked.
-   */
   family: string;
 }
 
@@ -70,8 +54,6 @@ export class IdentityService {
     private readonly storage: StorageService,
   ) {}
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────
-
   private safeUser(user: User): SafeUser<User> {
     const safe: Record<string, unknown> = { ...user };
     for (const field of SENSITIVE_USER_FIELDS) {
@@ -80,10 +62,6 @@ export class IdentityService {
     return safe as SafeUser<User>;
   }
 
-  /**
-   * Resolves the hotel ID for a MANAGER role. Returns `undefined` for every
-   * other role so the JWT payload stays lean.
-   */
   private async resolveHotelId(
     userId: string,
     role: User['role'],
@@ -96,11 +74,6 @@ export class IdentityService {
     return hotel?.id;
   }
 
-  /**
-   * Signs a fresh access + refresh token pair and persists the refresh-token
-   * hash + family ID to the DB. The family ID is either generated fresh (new
-   * login / register) or forwarded from the previous token (rotation).
-   */
   private async issueTokens(
     user: Pick<User, 'id' | 'email' | 'role'>,
     family?: string,
@@ -141,8 +114,6 @@ export class IdentityService {
     return { accessToken, refreshToken };
   }
 
-  // ─── Public methods ───────────────────────────────────────────────────────
-
   async register(dto: RegisterInput): Promise<AuthResult> {
     const email = dto.email.toLowerCase();
     const existing = await this.db.user.findUnique({ where: { email } });
@@ -160,7 +131,6 @@ export class IdentityService {
       },
     });
 
-    // Fire-and-forget — email delivery must never block registration
     void this.mail.enqueueVerification(email, verificationToken);
 
     return { user: this.safeUser(user), ...(await this.issueTokens(user)) };
@@ -171,19 +141,15 @@ export class IdentityService {
       where: { email: dto.email.toLowerCase() },
     });
 
-    // ── Account lockout check ─────────────────────────────────────────────
     if (user?.lockedUntil && user.lockedUntil > new Date()) {
-      // Do NOT reveal lock reason — same generic message prevents enumeration.
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // ── Credential validation ─────────────────────────────────────────────
     const passwordValid =
       user !== null &&
       (await bcrypt.compare(dto.password, user.passwordHash));
 
     if (!user || !passwordValid) {
-      // Increment failed-attempt counter and potentially lock the account.
       if (user) {
         const attempts = user.loginAttempts + 1;
         const lockedUntil =
@@ -198,12 +164,10 @@ export class IdentityService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // ── Suspended / deactivated account ──────────────────────────────────
     if (!user.isActive) {
       throw new ForbiddenException('This account is not active');
     }
 
-    // ── Success — reset counters and update last-login timestamp ──────────
     await this.db.user.update({
       where: { id: user.id },
       data: {
@@ -228,17 +192,12 @@ export class IdentityService {
 
     const user = await this.db.user.findUnique({ where: { id: payload.sub } });
 
-    // ── Verify the stored hash matches ────────────────────────────────────
     const tokenValid =
       user !== null &&
       user.refreshTokenHash !== null &&
       (await bcrypt.compare(refreshToken, user.refreshTokenHash));
 
     if (!user || !tokenValid) {
-      // ── Compromise detection: token was already rotated out ───────────
-      // The family from the incoming token no longer matches what's stored —
-      // this means someone is replaying an old token. Revoke the entire family
-      // by clearing both the hash and the family ID.
       if (user && payload.family && user.refreshTokenFamily !== null) {
         await this.db.user.update({
           where: { id: user.id },
@@ -248,10 +207,7 @@ export class IdentityService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    // ── Check that the family ID matches (extra guard) ────────────────────
     if (user.refreshTokenFamily !== payload.family) {
-      // Family mismatch after hash match is theoretically impossible, but handle
-      // it defensively as a full revocation.
       await this.db.user.update({
         where: { id: user.id },
         data: { refreshTokenHash: null, refreshTokenFamily: null },
@@ -259,12 +215,10 @@ export class IdentityService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    // ── Suspended / deactivated account ──────────────────────────────────
     if (!user.isActive) {
       throw new ForbiddenException('This account is not active');
     }
 
-    // Rotate: forward the same family so compromise detection still works.
     return {
       user: this.safeUser(user),
       ...(await this.issueTokens(user, payload.family)),
@@ -350,7 +304,6 @@ export class IdentityService {
         },
       });
 
-      // Fire-and-forget — email delivery must never block the response
       void this.mail.enqueuePasswordReset(user.email, resetPasswordToken);
     }
     return { message: 'If the account exists, a reset email will be sent' };
@@ -375,10 +328,8 @@ export class IdentityService {
         passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS),
         resetPasswordToken: null,
         resetPasswordExpiresAt: null,
-        // Revoke all active sessions so a password change ends existing logins.
         refreshTokenHash: null,
         refreshTokenFamily: null,
-        // Reset lockout state so the user can log in immediately after reset.
         loginAttempts: 0,
         lockedUntil: null,
       },

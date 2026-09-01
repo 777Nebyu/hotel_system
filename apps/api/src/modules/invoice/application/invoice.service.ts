@@ -66,7 +66,7 @@ export class InvoiceService {
   }
 
   private async renderPdf(
-    booking: Awaited<ReturnType<InvoiceService['fetchBooking']>>,
+    booking: NonNullable<Awaited<ReturnType<InvoiceService['fetchBooking']>>>,
     invoiceNo: string,
     created: string,
     payment: { method: string; status: string; providerRef?: string | null } | null,

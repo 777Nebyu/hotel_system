@@ -36,4 +36,39 @@ export class MailProducer {
   enqueuePasswordReset(to: string, token: string): Promise<void> {
     return this.enqueue(this.email.passwordResetMail(to, token));
   }
+
+  enqueueBookingConfirmation(
+    to: string,
+    details: {
+      bookingRef: string;
+      hotelName: string;
+      checkIn: string;
+      checkOut: string;
+      total: number;
+    },
+  ): Promise<void> {
+    return this.enqueue(this.email.bookingConfirmationMail(to, details));
+  }
+
+  enqueuePaymentReceipt(
+    to: string,
+    details: {
+      bookingRef: string;
+      amount: number;
+      method: string;
+      providerRef?: string | null;
+    },
+  ): Promise<void> {
+    return this.enqueue(this.email.paymentReceiptMail(to, details));
+  }
+
+  enqueueBookingCancellation(
+    to: string,
+    details: {
+      bookingRef: string;
+      refundAmount?: number;
+    },
+  ): Promise<void> {
+    return this.enqueue(this.email.bookingCancellationMail(to, details));
+  }
 }

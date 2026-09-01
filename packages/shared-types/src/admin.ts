@@ -8,10 +8,10 @@ const pageSize = z.coerce.number().int().min(1).max(100).default(20);
 const userRoleSchema = z.enum(['CUSTOMER', 'STAFF', 'MANAGER', 'ADMIN']);
 
 export const adminHotelStatusSchema = z.enum([
+  'PENDING_APPROVAL',
   'ACTIVE',
-  'PENDING',
+  'SUSPENDED',
   'REJECTED',
-  'INACTIVE',
 ]);
 export type AdminHotelStatus = z.infer<typeof adminHotelStatusSchema>;
 
@@ -47,8 +47,14 @@ export type AdminHotelsQuery = z.infer<typeof adminHotelsQuerySchema>;
 
 export const updateHotelStatusSchema = z.object({
   status: adminHotelStatusSchema,
+  rejectionReason: z.string().max(500).optional(),
 });
 export type UpdateHotelStatus = z.infer<typeof updateHotelStatusSchema>;
+
+export const rejectHotelSchema = z.object({
+  reason: z.string().min(1).max(500),
+});
+export type RejectHotel = z.infer<typeof rejectHotelSchema>;
 
 export const reassignManagerSchema = z.object({
   managerId: z.string().min(1).nullable(),
