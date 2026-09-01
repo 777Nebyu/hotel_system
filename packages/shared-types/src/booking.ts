@@ -30,6 +30,9 @@ export const paymentMethodSchema = z.enum([
 ]);
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 
+export const bookingSourceSchema = z.enum(['ONLINE', 'WALK_IN']);
+export type BookingSource = z.infer<typeof bookingSourceSchema>;
+
 const guestsSchema = z.object({
   adults: z.coerce.number().int().min(1).max(20).default(1),
   children: z.coerce.number().int().min(0).max(10).default(0),
@@ -68,6 +71,8 @@ export const createBookingSchema = z
     guests: guestsSchema.default({ adults: 1, children: 0 }),
     guestInfos: z.array(bookingGuestSchema).min(1).max(50),
     promoCode: z.string().min(3).max(20).optional(),
+    paymentMethod: paymentMethodSchema.default('CREDIT_CARD'),
+    bookingSource: bookingSourceSchema.default('ONLINE'),
   })
   .refine((d) => d.checkOut > d.checkIn, stayRefine);
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
@@ -103,3 +108,13 @@ export type MockGatewayCallback = z.infer<typeof mockGatewayCallbackSchema>;
 
 export const invoiceParamsSchema = z.object({ bookingId: id });
 export type InvoiceParams = z.infer<typeof invoiceParamsSchema>;
+
+export const cancelRoomSchema = z.object({
+  roomIds: z.array(id).min(1).max(10),
+});
+export type CancelRoomInput = z.infer<typeof cancelRoomSchema>;
+
+export const markCashPaidSchema = z.object({
+  reference: z.string().min(1).max(64).optional(),
+});
+export type MarkCashPaidInput = z.infer<typeof markCashPaidSchema>;

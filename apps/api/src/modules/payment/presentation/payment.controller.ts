@@ -5,13 +5,16 @@ import { PaymentService } from '../application/payment.service';
 import { Public } from '../../../common/decorators/public.decorator';
 import {
   MockCallbackDto,
+  MarkCashPaidDto,
   PaymentIdParamsDto,
   PaymentMethodDto,
 } from './dto/payment.dto';
 
+
 interface AuthedRequest {
-  user: { sub: string; role: string };
+  user: { sub: string; role: string; hotelId?: string };
 }
+
 
 @ApiTags('payments')
 @Controller('payments')
@@ -64,5 +67,19 @@ export class PaymentController {
     @Req() req: AuthedRequest,
   ) {
     return this.payments.refund(params.bookingId, req.user);
+  }
+
+  @Post(':bookingId/cash-paid')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Staff/Manager: mark a CASH booking payment as received on-site',
+  })
+  markCashPaid(
+    @Param() params: PaymentIdParamsDto,
+    @Body() body: MarkCashPaidDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.payments.markCashPaid(params.bookingId, body, req.user);
   }
 }

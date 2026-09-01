@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -28,7 +29,21 @@ import type { BookingQuote } from '../domain/quote';
 import { CouponService } from '../../coupon/application/coupon.service';
 import { InvoiceService } from '../../invoice/application/invoice.service';
 import { applyCoupon } from '../../coupon/domain';
-import type { CheckoutInput, CreateBookingInput } from '@repo/shared-types';
+import type {
+  CancelRoomInput,
+  CheckoutInput,
+  CreateBookingInput,
+} from '@repo/shared-types';
+
+function generateBookingRef(): string {
+  const year = new Date().getFullYear();
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let suffix = '';
+  for (let i = 0; i < 5; i++) {
+    suffix += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return `YT-${year}-${suffix}`;
+}
 
 @Injectable()
 export class BookingService {
@@ -84,6 +99,17 @@ export class BookingService {
     const checkIn = parseDateOnly(input.checkIn);
     const checkOut = parseDateOnly(input.checkOut);
 
+    const user = await this.db.user.findUnique({
+      where: { id: userId },
+      select: { emailVerifiedAt: true, role: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    if (user.role === 'CUSTOMER' && !user.emailVerifiedAt) {
+      throw new BadRequestException(
+        'You must verify your email address before making a booking',
+      );
+    }
+
     const booking = await this.db.$transaction(async (tx) => {
       const hotel = await tx.hotel.findUnique({
         where: { id: input.hotelId },
@@ -137,14 +163,33 @@ export class BookingService {
       }
 
       const guestCount = input.guests.adults + input.guests.children;
+
+      let bookingRef: string;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        bookingRef = generateBookingRef();
+        const exists = await tx.booking.findUnique({
+          where: { bookingRef },
+          select: { id: true },
+        });
+        if (!exists) break;
+        if (attempt === 4) {
+          throw new ConflictException(
+            'Could not generate a unique booking reference. Please try again.',
+          );
+        }
+      }
+
       return tx.booking.create({
         data: {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          bookingRef: bookingRef!,
           userId,
           hotelId: hotel.id,
           checkIn,
           checkOut,
           status: 'PENDING',
           totalPrice: quote.total,
+          bookingSource: input.bookingSource ?? 'ONLINE',
           details: {
             create: quote.rooms.map((line) => ({
               roomId: line.roomId,
@@ -158,7 +203,7 @@ export class BookingService {
           },
           payment: {
             create: {
-              method: 'CREDIT_CARD',
+              method: input.paymentMethod ?? 'CREDIT_CARD',
               amount: quote.total,
               status: 'PENDING',
             },
@@ -244,6 +289,106 @@ export class BookingService {
     return updated;
   }
 
+  async cancelRooms(
+    bookingId: string,
+    input: CancelRoomInput,
+    userId: string,
+  ) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        details: true,
+        payment: true,
+      },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('You cannot cancel rooms in this booking');
+    }
+    if (!['PENDING', 'CONFIRMED'].includes(booking.status)) {
+      throw new ConflictException(
+        `Cannot cancel rooms from a booking in "${booking.status}" state`,
+      );
+    }
+
+    const bookingRoomIds = new Set(booking.details.map((d) => d.roomId));
+    const invalidIds = input.roomIds.filter((id) => !bookingRoomIds.has(id));
+    if (invalidIds.length > 0) {
+      throw new BadRequestException(
+        `Room(s) not part of this booking: ${invalidIds.join(', ')}`,
+      );
+    }
+
+    const allRoomsCount = booking.details.length;
+    const cancelledCount = input.roomIds.length;
+    const isFullCancel = cancelledCount >= allRoomsCount;
+
+    const refundFraction = cancelledCount / allRoomsCount;
+    const paymentSucceeded = booking.payment?.status === 'SUCCEEDED';
+    const refundAmount = paymentSucceeded
+      ? Math.round(
+          booking.totalPrice.toNumber() * refundFraction * 100,
+        ) / 100
+      : 0;
+
+    await this.db.$transaction(async (tx) => {
+      await tx.bookingDetail.deleteMany({
+        where: { bookingId, roomId: { in: input.roomIds } },
+      });
+
+      if (isFullCancel) {
+        await tx.booking.update({
+          where: { id: bookingId },
+          data: { status: 'CANCELLED' },
+        });
+        if (paymentSucceeded && booking.payment) {
+          await tx.payment.update({
+            where: { bookingId },
+            data: {
+              status: 'REFUNDED',
+              refundAmount,
+              refundedAt: new Date(),
+            },
+          });
+        }
+      } else if (paymentSucceeded && booking.payment && refundAmount > 0) {
+        await tx.payment.update({
+          where: { bookingId },
+          data: {
+            refundAmount,
+            refundedAt: new Date(),
+          },
+        });
+      }
+    });
+
+    if (isFullCancel) {
+      this.emitter.emit(
+        BookingEventNames.CANCELLED,
+        new BookingCancelledEvent(bookingId, userId, booking.hotelId),
+      );
+      if (paymentSucceeded && booking.payment) {
+        this.emitter.emit(
+          PaymentEventNames.REFUNDED,
+          new PaymentRefundedEvent(
+            booking.payment.id,
+            bookingId,
+            userId,
+            refundAmount,
+            booking.payment.method,
+          ),
+        );
+      }
+    }
+
+    return {
+      bookingId,
+      cancelledRoomIds: input.roomIds,
+      fullyCancel: isFullCancel,
+      refundAmount,
+    };
+  }
+
   async myBookings(userId: string, scope?: 'upcoming' | 'past') {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
@@ -288,8 +433,6 @@ export class BookingService {
     return this.invoices.generate(bookingId);
   }
 
-  // ----- helpers -----
-
   private async applyPromo(
     quote: BookingQuote,
     promoCode?: string,
@@ -319,10 +462,6 @@ export class BookingService {
     });
   }
 
-  /**
-   * Serializes concurrent bookers per (room, night) using Postgres advisory
-   * locks so the overlap check below is race-free.
-   */
   private async acquireRoomDateLocks(
     client: Prisma.TransactionClient,
     roomIds: string[],
@@ -332,9 +471,6 @@ export class BookingService {
     for (const roomId of roomIds) {
       for (let d = checkIn.getTime(); d < checkOut.getTime(); d += 86_400_000) {
         const dateStr = new Date(d).toISOString().slice(0, 10);
-        // pg_advisory_xact_lock returns PostgreSQL `void`, which Prisma 7's
-        // driver cannot deserialize. Evaluate it as a boolean expression so
-        // the lock is acquired while the result has a supported type.
         await client.$queryRaw<{ locked: boolean }[]>`
           SELECT pg_advisory_xact_lock(hashtext(${roomId}), hashtext(${dateStr})) IS NULL AS locked
         `;
@@ -352,7 +488,7 @@ export class BookingService {
       where: {
         roomId: { in: roomIds },
         booking: {
-          status: { in: ['CONFIRMED', 'CHECKED_IN'] },
+          status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
           checkIn: { lt: checkOut },
           checkOut: { gt: checkIn },
         },

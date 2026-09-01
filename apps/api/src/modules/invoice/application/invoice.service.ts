@@ -1,15 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import {
+  STORAGE_SERVICE,
+  type StorageService,
+} from '../../../common/storage/storage';
 import PDFDocument from 'pdfkit';
 
 @Injectable()
 export class InvoiceService {
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    @Inject(STORAGE_SERVICE)
+    private readonly storage: StorageService,
+  ) {}
 
-  /**
-   * Generates an A4 PDF receipt for a booking, resolving payment.line items
-   * from the booking details so the PDF reflects exactly what was charged.
-   */
   async generate(bookingId: string): Promise<Buffer> {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
@@ -23,9 +27,50 @@ export class InvoiceService {
     if (!booking) throw new NotFoundException('Booking not found');
 
     const payment = booking.payment;
-    const invoiceNo = `INV-${booking.id.slice(0, 8).toUpperCase()}`;
+    const invoiceNo = `INV-${(booking.bookingRef ?? booking.id).toUpperCase()}`;
     const created = booking.createdAt.toISOString().slice(0, 10);
 
+    const buffer = await this.renderPdf(booking, invoiceNo, created, payment);
+
+    if (payment && !payment.invoiceUrl) {
+      this.uploadAndPersist(bookingId, payment.id, buffer, invoiceNo).catch(
+        (err: unknown) =>
+          console.error(
+            `[InvoiceService] Failed to persist invoice URL for booking ${bookingId}:`,
+            err,
+          ),
+      );
+    }
+
+    return buffer;
+  }
+
+  private async uploadAndPersist(
+    bookingId: string,
+    paymentId: string,
+    pdfBuffer: Buffer,
+    invoiceNo: string,
+  ): Promise<void> {
+    const stored = await this.storage.upload(
+      {
+        buffer: pdfBuffer,
+        originalname: `${invoiceNo}.pdf`,
+        mimetype: 'application/pdf',
+      },
+      'invoices',
+    );
+    await this.db.payment.update({
+      where: { id: paymentId },
+      data: { invoiceUrl: stored.url },
+    });
+  }
+
+  private async renderPdf(
+    booking: Awaited<ReturnType<InvoiceService['fetchBooking']>>,
+    invoiceNo: string,
+    created: string,
+    payment: { method: string; status: string; providerRef?: string | null } | null,
+  ): Promise<Buffer> {
     const doc = new PDFDocument({ size: 'A4', margin: 48 });
     const chunks: Buffer[] = [];
     doc.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -40,6 +85,9 @@ export class InvoiceService {
     doc.moveDown();
     doc.font('Helvetica').fontSize(10).fillColor('gray');
     doc.text(`Invoice No: ${invoiceNo}`, { align: 'center' });
+    doc.text(`Booking Ref: ${booking.bookingRef ?? booking.id}`, {
+      align: 'center',
+    });
     doc.text(`Issue date: ${created}`, { align: 'center' });
     doc.fillColor('black').moveDown(1.5);
 
@@ -109,5 +157,17 @@ export class InvoiceService {
 
     doc.end();
     return done;
+  }
+
+  private async fetchBooking(bookingId: string) {
+    return this.db.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        hotel: true,
+        user: { select: { fullName: true, email: true } },
+        details: { include: { room: true } },
+        payment: true,
+      },
+    });
   }
 }

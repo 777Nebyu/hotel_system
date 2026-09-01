@@ -5,6 +5,8 @@ import type { PrismaService } from '../../../prisma/prisma.service';
 import { PaymentService } from './payment.service';
 
 describe('PaymentService lifecycle protections', () => {
+  const futureCheckIn = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
   const payment = {
     id: 'payment-1',
     bookingId: 'booking-1',
@@ -12,10 +14,12 @@ describe('PaymentService lifecycle protections', () => {
     amount: { toNumber: () => 100 },
     status: 'PENDING',
     providerRef: null,
+    refundAmount: null,
     booking: {
       id: 'booking-1',
       userId: 'user-1',
       status: 'CANCELLED',
+      checkIn: futureCheckIn,
       hotel: { managerId: null },
     },
   };
@@ -26,6 +30,7 @@ describe('PaymentService lifecycle protections', () => {
   let service: PaymentService;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     db = {
       payment: {
         findUnique: jest.fn().mockResolvedValue(payment),
@@ -35,6 +40,10 @@ describe('PaymentService lifecycle protections', () => {
           providerRef: 'provider-1',
         }),
         updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        update: jest.fn().mockResolvedValue({}),
+      },
+      paymentAttempt: {
+        create: jest.fn().mockResolvedValue({}),
       },
     };
     emitter = { emit: jest.fn() };
@@ -65,25 +74,56 @@ describe('PaymentService lifecycle protections', () => {
   it('emits completion only when the conditional payment update wins', async () => {
     await service.mockCallback('booking-1', { reference: '4242' }, 'test-webhook-secret');
     expect(db.payment.updateMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.objectContaining({ status: { in: ['PENDING', 'FAILED'] } }) }),
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: { in: ['PENDING', 'FAILED'] },
+        }),
+      }),
+    );
+    expect(db.paymentAttempt.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ outcome: 'SUCCEEDED' }),
+      }),
     );
     expect(emitter.emit).toHaveBeenCalledTimes(1);
 
-    db.payment.findUnique.mockResolvedValue({ ...payment, status: 'SUCCEEDED', providerRef: 'provider-1' });
-    const replay = await service.mockCallback('booking-1', { reference: '4242' }, 'test-webhook-secret');
+    db.payment.findUnique.mockResolvedValue({
+      ...payment,
+      status: 'SUCCEEDED',
+      providerRef: 'provider-1',
+    });
+    const replay = await service.mockCallback(
+      'booking-1',
+      { reference: '4242' },
+      'test-webhook-secret',
+    );
     expect(replay.idempotent).toBe(true);
     expect(emitter.emit).toHaveBeenCalledTimes(1);
   });
 
-  it('refunds only an owner-authorized successful payment and emits once', async () => {
-    db.payment.findUnique.mockResolvedValue({ ...payment, status: 'SUCCEEDED' });
-    const result = await service.refund('booking-1', { sub: 'user-1', role: 'CUSTOMER' });
+  it('refunds an owner-authorized successful payment with policy-based amount and emits once', async () => {
+    db.payment.findUnique.mockResolvedValue({
+      ...payment,
+      status: 'SUCCEEDED',
+    });
+
+    const result = await service.refund('booking-1', {
+      sub: 'user-1',
+      role: 'CUSTOMER',
+    });
+
     expect(result.status).toBe('REFUNDED');
     expect(result.idempotent).toBe(false);
+    expect(result.refundAmount).toBe(100);
     expect(emitter.emit).toHaveBeenCalledTimes(1);
     expect(db.payment.updateMany).toHaveBeenCalledWith({
       where: { id: 'payment-1', status: 'SUCCEEDED' },
-      data: { status: 'REFUNDED' },
+      data: {
+        status: 'REFUNDED',
+        refundAmount: 100,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        refundedAt: expect.any(Date),
+      },
     });
   });
 });

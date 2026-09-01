@@ -14,6 +14,7 @@ import { Throttle } from '@nestjs/throttler';
 import { BookingService } from '../application/booking.service';
 import {
   BookingIdParamsDto,
+  CancelRoomsDto,
   CheckoutDto,
   CreateBookingDto,
   MyBookingsQueryDto,
@@ -56,6 +57,20 @@ export class BookingController {
   @ApiOperation({ summary: 'Cancel a pending or confirmed booking' })
   cancel(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
     return this.bookings.cancelBooking(params.bookingId, req.user.sub);
+  }
+
+  @Post(':bookingId/cancel-rooms')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @ApiOperation({
+    summary:
+      'Cancel one or more specific rooms from a multi-room booking (rule 46)',
+  })
+  cancelRooms(
+    @Param() params: BookingIdParamsDto,
+    @Body() dto: CancelRoomsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.bookings.cancelRooms(params.bookingId, dto, req.user.sub);
   }
 
   @Get(':bookingId/invoice')

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -15,7 +16,20 @@ import {
   PaymentRefundedEvent,
   PaymentEventNames,
 } from '../../events/payment.events';
-import type { MockGatewayCallback, PaymentMethod } from '@repo/shared-types';
+import type { MarkCashPaidInput, MockGatewayCallback, PaymentMethod } from '@repo/shared-types';
+
+function calculateRefundAmount(
+  paidAmount: number,
+  checkIn: Date,
+  cancelledAt: Date = new Date(),
+): number {
+  const daysUntilCheckIn = Math.floor(
+    (checkIn.getTime() - cancelledAt.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  if (daysUntilCheckIn >= 7) return Math.round(paidAmount * 100) / 100;
+  if (daysUntilCheckIn >= 3) return Math.round(paidAmount * 0.5 * 100) / 100;
+  return 0;
+}
 
 @Injectable()
 export class PaymentService {
@@ -68,11 +82,13 @@ export class PaymentService {
         booking: {
           select: {
             id: true,
+            bookingRef: true,
             hotel: { select: { id: true, name: true } },
             checkIn: true,
             checkOut: true,
           },
         },
+        attempts: { orderBy: { attemptedAt: 'desc' }, take: 5 },
       },
     });
     return { data: payments };
@@ -115,6 +131,16 @@ export class PaymentService {
           providerRef: result.providerRef ?? body.transactionId ?? null,
         },
       });
+
+      await this.db.paymentAttempt.create({
+        data: {
+          paymentId: payment.id,
+          method: payment.method,
+          outcome: 'SUCCEEDED',
+          providerRef: result.providerRef ?? body.transactionId ?? null,
+        },
+      });
+
       const updated = await this.db.payment.findUniqueOrThrow({
         where: { id: payment.id },
       });
@@ -144,6 +170,15 @@ export class PaymentService {
       };
     }
 
+    await this.db.paymentAttempt.create({
+      data: {
+        paymentId: payment.id,
+        method: payment.method,
+        outcome: 'FAILED',
+        providerRef: result.providerRef ?? body.transactionId ?? null,
+      },
+    });
+
     await this.db.payment.update({
       where: { id: payment.id },
       data: {
@@ -154,44 +189,166 @@ export class PaymentService {
     return { status: 'FAILED' as const, paymentId: payment.id };
   }
 
+  async markCashPaid(
+    bookingId: string,
+    body: MarkCashPaidInput,
+    actor: { sub: string; role: string; hotelId?: string },
+  ) {
+    const payment = await this.db.payment.findUnique({
+      where: { bookingId },
+      include: {
+        booking: {
+          include: { hotel: { select: { id: true, managerId: true } } },
+        },
+      },
+    });
+    if (!payment) throw new NotFoundException('Payment not found');
+
+    if (payment.method !== 'CASH') {
+      throw new BadRequestException(
+        'Only CASH payments can be marked as paid via this endpoint',
+      );
+    }
+
+    const hotelId = payment.booking.hotel.id;
+    if (actor.role === 'MANAGER') {
+      if (actor.hotelId !== hotelId) {
+        throw new ForbiddenException(
+          'You can only mark payments for your own hotel',
+        );
+      }
+    } else if (actor.role === 'STAFF') {
+      if (actor.hotelId !== hotelId) {
+        throw new ForbiddenException(
+          'You can only mark payments for your assigned hotel',
+        );
+      }
+    } else if (actor.role !== 'ADMIN') {
+      throw new ForbiddenException('Insufficient permissions');
+    }
+
+    if (payment.status === 'SUCCEEDED') {
+      return {
+        status: 'SUCCEEDED' as const,
+        paymentId: payment.id,
+        idempotent: true,
+      };
+    }
+    if (payment.status === 'REFUNDED') {
+      throw new ConflictException('A refunded payment cannot be completed');
+    }
+
+    const ref = body.reference ?? `CASH-${Date.now()}`;
+
+    await this.db.$transaction(async (tx) => {
+      await tx.payment.update({
+        where: { id: payment.id },
+        data: { status: 'SUCCEEDED', providerRef: ref },
+      });
+      await tx.paymentAttempt.create({
+        data: {
+          paymentId: payment.id,
+          method: 'CASH',
+          outcome: 'SUCCEEDED',
+          providerRef: ref,
+        },
+      });
+    });
+
+    this.emitter.emit(
+      PaymentEventNames.COMPLETED,
+      new PaymentCompletedEvent(
+        payment.id,
+        bookingId,
+        payment.booking.userId,
+        payment.amount.toNumber(),
+        'CASH',
+      ),
+    );
+
+    return {
+      status: 'SUCCEEDED' as const,
+      paymentId: payment.id,
+      idempotent: false,
+    };
+  }
+
   async refund(bookingId: string, actor: { sub: string; role: string }) {
     const payment = await this.db.payment.findUnique({
       where: { bookingId },
-      include: { booking: { include: { hotel: { select: { managerId: true } } } } },
+      include: {
+        booking: {
+          include: {
+            hotel: { select: { managerId: true } },
+          },
+        },
+      },
     });
     if (!payment) throw new NotFoundException('Payment not found');
+
     const isOwner =
-      payment.booking.userId === actor.sub && payment.booking.status === 'CANCELLED';
+      payment.booking.userId === actor.sub &&
+      payment.booking.status === 'CANCELLED';
     const isPlatformOperator = ['STAFF', 'ADMIN'].includes(actor.role);
     const isHotelManager =
-      actor.role === 'MANAGER' && payment.booking.hotel.managerId === actor.sub;
+      actor.role === 'MANAGER' &&
+      payment.booking.hotel.managerId === actor.sub;
+
     if (!isOwner && !isPlatformOperator && !isHotelManager) {
       throw new ForbiddenException('You cannot refund this booking');
     }
     if (payment.status === 'REFUNDED') {
-      return { status: 'REFUNDED' as const, paymentId: payment.id, idempotent: true };
+      return {
+        status: 'REFUNDED' as const,
+        paymentId: payment.id,
+        refundAmount: payment.refundAmount?.toNumber() ?? 0,
+        idempotent: true,
+      };
     }
     if (payment.status !== 'SUCCEEDED') {
       throw new ConflictException('Only a successful payment can be refunded');
     }
+
+    const refundAmount = isPlatformOperator
+      ? payment.amount.toNumber()
+      : calculateRefundAmount(
+          payment.amount.toNumber(),
+          payment.booking.checkIn,
+        );
+
     const changed = await this.db.payment.updateMany({
       where: { id: payment.id, status: 'SUCCEEDED' },
-      data: { status: 'REFUNDED' },
+      data: {
+        status: 'REFUNDED',
+        refundAmount,
+        refundedAt: new Date(),
+      },
     });
     if (changed.count === 0) {
-      return { status: 'REFUNDED' as const, paymentId: payment.id, idempotent: true };
+      return {
+        status: 'REFUNDED' as const,
+        paymentId: payment.id,
+        refundAmount: payment.refundAmount?.toNumber() ?? refundAmount,
+        idempotent: true,
+      };
     }
+
     this.emitter.emit(
       PaymentEventNames.REFUNDED,
       new PaymentRefundedEvent(
         payment.id,
         bookingId,
         payment.booking.userId,
-        payment.amount.toNumber(),
+        refundAmount,
         payment.method,
       ),
     );
-    return { status: 'REFUNDED' as const, paymentId: payment.id, idempotent: false };
+    return {
+      status: 'REFUNDED' as const,
+      paymentId: payment.id,
+      refundAmount,
+      idempotent: false,
+    };
   }
 
   private assertMockWebhookSecret(received: string | undefined) {
