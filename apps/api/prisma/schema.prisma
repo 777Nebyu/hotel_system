@@ -22,6 +22,7 @@ enum BookingStatus {
   CHECKED_OUT
   CANCELLED
   REJECTED
+  NO_SHOW
 }
 
 enum RoomStatus {
@@ -265,13 +266,17 @@ model Booking {
 }
 
 model BookingDetail {
-  id         String   @id @default(cuid())
-  bookingId  String
-  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  roomId     String
-  room       Room     @relation(fields: [roomId], references: [id])
-  guestCount Int
-  guestInfo  Json
+  id               String    @id @default(cuid())
+  bookingId        String
+  booking          Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  roomId           String
+  room             Room      @relation(fields: [roomId], references: [id])
+  guestCount       Int
+  guestInfo        Json
+  relocatedFrom    String?
+  relocationReason String?
+  relocatedAt      DateTime?
+  relocatedBy      String?
 }
 
 model Payment {

@@ -17,6 +17,7 @@ describe('canTransition', () => {
       ['PENDING', 'CANCELLED'],
       ['CONFIRMED', 'CHECKED_IN'],
       ['CONFIRMED', 'CANCELLED'],
+      ['CONFIRMED', 'NO_SHOW'],
       ['CHECKED_IN', 'CHECKED_OUT'],
     ] as const)(
       '%s → %s is allowed',
@@ -48,7 +49,7 @@ describe('canTransition', () => {
 
   // ── terminal states — nothing is allowed out of them ──────────────────
   describe('terminal states block every outgoing transition', () => {
-    const terminals = ['CHECKED_OUT', 'CANCELLED', 'REJECTED'] as const;
+    const terminals = ['CHECKED_OUT', 'CANCELLED', 'REJECTED', 'NO_SHOW'] as const;
     const allStatuses = Object.keys(BOOKING_TRANSITIONS) as (keyof typeof BOOKING_TRANSITIONS)[];
 
     terminals.forEach((terminal) => {
@@ -70,6 +71,7 @@ describe('canTransition', () => {
         'CHECKED_OUT',
         'CANCELLED',
         'REJECTED',
+        'NO_SHOW',
       ];
       expect(Object.keys(BOOKING_TRANSITIONS).sort()).toEqual(expected.sort());
     });
@@ -78,6 +80,7 @@ describe('canTransition', () => {
       expect(BOOKING_TRANSITIONS.CHECKED_OUT).toHaveLength(0);
       expect(BOOKING_TRANSITIONS.CANCELLED).toHaveLength(0);
       expect(BOOKING_TRANSITIONS.REJECTED).toHaveLength(0);
+      expect(BOOKING_TRANSITIONS.NO_SHOW).toHaveLength(0);
     });
   });
 });

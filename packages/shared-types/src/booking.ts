@@ -10,6 +10,7 @@ export const bookingStatusSchema = z.enum([
   'CHECKED_OUT',
   'CANCELLED',
   'REJECTED',
+  'NO_SHOW',
 ]);
 export type BookingStatus = z.infer<typeof bookingStatusSchema>;
 
@@ -169,3 +170,25 @@ export const lateCheckOutActionSchema = z.object({
   lateCheckOutFee: z.coerce.number().min(0).optional(),
 });
 export type LateCheckOutActionInput = z.infer<typeof lateCheckOutActionSchema>;
+
+export const modifyBookingSchema = z
+  .object({
+    checkIn: dateOnly.optional(),
+    checkOut: dateOnly.optional(),
+    roomIds: z.array(id).min(1).max(10).optional(),
+    guestInfos: z.array(bookingGuestSchema).min(1).max(50).optional(),
+  })
+  .refine(
+    (d) =>
+      (!d.checkIn && !d.checkOut) ||
+      (d.checkIn && d.checkOut && d.checkOut > d.checkIn),
+    stayRefine,
+  );
+export type ModifyBookingInput = z.infer<typeof modifyBookingSchema>;
+
+export const relocateRoomSchema = z.object({
+  oldRoomId: id,
+  newRoomId: id,
+  reason: z.string().min(3).max(500),
+});
+export type RelocateRoomInput = z.infer<typeof relocateRoomSchema>;

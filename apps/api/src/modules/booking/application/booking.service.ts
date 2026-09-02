@@ -36,6 +36,7 @@ import type {
   CreateBookingInput,
   CreateRoomHoldInput,
   CreateStayRequestInput,
+  ModifyBookingInput,
 } from '@repo/shared-types';
 
 function generateBookingRef(): string {
@@ -46,6 +47,17 @@ function generateBookingRef(): string {
     suffix += chars[Math.floor(Math.random() * chars.length)];
   }
   return `YT-${year}-${suffix}`;
+}
+
+function calculateModificationRefund(
+  difference: number,
+  checkIn: Date,
+  now: Date = new Date(),
+): number {
+  const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60);
+  if (hoursUntilCheckIn >= 48) return Math.round(difference * 100) / 100;
+  if (hoursUntilCheckIn >= 24) return Math.round(difference * 0.5 * 100) / 100;
+  return 0;
 }
 
 @Injectable()
@@ -623,6 +635,275 @@ export class BookingService {
     return this.db.stayRequest.findMany({
       where: { bookingId },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async modifyBookingQuote(
+    bookingId: string,
+    dto: ModifyBookingInput,
+    userId: string,
+  ) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        details: { include: { room: true } },
+        hotel: true,
+      },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('You can only modify your own booking');
+    }
+    if (booking.status !== 'CONFIRMED') {
+      throw new BadRequestException('Only CONFIRMED bookings can be modified');
+    }
+
+    const checkIn = dto.checkIn ? parseDateOnly(dto.checkIn) : booking.checkIn;
+    const checkOut = dto.checkOut ? parseDateOnly(dto.checkOut) : booking.checkOut;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (checkIn < today) {
+      throw new BadRequestException('New check-in date must be today or in the future');
+    }
+    if (checkOut <= checkIn) {
+      throw new BadRequestException('checkOut must be after checkIn');
+    }
+
+    const roomIds = dto.roomIds && dto.roomIds.length > 0
+      ? dto.roomIds
+      : booking.details.map((d) => d.roomId);
+
+    const rooms = await this.loadRooms(booking.hotelId, roomIds, checkIn, checkOut);
+    if (rooms.length !== roomIds.length) {
+      throw new NotFoundException('One or more rooms were not found in this hotel');
+    }
+
+    const overlaps = await this.db.bookingDetail.findMany({
+      where: {
+        roomId: { in: roomIds },
+        bookingId: { not: bookingId },
+        booking: {
+          status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+          checkIn: { lt: checkOut },
+          checkOut: { gt: checkIn },
+        },
+      },
+      select: { roomId: true },
+    });
+    const blocked = Array.from(new Set(overlaps.map((o) => o.roomId)));
+    if (blocked.length > 0) {
+      throw new ConflictException(
+        `Room(s) unavailable for requested dates: ${blocked.join(', ')}`,
+      );
+    }
+
+    const quote = buildQuote({
+      hotelId: booking.hotelId,
+      checkIn,
+      checkOut,
+      adults: 1,
+      children: 0,
+      rooms: rooms.map((room) => ({
+        roomId: room.id,
+        roomNumber: room.roomNumber,
+        nightly: nightlyPrices(
+          room,
+          room.seasonalPricing,
+          checkIn,
+          checkOut,
+        ).map((night) => night.price),
+      })),
+    });
+
+    const oldTotal = booking.totalPrice.toNumber();
+    const newTotal = quote.total;
+    const rawDiff = Math.abs(newTotal - oldTotal);
+    const refundAmount = newTotal < oldTotal ? calculateModificationRefund(rawDiff, booking.checkIn) : 0;
+    const additionalCharge = newTotal > oldTotal ? newTotal - oldTotal : 0;
+
+    return {
+      oldTotal,
+      newTotal,
+      additionalCharge,
+      refundAmount,
+      checkIn,
+      checkOut,
+      roomIds,
+    };
+  }
+
+  async modifyBooking(
+    bookingId: string,
+    dto: ModifyBookingInput,
+    userId: string,
+  ) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        details: { include: { room: true } },
+        payment: true,
+        hotel: true,
+      },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('You can only modify your own booking');
+    }
+    if (booking.status !== 'CONFIRMED') {
+      throw new BadRequestException('Only CONFIRMED bookings can be modified');
+    }
+
+    const checkIn = dto.checkIn ? parseDateOnly(dto.checkIn) : booking.checkIn;
+    const checkOut = dto.checkOut ? parseDateOnly(dto.checkOut) : booking.checkOut;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (checkIn < today) {
+      throw new BadRequestException('New check-in date must be today or in the future');
+    }
+    if (checkOut <= checkIn) {
+      throw new BadRequestException('checkOut must be after checkIn');
+    }
+
+    const roomIds = dto.roomIds && dto.roomIds.length > 0
+      ? dto.roomIds
+      : booking.details.map((d) => d.roomId);
+
+    return this.db.$transaction(async (tx) => {
+      const rooms = await this.loadRooms(booking.hotelId, roomIds, checkIn, checkOut, tx);
+      if (rooms.length !== roomIds.length) {
+        throw new NotFoundException('One or more rooms were not found in this hotel');
+      }
+
+      const overlaps = await tx.bookingDetail.findMany({
+        where: {
+          roomId: { in: roomIds },
+          bookingId: { not: bookingId },
+          booking: {
+            status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+            checkIn: { lt: checkOut },
+            checkOut: { gt: checkIn },
+          },
+        },
+        select: { roomId: true },
+      });
+      const blocked = Array.from(new Set(overlaps.map((o) => o.roomId)));
+      if (blocked.length > 0) {
+        throw new ConflictException(
+          `Room(s) unavailable for requested dates: ${blocked.join(', ')}`,
+        );
+      }
+
+      const activeHolds = await tx.roomHold.findMany({
+        where: {
+          roomId: { in: roomIds },
+          status: 'ACTIVE',
+          holdEnd: { gt: new Date() },
+          checkIn: { lt: checkOut },
+          checkOut: { gt: checkIn },
+          userId: { not: userId },
+        },
+        select: { roomId: true },
+      });
+      const held = Array.from(new Set(activeHolds.map((h) => h.roomId)));
+      if (held.length > 0) {
+        throw new ConflictException(
+          `Room(s) temporarily held by another customer: ${held.join(', ')}`,
+        );
+      }
+
+      const quote = buildQuote({
+        hotelId: booking.hotelId,
+        checkIn,
+        checkOut,
+        adults: 1,
+        children: 0,
+        rooms: rooms.map((room) => ({
+          roomId: room.id,
+          roomNumber: room.roomNumber,
+          nightly: nightlyPrices(
+            room,
+            room.seasonalPricing,
+            checkIn,
+            checkOut,
+          ).map((night) => night.price),
+        })),
+      });
+
+      const oldTotal = booking.totalPrice.toNumber();
+      const newTotal = quote.total;
+      let refundAmount = 0;
+
+      if (newTotal < oldTotal) {
+        const rawDiff = oldTotal - newTotal;
+        refundAmount = calculateModificationRefund(rawDiff, booking.checkIn);
+        if (booking.payment && refundAmount > 0) {
+          await tx.payment.update({
+            where: { bookingId },
+            data: {
+              amount: newTotal,
+              refundAmount: { increment: refundAmount },
+            },
+          });
+        }
+      } else if (newTotal > oldTotal && booking.payment) {
+        await tx.payment.update({
+          where: { bookingId },
+          data: {
+            amount: newTotal,
+          },
+        });
+      }
+
+      await tx.bookingDetail.deleteMany({
+        where: { bookingId },
+      });
+
+      const firstGuestInfo = booking.details[0]?.guestInfo ?? { adults: 1, children: 0 };
+      const guestCount = booking.details[0]?.guestCount ?? 1;
+
+      await tx.bookingDetail.createMany({
+        data: roomIds.map((roomId) => ({
+          bookingId,
+          roomId,
+          guestCount,
+          guestInfo: dto.guestInfos ? (dto.guestInfos as unknown as Prisma.InputJsonValue) : firstGuestInfo,
+        })),
+      });
+
+      const updated = await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          checkIn,
+          checkOut,
+          totalPrice: newTotal,
+        },
+        include: {
+          details: { include: { room: true } },
+          payment: true,
+          hotel: { select: { id: true, name: true } },
+        },
+      });
+
+      await this.audit.record(userId, 'BOOKING_MODIFIED', 'Booking', bookingId, {
+        previousCheckIn: booking.checkIn,
+        newCheckIn: checkIn,
+        previousCheckOut: booking.checkOut,
+        newCheckOut: checkOut,
+        oldTotal,
+        newTotal,
+        refundAmount,
+        additionalCharge: newTotal > oldTotal ? newTotal - oldTotal : 0,
+      });
+
+      return {
+        booking: updated,
+        oldTotal,
+        newTotal,
+        additionalCharge: newTotal > oldTotal ? newTotal - oldTotal : 0,
+        refundAmount,
+      };
     });
   }
 

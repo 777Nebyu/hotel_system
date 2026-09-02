@@ -6,6 +6,7 @@ import {
   createBookingSchema,
   createRoomHoldSchema,
   createStayRequestSchema,
+  modifyBookingSchema,
   myBookingsQuerySchema,
   roomHoldIdParamsSchema,
 } from '@repo/shared-types';
@@ -18,3 +19,4 @@ export class CancelRoomsDto extends createZodDto(cancelRoomSchema) {}
 export class CreateRoomHoldDto extends createZodDto(createRoomHoldSchema) {}
 export class RoomHoldIdParamsDto extends createZodDto(roomHoldIdParamsSchema) {}
 export class CreateStayRequestDto extends createZodDto(createStayRequestSchema) {}
+export class ModifyBookingDto extends createZodDto(modifyBookingSchema) {}

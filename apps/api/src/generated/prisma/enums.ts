@@ -25,7 +25,8 @@ export const BookingStatus = {
   CHECKED_IN: 'CHECKED_IN',
   CHECKED_OUT: 'CHECKED_OUT',
   CANCELLED: 'CANCELLED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  NO_SHOW: 'NO_SHOW'
 } as const
 
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus]

@@ -8,10 +8,22 @@ import { CheckInReminderScheduler } from './checkin-reminder.scheduler';
 import { CheckInReminderProcessor } from './checkin-reminder.processor';
 import { BookingExpirationScheduler } from './booking-expiration.scheduler';
 import { BookingExpirationProcessor } from './booking-expiration.processor';
+import { NoShowScheduler } from './noshow.scheduler';
+import { NoShowProcessor } from './noshow.processor';
 import { AuditService } from '../../common/services/audit.service';
-import { EXPIRATION_QUEUE, MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
+import {
+  EXPIRATION_QUEUE,
+  MAIL_QUEUE,
+  NOSHOW_QUEUE,
+  REMINDER_QUEUE,
+} from './jobs.constants';
 
-export { EXPIRATION_QUEUE, MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
+export {
+  EXPIRATION_QUEUE,
+  MAIL_QUEUE,
+  NOSHOW_QUEUE,
+  REMINDER_QUEUE,
+} from './jobs.constants';
 
 @Global()
 @Module({
@@ -35,6 +47,7 @@ export { EXPIRATION_QUEUE, MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
       { name: MAIL_QUEUE },
       { name: REMINDER_QUEUE },
       { name: EXPIRATION_QUEUE },
+      { name: NOSHOW_QUEUE },
     ),
   ],
   providers: [
@@ -44,6 +57,8 @@ export { EXPIRATION_QUEUE, MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
     CheckInReminderProcessor,
     BookingExpirationScheduler,
     BookingExpirationProcessor,
+    NoShowScheduler,
+    NoShowProcessor,
     AuditService,
   ],
   exports: [MailProducer, BullModule],

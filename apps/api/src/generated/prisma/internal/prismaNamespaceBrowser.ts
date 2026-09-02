@@ -272,7 +272,11 @@ export const BookingDetailScalarFieldEnum = {
   bookingId: 'bookingId',
   roomId: 'roomId',
   guestCount: 'guestCount',
-  guestInfo: 'guestInfo'
+  guestInfo: 'guestInfo',
+  relocatedFrom: 'relocatedFrom',
+  relocationReason: 'relocationReason',
+  relocatedAt: 'relocatedAt',
+  relocatedBy: 'relocatedBy'
 } as const
 
 export type BookingDetailScalarFieldEnum = (typeof BookingDetailScalarFieldEnum)[keyof typeof BookingDetailScalarFieldEnum]

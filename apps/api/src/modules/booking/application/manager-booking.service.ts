@@ -15,6 +15,7 @@ import type {
   EarlyCheckInActionInput,
   LateCheckOutActionInput,
   ManageBookingsQuery,
+  RelocateRoomInput,
 } from '@repo/shared-types';
 
 export interface BookingActor {
@@ -306,6 +307,127 @@ export class ManagerBookingService {
     });
     await this.audit.record(actor.sub, 'LATE_CHECKOUT_APPROVED', 'Booking', bookingId, { fee });
     return updated;
+  }
+
+  async manualNoShow(bookingId: string, actor: BookingActor) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      include: { details: true, hotel: true, user: true },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    await this.assertCanManage(booking.hotelId, actor);
+    if (booking.status !== 'CONFIRMED') {
+      throw new ConflictException('Only CONFIRMED bookings can be marked as NO_SHOW');
+    }
+
+    const updated = await this.db.booking.update({
+      where: { id: bookingId },
+      data: { status: 'NO_SHOW' },
+      include: {
+        user: { select: { id: true, fullName: true, email: true, phone: true } },
+        hotel: { select: { id: true, name: true } },
+        details: { include: { room: true } },
+        payment: true,
+      },
+    });
+
+    const roomIds = booking.details.map((d) => d.roomId);
+    await this.db.roomAvailability.deleteMany({
+      where: {
+        roomId: { in: roomIds },
+        date: { gte: booking.checkIn, lt: booking.checkOut },
+        status: 'UNAVAILABLE',
+      },
+    });
+
+    await this.audit.record(actor.sub, 'BOOKING_NO_SHOW', 'Booking', bookingId, {
+      markedBy: actor.sub,
+    });
+
+    return updated;
+  }
+
+  async relocateRoom(
+    bookingId: string,
+    dto: RelocateRoomInput,
+    actor: BookingActor,
+  ) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        details: { include: { room: true } },
+        hotel: true,
+        user: true,
+      },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    await this.assertCanManage(booking.hotelId, actor);
+
+    if (booking.status !== 'CHECKED_IN') {
+      throw new ConflictException('Only CHECKED_IN bookings can have rooms relocated');
+    }
+
+    const targetDetail = booking.details.find((d) => d.roomId === dto.oldRoomId);
+    if (!targetDetail) {
+      throw new NotFoundException('Old room is not part of this booking');
+    }
+
+    const oldRoom = targetDetail.room;
+    const newRoom = await this.db.room.findUnique({
+      where: { id: dto.newRoomId },
+    });
+    if (!newRoom) throw new NotFoundException('New room not found');
+    if (newRoom.hotelId !== booking.hotelId) {
+      throw new BadRequestException('New room must be in the same hotel');
+    }
+    if (newRoom.status !== 'AVAILABLE') {
+      throw new ConflictException('New room is currently not available');
+    }
+    if (newRoom.basePrice.toNumber() < oldRoom.basePrice.toNumber()) {
+      throw new BadRequestException('Cannot relocate to a lower room tier');
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const conflictingBooking = await this.db.bookingDetail.findFirst({
+      where: {
+        roomId: dto.newRoomId,
+        bookingId: { not: bookingId },
+        booking: {
+          status: { in: ['CONFIRMED', 'CHECKED_IN'] },
+          checkIn: { lt: booking.checkOut },
+          checkOut: { gt: today },
+        },
+      },
+    });
+    if (conflictingBooking) {
+      throw new ConflictException('New room has overlapping bookings during remaining stay');
+    }
+
+    const updatedDetail = await this.db.bookingDetail.update({
+      where: { id: targetDetail.id },
+      data: {
+        roomId: dto.newRoomId,
+        relocatedFrom: oldRoom.roomNumber,
+        relocationReason: dto.reason,
+        relocatedAt: new Date(),
+        relocatedBy: actor.sub,
+      },
+      include: {
+        room: true,
+      },
+    });
+
+    await this.audit.record(actor.sub, 'ROOM_RELOCATED', 'Booking', bookingId, {
+      oldRoomId: dto.oldRoomId,
+      oldRoomNumber: oldRoom.roomNumber,
+      newRoomId: dto.newRoomId,
+      newRoomNumber: newRoom.roomNumber,
+      reason: dto.reason,
+    });
+
+    return updatedDetail;
   }
 
   // ----- helpers -----

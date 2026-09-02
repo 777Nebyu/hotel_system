@@ -20,6 +20,7 @@ import {
   CreateBookingDto,
   CreateRoomHoldDto,
   CreateStayRequestDto,
+  ModifyBookingDto,
   MyBookingsQueryDto,
   RoomHoldIdParamsDto,
 } from './dto/booking.dto';
@@ -123,5 +124,27 @@ export class BookingController {
   @ApiOperation({ summary: 'Get stay requests for a booking' })
   getStayRequests(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
     return this.bookings.getStayRequests(params.bookingId, req.user.sub);
+  }
+
+  @Post(':bookingId/modify-quote')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Preview price difference and refund for modifying a confirmed booking' })
+  modifyBookingQuote(
+    @Param() params: BookingIdParamsDto,
+    @Body() dto: ModifyBookingDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.bookings.modifyBookingQuote(params.bookingId, dto, req.user.sub);
+  }
+
+  @Post(':bookingId/modify')
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @ApiOperation({ summary: 'Modify stay dates or rooms of a confirmed booking' })
+  modifyBooking(
+    @Param() params: BookingIdParamsDto,
+    @Body() dto: ModifyBookingDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.bookings.modifyBooking(params.bookingId, dto, req.user.sub);
   }
 }

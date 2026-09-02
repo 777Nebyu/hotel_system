@@ -12,6 +12,7 @@ import {
   EarlyCheckInActionDto,
   LateCheckOutActionDto,
   ManageBookingsQueryDto,
+  RelocateRoomDto,
   StayRequestIdParamsDto,
 } from './dto/manager-booking.dto';
 
@@ -104,5 +105,26 @@ export class ManagerBookingController {
     @Req() req: AuthedRequest,
   ) {
     return this.managerBookings.decideStayRequest(params.id, dto, req.user);
+  }
+
+  @Post(':bookingId/no-show')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @ApiOperation({ summary: 'Mark a confirmed booking as no-show' })
+  noShow(
+    @Param() params: BookingIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.managerBookings.manualNoShow(params.bookingId, req.user);
+  }
+
+  @Post(':bookingId/relocate-room')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @ApiOperation({ summary: 'Relocate a checked-in guest to another room' })
+  relocateRoom(
+    @Param() params: BookingIdParamsDto,
+    @Body() dto: RelocateRoomDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.managerBookings.relocateRoom(params.bookingId, dto, req.user);
   }
 }

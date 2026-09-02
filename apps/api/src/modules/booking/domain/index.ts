@@ -7,11 +7,12 @@ export const BOOKING_TRANSITIONS: Record<
   readonly BookingStatus[]
 > = {
   PENDING: ['CONFIRMED', 'REJECTED', 'CANCELLED'],
-  CONFIRMED: ['CHECKED_IN', 'CANCELLED'],
+  CONFIRMED: ['CHECKED_IN', 'CANCELLED', 'NO_SHOW'],
   CHECKED_IN: ['CHECKED_OUT'],
   CHECKED_OUT: [],
   CANCELLED: [],
   REJECTED: [],
+  NO_SHOW: [],
 };
 
 export function canTransition(from: BookingStatus, to: BookingStatus): boolean {

@@ -5,6 +5,7 @@ import {
   earlyCheckInActionSchema,
   lateCheckOutActionSchema,
   manageBookingsQuerySchema,
+  relocateRoomSchema,
   stayRequestIdParamsSchema,
 } from '@repo/shared-types';
 
@@ -24,3 +25,4 @@ export class EarlyCheckInActionDto extends createZodDto(
 export class LateCheckOutActionDto extends createZodDto(
   lateCheckOutActionSchema,
 ) {}
+export class RelocateRoomDto extends createZodDto(relocateRoomSchema) {}
