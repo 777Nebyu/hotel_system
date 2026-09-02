@@ -7,6 +7,7 @@ import {
 import { BookingStatus, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
+import { AuditService } from '../../../common/services/audit.service';
 import { canTransition } from '../domain';
 import type { ManageBookingsQuery } from '@repo/shared-types';
 
@@ -20,6 +21,7 @@ export class ManagerBookingService {
   constructor(
     private readonly db: PrismaService,
     private readonly scope: ResourceScopeHelper,
+    private readonly audit: AuditService,
   ) {}
 
   async listBookings(query: ManageBookingsQuery, actor: BookingActor) {
@@ -130,7 +132,7 @@ export class ManagerBookingService {
         `Cannot move booking from "${booking.status}" to "${to}"`,
       );
     }
-    return this.db.booking.update({
+    const updated = await this.db.booking.update({
       where: { id: booking.id },
       data: { status: to },
       include: {
@@ -142,6 +144,11 @@ export class ManagerBookingService {
         payment: true,
       },
     });
+    await this.audit.record(actor.sub, `BOOKING_${to}`, 'Booking', bookingId, {
+      from: booking.status,
+      to,
+    });
+    return updated;
   }
 
   private async managedHotelIds(actor: BookingActor): Promise<string[]> {

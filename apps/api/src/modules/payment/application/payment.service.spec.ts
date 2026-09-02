@@ -56,11 +56,13 @@ describe('PaymentService lifecycle protections', () => {
       }),
     };
     config = { getOrThrow: jest.fn().mockReturnValue('test-webhook-secret') };
+    const audit = { record: jest.fn().mockResolvedValue(undefined) };
     service = new PaymentService(
       db as PrismaService,
       emitter as EventEmitter2,
       registry,
       config as ConfigService,
+      audit as any,
     );
   });
 

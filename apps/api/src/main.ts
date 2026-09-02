@@ -11,14 +11,44 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
 
-  app.use(helmet());
+  const nodeEnv = config.get<string>('nodeEnv');
+
+  const isProd = nodeEnv === 'production';
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: isProd
+        ? {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
+              connectSrc: ["'self'"],
+              fontSrc: ["'self'"],
+              objectSrc: ["'none'"],
+              frameAncestors: ["'none'"],
+              upgradeInsecureRequests: [],
+            },
+          }
+        : false,
+      hsts: isProd
+        ? {
+            maxAge: 31_536_000,
+            includeSubDomains: true,
+            preload: true,
+          }
+        : false,
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
   app.enableCors({
     origin: config.get<string>('webOrigin')?.split(',') ?? true,
     credentials: true,
   });
 
-  const nodeEnv = config.get<string>('nodeEnv');
-  if (nodeEnv !== 'production') {
+  if (!isProd) {
     app.useStaticAssets(join(process.cwd(), 'uploads'), {
       prefix: '/uploads/',
     });

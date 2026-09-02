@@ -28,6 +28,7 @@ import { buildQuote } from '../domain/quote';
 import type { BookingQuote } from '../domain/quote';
 import { CouponService } from '../../coupon/application/coupon.service';
 import { InvoiceService } from '../../invoice/application/invoice.service';
+import { AuditService } from '../../../common/services/audit.service';
 import { applyCoupon } from '../../coupon/domain';
 import type {
   CancelRoomInput,
@@ -52,6 +53,7 @@ export class BookingService {
     private readonly emitter: EventEmitter2,
     private readonly coupons: CouponService,
     private readonly invoices: InvoiceService,
+    private readonly audit: AuditService,
   ) {}
 
   async checkout(input: CheckoutInput) {
@@ -227,6 +229,15 @@ export class BookingService {
       ),
     );
 
+    await this.audit.record(userId, 'CREATE_BOOKING', 'Booking', booking.id, {
+      bookingRef: booking.bookingRef,
+      hotelId: booking.hotelId,
+      checkIn: input.checkIn,
+      checkOut: input.checkOut,
+      totalPrice: booking.totalPrice.toNumber(),
+      bookingSource: booking.bookingSource,
+    });
+
     return booking;
   }
 
@@ -285,6 +296,11 @@ export class BookingService {
         ),
       );
     }
+
+    await this.audit.record(userId, 'CANCEL_BOOKING', 'Booking', bookingId, {
+      previousStatus: booking.status,
+      refunded: shouldRefund,
+    });
 
     return updated;
   }
@@ -380,6 +396,12 @@ export class BookingService {
         );
       }
     }
+
+    await this.audit.record(userId, 'CANCEL_ROOMS', 'Booking', bookingId, {
+      cancelledRoomIds: input.roomIds,
+      fullyCancel: isFullCancel,
+      refundAmount,
+    });
 
     return {
       bookingId,

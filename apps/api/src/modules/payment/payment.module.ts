@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuditService } from '../../common/services/audit.service';
 import { PaymentGatewayRegistry } from './infrastructure/gateway-registry';
 import {
   CashGateway,
@@ -14,6 +15,7 @@ import { PaymentService } from './application/payment.service';
   controllers: [PaymentController],
   providers: [
     PaymentService,
+    AuditService,
     CreditCardGateway,
     PayPalGateway,
     TelebirrGateway,

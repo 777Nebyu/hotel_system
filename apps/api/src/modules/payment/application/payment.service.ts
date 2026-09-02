@@ -11,6 +11,7 @@ import { timingSafeEqual } from 'crypto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PaymentGatewayRegistry } from '../infrastructure/gateway-registry';
+import { AuditService } from '../../../common/services/audit.service';
 import {
   PaymentCompletedEvent,
   PaymentRefundedEvent,
@@ -38,6 +39,7 @@ export class PaymentService {
     private readonly emitter: EventEmitter2,
     private readonly registry: PaymentGatewayRegistry,
     private readonly config: ConfigService,
+    private readonly audit: AuditService,
   ) {}
 
   async createIntent(bookingId: string, method: PaymentMethod, userId: string) {
@@ -162,6 +164,13 @@ export class PaymentService {
           updated.method,
         ),
       );
+      await this.audit.record(
+        payment.booking.userId,
+        'PAYMENT_COMPLETED',
+        'Payment',
+        payment.id,
+        { bookingId, method: updated.method, amount: payment.amount.toNumber() },
+      );
       return {
         status: 'SUCCEEDED' as const,
         paymentId: payment.id,
@@ -266,6 +275,14 @@ export class PaymentService {
       ),
     );
 
+    await this.audit.record(
+      actor.sub,
+      'PAYMENT_CASH_PAID',
+      'Payment',
+      payment.id,
+      { bookingId, amount: payment.amount.toNumber() },
+    );
+
     return {
       status: 'SUCCEEDED' as const,
       paymentId: payment.id,
@@ -342,6 +359,13 @@ export class PaymentService {
         refundAmount,
         payment.method,
       ),
+    );
+    await this.audit.record(
+      actor.sub,
+      'PAYMENT_REFUNDED',
+      'Payment',
+      payment.id,
+      { bookingId, refundAmount, method: payment.method },
     );
     return {
       status: 'REFUNDED' as const,
