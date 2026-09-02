@@ -1,12 +1,21 @@
 import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Role } from '../../../generated/prisma/client';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { ManagerBookingService } from '../application/manager-booking.service';
+import { createZodDto } from 'nestjs-zod';
+import { hotelIdParamsSchema } from '@repo/shared-types';
 import {
   BookingIdParamsDto,
+  DecideStayRequestDto,
+  EarlyCheckInActionDto,
+  LateCheckOutActionDto,
   ManageBookingsQueryDto,
+  StayRequestIdParamsDto,
 } from './dto/manager-booking.dto';
+
+class HotelIdParamsDto extends createZodDto(hotelIdParamsSchema) {}
 
 interface AuthedRequest {
   user: { sub: string; role: string };
@@ -14,7 +23,7 @@ interface AuthedRequest {
 
 @ApiTags('bookings (manager)')
 @ApiBearerAuth()
-@Roles(Role.MANAGER, Role.ADMIN)
+@Roles(Role.MANAGER, Role.ADMIN, Role.STAFF)
 @Controller('bookings')
 export class ManagerBookingController {
   constructor(private readonly managerBookings: ManagerBookingService) {}
@@ -53,5 +62,47 @@ export class ManagerBookingController {
   @ApiOperation({ summary: 'Check a checked-in booking out' })
   checkOut(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
     return this.managerBookings.checkOut(params.bookingId, req.user);
+  }
+
+  @Post(':bookingId/early-checkin')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @ApiOperation({ summary: 'Direct staff/manager approval for early check-in' })
+  earlyCheckIn(
+    @Param() params: BookingIdParamsDto,
+    @Body() dto: EarlyCheckInActionDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.managerBookings.directEarlyCheckIn(params.bookingId, dto, req.user);
+  }
+
+  @Post(':bookingId/late-checkout')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @ApiOperation({ summary: 'Direct staff/manager approval for late check-out' })
+  lateCheckOut(
+    @Param() params: BookingIdParamsDto,
+    @Body() dto: LateCheckOutActionDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.managerBookings.directLateCheckOut(params.bookingId, dto, req.user);
+  }
+
+  @Get('hotels/:id/stay-requests')
+  @ApiOperation({ summary: 'List stay requests for a hotel' })
+  listStayRequests(
+    @Param() params: HotelIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.managerBookings.listStayRequests(params.id, req.user);
+  }
+
+  @Post('stay-requests/:id/decide')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @ApiOperation({ summary: 'Approve or reject a stay request' })
+  decideStayRequest(
+    @Param() params: StayRequestIdParamsDto,
+    @Body() dto: DecideStayRequestDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.managerBookings.decideStayRequest(params.id, dto, req.user);
   }
 }

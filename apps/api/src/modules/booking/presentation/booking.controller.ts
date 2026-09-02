@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -17,7 +18,10 @@ import {
   CancelRoomsDto,
   CheckoutDto,
   CreateBookingDto,
+  CreateRoomHoldDto,
+  CreateStayRequestDto,
   MyBookingsQueryDto,
+  RoomHoldIdParamsDto,
 } from './dto/booking.dto';
 
 interface AuthedRequest {
@@ -88,5 +92,36 @@ export class BookingController {
       `attachment; filename="invoice-${params.bookingId}.pdf"`,
     );
     res.send(pdf);
+  }
+
+  @Post('holds')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Place a 15-minute temporary hold on a room during checkout' })
+  createHold(@Body() dto: CreateRoomHoldDto, @Req() req: AuthedRequest) {
+    return this.bookings.createHold(dto, req.user.sub);
+  }
+
+  @Delete('holds/:holdId')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Release a temporary room hold' })
+  releaseHold(@Param() params: RoomHoldIdParamsDto, @Req() req: AuthedRequest) {
+    return this.bookings.releaseHold(params.holdId, req.user.sub);
+  }
+
+  @Post(':bookingId/stay-requests')
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @ApiOperation({ summary: 'Request early check-in or late check-out for a booking' })
+  createStayRequest(
+    @Param() params: BookingIdParamsDto,
+    @Body() dto: CreateStayRequestDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.bookings.createStayRequest(params.bookingId, dto, req.user.sub);
+  }
+
+  @Get(':bookingId/stay-requests')
+  @ApiOperation({ summary: 'Get stay requests for a booking' })
+  getStayRequests(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
+    return this.bookings.getStayRequests(params.bookingId, req.user.sub);
   }
 }

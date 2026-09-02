@@ -100,6 +100,8 @@ model User {
   disputesOpened             Dispute[]                  @relation("DisputeOpener")
   suspensionRequestsMade     SuspensionRequest[]        @relation("SuspensionRequester")
   suspensionRequestsApproved SuspensionRequest[]        @relation("SuspensionApprover")
+  roomHolds                  RoomHold[]
+  stayRequestsDecided        StayRequest[]              @relation("StayRequestDecider")
 }
 
 model Country {
@@ -188,6 +190,7 @@ model Room {
   availability     RoomAvailability[]
   seasonalPricing  SeasonalPricing[]
   details          BookingDetail[]
+  roomHolds        RoomHold[]
 
   @@unique([hotelId, roomNumber])
 }
@@ -242,10 +245,17 @@ model Booking {
   bookingSource BookingSource @default(ONLINE)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  details       BookingDetail[]
-  payment       Payment?
-  review        Review?
-  disputes      Dispute[]
+  details         BookingDetail[]
+  payment         Payment?
+  review          Review?
+  disputes        Dispute[]
+  actualCheckIn   DateTime?
+  actualCheckOut  DateTime?
+  earlyCheckIn    Boolean         @default(false)
+  earlyCheckInFee Decimal?        @db.Decimal(10, 2)
+  lateCheckOut    Boolean         @default(false)
+  lateCheckOutFee Decimal?        @db.Decimal(10, 2)
+  stayRequests    StayRequest[]
 
   @@index([userId])
   @@index([hotelId])
@@ -442,4 +452,51 @@ model SuspensionRequest {
 
   @@index([status])
   @@index([targetType, targetId])
+}
+
+enum StayRequestType {
+  EARLY_CHECKIN
+  LATE_CHECKOUT
+}
+
+enum StayRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model RoomHold {
+  id        String   @id @default(cuid())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checkIn   DateTime @db.Date
+  checkOut  DateTime @db.Date
+  holdStart DateTime @default(now())
+  holdEnd   DateTime
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+
+  @@index([roomId, holdEnd])
+  @@index([userId, status])
+}
+
+model StayRequest {
+  id            String            @id @default(cuid())
+  bookingId     String
+  booking       Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  type          StayRequestType
+  status        StayRequestStatus @default(PENDING)
+  requestedTime String?
+  fee           Decimal           @default(0.00) @db.Decimal(10, 2)
+  guestConsent  Boolean           @default(false)
+  decisionNote  String?
+  decidedById   String?
+  decidedBy     User?             @relation("StayRequestDecider", fields: [decidedById], references: [id])
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([bookingId])
+  @@index([status])
 }

@@ -152,3 +152,13 @@ export type Dispute = Prisma.DisputeModel
  * 
  */
 export type SuspensionRequest = Prisma.SuspensionRequestModel
+/**
+ * Model RoomHold
+ * 
+ */
+export type RoomHold = Prisma.RoomHoldModel
+/**
+ * Model StayRequest
+ * 
+ */
+export type StayRequest = Prisma.StayRequestModel

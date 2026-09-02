@@ -6,9 +6,12 @@ import { MailProducer } from './mail.producer';
 import { MailProcessor } from './mail.processor';
 import { CheckInReminderScheduler } from './checkin-reminder.scheduler';
 import { CheckInReminderProcessor } from './checkin-reminder.processor';
-import { MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
+import { BookingExpirationScheduler } from './booking-expiration.scheduler';
+import { BookingExpirationProcessor } from './booking-expiration.processor';
+import { AuditService } from '../../common/services/audit.service';
+import { EXPIRATION_QUEUE, MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
 
-export { MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
+export { EXPIRATION_QUEUE, MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
 
 @Global()
 @Module({
@@ -28,13 +31,20 @@ export { MAIL_QUEUE, REMINDER_QUEUE } from './jobs.constants';
         };
       },
     }),
-    BullModule.registerQueue({ name: MAIL_QUEUE }, { name: REMINDER_QUEUE }),
+    BullModule.registerQueue(
+      { name: MAIL_QUEUE },
+      { name: REMINDER_QUEUE },
+      { name: EXPIRATION_QUEUE },
+    ),
   ],
   providers: [
     MailProducer,
     MailProcessor,
     CheckInReminderScheduler,
     CheckInReminderProcessor,
+    BookingExpirationScheduler,
+    BookingExpirationProcessor,
+    AuditService,
   ],
   exports: [MailProducer, BullModule],
 })

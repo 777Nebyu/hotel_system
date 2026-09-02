@@ -94,3 +94,20 @@ export const SuspensionRequestStatus = {
 } as const
 
 export type SuspensionRequestStatus = (typeof SuspensionRequestStatus)[keyof typeof SuspensionRequestStatus]
+
+
+export const StayRequestType = {
+  EARLY_CHECKIN: 'EARLY_CHECKIN',
+  LATE_CHECKOUT: 'LATE_CHECKOUT'
+} as const
+
+export type StayRequestType = (typeof StayRequestType)[keyof typeof StayRequestType]
+
+
+export const StayRequestStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type StayRequestStatus = (typeof StayRequestStatus)[keyof typeof StayRequestStatus]

@@ -77,7 +77,9 @@ export const ModelName = {
   NotificationPreference: 'NotificationPreference',
   StaffHotel: 'StaffHotel',
   Dispute: 'Dispute',
-  SuspensionRequest: 'SuspensionRequest'
+  SuspensionRequest: 'SuspensionRequest',
+  RoomHold: 'RoomHold',
+  StayRequest: 'StayRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -253,7 +255,13 @@ export const BookingScalarFieldEnum = {
   totalPrice: 'totalPrice',
   bookingSource: 'bookingSource',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  actualCheckIn: 'actualCheckIn',
+  actualCheckOut: 'actualCheckOut',
+  earlyCheckIn: 'earlyCheckIn',
+  earlyCheckInFee: 'earlyCheckInFee',
+  lateCheckOut: 'lateCheckOut',
+  lateCheckOutFee: 'lateCheckOutFee'
 } as const
 
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]
@@ -443,6 +451,38 @@ export const SuspensionRequestScalarFieldEnum = {
 } as const
 
 export type SuspensionRequestScalarFieldEnum = (typeof SuspensionRequestScalarFieldEnum)[keyof typeof SuspensionRequestScalarFieldEnum]
+
+
+export const RoomHoldScalarFieldEnum = {
+  id: 'id',
+  roomId: 'roomId',
+  userId: 'userId',
+  checkIn: 'checkIn',
+  checkOut: 'checkOut',
+  holdStart: 'holdStart',
+  holdEnd: 'holdEnd',
+  status: 'status',
+  createdAt: 'createdAt'
+} as const
+
+export type RoomHoldScalarFieldEnum = (typeof RoomHoldScalarFieldEnum)[keyof typeof RoomHoldScalarFieldEnum]
+
+
+export const StayRequestScalarFieldEnum = {
+  id: 'id',
+  bookingId: 'bookingId',
+  type: 'type',
+  status: 'status',
+  requestedTime: 'requestedTime',
+  fee: 'fee',
+  guestConsent: 'guestConsent',
+  decisionNote: 'decisionNote',
+  decidedById: 'decidedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StayRequestScalarFieldEnum = (typeof StayRequestScalarFieldEnum)[keyof typeof StayRequestScalarFieldEnum]
 
 
 export const SortOrder = {

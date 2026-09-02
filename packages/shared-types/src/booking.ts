@@ -118,3 +118,54 @@ export const markCashPaidSchema = z.object({
   reference: z.string().min(1).max(64).optional(),
 });
 export type MarkCashPaidInput = z.infer<typeof markCashPaidSchema>;
+
+export const createRoomHoldSchema = z
+  .object({
+    roomId: id,
+    checkIn: dateOnly,
+    checkOut: dateOnly,
+  })
+  .refine((d) => d.checkOut > d.checkIn, stayRefine);
+export type CreateRoomHoldInput = z.infer<typeof createRoomHoldSchema>;
+
+export const roomHoldIdParamsSchema = z.object({ holdId: id });
+export type RoomHoldIdParams = z.infer<typeof roomHoldIdParamsSchema>;
+
+export const stayRequestTypeSchema = z.enum([
+  'EARLY_CHECKIN',
+  'LATE_CHECKOUT',
+]);
+export type StayRequestType = z.infer<typeof stayRequestTypeSchema>;
+
+export const stayRequestStatusSchema = z.enum([
+  'PENDING',
+  'APPROVED',
+  'REJECTED',
+]);
+export type StayRequestStatus = z.infer<typeof stayRequestStatusSchema>;
+
+export const createStayRequestSchema = z.object({
+  type: stayRequestTypeSchema,
+  requestedTime: z.string().max(20).optional(),
+  guestConsent: z.boolean().default(true),
+});
+export type CreateStayRequestInput = z.infer<typeof createStayRequestSchema>;
+
+export const decideStayRequestSchema = z.object({
+  decision: z.enum(['APPROVED', 'REJECTED']),
+  decisionNote: z.string().max(500).optional(),
+});
+export type DecideStayRequestInput = z.infer<typeof decideStayRequestSchema>;
+
+export const stayRequestIdParamsSchema = z.object({ id });
+export type StayRequestIdParams = z.infer<typeof stayRequestIdParamsSchema>;
+
+export const earlyCheckInActionSchema = z.object({
+  earlyCheckInFee: z.coerce.number().min(0).optional(),
+});
+export type EarlyCheckInActionInput = z.infer<typeof earlyCheckInActionSchema>;
+
+export const lateCheckOutActionSchema = z.object({
+  lateCheckOutFee: z.coerce.number().min(0).optional(),
+});
+export type LateCheckOutActionInput = z.infer<typeof lateCheckOutActionSchema>;

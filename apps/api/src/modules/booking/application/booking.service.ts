@@ -34,6 +34,8 @@ import type {
   CancelRoomInput,
   CheckoutInput,
   CreateBookingInput,
+  CreateRoomHoldInput,
+  CreateStayRequestInput,
 } from '@repo/shared-types';
 
 function generateBookingRef(): string {
@@ -140,6 +142,7 @@ export class BookingService {
         rooms.map((room) => room.id),
         checkIn,
         checkOut,
+        userId,
       );
 
       const quote = buildQuote({
@@ -180,6 +183,17 @@ export class BookingService {
           );
         }
       }
+
+      await tx.roomHold.updateMany({
+        where: {
+          userId,
+          roomId: { in: rooms.map((r) => r.id) },
+          status: 'ACTIVE',
+        },
+        data: {
+          status: 'CONVERTED',
+        },
+      });
 
       return tx.booking.create({
         data: {
@@ -455,6 +469,163 @@ export class BookingService {
     return this.invoices.generate(bookingId);
   }
 
+  async createHold(input: CreateRoomHoldInput, userId: string) {
+    const checkIn = parseDateOnly(input.checkIn);
+    const checkOut = parseDateOnly(input.checkOut);
+    const room = await this.db.room.findUnique({
+      where: { id: input.roomId },
+      include: {
+        availability: { where: { date: { gte: checkIn, lt: checkOut } } },
+      },
+    });
+    if (!room) throw new NotFoundException('Room not found');
+    if (!roomAvailableAcross(room.status, room.availability, checkIn, checkOut)) {
+      throw new ConflictException('Room is not available for requested dates');
+    }
+
+    const overlappingBooking = await this.db.bookingDetail.findFirst({
+      where: {
+        roomId: input.roomId,
+        booking: {
+          status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+          checkIn: { lt: checkOut },
+          checkOut: { gt: checkIn },
+        },
+      },
+    });
+    if (overlappingBooking) {
+      throw new ConflictException('Room already booked for these dates');
+    }
+
+    const otherHold = await this.db.roomHold.findFirst({
+      where: {
+        roomId: input.roomId,
+        status: 'ACTIVE',
+        holdEnd: { gt: new Date() },
+        checkIn: { lt: checkOut },
+        checkOut: { gt: checkIn },
+        userId: { not: userId },
+      },
+    });
+    if (otherHold) {
+      throw new ConflictException('Room is temporarily held by another customer');
+    }
+
+    const holdEnd = new Date(Date.now() + 15 * 60 * 1000);
+    const hold = await this.db.roomHold.create({
+      data: {
+        roomId: input.roomId,
+        userId,
+        checkIn,
+        checkOut,
+        holdEnd,
+        status: 'ACTIVE',
+      },
+      include: {
+        room: { select: { id: true, roomNumber: true, hotelId: true } },
+      },
+    });
+
+    await this.audit.record(userId, 'ROOM_HOLD_CREATED', 'RoomHold', hold.id, {
+      roomId: input.roomId,
+      holdEnd,
+    });
+
+    return {
+      holdId: hold.id,
+      roomId: hold.roomId,
+      holdEnd: hold.holdEnd,
+      expiresInSeconds: Math.floor((hold.holdEnd.getTime() - Date.now()) / 1000),
+    };
+  }
+
+  async releaseHold(holdId: string, userId: string) {
+    const hold = await this.db.roomHold.findUnique({
+      where: { id: holdId },
+    });
+    if (!hold) throw new NotFoundException('Hold not found');
+    if (hold.userId !== userId) {
+      throw new ForbiddenException('You cannot cancel this hold');
+    }
+    await this.db.roomHold.update({
+      where: { id: holdId },
+      data: { status: 'CANCELLED' },
+    });
+    await this.audit.record(userId, 'ROOM_HOLD_CANCELLED', 'RoomHold', holdId, {});
+    return { cancelled: true };
+  }
+
+  async createStayRequest(
+    bookingId: string,
+    dto: CreateStayRequestInput,
+    userId: string,
+  ) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        hotel: { include: { policy: true } },
+      },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('You can only request for your own booking');
+    }
+    if (dto.type === 'EARLY_CHECKIN') {
+      if (!['CONFIRMED'].includes(booking.status)) {
+        throw new BadRequestException('Early check-in can only be requested for confirmed bookings');
+      }
+      if (booking.hotel.policy && !booking.hotel.policy.allowEarlyCheckIn) {
+        throw new BadRequestException('Early check-in is not permitted by hotel policy');
+      }
+    } else if (dto.type === 'LATE_CHECKOUT') {
+      if (!['CONFIRMED', 'CHECKED_IN'].includes(booking.status)) {
+        throw new BadRequestException('Late check-out can only be requested for confirmed or checked-in bookings');
+      }
+      if (booking.hotel.policy && !booking.hotel.policy.allowLateCheckOut) {
+        throw new BadRequestException('Late check-out is not permitted by hotel policy');
+      }
+    }
+
+    const fee =
+      dto.type === 'EARLY_CHECKIN'
+        ? (booking.hotel.policy?.earlyCheckInFee ?? 0)
+        : (booking.hotel.policy?.lateCheckOutFee ?? 0);
+
+    const request = await this.db.stayRequest.create({
+      data: {
+        bookingId,
+        type: dto.type,
+        requestedTime: dto.requestedTime,
+        fee,
+        guestConsent: dto.guestConsent,
+        status: 'PENDING',
+      },
+    });
+
+    await this.audit.record(userId, 'STAY_REQUEST_CREATED', 'StayRequest', request.id, {
+      bookingId,
+      type: dto.type,
+      fee: Number(fee),
+    });
+
+    return request;
+  }
+
+  async getStayRequests(bookingId: string, userId: string) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      select: { userId: true },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+    return this.db.stayRequest.findMany({
+      where: { bookingId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   private async applyPromo(
     quote: BookingQuote,
     promoCode?: string,
@@ -505,6 +676,7 @@ export class BookingService {
     roomIds: string[],
     checkIn: Date,
     checkOut: Date,
+    currentUserId?: string,
   ): Promise<void> {
     const overlaps = await client.bookingDetail.findMany({
       where: {
@@ -521,6 +693,24 @@ export class BookingService {
     if (blocked.length > 0) {
       throw new ConflictException(
         `Room(s) already booked for this stay: ${blocked.join(', ')}`,
+      );
+    }
+
+    const activeHolds = await client.roomHold.findMany({
+      where: {
+        roomId: { in: roomIds },
+        status: 'ACTIVE',
+        holdEnd: { gt: new Date() },
+        checkIn: { lt: checkOut },
+        checkOut: { gt: checkIn },
+        ...(currentUserId ? { userId: { not: currentUserId } } : {}),
+      },
+      select: { roomId: true },
+    });
+    const held = Array.from(new Set(activeHolds.map((h) => h.roomId)));
+    if (held.length > 0) {
+      throw new ConflictException(
+        `Room(s) temporarily held by another customer: ${held.join(', ')}`,
       );
     }
   }

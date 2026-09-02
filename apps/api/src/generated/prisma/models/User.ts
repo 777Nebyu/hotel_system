@@ -347,6 +347,8 @@ export type UserWhereInput = {
   disputesOpened?: Prisma.DisputeListRelationFilter
   suspensionRequestsMade?: Prisma.SuspensionRequestListRelationFilter
   suspensionRequestsApproved?: Prisma.SuspensionRequestListRelationFilter
+  roomHolds?: Prisma.RoomHoldListRelationFilter
+  stayRequestsDecided?: Prisma.StayRequestListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -381,6 +383,8 @@ export type UserOrderByWithRelationInput = {
   disputesOpened?: Prisma.DisputeOrderByRelationAggregateInput
   suspensionRequestsMade?: Prisma.SuspensionRequestOrderByRelationAggregateInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestOrderByRelationAggregateInput
+  roomHolds?: Prisma.RoomHoldOrderByRelationAggregateInput
+  stayRequestsDecided?: Prisma.StayRequestOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -418,6 +422,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   disputesOpened?: Prisma.DisputeListRelationFilter
   suspensionRequestsMade?: Prisma.SuspensionRequestListRelationFilter
   suspensionRequestsApproved?: Prisma.SuspensionRequestListRelationFilter
+  roomHolds?: Prisma.RoomHoldListRelationFilter
+  stayRequestsDecided?: Prisma.StayRequestListRelationFilter
 }, "id" | "email" | "verificationToken" | "resetPasswordToken">
 
 export type UserOrderByWithAggregationInput = {
@@ -506,6 +512,8 @@ export type UserCreateInput = {
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -540,6 +548,8 @@ export type UserUncheckedCreateInput = {
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUpdateInput = {
@@ -574,6 +584,8 @@ export type UserUpdateInput = {
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -608,6 +620,8 @@ export type UserUncheckedUpdateInput = {
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -958,6 +972,36 @@ export type UserUpdateOneWithoutSuspensionRequestsApprovedNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSuspensionRequestsApprovedInput, Prisma.UserUpdateWithoutSuspensionRequestsApprovedInput>, Prisma.UserUncheckedUpdateWithoutSuspensionRequestsApprovedInput>
 }
 
+export type UserCreateNestedOneWithoutRoomHoldsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRoomHoldsInput, Prisma.UserUncheckedCreateWithoutRoomHoldsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRoomHoldsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutRoomHoldsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRoomHoldsInput, Prisma.UserUncheckedCreateWithoutRoomHoldsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRoomHoldsInput
+  upsert?: Prisma.UserUpsertWithoutRoomHoldsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRoomHoldsInput, Prisma.UserUpdateWithoutRoomHoldsInput>, Prisma.UserUncheckedUpdateWithoutRoomHoldsInput>
+}
+
+export type UserCreateNestedOneWithoutStayRequestsDecidedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutStayRequestsDecidedInput, Prisma.UserUncheckedCreateWithoutStayRequestsDecidedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutStayRequestsDecidedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutStayRequestsDecidedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutStayRequestsDecidedInput, Prisma.UserUncheckedCreateWithoutStayRequestsDecidedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutStayRequestsDecidedInput
+  upsert?: Prisma.UserUpsertWithoutStayRequestsDecidedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutStayRequestsDecidedInput, Prisma.UserUpdateWithoutStayRequestsDecidedInput>, Prisma.UserUncheckedUpdateWithoutStayRequestsDecidedInput>
+}
+
 export type UserCreateWithoutHotelsInput = {
   id?: string
   email: string
@@ -989,6 +1033,8 @@ export type UserCreateWithoutHotelsInput = {
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutHotelsInput = {
@@ -1022,6 +1068,8 @@ export type UserUncheckedCreateWithoutHotelsInput = {
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutHotelsInput = {
@@ -1071,6 +1119,8 @@ export type UserUpdateWithoutHotelsInput = {
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutHotelsInput = {
@@ -1104,6 +1154,8 @@ export type UserUncheckedUpdateWithoutHotelsInput = {
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutBookingsInput = {
@@ -1137,6 +1189,8 @@ export type UserCreateWithoutBookingsInput = {
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutBookingsInput = {
@@ -1170,6 +1224,8 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutBookingsInput = {
@@ -1219,6 +1275,8 @@ export type UserUpdateWithoutBookingsInput = {
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBookingsInput = {
@@ -1252,6 +1310,8 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutReviewsInput = {
@@ -1285,6 +1345,8 @@ export type UserCreateWithoutReviewsInput = {
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
@@ -1318,6 +1380,8 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -1367,6 +1431,8 @@ export type UserUpdateWithoutReviewsInput = {
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -1400,6 +1466,8 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutFavoritesInput = {
@@ -1433,6 +1501,8 @@ export type UserCreateWithoutFavoritesInput = {
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutFavoritesInput = {
@@ -1466,6 +1536,8 @@ export type UserUncheckedCreateWithoutFavoritesInput = {
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutFavoritesInput = {
@@ -1515,6 +1587,8 @@ export type UserUpdateWithoutFavoritesInput = {
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFavoritesInput = {
@@ -1548,6 +1622,8 @@ export type UserUncheckedUpdateWithoutFavoritesInput = {
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -1581,6 +1657,8 @@ export type UserCreateWithoutNotificationsInput = {
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -1614,6 +1692,8 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -1663,6 +1743,8 @@ export type UserUpdateWithoutNotificationsInput = {
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -1696,6 +1778,8 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutAuditLogsInput = {
@@ -1729,6 +1813,8 @@ export type UserCreateWithoutAuditLogsInput = {
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -1762,6 +1848,8 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -1811,6 +1899,8 @@ export type UserUpdateWithoutAuditLogsInput = {
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -1844,6 +1934,8 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutNotificationPreferencesInput = {
@@ -1877,6 +1969,8 @@ export type UserCreateWithoutNotificationPreferencesInput = {
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutNotificationPreferencesInput = {
@@ -1910,6 +2004,8 @@ export type UserUncheckedCreateWithoutNotificationPreferencesInput = {
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutNotificationPreferencesInput = {
@@ -1959,6 +2055,8 @@ export type UserUpdateWithoutNotificationPreferencesInput = {
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationPreferencesInput = {
@@ -1992,6 +2090,8 @@ export type UserUncheckedUpdateWithoutNotificationPreferencesInput = {
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutStaffHotelsInput = {
@@ -2025,6 +2125,8 @@ export type UserCreateWithoutStaffHotelsInput = {
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutStaffHotelsInput = {
@@ -2058,6 +2160,8 @@ export type UserUncheckedCreateWithoutStaffHotelsInput = {
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutStaffHotelsInput = {
@@ -2107,6 +2211,8 @@ export type UserUpdateWithoutStaffHotelsInput = {
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStaffHotelsInput = {
@@ -2140,6 +2246,8 @@ export type UserUncheckedUpdateWithoutStaffHotelsInput = {
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutDisputesOpenedInput = {
@@ -2173,6 +2281,8 @@ export type UserCreateWithoutDisputesOpenedInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutDisputesOpenedInput = {
@@ -2206,6 +2316,8 @@ export type UserUncheckedCreateWithoutDisputesOpenedInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutDisputesOpenedInput = {
@@ -2255,6 +2367,8 @@ export type UserUpdateWithoutDisputesOpenedInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDisputesOpenedInput = {
@@ -2288,6 +2402,8 @@ export type UserUncheckedUpdateWithoutDisputesOpenedInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutSuspensionRequestsMadeInput = {
@@ -2321,6 +2437,8 @@ export type UserCreateWithoutSuspensionRequestsMadeInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutSuspensionRequestsMadeInput = {
@@ -2354,6 +2472,8 @@ export type UserUncheckedCreateWithoutSuspensionRequestsMadeInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutSuspensionRequestsMadeInput = {
@@ -2392,6 +2512,8 @@ export type UserCreateWithoutSuspensionRequestsApprovedInput = {
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
   disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutSuspensionRequestsApprovedInput = {
@@ -2425,6 +2547,8 @@ export type UserUncheckedCreateWithoutSuspensionRequestsApprovedInput = {
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
   disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutSuspensionRequestsApprovedInput = {
@@ -2474,6 +2598,8 @@ export type UserUpdateWithoutSuspensionRequestsMadeInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSuspensionRequestsMadeInput = {
@@ -2507,6 +2633,8 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsMadeInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUpsertWithoutSuspensionRequestsApprovedInput = {
@@ -2551,6 +2679,8 @@ export type UserUpdateWithoutSuspensionRequestsApprovedInput = {
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
   disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSuspensionRequestsApprovedInput = {
@@ -2584,6 +2714,320 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsApprovedInput = {
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
   disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
   suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserCreateWithoutRoomHoldsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  role?: $Enums.Role
+  isActive?: boolean
+  profilePhotoUrl?: string | null
+  emailVerifiedAt?: Date | string | null
+  verificationToken?: string | null
+  resetPasswordToken?: string | null
+  resetPasswordExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  refreshTokenFamily?: string | null
+  lastLoginAt?: Date | string | null
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: string | null
+  hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
+  staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  notificationPreferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserUncheckedCreateWithoutRoomHoldsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  role?: $Enums.Role
+  isActive?: boolean
+  profilePhotoUrl?: string | null
+  emailVerifiedAt?: Date | string | null
+  verificationToken?: string | null
+  resetPasswordToken?: string | null
+  resetPasswordExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  refreshTokenFamily?: string | null
+  lastLoginAt?: Date | string | null
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: string | null
+  hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
+  staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  notificationPreferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserCreateOrConnectWithoutRoomHoldsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutRoomHoldsInput, Prisma.UserUncheckedCreateWithoutRoomHoldsInput>
+}
+
+export type UserUpsertWithoutRoomHoldsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutRoomHoldsInput, Prisma.UserUncheckedUpdateWithoutRoomHoldsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutRoomHoldsInput, Prisma.UserUncheckedCreateWithoutRoomHoldsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutRoomHoldsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutRoomHoldsInput, Prisma.UserUncheckedUpdateWithoutRoomHoldsInput>
+}
+
+export type UserUpdateWithoutRoomHoldsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshTokenFamily?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
+  staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  notificationPreferences?: Prisma.NotificationPreferenceUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutRoomHoldsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshTokenFamily?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
+  staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  notificationPreferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserCreateWithoutStayRequestsDecidedInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  role?: $Enums.Role
+  isActive?: boolean
+  profilePhotoUrl?: string | null
+  emailVerifiedAt?: Date | string | null
+  verificationToken?: string | null
+  resetPasswordToken?: string | null
+  resetPasswordExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  refreshTokenFamily?: string | null
+  lastLoginAt?: Date | string | null
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: string | null
+  hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
+  staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  notificationPreferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutStayRequestsDecidedInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  role?: $Enums.Role
+  isActive?: boolean
+  profilePhotoUrl?: string | null
+  emailVerifiedAt?: Date | string | null
+  verificationToken?: string | null
+  resetPasswordToken?: string | null
+  resetPasswordExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  refreshTokenFamily?: string | null
+  lastLoginAt?: Date | string | null
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: string | null
+  hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
+  staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  notificationPreferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutStayRequestsDecidedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutStayRequestsDecidedInput, Prisma.UserUncheckedCreateWithoutStayRequestsDecidedInput>
+}
+
+export type UserUpsertWithoutStayRequestsDecidedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutStayRequestsDecidedInput, Prisma.UserUncheckedUpdateWithoutStayRequestsDecidedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutStayRequestsDecidedInput, Prisma.UserUncheckedCreateWithoutStayRequestsDecidedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutStayRequestsDecidedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutStayRequestsDecidedInput, Prisma.UserUncheckedUpdateWithoutStayRequestsDecidedInput>
+}
+
+export type UserUpdateWithoutStayRequestsDecidedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshTokenFamily?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
+  staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  notificationPreferences?: Prisma.NotificationPreferenceUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutStayRequestsDecidedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshTokenFamily?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
+  staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  notificationPreferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -2603,6 +3047,8 @@ export type UserCountOutputType = {
   disputesOpened: number
   suspensionRequestsMade: number
   suspensionRequestsApproved: number
+  roomHolds: number
+  stayRequestsDecided: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2617,6 +3063,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   disputesOpened?: boolean | UserCountOutputTypeCountDisputesOpenedArgs
   suspensionRequestsMade?: boolean | UserCountOutputTypeCountSuspensionRequestsMadeArgs
   suspensionRequestsApproved?: boolean | UserCountOutputTypeCountSuspensionRequestsApprovedArgs
+  roomHolds?: boolean | UserCountOutputTypeCountRoomHoldsArgs
+  stayRequestsDecided?: boolean | UserCountOutputTypeCountStayRequestsDecidedArgs
 }
 
 /**
@@ -2706,6 +3154,20 @@ export type UserCountOutputTypeCountSuspensionRequestsApprovedArgs<ExtArgs exten
   where?: Prisma.SuspensionRequestWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountRoomHoldsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RoomHoldWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountStayRequestsDecidedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StayRequestWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2739,6 +3201,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   disputesOpened?: boolean | Prisma.User$disputesOpenedArgs<ExtArgs>
   suspensionRequestsMade?: boolean | Prisma.User$suspensionRequestsMadeArgs<ExtArgs>
   suspensionRequestsApproved?: boolean | Prisma.User$suspensionRequestsApprovedArgs<ExtArgs>
+  roomHolds?: boolean | Prisma.User$roomHoldsArgs<ExtArgs>
+  stayRequestsDecided?: boolean | Prisma.User$stayRequestsDecidedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2824,6 +3288,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   disputesOpened?: boolean | Prisma.User$disputesOpenedArgs<ExtArgs>
   suspensionRequestsMade?: boolean | Prisma.User$suspensionRequestsMadeArgs<ExtArgs>
   suspensionRequestsApproved?: boolean | Prisma.User$suspensionRequestsApprovedArgs<ExtArgs>
+  roomHolds?: boolean | Prisma.User$roomHoldsArgs<ExtArgs>
+  stayRequestsDecided?: boolean | Prisma.User$stayRequestsDecidedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2843,6 +3309,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     disputesOpened: Prisma.$DisputePayload<ExtArgs>[]
     suspensionRequestsMade: Prisma.$SuspensionRequestPayload<ExtArgs>[]
     suspensionRequestsApproved: Prisma.$SuspensionRequestPayload<ExtArgs>[]
+    roomHolds: Prisma.$RoomHoldPayload<ExtArgs>[]
+    stayRequestsDecided: Prisma.$StayRequestPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3270,6 +3738,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   disputesOpened<T extends Prisma.User$disputesOpenedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$disputesOpenedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DisputePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   suspensionRequestsMade<T extends Prisma.User$suspensionRequestsMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$suspensionRequestsMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SuspensionRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   suspensionRequestsApproved<T extends Prisma.User$suspensionRequestsApprovedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$suspensionRequestsApprovedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SuspensionRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  roomHolds<T extends Prisma.User$roomHoldsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$roomHoldsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomHoldPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  stayRequestsDecided<T extends Prisma.User$stayRequestsDecidedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$stayRequestsDecidedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StayRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3973,6 +4443,54 @@ export type User$suspensionRequestsApprovedArgs<ExtArgs extends runtime.Types.Ex
   take?: number
   skip?: number
   distinct?: Prisma.SuspensionRequestScalarFieldEnum | Prisma.SuspensionRequestScalarFieldEnum[]
+}
+
+/**
+ * User.roomHolds
+ */
+export type User$roomHoldsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RoomHold
+   */
+  select?: Prisma.RoomHoldSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RoomHold
+   */
+  omit?: Prisma.RoomHoldOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RoomHoldInclude<ExtArgs> | null
+  where?: Prisma.RoomHoldWhereInput
+  orderBy?: Prisma.RoomHoldOrderByWithRelationInput | Prisma.RoomHoldOrderByWithRelationInput[]
+  cursor?: Prisma.RoomHoldWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RoomHoldScalarFieldEnum | Prisma.RoomHoldScalarFieldEnum[]
+}
+
+/**
+ * User.stayRequestsDecided
+ */
+export type User$stayRequestsDecidedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StayRequest
+   */
+  select?: Prisma.StayRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StayRequest
+   */
+  omit?: Prisma.StayRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StayRequestInclude<ExtArgs> | null
+  where?: Prisma.StayRequestWhereInput
+  orderBy?: Prisma.StayRequestOrderByWithRelationInput | Prisma.StayRequestOrderByWithRelationInput[]
+  cursor?: Prisma.StayRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StayRequestScalarFieldEnum | Prisma.StayRequestScalarFieldEnum[]
 }
 
 /**
