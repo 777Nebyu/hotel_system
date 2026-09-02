@@ -150,17 +150,20 @@ export class ManagerBookingService {
         (hotel) => hotel.id,
       );
     }
-    if (actor.role !== 'MANAGER') {
-      throw new ForbiddenException(
-        'Insufficient role permissions for booking management',
-      );
+    if (actor.role === 'MANAGER') {
+      return (
+        await this.db.hotel.findMany({
+          where: { managerId: actor.sub },
+          select: { id: true },
+        })
+      ).map((hotel) => hotel.id);
     }
-    return (
-      await this.db.hotel.findMany({
-        where: { managerId: actor.sub },
-        select: { id: true },
-      })
-    ).map((hotel) => hotel.id);
+    if (actor.role === 'STAFF') {
+      return this.scope.getStaffHotelIds(actor.sub);
+    }
+    throw new ForbiddenException(
+      'Insufficient role permissions for booking management',
+    );
   }
 
   private async assertCanManage(

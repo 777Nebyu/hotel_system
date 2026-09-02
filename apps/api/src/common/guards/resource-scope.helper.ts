@@ -10,7 +10,7 @@ export class ResourceScopeHelper {
     userRole: string,
     hotelId: string,
   ): Promise<void> {
-    if (userRole === 'ADMIN') return; // Admin has platform-wide access
+    if (userRole === 'ADMIN') return;
     if (userRole === 'MANAGER') {
       const hotel = await this.db.hotel.findFirst({
         where: { id: hotelId, managerId: userId },
@@ -22,8 +22,34 @@ export class ResourceScopeHelper {
       }
       return;
     }
+    if (userRole === 'STAFF') {
+      await this.assertStaffAssignedToHotel(userId, hotelId);
+      return;
+    }
     throw new ForbiddenException(
       'Insufficient role permissions for hotel management',
     );
+  }
+
+  async assertStaffAssignedToHotel(
+    userId: string,
+    hotelId: string,
+  ): Promise<void> {
+    const assignment = await this.db.staffHotel.findUnique({
+      where: { staffId_hotelId: { staffId: userId, hotelId } },
+    });
+    if (!assignment) {
+      throw new ForbiddenException(
+        'Access denied: You are not assigned to this hotel',
+      );
+    }
+  }
+
+  async getStaffHotelIds(userId: string): Promise<string[]> {
+    const assignments = await this.db.staffHotel.findMany({
+      where: { staffId: userId },
+      select: { hotelId: true },
+    });
+    return assignments.map((a) => a.hotelId);
   }
 }

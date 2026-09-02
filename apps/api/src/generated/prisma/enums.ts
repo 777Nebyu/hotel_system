@@ -74,3 +74,23 @@ export const HotelStatus = {
 } as const
 
 export type HotelStatus = (typeof HotelStatus)[keyof typeof HotelStatus]
+
+
+export const DisputeStatus = {
+  OPEN: 'OPEN',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type DisputeStatus = (typeof DisputeStatus)[keyof typeof DisputeStatus]
+
+
+export const SuspensionRequestStatus = {
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type SuspensionRequestStatus = (typeof SuspensionRequestStatus)[keyof typeof SuspensionRequestStatus]

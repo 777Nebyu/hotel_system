@@ -420,7 +420,10 @@ export const ModelName = {
   AuditLog: 'AuditLog',
   PlatformSetting: 'PlatformSetting',
   HotelPolicy: 'HotelPolicy',
-  NotificationPreference: 'NotificationPreference'
+  NotificationPreference: 'NotificationPreference',
+  StaffHotel: 'StaffHotel',
+  Dispute: 'Dispute',
+  SuspensionRequest: 'SuspensionRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -436,7 +439,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "country" | "city" | "hotel" | "hotelImage" | "amenity" | "hotelAmenity" | "room" | "roomImage" | "roomAmenity" | "roomAvailability" | "seasonalPricing" | "booking" | "bookingDetail" | "payment" | "paymentAttempt" | "review" | "favorite" | "coupon" | "notification" | "auditLog" | "platformSetting" | "hotelPolicy" | "notificationPreference"
+    modelProps: "user" | "country" | "city" | "hotel" | "hotelImage" | "amenity" | "hotelAmenity" | "room" | "roomImage" | "roomAmenity" | "roomAvailability" | "seasonalPricing" | "booking" | "bookingDetail" | "payment" | "paymentAttempt" | "review" | "favorite" | "coupon" | "notification" | "auditLog" | "platformSetting" | "hotelPolicy" | "notificationPreference" | "staffHotel" | "dispute" | "suspensionRequest"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2216,6 +2219,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    StaffHotel: {
+      payload: Prisma.$StaffHotelPayload<ExtArgs>
+      fields: Prisma.StaffHotelFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StaffHotelFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StaffHotelFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload>
+        }
+        findFirst: {
+          args: Prisma.StaffHotelFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StaffHotelFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload>
+        }
+        findMany: {
+          args: Prisma.StaffHotelFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload>[]
+        }
+        create: {
+          args: Prisma.StaffHotelCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload>
+        }
+        createMany: {
+          args: Prisma.StaffHotelCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StaffHotelCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload>[]
+        }
+        delete: {
+          args: Prisma.StaffHotelDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload>
+        }
+        update: {
+          args: Prisma.StaffHotelUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload>
+        }
+        deleteMany: {
+          args: Prisma.StaffHotelDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StaffHotelUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StaffHotelUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload>[]
+        }
+        upsert: {
+          args: Prisma.StaffHotelUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StaffHotelPayload>
+        }
+        aggregate: {
+          args: Prisma.StaffHotelAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStaffHotel>
+        }
+        groupBy: {
+          args: Prisma.StaffHotelGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StaffHotelGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StaffHotelCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StaffHotelCountAggregateOutputType> | number
+        }
+      }
+    }
+    Dispute: {
+      payload: Prisma.$DisputePayload<ExtArgs>
+      fields: Prisma.DisputeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DisputeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DisputeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload>
+        }
+        findFirst: {
+          args: Prisma.DisputeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DisputeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload>
+        }
+        findMany: {
+          args: Prisma.DisputeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload>[]
+        }
+        create: {
+          args: Prisma.DisputeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload>
+        }
+        createMany: {
+          args: Prisma.DisputeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DisputeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload>[]
+        }
+        delete: {
+          args: Prisma.DisputeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload>
+        }
+        update: {
+          args: Prisma.DisputeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload>
+        }
+        deleteMany: {
+          args: Prisma.DisputeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DisputeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DisputeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload>[]
+        }
+        upsert: {
+          args: Prisma.DisputeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DisputePayload>
+        }
+        aggregate: {
+          args: Prisma.DisputeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDispute>
+        }
+        groupBy: {
+          args: Prisma.DisputeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DisputeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DisputeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DisputeCountAggregateOutputType> | number
+        }
+      }
+    }
+    SuspensionRequest: {
+      payload: Prisma.$SuspensionRequestPayload<ExtArgs>
+      fields: Prisma.SuspensionRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SuspensionRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SuspensionRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.SuspensionRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SuspensionRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload>
+        }
+        findMany: {
+          args: Prisma.SuspensionRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload>[]
+        }
+        create: {
+          args: Prisma.SuspensionRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload>
+        }
+        createMany: {
+          args: Prisma.SuspensionRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SuspensionRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.SuspensionRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload>
+        }
+        update: {
+          args: Prisma.SuspensionRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.SuspensionRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SuspensionRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SuspensionRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.SuspensionRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuspensionRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.SuspensionRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSuspensionRequest>
+        }
+        groupBy: {
+          args: Prisma.SuspensionRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SuspensionRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SuspensionRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SuspensionRequestCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2489,7 +2714,9 @@ export const CouponScalarFieldEnum = {
   validFrom: 'validFrom',
   validTo: 'validTo',
   usageLimit: 'usageLimit',
-  timesUsed: 'timesUsed'
+  timesUsed: 'timesUsed',
+  isActive: 'isActive',
+  minBookingAmount: 'minBookingAmount'
 } as const
 
 export type CouponScalarFieldEnum = (typeof CouponScalarFieldEnum)[keyof typeof CouponScalarFieldEnum]
@@ -2560,6 +2787,46 @@ export const NotificationPreferenceScalarFieldEnum = {
 } as const
 
 export type NotificationPreferenceScalarFieldEnum = (typeof NotificationPreferenceScalarFieldEnum)[keyof typeof NotificationPreferenceScalarFieldEnum]
+
+
+export const StaffHotelScalarFieldEnum = {
+  staffId: 'staffId',
+  hotelId: 'hotelId',
+  assignedAt: 'assignedAt'
+} as const
+
+export type StaffHotelScalarFieldEnum = (typeof StaffHotelScalarFieldEnum)[keyof typeof StaffHotelScalarFieldEnum]
+
+
+export const DisputeScalarFieldEnum = {
+  id: 'id',
+  bookingId: 'bookingId',
+  openedById: 'openedById',
+  reason: 'reason',
+  status: 'status',
+  resolution: 'resolution',
+  resolvedAt: 'resolvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DisputeScalarFieldEnum = (typeof DisputeScalarFieldEnum)[keyof typeof DisputeScalarFieldEnum]
+
+
+export const SuspensionRequestScalarFieldEnum = {
+  id: 'id',
+  requesterId: 'requesterId',
+  approverId: 'approverId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  reason: 'reason',
+  status: 'status',
+  decidedAt: 'decidedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SuspensionRequestScalarFieldEnum = (typeof SuspensionRequestScalarFieldEnum)[keyof typeof SuspensionRequestScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2804,6 +3071,34 @@ export type EnumDiscountTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
 export type ListEnumDiscountTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DiscountType[]'>
     
 
+
+/**
+ * Reference to a field of type 'DisputeStatus'
+ */
+export type EnumDisputeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DisputeStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DisputeStatus[]'
+ */
+export type ListEnumDisputeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DisputeStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'SuspensionRequestStatus'
+ */
+export type EnumSuspensionRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SuspensionRequestStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'SuspensionRequestStatus[]'
+ */
+export type ListEnumSuspensionRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SuspensionRequestStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -2979,6 +3274,9 @@ export type GlobalOmitConfig = {
   platformSetting?: Prisma.PlatformSettingOmit
   hotelPolicy?: Prisma.HotelPolicyOmit
   notificationPreference?: Prisma.NotificationPreferenceOmit
+  staffHotel?: Prisma.StaffHotelOmit
+  dispute?: Prisma.DisputeOmit
+  suspensionRequest?: Prisma.SuspensionRequestOmit
 }
 
 /* Types for Logging */

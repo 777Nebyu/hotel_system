@@ -477,6 +477,40 @@ export type EnumDiscountTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumDiscountTypeFilter<$PrismaModel>
 }
 
+export type EnumDisputeStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.DisputeStatus | Prisma.EnumDisputeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DisputeStatus[] | Prisma.ListEnumDisputeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DisputeStatus[] | Prisma.ListEnumDisputeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDisputeStatusFilter<$PrismaModel> | $Enums.DisputeStatus
+}
+
+export type EnumDisputeStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DisputeStatus | Prisma.EnumDisputeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DisputeStatus[] | Prisma.ListEnumDisputeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DisputeStatus[] | Prisma.ListEnumDisputeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDisputeStatusWithAggregatesFilter<$PrismaModel> | $Enums.DisputeStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDisputeStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDisputeStatusFilter<$PrismaModel>
+}
+
+export type EnumSuspensionRequestStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.SuspensionRequestStatus | Prisma.EnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SuspensionRequestStatus[] | Prisma.ListEnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SuspensionRequestStatus[] | Prisma.ListEnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSuspensionRequestStatusFilter<$PrismaModel> | $Enums.SuspensionRequestStatus
+}
+
+export type EnumSuspensionRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SuspensionRequestStatus | Prisma.EnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SuspensionRequestStatus[] | Prisma.ListEnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SuspensionRequestStatus[] | Prisma.ListEnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSuspensionRequestStatusWithAggregatesFilter<$PrismaModel> | $Enums.SuspensionRequestStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSuspensionRequestStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSuspensionRequestStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -897,6 +931,40 @@ export type NestedEnumDiscountTypeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumDiscountTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumDiscountTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumDisputeStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.DisputeStatus | Prisma.EnumDisputeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DisputeStatus[] | Prisma.ListEnumDisputeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DisputeStatus[] | Prisma.ListEnumDisputeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDisputeStatusFilter<$PrismaModel> | $Enums.DisputeStatus
+}
+
+export type NestedEnumDisputeStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DisputeStatus | Prisma.EnumDisputeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.DisputeStatus[] | Prisma.ListEnumDisputeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.DisputeStatus[] | Prisma.ListEnumDisputeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumDisputeStatusWithAggregatesFilter<$PrismaModel> | $Enums.DisputeStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDisputeStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDisputeStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumSuspensionRequestStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.SuspensionRequestStatus | Prisma.EnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SuspensionRequestStatus[] | Prisma.ListEnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SuspensionRequestStatus[] | Prisma.ListEnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSuspensionRequestStatusFilter<$PrismaModel> | $Enums.SuspensionRequestStatus
+}
+
+export type NestedEnumSuspensionRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SuspensionRequestStatus | Prisma.EnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.SuspensionRequestStatus[] | Prisma.ListEnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.SuspensionRequestStatus[] | Prisma.ListEnumSuspensionRequestStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumSuspensionRequestStatusWithAggregatesFilter<$PrismaModel> | $Enums.SuspensionRequestStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSuspensionRequestStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSuspensionRequestStatusFilter<$PrismaModel>
 }
 
 

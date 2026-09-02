@@ -27,6 +27,7 @@ import { FavoriteModule } from './modules/favorite/favorite.module';
 import { CouponModule } from './modules/coupon/coupon.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { DisputeModule } from './modules/dispute/dispute.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { JobsModule } from './modules/jobs/jobs.module';
     CouponModule,
     InvoiceModule,
     JobsModule,
+    DisputeModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

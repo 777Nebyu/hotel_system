@@ -74,7 +74,10 @@ export const ModelName = {
   AuditLog: 'AuditLog',
   PlatformSetting: 'PlatformSetting',
   HotelPolicy: 'HotelPolicy',
-  NotificationPreference: 'NotificationPreference'
+  NotificationPreference: 'NotificationPreference',
+  StaffHotel: 'StaffHotel',
+  Dispute: 'Dispute',
+  SuspensionRequest: 'SuspensionRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -327,7 +330,9 @@ export const CouponScalarFieldEnum = {
   validFrom: 'validFrom',
   validTo: 'validTo',
   usageLimit: 'usageLimit',
-  timesUsed: 'timesUsed'
+  timesUsed: 'timesUsed',
+  isActive: 'isActive',
+  minBookingAmount: 'minBookingAmount'
 } as const
 
 export type CouponScalarFieldEnum = (typeof CouponScalarFieldEnum)[keyof typeof CouponScalarFieldEnum]
@@ -398,6 +403,46 @@ export const NotificationPreferenceScalarFieldEnum = {
 } as const
 
 export type NotificationPreferenceScalarFieldEnum = (typeof NotificationPreferenceScalarFieldEnum)[keyof typeof NotificationPreferenceScalarFieldEnum]
+
+
+export const StaffHotelScalarFieldEnum = {
+  staffId: 'staffId',
+  hotelId: 'hotelId',
+  assignedAt: 'assignedAt'
+} as const
+
+export type StaffHotelScalarFieldEnum = (typeof StaffHotelScalarFieldEnum)[keyof typeof StaffHotelScalarFieldEnum]
+
+
+export const DisputeScalarFieldEnum = {
+  id: 'id',
+  bookingId: 'bookingId',
+  openedById: 'openedById',
+  reason: 'reason',
+  status: 'status',
+  resolution: 'resolution',
+  resolvedAt: 'resolvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DisputeScalarFieldEnum = (typeof DisputeScalarFieldEnum)[keyof typeof DisputeScalarFieldEnum]
+
+
+export const SuspensionRequestScalarFieldEnum = {
+  id: 'id',
+  requesterId: 'requesterId',
+  approverId: 'approverId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  reason: 'reason',
+  status: 'status',
+  decidedAt: 'decidedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SuspensionRequestScalarFieldEnum = (typeof SuspensionRequestScalarFieldEnum)[keyof typeof SuspensionRequestScalarFieldEnum]
 
 
 export const SortOrder = {

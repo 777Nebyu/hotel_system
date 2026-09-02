@@ -297,6 +297,7 @@ export type HotelWhereInput = {
   bookings?: Prisma.BookingListRelationFilter
   reviews?: Prisma.ReviewListRelationFilter
   favorites?: Prisma.FavoriteListRelationFilter
+  staffAssignments?: Prisma.StaffHotelListRelationFilter
 }
 
 export type HotelOrderByWithRelationInput = {
@@ -322,6 +323,7 @@ export type HotelOrderByWithRelationInput = {
   bookings?: Prisma.BookingOrderByRelationAggregateInput
   reviews?: Prisma.ReviewOrderByRelationAggregateInput
   favorites?: Prisma.FavoriteOrderByRelationAggregateInput
+  staffAssignments?: Prisma.StaffHotelOrderByRelationAggregateInput
 }
 
 export type HotelWhereUniqueInput = Prisma.AtLeast<{
@@ -350,6 +352,7 @@ export type HotelWhereUniqueInput = Prisma.AtLeast<{
   bookings?: Prisma.BookingListRelationFilter
   reviews?: Prisma.ReviewListRelationFilter
   favorites?: Prisma.FavoriteListRelationFilter
+  staffAssignments?: Prisma.StaffHotelListRelationFilter
 }, "id">
 
 export type HotelOrderByWithAggregationInput = {
@@ -413,6 +416,7 @@ export type HotelCreateInput = {
   bookings?: Prisma.BookingCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUncheckedCreateInput = {
@@ -436,6 +440,7 @@ export type HotelUncheckedCreateInput = {
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUpdateInput = {
@@ -459,6 +464,7 @@ export type HotelUpdateInput = {
   bookings?: Prisma.BookingUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateInput = {
@@ -482,6 +488,7 @@ export type HotelUncheckedUpdateInput = {
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUncheckedUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelCreateManyInput = {
@@ -799,6 +806,20 @@ export type HotelUpdateOneRequiredWithoutPolicyNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.HotelUpdateToOneWithWhereWithoutPolicyInput, Prisma.HotelUpdateWithoutPolicyInput>, Prisma.HotelUncheckedUpdateWithoutPolicyInput>
 }
 
+export type HotelCreateNestedOneWithoutStaffAssignmentsInput = {
+  create?: Prisma.XOR<Prisma.HotelCreateWithoutStaffAssignmentsInput, Prisma.HotelUncheckedCreateWithoutStaffAssignmentsInput>
+  connectOrCreate?: Prisma.HotelCreateOrConnectWithoutStaffAssignmentsInput
+  connect?: Prisma.HotelWhereUniqueInput
+}
+
+export type HotelUpdateOneRequiredWithoutStaffAssignmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.HotelCreateWithoutStaffAssignmentsInput, Prisma.HotelUncheckedCreateWithoutStaffAssignmentsInput>
+  connectOrCreate?: Prisma.HotelCreateOrConnectWithoutStaffAssignmentsInput
+  upsert?: Prisma.HotelUpsertWithoutStaffAssignmentsInput
+  connect?: Prisma.HotelWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.HotelUpdateToOneWithWhereWithoutStaffAssignmentsInput, Prisma.HotelUpdateWithoutStaffAssignmentsInput>, Prisma.HotelUncheckedUpdateWithoutStaffAssignmentsInput>
+}
+
 export type HotelCreateWithoutManagerInput = {
   id?: string
   name: string
@@ -819,6 +840,7 @@ export type HotelCreateWithoutManagerInput = {
   bookings?: Prisma.BookingCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUncheckedCreateWithoutManagerInput = {
@@ -841,6 +863,7 @@ export type HotelUncheckedCreateWithoutManagerInput = {
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutHotelInput
 }
 
 export type HotelCreateOrConnectWithoutManagerInput = {
@@ -908,6 +931,7 @@ export type HotelCreateWithoutCityInput = {
   bookings?: Prisma.BookingCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUncheckedCreateWithoutCityInput = {
@@ -930,6 +954,7 @@ export type HotelUncheckedCreateWithoutCityInput = {
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutHotelInput
 }
 
 export type HotelCreateOrConnectWithoutCityInput = {
@@ -978,6 +1003,7 @@ export type HotelCreateWithoutImagesInput = {
   bookings?: Prisma.BookingCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUncheckedCreateWithoutImagesInput = {
@@ -1000,6 +1026,7 @@ export type HotelUncheckedCreateWithoutImagesInput = {
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutHotelInput
 }
 
 export type HotelCreateOrConnectWithoutImagesInput = {
@@ -1038,6 +1065,7 @@ export type HotelUpdateWithoutImagesInput = {
   bookings?: Prisma.BookingUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateWithoutImagesInput = {
@@ -1060,6 +1088,7 @@ export type HotelUncheckedUpdateWithoutImagesInput = {
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUncheckedUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelCreateWithoutAmenitiesInput = {
@@ -1082,6 +1111,7 @@ export type HotelCreateWithoutAmenitiesInput = {
   bookings?: Prisma.BookingCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUncheckedCreateWithoutAmenitiesInput = {
@@ -1104,6 +1134,7 @@ export type HotelUncheckedCreateWithoutAmenitiesInput = {
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutHotelInput
 }
 
 export type HotelCreateOrConnectWithoutAmenitiesInput = {
@@ -1142,6 +1173,7 @@ export type HotelUpdateWithoutAmenitiesInput = {
   bookings?: Prisma.BookingUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateWithoutAmenitiesInput = {
@@ -1164,6 +1196,7 @@ export type HotelUncheckedUpdateWithoutAmenitiesInput = {
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUncheckedUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelCreateWithoutRoomsInput = {
@@ -1186,6 +1219,7 @@ export type HotelCreateWithoutRoomsInput = {
   bookings?: Prisma.BookingCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUncheckedCreateWithoutRoomsInput = {
@@ -1208,6 +1242,7 @@ export type HotelUncheckedCreateWithoutRoomsInput = {
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutHotelInput
 }
 
 export type HotelCreateOrConnectWithoutRoomsInput = {
@@ -1246,6 +1281,7 @@ export type HotelUpdateWithoutRoomsInput = {
   bookings?: Prisma.BookingUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateWithoutRoomsInput = {
@@ -1268,6 +1304,7 @@ export type HotelUncheckedUpdateWithoutRoomsInput = {
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUncheckedUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelCreateWithoutBookingsInput = {
@@ -1290,6 +1327,7 @@ export type HotelCreateWithoutBookingsInput = {
   rooms?: Prisma.RoomCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUncheckedCreateWithoutBookingsInput = {
@@ -1312,6 +1350,7 @@ export type HotelUncheckedCreateWithoutBookingsInput = {
   rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutHotelInput
 }
 
 export type HotelCreateOrConnectWithoutBookingsInput = {
@@ -1350,6 +1389,7 @@ export type HotelUpdateWithoutBookingsInput = {
   rooms?: Prisma.RoomUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateWithoutBookingsInput = {
@@ -1372,6 +1412,7 @@ export type HotelUncheckedUpdateWithoutBookingsInput = {
   rooms?: Prisma.RoomUncheckedUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUncheckedUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelCreateWithoutReviewsInput = {
@@ -1394,6 +1435,7 @@ export type HotelCreateWithoutReviewsInput = {
   rooms?: Prisma.RoomCreateNestedManyWithoutHotelInput
   bookings?: Prisma.BookingCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUncheckedCreateWithoutReviewsInput = {
@@ -1416,6 +1458,7 @@ export type HotelUncheckedCreateWithoutReviewsInput = {
   rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutHotelInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutHotelInput
 }
 
 export type HotelCreateOrConnectWithoutReviewsInput = {
@@ -1454,6 +1497,7 @@ export type HotelUpdateWithoutReviewsInput = {
   rooms?: Prisma.RoomUpdateManyWithoutHotelNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateWithoutReviewsInput = {
@@ -1476,6 +1520,7 @@ export type HotelUncheckedUpdateWithoutReviewsInput = {
   rooms?: Prisma.RoomUncheckedUpdateManyWithoutHotelNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUncheckedUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelCreateWithoutFavoritesInput = {
@@ -1498,6 +1543,7 @@ export type HotelCreateWithoutFavoritesInput = {
   rooms?: Prisma.RoomCreateNestedManyWithoutHotelInput
   bookings?: Prisma.BookingCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUncheckedCreateWithoutFavoritesInput = {
@@ -1520,6 +1566,7 @@ export type HotelUncheckedCreateWithoutFavoritesInput = {
   rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutHotelInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutHotelInput
 }
 
 export type HotelCreateOrConnectWithoutFavoritesInput = {
@@ -1558,6 +1605,7 @@ export type HotelUpdateWithoutFavoritesInput = {
   rooms?: Prisma.RoomUpdateManyWithoutHotelNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateWithoutFavoritesInput = {
@@ -1580,6 +1628,7 @@ export type HotelUncheckedUpdateWithoutFavoritesInput = {
   rooms?: Prisma.RoomUncheckedUpdateManyWithoutHotelNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUncheckedUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelCreateWithoutPolicyInput = {
@@ -1602,6 +1651,7 @@ export type HotelCreateWithoutPolicyInput = {
   bookings?: Prisma.BookingCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelCreateNestedManyWithoutHotelInput
 }
 
 export type HotelUncheckedCreateWithoutPolicyInput = {
@@ -1624,6 +1674,7 @@ export type HotelUncheckedCreateWithoutPolicyInput = {
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutHotelInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutHotelInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutHotelInput
+  staffAssignments?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutHotelInput
 }
 
 export type HotelCreateOrConnectWithoutPolicyInput = {
@@ -1662,6 +1713,7 @@ export type HotelUpdateWithoutPolicyInput = {
   bookings?: Prisma.BookingUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateWithoutPolicyInput = {
@@ -1678,6 +1730,115 @@ export type HotelUncheckedUpdateWithoutPolicyInput = {
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  images?: Prisma.HotelImageUncheckedUpdateManyWithoutHotelNestedInput
+  amenities?: Prisma.HotelAmenityUncheckedUpdateManyWithoutHotelNestedInput
+  rooms?: Prisma.RoomUncheckedUpdateManyWithoutHotelNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutHotelNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutHotelNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUncheckedUpdateManyWithoutHotelNestedInput
+}
+
+export type HotelCreateWithoutStaffAssignmentsInput = {
+  id?: string
+  name: string
+  description: string
+  address: string
+  lat?: number | null
+  lng?: number | null
+  starRating?: number
+  status?: $Enums.HotelStatus
+  rejectionReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  manager?: Prisma.UserCreateNestedOneWithoutHotelsInput
+  city: Prisma.CityCreateNestedOneWithoutHotelsInput
+  policy?: Prisma.HotelPolicyCreateNestedOneWithoutHotelInput
+  images?: Prisma.HotelImageCreateNestedManyWithoutHotelInput
+  amenities?: Prisma.HotelAmenityCreateNestedManyWithoutHotelInput
+  rooms?: Prisma.RoomCreateNestedManyWithoutHotelInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutHotelInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutHotelInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutHotelInput
+}
+
+export type HotelUncheckedCreateWithoutStaffAssignmentsInput = {
+  id?: string
+  managerId?: string | null
+  cityId: string
+  name: string
+  description: string
+  address: string
+  lat?: number | null
+  lng?: number | null
+  starRating?: number
+  status?: $Enums.HotelStatus
+  rejectionReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  policy?: Prisma.HotelPolicyUncheckedCreateNestedOneWithoutHotelInput
+  images?: Prisma.HotelImageUncheckedCreateNestedManyWithoutHotelInput
+  amenities?: Prisma.HotelAmenityUncheckedCreateNestedManyWithoutHotelInput
+  rooms?: Prisma.RoomUncheckedCreateNestedManyWithoutHotelInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutHotelInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutHotelInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutHotelInput
+}
+
+export type HotelCreateOrConnectWithoutStaffAssignmentsInput = {
+  where: Prisma.HotelWhereUniqueInput
+  create: Prisma.XOR<Prisma.HotelCreateWithoutStaffAssignmentsInput, Prisma.HotelUncheckedCreateWithoutStaffAssignmentsInput>
+}
+
+export type HotelUpsertWithoutStaffAssignmentsInput = {
+  update: Prisma.XOR<Prisma.HotelUpdateWithoutStaffAssignmentsInput, Prisma.HotelUncheckedUpdateWithoutStaffAssignmentsInput>
+  create: Prisma.XOR<Prisma.HotelCreateWithoutStaffAssignmentsInput, Prisma.HotelUncheckedCreateWithoutStaffAssignmentsInput>
+  where?: Prisma.HotelWhereInput
+}
+
+export type HotelUpdateToOneWithWhereWithoutStaffAssignmentsInput = {
+  where?: Prisma.HotelWhereInput
+  data: Prisma.XOR<Prisma.HotelUpdateWithoutStaffAssignmentsInput, Prisma.HotelUncheckedUpdateWithoutStaffAssignmentsInput>
+}
+
+export type HotelUpdateWithoutStaffAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  starRating?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumHotelStatusFieldUpdateOperationsInput | $Enums.HotelStatus
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  manager?: Prisma.UserUpdateOneWithoutHotelsNestedInput
+  city?: Prisma.CityUpdateOneRequiredWithoutHotelsNestedInput
+  policy?: Prisma.HotelPolicyUpdateOneWithoutHotelNestedInput
+  images?: Prisma.HotelImageUpdateManyWithoutHotelNestedInput
+  amenities?: Prisma.HotelAmenityUpdateManyWithoutHotelNestedInput
+  rooms?: Prisma.RoomUpdateManyWithoutHotelNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutHotelNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutHotelNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutHotelNestedInput
+}
+
+export type HotelUncheckedUpdateWithoutStaffAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cityId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  starRating?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumHotelStatusFieldUpdateOperationsInput | $Enums.HotelStatus
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  policy?: Prisma.HotelPolicyUncheckedUpdateOneWithoutHotelNestedInput
   images?: Prisma.HotelImageUncheckedUpdateManyWithoutHotelNestedInput
   amenities?: Prisma.HotelAmenityUncheckedUpdateManyWithoutHotelNestedInput
   rooms?: Prisma.RoomUncheckedUpdateManyWithoutHotelNestedInput
@@ -1721,6 +1882,7 @@ export type HotelUpdateWithoutManagerInput = {
   bookings?: Prisma.BookingUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateWithoutManagerInput = {
@@ -1743,6 +1905,7 @@ export type HotelUncheckedUpdateWithoutManagerInput = {
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUncheckedUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateManyWithoutManagerInput = {
@@ -1795,6 +1958,7 @@ export type HotelUpdateWithoutCityInput = {
   bookings?: Prisma.BookingUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateWithoutCityInput = {
@@ -1817,6 +1981,7 @@ export type HotelUncheckedUpdateWithoutCityInput = {
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutHotelNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutHotelNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutHotelNestedInput
+  staffAssignments?: Prisma.StaffHotelUncheckedUpdateManyWithoutHotelNestedInput
 }
 
 export type HotelUncheckedUpdateManyWithoutCityInput = {
@@ -1846,6 +2011,7 @@ export type HotelCountOutputType = {
   bookings: number
   reviews: number
   favorites: number
+  staffAssignments: number
 }
 
 export type HotelCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1855,6 +2021,7 @@ export type HotelCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   bookings?: boolean | HotelCountOutputTypeCountBookingsArgs
   reviews?: boolean | HotelCountOutputTypeCountReviewsArgs
   favorites?: boolean | HotelCountOutputTypeCountFavoritesArgs
+  staffAssignments?: boolean | HotelCountOutputTypeCountStaffAssignmentsArgs
 }
 
 /**
@@ -1909,6 +2076,13 @@ export type HotelCountOutputTypeCountFavoritesArgs<ExtArgs extends runtime.Types
   where?: Prisma.FavoriteWhereInput
 }
 
+/**
+ * HotelCountOutputType without action
+ */
+export type HotelCountOutputTypeCountStaffAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StaffHotelWhereInput
+}
+
 
 export type HotelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1933,6 +2107,7 @@ export type HotelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   bookings?: boolean | Prisma.Hotel$bookingsArgs<ExtArgs>
   reviews?: boolean | Prisma.Hotel$reviewsArgs<ExtArgs>
   favorites?: boolean | Prisma.Hotel$favoritesArgs<ExtArgs>
+  staffAssignments?: boolean | Prisma.Hotel$staffAssignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.HotelCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["hotel"]>
 
@@ -1999,6 +2174,7 @@ export type HotelInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   bookings?: boolean | Prisma.Hotel$bookingsArgs<ExtArgs>
   reviews?: boolean | Prisma.Hotel$reviewsArgs<ExtArgs>
   favorites?: boolean | Prisma.Hotel$favoritesArgs<ExtArgs>
+  staffAssignments?: boolean | Prisma.Hotel$staffAssignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.HotelCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type HotelIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2022,6 +2198,7 @@ export type $HotelPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     bookings: Prisma.$BookingPayload<ExtArgs>[]
     reviews: Prisma.$ReviewPayload<ExtArgs>[]
     favorites: Prisma.$FavoritePayload<ExtArgs>[]
+    staffAssignments: Prisma.$StaffHotelPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2440,6 +2617,7 @@ export interface Prisma__HotelClient<T, Null = never, ExtArgs extends runtime.Ty
   bookings<T extends Prisma.Hotel$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Hotel$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviews<T extends Prisma.Hotel$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Hotel$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   favorites<T extends Prisma.Hotel$favoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Hotel$favoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  staffAssignments<T extends Prisma.Hotel$staffAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Hotel$staffAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StaffHotelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3062,6 +3240,30 @@ export type Hotel$favoritesArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.FavoriteScalarFieldEnum | Prisma.FavoriteScalarFieldEnum[]
+}
+
+/**
+ * Hotel.staffAssignments
+ */
+export type Hotel$staffAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StaffHotel
+   */
+  select?: Prisma.StaffHotelSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StaffHotel
+   */
+  omit?: Prisma.StaffHotelOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StaffHotelInclude<ExtArgs> | null
+  where?: Prisma.StaffHotelWhereInput
+  orderBy?: Prisma.StaffHotelOrderByWithRelationInput | Prisma.StaffHotelOrderByWithRelationInput[]
+  cursor?: Prisma.StaffHotelWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StaffHotelScalarFieldEnum | Prisma.StaffHotelScalarFieldEnum[]
 }
 
 /**

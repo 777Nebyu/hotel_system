@@ -54,6 +54,20 @@ enum HotelStatus {
   REJECTED
 }
 
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  CLOSED
+}
+
+enum SuspensionRequestStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
 model User {
   id                     String         @id @default(cuid())
   email                  String         @unique
@@ -75,13 +89,17 @@ model User {
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
   pushToken              String?
-  hotels                 Hotel[]                  @relation("HotelManager")
-  bookings               Booking[]
-  reviews                Review[]
-  favorites              Favorite[]
-  notifications          Notification[]
-  notificationPreferences NotificationPreference[]
-  auditLogs              AuditLog[]
+  hotels                     Hotel[]                    @relation("HotelManager")
+  staffHotels                StaffHotel[]
+  bookings                   Booking[]
+  reviews                    Review[]
+  favorites                  Favorite[]
+  notifications              Notification[]
+  notificationPreferences    NotificationPreference[]
+  auditLogs                  AuditLog[]
+  disputesOpened             Dispute[]                  @relation("DisputeOpener")
+  suspensionRequestsMade     SuspensionRequest[]        @relation("SuspensionRequester")
+  suspensionRequestsApproved SuspensionRequest[]        @relation("SuspensionApprover")
 }
 
 model Country {
@@ -117,13 +135,14 @@ model Hotel {
   rejectionReason String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
-  policy          HotelPolicy?
-  images          HotelImage[]
-  amenities       HotelAmenity[]
-  rooms           Room[]
-  bookings        Booking[]
-  reviews         Review[]
-  favorites       Favorite[]
+  policy           HotelPolicy?
+  images           HotelImage[]
+  amenities        HotelAmenity[]
+  rooms            Room[]
+  bookings         Booking[]
+  reviews          Review[]
+  favorites        Favorite[]
+  staffAssignments StaffHotel[]
 }
 
 model HotelImage {
@@ -226,6 +245,7 @@ model Booking {
   details       BookingDetail[]
   payment       Payment?
   review        Review?
+  disputes      Dispute[]
 
   @@index([userId])
   @@index([hotelId])
@@ -302,14 +322,16 @@ model Favorite {
 }
 
 model Coupon {
-  id           String       @id @default(cuid())
-  code         String       @unique
-  discountType DiscountType @default(PERCENTAGE)
-  value        Decimal      @db.Decimal(10, 2)
-  validFrom    DateTime
-  validTo      DateTime
-  usageLimit   Int          @default(100)
-  timesUsed    Int          @default(0)
+  id               String       @id @default(cuid())
+  code             String       @unique
+  discountType     DiscountType @default(PERCENTAGE)
+  value            Decimal      @db.Decimal(10, 2)
+  validFrom        DateTime
+  validTo          DateTime
+  usageLimit       Int          @default(100)
+  timesUsed        Int          @default(0)
+  isActive         Boolean      @default(true)
+  minBookingAmount Decimal?     @db.Decimal(10, 2)
 }
 
 model Notification {
@@ -374,4 +396,50 @@ model NotificationPreference {
 
   @@unique([userId, type, channel])
   @@index([userId])
+}
+
+model StaffHotel {
+  staffId    String
+  staff      User     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  hotelId    String
+  hotel      Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@id([staffId, hotelId])
+  @@index([hotelId])
+}
+
+model Dispute {
+  id         String        @id @default(cuid())
+  bookingId  String
+  booking    Booking       @relation(fields: [bookingId], references: [id])
+  openedById String
+  openedBy   User          @relation("DisputeOpener", fields: [openedById], references: [id])
+  reason     String
+  status     DisputeStatus @default(OPEN)
+  resolution String?
+  resolvedAt DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([bookingId])
+  @@index([status])
+}
+
+model SuspensionRequest {
+  id          String                  @id @default(cuid())
+  requesterId String
+  requester   User                    @relation("SuspensionRequester", fields: [requesterId], references: [id])
+  approverId  String?
+  approver    User?                   @relation("SuspensionApprover", fields: [approverId], references: [id])
+  targetType  String
+  targetId    String
+  reason      String
+  status      SuspensionRequestStatus @default(PENDING_APPROVAL)
+  decidedAt   DateTime?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  @@index([status])
+  @@index([targetType, targetId])
 }

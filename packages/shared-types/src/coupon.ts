@@ -17,6 +17,7 @@ export const createCouponSchema = z
     validFrom: z.coerce.date(),
     validTo: z.coerce.date(),
     usageLimit: z.coerce.number().int().min(1).default(100),
+    minBookingAmount: z.coerce.number().positive().multipleOf(0.01).optional(),
   })
   .refine((d) => d.validTo >= d.validFrom, {
     message: 'validTo must be on or after validFrom',
@@ -41,6 +42,8 @@ export const updateCouponSchema = z
     validFrom: z.coerce.date().optional(),
     validTo: z.coerce.date().optional(),
     usageLimit: z.coerce.number().int().min(1).optional(),
+    isActive: z.boolean().optional(),
+    minBookingAmount: z.coerce.number().positive().multipleOf(0.01).nullable().optional(),
   })
   .refine(
     (d) =>

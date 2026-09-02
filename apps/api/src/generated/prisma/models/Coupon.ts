@@ -30,12 +30,14 @@ export type CouponAvgAggregateOutputType = {
   value: runtime.Decimal | null
   usageLimit: number | null
   timesUsed: number | null
+  minBookingAmount: runtime.Decimal | null
 }
 
 export type CouponSumAggregateOutputType = {
   value: runtime.Decimal | null
   usageLimit: number | null
   timesUsed: number | null
+  minBookingAmount: runtime.Decimal | null
 }
 
 export type CouponMinAggregateOutputType = {
@@ -47,6 +49,8 @@ export type CouponMinAggregateOutputType = {
   validTo: Date | null
   usageLimit: number | null
   timesUsed: number | null
+  isActive: boolean | null
+  minBookingAmount: runtime.Decimal | null
 }
 
 export type CouponMaxAggregateOutputType = {
@@ -58,6 +62,8 @@ export type CouponMaxAggregateOutputType = {
   validTo: Date | null
   usageLimit: number | null
   timesUsed: number | null
+  isActive: boolean | null
+  minBookingAmount: runtime.Decimal | null
 }
 
 export type CouponCountAggregateOutputType = {
@@ -69,6 +75,8 @@ export type CouponCountAggregateOutputType = {
   validTo: number
   usageLimit: number
   timesUsed: number
+  isActive: number
+  minBookingAmount: number
   _all: number
 }
 
@@ -77,12 +85,14 @@ export type CouponAvgAggregateInputType = {
   value?: true
   usageLimit?: true
   timesUsed?: true
+  minBookingAmount?: true
 }
 
 export type CouponSumAggregateInputType = {
   value?: true
   usageLimit?: true
   timesUsed?: true
+  minBookingAmount?: true
 }
 
 export type CouponMinAggregateInputType = {
@@ -94,6 +104,8 @@ export type CouponMinAggregateInputType = {
   validTo?: true
   usageLimit?: true
   timesUsed?: true
+  isActive?: true
+  minBookingAmount?: true
 }
 
 export type CouponMaxAggregateInputType = {
@@ -105,6 +117,8 @@ export type CouponMaxAggregateInputType = {
   validTo?: true
   usageLimit?: true
   timesUsed?: true
+  isActive?: true
+  minBookingAmount?: true
 }
 
 export type CouponCountAggregateInputType = {
@@ -116,6 +130,8 @@ export type CouponCountAggregateInputType = {
   validTo?: true
   usageLimit?: true
   timesUsed?: true
+  isActive?: true
+  minBookingAmount?: true
   _all?: true
 }
 
@@ -214,6 +230,8 @@ export type CouponGroupByOutputType = {
   validTo: Date
   usageLimit: number
   timesUsed: number
+  isActive: boolean
+  minBookingAmount: runtime.Decimal | null
   _count: CouponCountAggregateOutputType | null
   _avg: CouponAvgAggregateOutputType | null
   _sum: CouponSumAggregateOutputType | null
@@ -248,6 +266,8 @@ export type CouponWhereInput = {
   validTo?: Prisma.DateTimeFilter<"Coupon"> | Date | string
   usageLimit?: Prisma.IntFilter<"Coupon"> | number
   timesUsed?: Prisma.IntFilter<"Coupon"> | number
+  isActive?: Prisma.BoolFilter<"Coupon"> | boolean
+  minBookingAmount?: Prisma.DecimalNullableFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type CouponOrderByWithRelationInput = {
@@ -259,6 +279,8 @@ export type CouponOrderByWithRelationInput = {
   validTo?: Prisma.SortOrder
   usageLimit?: Prisma.SortOrder
   timesUsed?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  minBookingAmount?: Prisma.SortOrderInput | Prisma.SortOrder
 }
 
 export type CouponWhereUniqueInput = Prisma.AtLeast<{
@@ -273,6 +295,8 @@ export type CouponWhereUniqueInput = Prisma.AtLeast<{
   validTo?: Prisma.DateTimeFilter<"Coupon"> | Date | string
   usageLimit?: Prisma.IntFilter<"Coupon"> | number
   timesUsed?: Prisma.IntFilter<"Coupon"> | number
+  isActive?: Prisma.BoolFilter<"Coupon"> | boolean
+  minBookingAmount?: Prisma.DecimalNullableFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }, "id" | "code">
 
 export type CouponOrderByWithAggregationInput = {
@@ -284,6 +308,8 @@ export type CouponOrderByWithAggregationInput = {
   validTo?: Prisma.SortOrder
   usageLimit?: Prisma.SortOrder
   timesUsed?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  minBookingAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CouponCountOrderByAggregateInput
   _avg?: Prisma.CouponAvgOrderByAggregateInput
   _max?: Prisma.CouponMaxOrderByAggregateInput
@@ -303,6 +329,8 @@ export type CouponScalarWhereWithAggregatesInput = {
   validTo?: Prisma.DateTimeWithAggregatesFilter<"Coupon"> | Date | string
   usageLimit?: Prisma.IntWithAggregatesFilter<"Coupon"> | number
   timesUsed?: Prisma.IntWithAggregatesFilter<"Coupon"> | number
+  isActive?: Prisma.BoolWithAggregatesFilter<"Coupon"> | boolean
+  minBookingAmount?: Prisma.DecimalNullableWithAggregatesFilter<"Coupon"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type CouponCreateInput = {
@@ -314,6 +342,8 @@ export type CouponCreateInput = {
   validTo: Date | string
   usageLimit?: number
   timesUsed?: number
+  isActive?: boolean
+  minBookingAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type CouponUncheckedCreateInput = {
@@ -325,6 +355,8 @@ export type CouponUncheckedCreateInput = {
   validTo: Date | string
   usageLimit?: number
   timesUsed?: number
+  isActive?: boolean
+  minBookingAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type CouponUpdateInput = {
@@ -336,6 +368,8 @@ export type CouponUpdateInput = {
   validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   usageLimit?: Prisma.IntFieldUpdateOperationsInput | number
   timesUsed?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  minBookingAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type CouponUncheckedUpdateInput = {
@@ -347,6 +381,8 @@ export type CouponUncheckedUpdateInput = {
   validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   usageLimit?: Prisma.IntFieldUpdateOperationsInput | number
   timesUsed?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  minBookingAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type CouponCreateManyInput = {
@@ -358,6 +394,8 @@ export type CouponCreateManyInput = {
   validTo: Date | string
   usageLimit?: number
   timesUsed?: number
+  isActive?: boolean
+  minBookingAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type CouponUpdateManyMutationInput = {
@@ -369,6 +407,8 @@ export type CouponUpdateManyMutationInput = {
   validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   usageLimit?: Prisma.IntFieldUpdateOperationsInput | number
   timesUsed?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  minBookingAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type CouponUncheckedUpdateManyInput = {
@@ -380,6 +420,8 @@ export type CouponUncheckedUpdateManyInput = {
   validTo?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   usageLimit?: Prisma.IntFieldUpdateOperationsInput | number
   timesUsed?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  minBookingAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type CouponCountOrderByAggregateInput = {
@@ -391,12 +433,15 @@ export type CouponCountOrderByAggregateInput = {
   validTo?: Prisma.SortOrder
   usageLimit?: Prisma.SortOrder
   timesUsed?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  minBookingAmount?: Prisma.SortOrder
 }
 
 export type CouponAvgOrderByAggregateInput = {
   value?: Prisma.SortOrder
   usageLimit?: Prisma.SortOrder
   timesUsed?: Prisma.SortOrder
+  minBookingAmount?: Prisma.SortOrder
 }
 
 export type CouponMaxOrderByAggregateInput = {
@@ -408,6 +453,8 @@ export type CouponMaxOrderByAggregateInput = {
   validTo?: Prisma.SortOrder
   usageLimit?: Prisma.SortOrder
   timesUsed?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  minBookingAmount?: Prisma.SortOrder
 }
 
 export type CouponMinOrderByAggregateInput = {
@@ -419,12 +466,15 @@ export type CouponMinOrderByAggregateInput = {
   validTo?: Prisma.SortOrder
   usageLimit?: Prisma.SortOrder
   timesUsed?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  minBookingAmount?: Prisma.SortOrder
 }
 
 export type CouponSumOrderByAggregateInput = {
   value?: Prisma.SortOrder
   usageLimit?: Prisma.SortOrder
   timesUsed?: Prisma.SortOrder
+  minBookingAmount?: Prisma.SortOrder
 }
 
 export type EnumDiscountTypeFieldUpdateOperationsInput = {
@@ -442,6 +492,8 @@ export type CouponSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   validTo?: boolean
   usageLimit?: boolean
   timesUsed?: boolean
+  isActive?: boolean
+  minBookingAmount?: boolean
 }, ExtArgs["result"]["coupon"]>
 
 export type CouponSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -453,6 +505,8 @@ export type CouponSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   validTo?: boolean
   usageLimit?: boolean
   timesUsed?: boolean
+  isActive?: boolean
+  minBookingAmount?: boolean
 }, ExtArgs["result"]["coupon"]>
 
 export type CouponSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -464,6 +518,8 @@ export type CouponSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   validTo?: boolean
   usageLimit?: boolean
   timesUsed?: boolean
+  isActive?: boolean
+  minBookingAmount?: boolean
 }, ExtArgs["result"]["coupon"]>
 
 export type CouponSelectScalar = {
@@ -475,9 +531,11 @@ export type CouponSelectScalar = {
   validTo?: boolean
   usageLimit?: boolean
   timesUsed?: boolean
+  isActive?: boolean
+  minBookingAmount?: boolean
 }
 
-export type CouponOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "discountType" | "value" | "validFrom" | "validTo" | "usageLimit" | "timesUsed", ExtArgs["result"]["coupon"]>
+export type CouponOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "discountType" | "value" | "validFrom" | "validTo" | "usageLimit" | "timesUsed" | "isActive" | "minBookingAmount", ExtArgs["result"]["coupon"]>
 
 export type $CouponPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Coupon"
@@ -491,6 +549,8 @@ export type $CouponPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     validTo: Date
     usageLimit: number
     timesUsed: number
+    isActive: boolean
+    minBookingAmount: runtime.Decimal | null
   }, ExtArgs["result"]["coupon"]>
   composites: {}
 }
@@ -922,6 +982,8 @@ export interface CouponFieldRefs {
   readonly validTo: Prisma.FieldRef<"Coupon", 'DateTime'>
   readonly usageLimit: Prisma.FieldRef<"Coupon", 'Int'>
   readonly timesUsed: Prisma.FieldRef<"Coupon", 'Int'>
+  readonly isActive: Prisma.FieldRef<"Coupon", 'Boolean'>
+  readonly minBookingAmount: Prisma.FieldRef<"Coupon", 'Decimal'>
 }
     
 

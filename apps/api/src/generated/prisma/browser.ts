@@ -137,3 +137,18 @@ export type HotelPolicy = Prisma.HotelPolicyModel
  * 
  */
 export type NotificationPreference = Prisma.NotificationPreferenceModel
+/**
+ * Model StaffHotel
+ * 
+ */
+export type StaffHotel = Prisma.StaffHotelModel
+/**
+ * Model Dispute
+ * 
+ */
+export type Dispute = Prisma.DisputeModel
+/**
+ * Model SuspensionRequest
+ * 
+ */
+export type SuspensionRequest = Prisma.SuspensionRequestModel
