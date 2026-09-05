@@ -9,6 +9,8 @@ import sanitizeHtml from 'sanitize-html';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
+  ReviewDeletedEvent,
+  ReviewEditedEvent,
   ReviewEventNames,
   ReviewSubmittedEvent,
 } from '../../events/review.events';
@@ -68,7 +70,7 @@ export class ReviewService {
 
   async update(reviewId: string, input: UpdateReviewInput, actorId: string) {
     const review = await this.getOwned(reviewId, actorId);
-    return this.db.review.update({
+    const updated = await this.db.review.update({
       where: { id: review.id },
       data: {
         rating: input.rating,
@@ -81,6 +83,18 @@ export class ReviewService {
         user: { select: { id: true, fullName: true, profilePhotoUrl: true } },
       },
     });
+
+    this.emitter.emit(
+      ReviewEventNames.EDITED,
+      new ReviewEditedEvent(
+        updated.id,
+        actorId,
+        review.hotelId,
+        updated.rating,
+      ),
+    );
+
+    return updated;
   }
 
   private cleanComment(comment: string): string {
@@ -97,6 +111,12 @@ export class ReviewService {
   async remove(reviewId: string, actorId: string) {
     const review = await this.getOwned(reviewId, actorId);
     await this.db.review.delete({ where: { id: review.id } });
+
+    this.emitter.emit(
+      ReviewEventNames.DELETED,
+      new ReviewDeletedEvent(review.id, actorId, review.hotelId),
+    );
+
     return { deleted: true };
   }
 

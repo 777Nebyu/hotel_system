@@ -26,6 +26,8 @@ import {
   type StorageService,
   type UploadedFile,
 } from '../../../common/storage/storage';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UserEventNames, UserRegisteredEvent } from '../../events/user.events';
 import { MailProducer } from '../../jobs/mail.producer';
 import { SafeUser, SENSITIVE_USER_FIELDS } from '../domain';
 
@@ -83,6 +85,8 @@ export class IdentityService {
     private readonly storage: StorageService,
     @Optional()
     private readonly audit?: AuditService,
+    @Optional()
+    private readonly emitter?: EventEmitter2,
   ) {}
 
   private safeUser(user: User): SafeUser<User> {
@@ -206,6 +210,10 @@ export class IdentityService {
     });
 
     void this.mail.enqueueVerification(email, verificationToken);
+    this.emitter?.emit(
+      UserEventNames.REGISTERED,
+      new UserRegisteredEvent(user.id, user.email, user.fullName, verificationToken),
+    );
 
     return {
       user: this.safeUser(user),

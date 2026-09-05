@@ -13,6 +13,7 @@ import {
   BookingCancelledEvent,
   BookingCreatedEvent,
   BookingEventNames,
+  BookingModifiedEvent,
 } from '../../events/booking.events';
 import {
   PaymentEventNames,
@@ -73,7 +74,12 @@ export class BookingService {
   async checkout(input: CheckoutInput) {
     const hotel = await this.db.hotel.findUnique({
       where: { id: input.hotelId },
-      select: { id: true, name: true, status: true },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        policy: { select: { taxRate: true } },
+      },
     });
     if (!hotel || hotel.status !== 'ACTIVE') {
       throw new NotFoundException('Hotel not found');
@@ -89,6 +95,7 @@ export class BookingService {
     );
     this.assertAllRoomsAvailable(rooms, checkIn, checkOut);
 
+    const taxRate = hotel.policy?.taxRate ? Number(hotel.policy.taxRate) : 0.15;
     const quote = buildQuote({
       hotelId: hotel.id,
       checkIn,
@@ -105,6 +112,7 @@ export class BookingService {
           checkOut,
         ).map((night) => night.price),
       })),
+      taxRate,
     });
     await this.applyPromo(quote, input.promoCode);
 
@@ -133,7 +141,12 @@ export class BookingService {
     const booking = await this.db.$transaction(async (tx) => {
       const hotel = await tx.hotel.findUnique({
         where: { id: input.hotelId },
-        select: { id: true, name: true, status: true },
+        select: {
+          id: true,
+          name: true,
+          status: true,
+          policy: { select: { taxRate: true } },
+        },
       });
       if (!hotel || hotel.status !== 'ACTIVE') {
         throw new NotFoundException('Hotel not found');
@@ -161,6 +174,7 @@ export class BookingService {
         userId,
       );
 
+      const taxRate = hotel.policy?.taxRate ? Number(hotel.policy.taxRate) : 0.15;
       const quote = buildQuote({
         hotelId: hotel.id,
         checkIn,
@@ -177,6 +191,7 @@ export class BookingService {
             checkOut,
           ).map((night) => night.price),
         })),
+        taxRate,
       });
       await this.applyPromo(quote, input.promoCode, tx);
       if (input.promoCode) {
@@ -221,6 +236,11 @@ export class BookingService {
           checkOut,
           status: 'PENDING',
           totalPrice: quote.total,
+          subtotal: quote.subtotal,
+          serviceFee: quote.serviceFee,
+          discount: quote.discount,
+          taxRate: quote.taxRate,
+          taxAmount: quote.taxAmount,
           bookingSource: input.bookingSource ?? 'ONLINE',
           details: {
             create: quote.rooms.map((line) => ({
@@ -285,7 +305,11 @@ export class BookingService {
   async cancelBooking(bookingId: string, userId: string) {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
-      include: { payment: true },
+      include: {
+        payment: true,
+        details: true,
+        hotel: { include: { policy: true } },
+      },
     });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.userId !== userId) {
@@ -296,7 +320,24 @@ export class BookingService {
         `Booking in "${booking.status}" state cannot be cancelled`,
       );
     }
-    const shouldRefund = booking.payment?.status === 'SUCCEEDED';
+
+    const now = Date.now();
+    const hoursUntilCheckIn = (booking.checkIn.getTime() - now) / (1000 * 60 * 60);
+
+    let refundPercent = 0;
+    if (hoursUntilCheckIn >= 48) {
+      refundPercent = 1.0;
+    } else if (hoursUntilCheckIn >= 24) {
+      refundPercent = 0.5;
+    } else {
+      refundPercent = 0.0;
+    }
+
+    const paymentAmount = booking.payment?.amount?.toNumber() ?? 0;
+    const shouldRefund = booking.payment?.status === 'SUCCEEDED' && refundPercent > 0;
+    const refundAmount = shouldRefund
+      ? Math.round(paymentAmount * refundPercent * 100) / 100
+      : 0;
 
     const updated = await this.db.$transaction(async (tx) => {
       const cancelled = await tx.booking.update({
@@ -308,23 +349,44 @@ export class BookingService {
           payment: true,
         },
       });
-      if (shouldRefund) {
+
+      if (booking.payment && booking.payment.status === 'SUCCEEDED') {
         await tx.payment.update({
           where: { bookingId: booking.id },
-          data: { status: 'REFUNDED' },
+          data: {
+            status: refundAmount > 0 ? 'REFUNDED' : 'SUCCEEDED',
+            refundAmount,
+            refundedAt: refundAmount > 0 ? new Date() : null,
+          },
         });
         cancelled.payment = {
           ...cancelled.payment!,
-          status: 'REFUNDED',
+          status: refundAmount > 0 ? 'REFUNDED' : 'SUCCEEDED',
+          refundAmount: refundAmount as any,
+          refundedAt: refundAmount > 0 ? new Date() : null,
         };
       }
+
+      const roomIds = booking.details.map((d) => d.roomId);
+      await tx.roomAvailability.deleteMany({
+        where: {
+          roomId: { in: roomIds },
+          date: { gte: booking.checkIn, lt: booking.checkOut },
+          status: 'UNAVAILABLE',
+        },
+      });
+
+      const refundNote =
+        refundAmount > 0
+          ? `Refund: $${refundAmount.toFixed(2)} (${Math.round(refundPercent * 100)}% based on cancellation policy: ${hoursUntilCheckIn.toFixed(1)}h before check-in)`
+          : `No refund eligible (<24h before check-in: ${hoursUntilCheckIn.toFixed(1)}h)`;
 
       await tx.bookingStatusHistory.create({
         data: {
           bookingId: booking.id,
           status: 'CANCELLED',
           changedBy: userId,
-          reason: 'Cancelled by customer',
+          reason: `Cancelled by customer. ${refundNote}`,
         },
       });
 
@@ -335,14 +397,14 @@ export class BookingService {
       BookingEventNames.CANCELLED,
       new BookingCancelledEvent(booking.id, userId, booking.hotelId),
     );
-    if (shouldRefund && booking.payment) {
+    if (refundAmount > 0 && booking.payment) {
       this.emitter.emit(
         PaymentEventNames.REFUNDED,
         new PaymentRefundedEvent(
           booking.payment.id,
           booking.id,
           userId,
-          booking.payment.amount.toNumber(),
+          refundAmount,
           booking.payment.method,
         ),
       );
@@ -350,10 +412,17 @@ export class BookingService {
 
     await this.audit.record(userId, 'CANCEL_BOOKING', 'Booking', bookingId, {
       previousStatus: booking.status,
-      refunded: shouldRefund,
+      refunded: refundAmount > 0,
+      refundAmount,
+      refundPercent,
+      hoursUntilCheckIn,
     });
 
-    return updated;
+    return {
+      ...updated,
+      refundTier: `${Math.round(refundPercent * 100)}%`,
+      refundAmount,
+    };
   }
 
   async cancelRooms(
@@ -953,6 +1022,16 @@ export class BookingService {
         refundAmount,
         additionalCharge: newTotal > oldTotal ? newTotal - oldTotal : 0,
       });
+
+      this.emitter.emit(
+        BookingEventNames.MODIFIED,
+        new BookingModifiedEvent(
+          booking.id,
+          userId,
+          booking.hotelId,
+          newTotal - oldTotal,
+        ),
+      );
 
       return {
         booking: updated,

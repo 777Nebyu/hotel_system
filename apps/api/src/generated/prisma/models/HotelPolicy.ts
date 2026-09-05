@@ -31,6 +31,7 @@ export type HotelPolicyAvgAggregateOutputType = {
   cancellationFeePercent: runtime.Decimal | null
   earlyCheckInFee: runtime.Decimal | null
   lateCheckOutFee: runtime.Decimal | null
+  taxRate: runtime.Decimal | null
 }
 
 export type HotelPolicySumAggregateOutputType = {
@@ -38,6 +39,7 @@ export type HotelPolicySumAggregateOutputType = {
   cancellationFeePercent: runtime.Decimal | null
   earlyCheckInFee: runtime.Decimal | null
   lateCheckOutFee: runtime.Decimal | null
+  taxRate: runtime.Decimal | null
 }
 
 export type HotelPolicyMinAggregateOutputType = {
@@ -51,6 +53,7 @@ export type HotelPolicyMinAggregateOutputType = {
   earlyCheckInFee: runtime.Decimal | null
   allowLateCheckOut: boolean | null
   lateCheckOutFee: runtime.Decimal | null
+  taxRate: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +69,7 @@ export type HotelPolicyMaxAggregateOutputType = {
   earlyCheckInFee: runtime.Decimal | null
   allowLateCheckOut: boolean | null
   lateCheckOutFee: runtime.Decimal | null
+  taxRate: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -81,6 +85,7 @@ export type HotelPolicyCountAggregateOutputType = {
   earlyCheckInFee: number
   allowLateCheckOut: number
   lateCheckOutFee: number
+  taxRate: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -92,6 +97,7 @@ export type HotelPolicyAvgAggregateInputType = {
   cancellationFeePercent?: true
   earlyCheckInFee?: true
   lateCheckOutFee?: true
+  taxRate?: true
 }
 
 export type HotelPolicySumAggregateInputType = {
@@ -99,6 +105,7 @@ export type HotelPolicySumAggregateInputType = {
   cancellationFeePercent?: true
   earlyCheckInFee?: true
   lateCheckOutFee?: true
+  taxRate?: true
 }
 
 export type HotelPolicyMinAggregateInputType = {
@@ -112,6 +119,7 @@ export type HotelPolicyMinAggregateInputType = {
   earlyCheckInFee?: true
   allowLateCheckOut?: true
   lateCheckOutFee?: true
+  taxRate?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -127,6 +135,7 @@ export type HotelPolicyMaxAggregateInputType = {
   earlyCheckInFee?: true
   allowLateCheckOut?: true
   lateCheckOutFee?: true
+  taxRate?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -142,6 +151,7 @@ export type HotelPolicyCountAggregateInputType = {
   earlyCheckInFee?: true
   allowLateCheckOut?: true
   lateCheckOutFee?: true
+  taxRate?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -244,6 +254,7 @@ export type HotelPolicyGroupByOutputType = {
   earlyCheckInFee: runtime.Decimal
   allowLateCheckOut: boolean
   lateCheckOutFee: runtime.Decimal
+  taxRate: runtime.Decimal
   createdAt: Date
   updatedAt: Date
   _count: HotelPolicyCountAggregateOutputType | null
@@ -282,6 +293,7 @@ export type HotelPolicyWhereInput = {
   earlyCheckInFee?: Prisma.DecimalFilter<"HotelPolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: Prisma.BoolFilter<"HotelPolicy"> | boolean
   lateCheckOutFee?: Prisma.DecimalFilter<"HotelPolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: Prisma.DecimalFilter<"HotelPolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"HotelPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"HotelPolicy"> | Date | string
   hotel?: Prisma.XOR<Prisma.HotelScalarRelationFilter, Prisma.HotelWhereInput>
@@ -298,6 +310,7 @@ export type HotelPolicyOrderByWithRelationInput = {
   earlyCheckInFee?: Prisma.SortOrder
   allowLateCheckOut?: Prisma.SortOrder
   lateCheckOutFee?: Prisma.SortOrder
+  taxRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   hotel?: Prisma.HotelOrderByWithRelationInput
@@ -317,6 +330,7 @@ export type HotelPolicyWhereUniqueInput = Prisma.AtLeast<{
   earlyCheckInFee?: Prisma.DecimalFilter<"HotelPolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: Prisma.BoolFilter<"HotelPolicy"> | boolean
   lateCheckOutFee?: Prisma.DecimalFilter<"HotelPolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: Prisma.DecimalFilter<"HotelPolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"HotelPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"HotelPolicy"> | Date | string
   hotel?: Prisma.XOR<Prisma.HotelScalarRelationFilter, Prisma.HotelWhereInput>
@@ -333,6 +347,7 @@ export type HotelPolicyOrderByWithAggregationInput = {
   earlyCheckInFee?: Prisma.SortOrder
   allowLateCheckOut?: Prisma.SortOrder
   lateCheckOutFee?: Prisma.SortOrder
+  taxRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.HotelPolicyCountOrderByAggregateInput
@@ -356,6 +371,7 @@ export type HotelPolicyScalarWhereWithAggregatesInput = {
   earlyCheckInFee?: Prisma.DecimalWithAggregatesFilter<"HotelPolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: Prisma.BoolWithAggregatesFilter<"HotelPolicy"> | boolean
   lateCheckOutFee?: Prisma.DecimalWithAggregatesFilter<"HotelPolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: Prisma.DecimalWithAggregatesFilter<"HotelPolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"HotelPolicy"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"HotelPolicy"> | Date | string
 }
@@ -370,6 +386,7 @@ export type HotelPolicyCreateInput = {
   earlyCheckInFee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: boolean
   lateCheckOutFee?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
   hotel: Prisma.HotelCreateNestedOneWithoutPolicyInput
@@ -386,6 +403,7 @@ export type HotelPolicyUncheckedCreateInput = {
   earlyCheckInFee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: boolean
   lateCheckOutFee?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -400,6 +418,7 @@ export type HotelPolicyUpdateInput = {
   earlyCheckInFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lateCheckOutFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hotel?: Prisma.HotelUpdateOneRequiredWithoutPolicyNestedInput
@@ -416,6 +435,7 @@ export type HotelPolicyUncheckedUpdateInput = {
   earlyCheckInFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lateCheckOutFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -431,6 +451,7 @@ export type HotelPolicyCreateManyInput = {
   earlyCheckInFee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: boolean
   lateCheckOutFee?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -445,6 +466,7 @@ export type HotelPolicyUpdateManyMutationInput = {
   earlyCheckInFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lateCheckOutFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -460,6 +482,7 @@ export type HotelPolicyUncheckedUpdateManyInput = {
   earlyCheckInFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lateCheckOutFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -480,6 +503,7 @@ export type HotelPolicyCountOrderByAggregateInput = {
   earlyCheckInFee?: Prisma.SortOrder
   allowLateCheckOut?: Prisma.SortOrder
   lateCheckOutFee?: Prisma.SortOrder
+  taxRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -489,6 +513,7 @@ export type HotelPolicyAvgOrderByAggregateInput = {
   cancellationFeePercent?: Prisma.SortOrder
   earlyCheckInFee?: Prisma.SortOrder
   lateCheckOutFee?: Prisma.SortOrder
+  taxRate?: Prisma.SortOrder
 }
 
 export type HotelPolicyMaxOrderByAggregateInput = {
@@ -502,6 +527,7 @@ export type HotelPolicyMaxOrderByAggregateInput = {
   earlyCheckInFee?: Prisma.SortOrder
   allowLateCheckOut?: Prisma.SortOrder
   lateCheckOutFee?: Prisma.SortOrder
+  taxRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -517,6 +543,7 @@ export type HotelPolicyMinOrderByAggregateInput = {
   earlyCheckInFee?: Prisma.SortOrder
   allowLateCheckOut?: Prisma.SortOrder
   lateCheckOutFee?: Prisma.SortOrder
+  taxRate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -526,6 +553,7 @@ export type HotelPolicySumOrderByAggregateInput = {
   cancellationFeePercent?: Prisma.SortOrder
   earlyCheckInFee?: Prisma.SortOrder
   lateCheckOutFee?: Prisma.SortOrder
+  taxRate?: Prisma.SortOrder
 }
 
 export type HotelPolicyCreateNestedOneWithoutHotelInput = {
@@ -570,6 +598,7 @@ export type HotelPolicyCreateWithoutHotelInput = {
   earlyCheckInFee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: boolean
   lateCheckOutFee?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -584,6 +613,7 @@ export type HotelPolicyUncheckedCreateWithoutHotelInput = {
   earlyCheckInFee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: boolean
   lateCheckOutFee?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -614,6 +644,7 @@ export type HotelPolicyUpdateWithoutHotelInput = {
   earlyCheckInFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lateCheckOutFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -628,6 +659,7 @@ export type HotelPolicyUncheckedUpdateWithoutHotelInput = {
   earlyCheckInFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   allowLateCheckOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lateCheckOutFee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  taxRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -645,6 +677,7 @@ export type HotelPolicySelect<ExtArgs extends runtime.Types.Extensions.InternalA
   earlyCheckInFee?: boolean
   allowLateCheckOut?: boolean
   lateCheckOutFee?: boolean
+  taxRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   hotel?: boolean | Prisma.HotelDefaultArgs<ExtArgs>
@@ -661,6 +694,7 @@ export type HotelPolicySelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   earlyCheckInFee?: boolean
   allowLateCheckOut?: boolean
   lateCheckOutFee?: boolean
+  taxRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   hotel?: boolean | Prisma.HotelDefaultArgs<ExtArgs>
@@ -677,6 +711,7 @@ export type HotelPolicySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   earlyCheckInFee?: boolean
   allowLateCheckOut?: boolean
   lateCheckOutFee?: boolean
+  taxRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   hotel?: boolean | Prisma.HotelDefaultArgs<ExtArgs>
@@ -693,11 +728,12 @@ export type HotelPolicySelectScalar = {
   earlyCheckInFee?: boolean
   allowLateCheckOut?: boolean
   lateCheckOutFee?: boolean
+  taxRate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type HotelPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "hotelId" | "checkInTime" | "checkOutTime" | "cancellationWindowDays" | "cancellationFeePercent" | "allowEarlyCheckIn" | "earlyCheckInFee" | "allowLateCheckOut" | "lateCheckOutFee" | "createdAt" | "updatedAt", ExtArgs["result"]["hotelPolicy"]>
+export type HotelPolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "hotelId" | "checkInTime" | "checkOutTime" | "cancellationWindowDays" | "cancellationFeePercent" | "allowEarlyCheckIn" | "earlyCheckInFee" | "allowLateCheckOut" | "lateCheckOutFee" | "taxRate" | "createdAt" | "updatedAt", ExtArgs["result"]["hotelPolicy"]>
 export type HotelPolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   hotel?: boolean | Prisma.HotelDefaultArgs<ExtArgs>
 }
@@ -724,6 +760,7 @@ export type $HotelPolicyPayload<ExtArgs extends runtime.Types.Extensions.Interna
     earlyCheckInFee: runtime.Decimal
     allowLateCheckOut: boolean
     lateCheckOutFee: runtime.Decimal
+    taxRate: runtime.Decimal
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["hotelPolicy"]>
@@ -1160,6 +1197,7 @@ export interface HotelPolicyFieldRefs {
   readonly earlyCheckInFee: Prisma.FieldRef<"HotelPolicy", 'Decimal'>
   readonly allowLateCheckOut: Prisma.FieldRef<"HotelPolicy", 'Boolean'>
   readonly lateCheckOutFee: Prisma.FieldRef<"HotelPolicy", 'Decimal'>
+  readonly taxRate: Prisma.FieldRef<"HotelPolicy", 'Decimal'>
   readonly createdAt: Prisma.FieldRef<"HotelPolicy", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"HotelPolicy", 'DateTime'>
 }

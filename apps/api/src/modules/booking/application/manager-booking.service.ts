@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BookingStatus, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
@@ -17,6 +18,12 @@ import { BookingService } from './booking.service';
 import { NotificationService } from '../../notification/application/notification.service';
 import { NOTIFICATION_CHANNELS } from '../../notification/domain';
 import { canTransition } from '../domain';
+import {
+  BookingCheckedInEvent,
+  BookingCheckedOutEvent,
+  BookingEventNames,
+  BookingNoShowEvent,
+} from '../../events/booking.events';
 import type {
   CreateBookingInput,
   CreateWalkInBookingInput,
@@ -42,6 +49,7 @@ export class ManagerBookingService {
     private readonly audit: AuditService,
     private readonly bookings: BookingService,
     @Optional() private readonly notifications?: NotificationService,
+    @Optional() private readonly emitter?: EventEmitter2,
   ) {}
 
   async listBookings(query: ManageBookingsQuery, actor: BookingActor) {
@@ -350,6 +358,10 @@ export class ManagerBookingService {
       },
     });
     await this.audit.record(actor.sub, 'EARLY_CHECKIN_APPROVED', 'Booking', bookingId, { fee });
+    this.emitter?.emit(
+      BookingEventNames.CHECKED_IN,
+      new BookingCheckedInEvent(booking.id, booking.userId, booking.hotelId),
+    );
 
     if (this.notifications) {
       try {
@@ -418,6 +430,10 @@ export class ManagerBookingService {
       },
     });
     await this.audit.record(actor.sub, 'LATE_CHECKOUT_APPROVED', 'Booking', bookingId, { fee });
+    this.emitter?.emit(
+      BookingEventNames.CHECKED_OUT,
+      new BookingCheckedOutEvent(booking.id, booking.userId, booking.hotelId),
+    );
 
     if (this.notifications) {
       try {
@@ -494,6 +510,10 @@ export class ManagerBookingService {
     await this.audit.record(actor.sub, 'BOOKING_NO_SHOW', 'Booking', bookingId, {
       markedBy: actor.sub,
     });
+    this.emitter?.emit(
+      BookingEventNames.NO_SHOW,
+      new BookingNoShowEvent(booking.id, booking.userId, booking.hotelId),
+    );
 
     return updated;
   }
@@ -737,6 +757,24 @@ export class ManagerBookingService {
       from: booking.status,
       to,
     });
+
+    if (to === 'CHECKED_IN') {
+      this.emitter?.emit(
+        BookingEventNames.CHECKED_IN,
+        new BookingCheckedInEvent(booking.id, booking.userId, booking.hotelId),
+      );
+    } else if (to === 'CHECKED_OUT') {
+      this.emitter?.emit(
+        BookingEventNames.CHECKED_OUT,
+        new BookingCheckedOutEvent(booking.id, booking.userId, booking.hotelId),
+      );
+    } else if (to === 'NO_SHOW') {
+      this.emitter?.emit(
+        BookingEventNames.NO_SHOW,
+        new BookingNoShowEvent(booking.id, booking.userId, booking.hotelId),
+      );
+    }
+
     return updated;
   }
 

@@ -1,6 +1,7 @@
 export const PaymentEventNames = {
   COMPLETED: 'payment.completed',
   REFUNDED: 'payment.refunded',
+  FAILED: 'payment.failed',
 } as const;
 
 export class PaymentCompletedEvent {
@@ -20,5 +21,16 @@ export class PaymentRefundedEvent {
     public readonly userId: string,
     public readonly amount: number,
     public readonly method: string,
+  ) {}
+}
+
+export class PaymentFailedEvent {
+  constructor(
+    public readonly paymentId: string,
+    public readonly bookingId: string,
+    public readonly userId: string,
+    public readonly amount: number,
+    public readonly method: string,
+    public readonly reason?: string,
   ) {}
 }

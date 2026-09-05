@@ -132,13 +132,45 @@ export class InvoiceService {
     }
 
     doc.moveDown(1.5);
-    const totalY = doc.y;
-    doc.font('Helvetica-Bold');
-    doc.text('Subtotal', 350, totalY);
-    doc.text(`$${booking.totalPrice.toNumber().toFixed(2)}`, 430, totalY);
-    doc.font('Helvetica');
+    const subtotal = booking.subtotal
+      ? booking.subtotal.toNumber()
+      : booking.totalPrice.toNumber();
+    const taxRatePercent = booking.taxRate
+      ? Math.round(booking.taxRate.toNumber() * 100)
+      : 15;
+    const taxAmount = booking.taxAmount ? booking.taxAmount.toNumber() : 0;
+    const serviceFee = booking.serviceFee ? booking.serviceFee.toNumber() : 0;
+    const discount = booking.discount ? booking.discount.toNumber() : 0;
 
-    doc.moveDown(2);
+    const renderSummaryRow = (
+      label: string,
+      amount: number,
+      isBold = false,
+    ) => {
+      const rowY = doc.y;
+      doc.font(isBold ? 'Helvetica-Bold' : 'Helvetica');
+      doc.text(label, 300, rowY);
+      doc.text(
+        `${amount < 0 ? '-$' : '$'}${Math.abs(amount).toFixed(2)}`,
+        430,
+        rowY,
+      );
+      doc.moveDown(0.8);
+    };
+
+    renderSummaryRow('Subtotal', subtotal);
+    if (taxAmount > 0 || booking.taxAmount !== null) {
+      renderSummaryRow(`VAT / Tax (${taxRatePercent}%)`, taxAmount);
+    }
+    if (serviceFee > 0) {
+      renderSummaryRow('Service Fee', serviceFee);
+    }
+    if (discount > 0) {
+      renderSummaryRow('Discount', -discount);
+    }
+    renderSummaryRow('Total', booking.totalPrice.toNumber(), true);
+
+    doc.moveDown(1.5);
     doc.font('Helvetica-Bold').fontSize(12);
     doc.text(`Total paid: $${booking.totalPrice.toNumber().toFixed(2)}`);
     doc.font('Helvetica').fontSize(10);

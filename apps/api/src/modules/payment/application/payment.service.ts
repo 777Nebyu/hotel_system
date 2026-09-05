@@ -16,6 +16,7 @@ import { AuditService } from '../../../common/services/audit.service';
 import { FraudService } from '../../fraud/application/fraud.service';
 import {
   PaymentCompletedEvent,
+  PaymentFailedEvent,
   PaymentRefundedEvent,
   PaymentEventNames,
 } from '../../events/payment.events';
@@ -210,6 +211,18 @@ export class PaymentService {
         providerRef: result.providerRef ?? body.transactionId ?? null,
       },
     });
+
+    this.emitter.emit(
+      PaymentEventNames.FAILED,
+      new PaymentFailedEvent(
+        payment.id,
+        bookingId,
+        payment.booking.userId,
+        payment.amount.toNumber(),
+        payment.method,
+        'Payment charge failed or declined',
+      ),
+    );
 
     if (this.fraud && payment.booking?.userId) {
       void this.fraud.checkPaymentFailureVelocity(payment.booking.userId);

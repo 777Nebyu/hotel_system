@@ -441,6 +441,26 @@ export class ManagerCatalogService {
     actor: CatalogActor,
   ) {
     await this.assertCanManageRoom(roomId, actor);
+
+    const start = new Date(dto.startDate);
+    const end = new Date(dto.endDate);
+    if (start >= end) {
+      throw new BadRequestException('startDate must be before endDate');
+    }
+
+    const overlap = await this.db.seasonalPricing.findFirst({
+      where: {
+        roomId,
+        startDate: { lt: end },
+        endDate: { gt: start },
+      },
+    });
+    if (overlap) {
+      throw new ConflictException(
+        'Seasonal pricing dates overlap with an existing seasonal pricing rule for this room',
+      );
+    }
+
     return this.db.seasonalPricing.create({
       data: {
         roomId,

@@ -1,7 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { HotelStatus, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
+import {
+  HotelApprovedEvent,
+  HotelEventNames,
+  HotelSuspendedEvent,
+} from '../../events/hotel.events';
 import type {
   AdminHotelsQuery,
   ReassignManager,
@@ -13,6 +19,8 @@ export class AdminHotelService {
   constructor(
     private readonly db: PrismaService,
     private readonly audit: AuditService,
+    @Optional()
+    private readonly emitter?: EventEmitter2,
   ) {}
 
   async list(query: AdminHotelsQuery) {
@@ -74,6 +82,20 @@ export class AdminHotelService {
       status: { from: before.status, to: status },
       rejectionReason: updated.rejectionReason,
     });
+    if (status === HotelStatus.SUSPENDED) {
+      this.emitter?.emit(
+        HotelEventNames.SUSPENDED,
+        new HotelSuspendedEvent(
+          hotelId,
+          dto.rejectionReason ?? 'Hotel suspended by admin',
+        ),
+      );
+    } else if (status === HotelStatus.ACTIVE && before.status !== HotelStatus.ACTIVE) {
+      this.emitter?.emit(
+        HotelEventNames.APPROVED,
+        new HotelApprovedEvent(hotelId, updated.managerId),
+      );
+    }
     return updated;
   }
 
@@ -99,6 +121,10 @@ export class AdminHotelService {
     await this.audit.record(actorId, 'APPROVE_HOTEL', 'Hotel', hotelId, {
       status: { from: before.status, to: HotelStatus.ACTIVE },
     });
+    this.emitter?.emit(
+      HotelEventNames.APPROVED,
+      new HotelApprovedEvent(hotelId, updated.managerId),
+    );
     return updated;
   }
 

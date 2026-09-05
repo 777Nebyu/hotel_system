@@ -7,6 +7,10 @@ import { NOSHOW_DETECTION_JOB } from './noshow.scheduler';
 import { MailProducer } from './mail.producer';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../../common/services/audit.service';
+import {
+  BookingEventNames,
+  BookingNoShowEvent,
+} from '../events/booking.events';
 
 @Processor(NOSHOW_QUEUE)
 export class NoShowProcessor extends WorkerHost {
@@ -73,6 +77,11 @@ export class NoShowProcessor extends WorkerHost {
         'Booking',
         booking.id,
         { reason: 'Check-in date passed without guest arrival' },
+      );
+
+      this.emitter.emit(
+        BookingEventNames.NO_SHOW,
+        new BookingNoShowEvent(booking.id, booking.user.id, booking.hotel.id),
       );
 
       await this.mail.enqueue({

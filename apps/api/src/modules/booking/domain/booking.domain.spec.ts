@@ -133,7 +133,7 @@ describe('buildQuote', () => {
 
   // ── single room pricing ────────────────────────────────────────────────
   describe('single room at flat rate', () => {
-    it('computes roomTotal, subtotal, 5% service fee and total correctly', () => {
+    it('computes roomTotal, subtotal, 15% VAT, 5% service fee and total correctly', () => {
       const quote = buildQuote({
         ...baseInput,
         rooms: [{ roomId: 'r1', roomNumber: '101', nightly: [100, 100, 100] }],
@@ -145,15 +145,31 @@ describe('buildQuote', () => {
       expect(quote.rooms[0].nights).toBe(3);
 
       expect(quote.subtotal).toBe(300);
+      expect(quote.taxRate).toBe(0.15);
+      expect(quote.taxAmount).toBe(45);    // 15% of 300
       expect(quote.serviceFee).toBe(15);   // 5% of 300
       expect(quote.discount).toBe(0);
-      expect(quote.total).toBe(315);       // 300 + 15
+      expect(quote.total).toBe(360);       // 300 + 45 + 15
+    });
+
+    it('supports custom tax rate when provided', () => {
+      const quote = buildQuote({
+        ...baseInput,
+        rooms: [{ roomId: 'r1', roomNumber: '101', nightly: [100, 100, 100] }],
+        taxRate: 0.10,
+      });
+
+      expect(quote.subtotal).toBe(300);
+      expect(quote.taxRate).toBe(0.10);
+      expect(quote.taxAmount).toBe(30);    // 10% of 300
+      expect(quote.serviceFee).toBe(15);   // 5% of 300
+      expect(quote.total).toBe(345);       // 300 + 30 + 15
     });
   });
 
   // ── two rooms ──────────────────────────────────────────────────────────
   describe('two rooms', () => {
-    it('sums both room totals into subtotal and applies one service fee', () => {
+    it('sums both room totals into subtotal, computes tax, and applies one service fee', () => {
       const quote = buildQuote({
         ...baseInput,
         rooms: [
@@ -168,8 +184,9 @@ describe('buildQuote', () => {
       expect(quote.rooms[1].roomTotal).toBe(240);
 
       expect(quote.subtotal).toBe(400);
+      expect(quote.taxAmount).toBe(60);   // 15% of 400
       expect(quote.serviceFee).toBe(20);  // 5% of 400
-      expect(quote.total).toBe(420);
+      expect(quote.total).toBe(480);      // 400 + 60 + 20
     });
   });
 
@@ -187,14 +204,15 @@ describe('buildQuote', () => {
       expect(quote.rooms[0].pricePerNight).toBe(116.67);
 
       expect(quote.subtotal).toBe(350);
+      expect(quote.taxAmount).toBe(52.5);  // 15% of 350
       expect(quote.serviceFee).toBe(17.5);  // 5% of 350
-      expect(quote.total).toBe(367.5);
+      expect(quote.total).toBe(420);        // 350 + 52.5 + 17.5
     });
   });
 
   // ── discount applied ───────────────────────────────────────────────────
   describe('with a pre-applied discount', () => {
-    it('subtracts the discount from total but NOT from serviceFee base', () => {
+    it('subtracts the discount from total but NOT from tax or serviceFee base', () => {
       const quote = buildQuote({
         ...baseInput,
         rooms: [{ roomId: 'r1', roomNumber: '101', nightly: [100, 100, 100] }],
@@ -202,11 +220,12 @@ describe('buildQuote', () => {
         couponCode: 'SAVE30',
       });
 
-      // subtotal = 300, fee = 15 (based on subtotal, not post-discount)
+      // subtotal = 300, tax = 45, fee = 15 (based on subtotal, not post-discount)
       expect(quote.subtotal).toBe(300);
+      expect(quote.taxAmount).toBe(45);
       expect(quote.serviceFee).toBe(15);
       expect(quote.discount).toBe(30);
-      expect(quote.total).toBe(285);        // 300 + 15 - 30
+      expect(quote.total).toBe(330);        // 300 + 45 + 15 - 30
       expect(quote.couponCode).toBe('SAVE30');
     });
 
@@ -216,7 +235,7 @@ describe('buildQuote', () => {
         rooms: [{ roomId: 'r1', roomNumber: '101', nightly: [100, 100, 100] }],
       });
       expect(quote.discount).toBe(0);
-      expect(quote.total).toBe(315);
+      expect(quote.total).toBe(360);
     });
   });
 
@@ -266,8 +285,9 @@ describe('buildQuote', () => {
 
       expect(quote.rooms[0].roomTotal).toBe(100);    // 33.33+33.33+33.34
       expect(quote.subtotal).toBe(100);
+      expect(quote.taxAmount).toBe(15);              // 15% of 100
       expect(quote.serviceFee).toBe(5);              // 5% of 100
-      expect(quote.total).toBe(105);
+      expect(quote.total).toBe(120);                 // 100 + 15 + 5
       // No floating-point drift — values are clean
       expect(Number.isFinite(quote.total)).toBe(true);
     });

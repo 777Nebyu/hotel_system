@@ -116,4 +116,139 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
       });
     });
   });
+
+  describe('cancelBooking', () => {
+    beforeEach(() => {
+      db.$transaction = jest.fn((cb) => cb(db));
+      db.roomAvailability = { deleteMany: jest.fn().mockResolvedValue({ count: 2 }) };
+      db.payment = { update: jest.fn().mockResolvedValue({}) };
+      db.bookingStatusHistory = { create: jest.fn().mockResolvedValue({}) };
+    });
+
+    it('throws ConflictException if booking is already CANCELLED', async () => {
+      db.booking.findUnique.mockResolvedValue({
+        id: 'booking-1',
+        userId: 'user-1',
+        status: 'CANCELLED',
+        details: [],
+      });
+
+      await expect(service.cancelBooking('booking-1', 'user-1')).rejects.toThrow(
+        'Booking in "CANCELLED" state cannot be cancelled',
+      );
+    });
+
+    it('throws ForbiddenException if non-owner attempts cancellation', async () => {
+      db.booking.findUnique.mockResolvedValue({
+        id: 'booking-1',
+        userId: 'other-user',
+        status: 'CONFIRMED',
+        details: [],
+      });
+
+      await expect(service.cancelBooking('booking-1', 'user-1')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('grants 100% refund when cancelled >48h before check-in and releases rooms', async () => {
+      const futureCheckIn = new Date(Date.now() + 72 * 3600 * 1000); // 72 hours away
+      const futureCheckOut = new Date(futureCheckIn.getTime() + 48 * 3600 * 1000);
+      db.booking.findUnique.mockResolvedValue({
+        id: 'booking-1',
+        userId: 'user-1',
+        hotelId: 'hotel-1',
+        status: 'CONFIRMED',
+        checkIn: futureCheckIn,
+        checkOut: futureCheckOut,
+        totalPrice: { toNumber: () => 300 },
+        details: [{ roomId: 'room-1' }, { roomId: 'room-2' }],
+        payment: {
+          id: 'pay-1',
+          status: 'SUCCEEDED',
+          amount: { toNumber: () => 300 },
+        },
+      });
+
+      const res = await service.cancelBooking('booking-1', 'user-1');
+      expect(res.refundTier).toBe('100%');
+      expect(res.refundAmount).toBe(300);
+
+      // Verify availability release
+      expect(db.roomAvailability.deleteMany).toHaveBeenCalledWith({
+        where: {
+          roomId: { in: ['room-1', 'room-2'] },
+          date: { gte: futureCheckIn, lt: futureCheckOut },
+          status: 'UNAVAILABLE',
+        },
+      });
+
+      // Verify payment update
+      expect(db.payment.update).toHaveBeenCalledWith({
+        where: { bookingId: 'booking-1' },
+        data: expect.objectContaining({
+          status: 'REFUNDED',
+          refundAmount: 300,
+        }),
+      });
+
+      // Verify event emission
+      expect(emitter.emit).toHaveBeenCalledWith(
+        'booking.cancelled',
+        expect.objectContaining({
+          bookingId: 'booking-1',
+          userId: 'user-1',
+          hotelId: 'hotel-1',
+        }),
+      );
+    });
+
+    it('grants 50% refund when cancelled between 24h and 48h before check-in', async () => {
+      const futureCheckIn = new Date(Date.now() + 30 * 3600 * 1000); // 30 hours away
+      const futureCheckOut = new Date(futureCheckIn.getTime() + 24 * 3600 * 1000);
+      db.booking.findUnique.mockResolvedValue({
+        id: 'booking-2',
+        userId: 'user-1',
+        hotelId: 'hotel-1',
+        status: 'CONFIRMED',
+        checkIn: futureCheckIn,
+        checkOut: futureCheckOut,
+        totalPrice: { toNumber: () => 200 },
+        details: [{ roomId: 'room-1' }],
+        payment: {
+          id: 'pay-2',
+          status: 'SUCCEEDED',
+          amount: { toNumber: () => 200 },
+        },
+      });
+
+      const res = await service.cancelBooking('booking-2', 'user-1');
+      expect(res.refundTier).toBe('50%');
+      expect(res.refundAmount).toBe(100);
+    });
+
+    it('grants 0% refund when cancelled less than 24h before check-in', async () => {
+      const futureCheckIn = new Date(Date.now() + 10 * 3600 * 1000); // 10 hours away
+      const futureCheckOut = new Date(futureCheckIn.getTime() + 24 * 3600 * 1000);
+      db.booking.findUnique.mockResolvedValue({
+        id: 'booking-3',
+        userId: 'user-1',
+        hotelId: 'hotel-1',
+        status: 'CONFIRMED',
+        checkIn: futureCheckIn,
+        checkOut: futureCheckOut,
+        totalPrice: { toNumber: () => 200 },
+        details: [{ roomId: 'room-1' }],
+        payment: {
+          id: 'pay-3',
+          status: 'SUCCEEDED',
+          amount: { toNumber: () => 200 },
+        },
+      });
+
+      const res = await service.cancelBooking('booking-3', 'user-1');
+      expect(res.refundTier).toBe('0%');
+      expect(res.refundAmount).toBe(0);
+    });
+  });
 });

@@ -264,6 +264,11 @@ export const BookingScalarFieldEnum = {
   checkOut: 'checkOut',
   status: 'status',
   totalPrice: 'totalPrice',
+  subtotal: 'subtotal',
+  serviceFee: 'serviceFee',
+  discount: 'discount',
+  taxRate: 'taxRate',
+  taxAmount: 'taxAmount',
   bookingSource: 'bookingSource',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -432,6 +437,7 @@ export const HotelPolicyScalarFieldEnum = {
   earlyCheckInFee: 'earlyCheckInFee',
   allowLateCheckOut: 'allowLateCheckOut',
   lateCheckOutFee: 'lateCheckOutFee',
+  taxRate: 'taxRate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
