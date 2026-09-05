@@ -3,7 +3,9 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
@@ -12,6 +14,8 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
 import { AuditService } from '../../../common/services/audit.service';
 import { BookingService } from './booking.service';
+import { NotificationService } from '../../notification/application/notification.service';
+import { NOTIFICATION_CHANNELS } from '../../notification/domain';
 import { canTransition } from '../domain';
 import type {
   CreateBookingInput,
@@ -30,11 +34,14 @@ export interface BookingActor {
 
 @Injectable()
 export class ManagerBookingService {
+  private readonly logger = new Logger(ManagerBookingService.name);
+
   constructor(
     private readonly db: PrismaService,
     private readonly scope: ResourceScopeHelper,
     private readonly audit: AuditService,
     private readonly bookings: BookingService,
+    @Optional() private readonly notifications?: NotificationService,
   ) {}
 
   async listBookings(query: ManageBookingsQuery, actor: BookingActor) {
@@ -184,6 +191,40 @@ export class ManagerBookingService {
         bookingId: request.bookingId,
         note: dto.decisionNote,
       });
+
+      if (this.notifications) {
+        try {
+          const reqTypeLabel = request.type === 'EARLY_CHECKIN' ? 'early check-in' : 'late check-out';
+          await this.notifications.notify({
+            userId: request.booking.userId,
+            type: 'STAY_REQUEST_DECIDED',
+            channel: NOTIFICATION_CHANNELS.IN_APP,
+            payload: {
+              title: 'Stay Request Rejected',
+              message: `Your request for ${reqTypeLabel} has been rejected.${dto.decisionNote ? ' Note: ' + dto.decisionNote : ''}`,
+              bookingId: request.bookingId,
+              stayRequestId: requestId,
+              decision: 'REJECTED',
+              decisionNote: dto.decisionNote,
+            },
+          });
+          await this.notifications.notify({
+            userId: request.booking.userId,
+            type: 'STAY_REQUEST_DECIDED',
+            channel: NOTIFICATION_CHANNELS.PUSH,
+            payload: {
+              title: 'Stay Request Rejected',
+              body: `Your request for ${reqTypeLabel} has been rejected.`,
+              bookingId: request.bookingId,
+              stayRequestId: requestId,
+              decision: 'REJECTED',
+            },
+          });
+        } catch (err) {
+          this.logger.warn(`Failed to dispatch stay request rejection notification: ${err}`);
+        }
+      }
+
       return updated;
     }
 
@@ -249,6 +290,41 @@ export class ManagerBookingService {
       });
     }
 
+    if (this.notifications) {
+      try {
+        const reqTypeLabel = request.type === 'EARLY_CHECKIN' ? 'Early check-in' : 'Late check-out';
+        await this.notifications.notify({
+          userId: request.booking.userId,
+          type: 'STAY_REQUEST_DECIDED',
+          channel: NOTIFICATION_CHANNELS.IN_APP,
+          payload: {
+            title: `${reqTypeLabel} Approved`,
+            message: `Your request for ${reqTypeLabel.toLowerCase()} has been approved. Fee: $${Number(request.fee).toFixed(2)}.${dto.decisionNote ? ' Note: ' + dto.decisionNote : ''}`,
+            bookingId: request.bookingId,
+            stayRequestId: requestId,
+            decision: 'APPROVED',
+            fee: Number(request.fee),
+            decisionNote: dto.decisionNote,
+          },
+        });
+        await this.notifications.notify({
+          userId: request.booking.userId,
+          type: 'STAY_REQUEST_DECIDED',
+          channel: NOTIFICATION_CHANNELS.PUSH,
+          payload: {
+            title: `${reqTypeLabel} Approved`,
+            body: `Your request for ${reqTypeLabel.toLowerCase()} has been approved. Fee: $${Number(request.fee).toFixed(2)}.`,
+            bookingId: request.bookingId,
+            stayRequestId: requestId,
+            decision: 'APPROVED',
+            fee: Number(request.fee),
+          },
+        });
+      } catch (err) {
+        this.logger.warn(`Failed to dispatch stay request approval notification: ${err}`);
+      }
+    }
+
     return this.db.stayRequest.findUnique({ where: { id: requestId } });
   }
 
@@ -274,6 +350,36 @@ export class ManagerBookingService {
       },
     });
     await this.audit.record(actor.sub, 'EARLY_CHECKIN_APPROVED', 'Booking', bookingId, { fee });
+
+    if (this.notifications) {
+      try {
+        await this.notifications.notify({
+          userId: booking.userId,
+          type: 'EARLY_CHECKIN_APPROVED',
+          channel: NOTIFICATION_CHANNELS.IN_APP,
+          payload: {
+            title: 'Early Check-In Approved',
+            message: `Your early check-in has been approved by the front desk. Additional fee: $${fee.toFixed(2)}.`,
+            bookingId: booking.id,
+            fee,
+          },
+        });
+        await this.notifications.notify({
+          userId: booking.userId,
+          type: 'EARLY_CHECKIN_APPROVED',
+          channel: NOTIFICATION_CHANNELS.PUSH,
+          payload: {
+            title: 'Early Check-In Approved',
+            body: `Your early check-in has been approved. Fee: $${fee.toFixed(2)}.`,
+            bookingId: booking.id,
+            fee,
+          },
+        });
+      } catch (err) {
+        this.logger.warn(`Failed to dispatch direct early check-in notification: ${err}`);
+      }
+    }
+
     return updated;
   }
 
@@ -312,6 +418,36 @@ export class ManagerBookingService {
       },
     });
     await this.audit.record(actor.sub, 'LATE_CHECKOUT_APPROVED', 'Booking', bookingId, { fee });
+
+    if (this.notifications) {
+      try {
+        await this.notifications.notify({
+          userId: booking.userId,
+          type: 'LATE_CHECKOUT_APPROVED',
+          channel: NOTIFICATION_CHANNELS.IN_APP,
+          payload: {
+            title: 'Late Check-Out Approved',
+            message: `Your late check-out has been approved by the front desk. Additional fee: $${fee.toFixed(2)}.`,
+            bookingId: booking.id,
+            fee,
+          },
+        });
+        await this.notifications.notify({
+          userId: booking.userId,
+          type: 'LATE_CHECKOUT_APPROVED',
+          channel: NOTIFICATION_CHANNELS.PUSH,
+          payload: {
+            title: 'Late Check-Out Approved',
+            body: `Your late check-out has been approved. Fee: $${fee.toFixed(2)}.`,
+            bookingId: booking.id,
+            fee,
+          },
+        });
+      } catch (err) {
+        this.logger.warn(`Failed to dispatch direct late check-out notification: ${err}`);
+      }
+    }
+
     return updated;
   }
 
@@ -420,18 +556,75 @@ export class ManagerBookingService {
       throw new ConflictException('New room has overlapping bookings during remaining stay');
     }
 
-    const updatedDetail = await this.db.bookingDetail.update({
-      where: { id: targetDetail.id },
-      data: {
-        roomId: dto.newRoomId,
-        relocatedFrom: oldRoom.roomNumber,
-        relocationReason: dto.reason,
-        relocatedAt: new Date(),
-        relocatedBy: actor.sub,
-      },
-      include: {
-        room: true,
-      },
+    const updatedDetail = await this.db.$transaction(async (tx) => {
+      const detail = await tx.bookingDetail.update({
+        where: { id: targetDetail.id },
+        data: {
+          roomId: dto.newRoomId,
+          relocatedFrom: oldRoom.roomNumber,
+          relocationReason: dto.reason,
+          relocatedAt: new Date(),
+          relocatedBy: actor.sub,
+        },
+        include: {
+          room: true,
+        },
+      });
+
+      await tx.roomRelocation.create({
+        data: {
+          bookingId,
+          bookingDetailId: targetDetail.id,
+          oldRoomId: dto.oldRoomId,
+          newRoomId: dto.newRoomId,
+          reason: dto.reason,
+          relocatedById: actor.sub,
+        },
+      });
+
+      await tx.roomAvailability.deleteMany({
+        where: {
+          roomId: dto.oldRoomId,
+          date: { gte: today, lt: booking.checkOut },
+          status: 'UNAVAILABLE',
+        },
+      });
+
+      const dates: Date[] = [];
+      const cur = new Date(today);
+      while (cur < booking.checkOut) {
+        dates.push(new Date(cur));
+        cur.setDate(cur.getDate() + 1);
+      }
+      for (const d of dates) {
+        await tx.roomAvailability.upsert({
+          where: {
+            roomId_date: {
+              roomId: dto.newRoomId,
+              date: d,
+            },
+          },
+          create: {
+            roomId: dto.newRoomId,
+            date: d,
+            status: 'UNAVAILABLE',
+          },
+          update: {
+            status: 'UNAVAILABLE',
+          },
+        });
+      }
+
+      await tx.bookingStatusHistory.create({
+        data: {
+          bookingId,
+          status: 'CHECKED_IN',
+          changedBy: actor.sub,
+          reason: `Room relocated from ${oldRoom.roomNumber} to ${newRoom.roomNumber}. Reason: ${dto.reason}`,
+        },
+      });
+
+      return detail;
     });
 
     await this.audit.record(actor.sub, 'ROOM_RELOCATED', 'Booking', bookingId, {
@@ -442,7 +635,64 @@ export class ManagerBookingService {
       reason: dto.reason,
     });
 
+    if (this.notifications) {
+      try {
+        await this.notifications.notify({
+          userId: booking.userId,
+          type: 'ROOM_RELOCATED',
+          channel: NOTIFICATION_CHANNELS.IN_APP,
+          payload: {
+            title: 'Room Relocation',
+            message: `Your room has been changed from Room ${oldRoom.roomNumber} to Room ${newRoom.roomNumber}.${dto.reason ? ' Reason: ' + dto.reason : ''}`,
+            bookingId,
+            oldRoomNumber: oldRoom.roomNumber,
+            newRoomNumber: newRoom.roomNumber,
+            reason: dto.reason,
+          },
+        });
+        await this.notifications.notify({
+          userId: booking.userId,
+          type: 'ROOM_RELOCATED',
+          channel: NOTIFICATION_CHANNELS.PUSH,
+          payload: {
+            title: 'Room Relocation',
+            body: `Your room has been changed from Room ${oldRoom.roomNumber} to Room ${newRoom.roomNumber}.`,
+            bookingId,
+            oldRoomNumber: oldRoom.roomNumber,
+            newRoomNumber: newRoom.roomNumber,
+          },
+        });
+      } catch (err) {
+        this.logger.warn(`Failed to dispatch room relocation notification: ${err}`);
+      }
+    }
+
     return updatedDetail;
+  }
+
+  async getRelocations(bookingId: string, actor: BookingActor) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      select: { hotelId: true },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    await this.assertCanManage(booking.hotelId, actor);
+
+    return this.db.roomRelocation.findMany({
+      where: { bookingId },
+      orderBy: { relocatedAt: 'desc' },
+      include: {
+        oldRoom: {
+          select: { id: true, roomNumber: true, type: true, basePrice: true },
+        },
+        newRoom: {
+          select: { id: true, roomNumber: true, type: true, basePrice: true },
+        },
+        relocatedBy: {
+          select: { id: true, fullName: true, email: true },
+        },
+      },
+    });
   }
 
   // ----- helpers -----

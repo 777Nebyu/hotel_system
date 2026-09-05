@@ -428,7 +428,9 @@ export const ModelName = {
   SuspensionRequest: 'SuspensionRequest',
   RoomHold: 'RoomHold',
   StayRequest: 'StayRequest',
-  UserSession: 'UserSession'
+  UserSession: 'UserSession',
+  BookingModification: 'BookingModification',
+  RoomRelocation: 'RoomRelocation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -444,7 +446,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "country" | "city" | "hotel" | "hotelImage" | "amenity" | "hotelAmenity" | "room" | "roomImage" | "roomAmenity" | "roomAvailability" | "seasonalPricing" | "booking" | "bookingDetail" | "bookingStatusHistory" | "hotelStatusHistory" | "payment" | "paymentAttempt" | "review" | "favorite" | "coupon" | "notification" | "auditLog" | "platformSetting" | "hotelPolicy" | "notificationPreference" | "staffHotel" | "dispute" | "suspensionRequest" | "roomHold" | "stayRequest" | "userSession"
+    modelProps: "user" | "country" | "city" | "hotel" | "hotelImage" | "amenity" | "hotelAmenity" | "room" | "roomImage" | "roomAmenity" | "roomAvailability" | "seasonalPricing" | "booking" | "bookingDetail" | "bookingStatusHistory" | "hotelStatusHistory" | "payment" | "paymentAttempt" | "review" | "favorite" | "coupon" | "notification" | "auditLog" | "platformSetting" | "hotelPolicy" | "notificationPreference" | "staffHotel" | "dispute" | "suspensionRequest" | "roomHold" | "stayRequest" | "userSession" | "bookingModification" | "roomRelocation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2816,6 +2818,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BookingModification: {
+      payload: Prisma.$BookingModificationPayload<ExtArgs>
+      fields: Prisma.BookingModificationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BookingModificationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BookingModificationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload>
+        }
+        findFirst: {
+          args: Prisma.BookingModificationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BookingModificationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload>
+        }
+        findMany: {
+          args: Prisma.BookingModificationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload>[]
+        }
+        create: {
+          args: Prisma.BookingModificationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload>
+        }
+        createMany: {
+          args: Prisma.BookingModificationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BookingModificationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload>[]
+        }
+        delete: {
+          args: Prisma.BookingModificationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload>
+        }
+        update: {
+          args: Prisma.BookingModificationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload>
+        }
+        deleteMany: {
+          args: Prisma.BookingModificationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BookingModificationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BookingModificationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload>[]
+        }
+        upsert: {
+          args: Prisma.BookingModificationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BookingModificationPayload>
+        }
+        aggregate: {
+          args: Prisma.BookingModificationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBookingModification>
+        }
+        groupBy: {
+          args: Prisma.BookingModificationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BookingModificationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BookingModificationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BookingModificationCountAggregateOutputType> | number
+        }
+      }
+    }
+    RoomRelocation: {
+      payload: Prisma.$RoomRelocationPayload<ExtArgs>
+      fields: Prisma.RoomRelocationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RoomRelocationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RoomRelocationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload>
+        }
+        findFirst: {
+          args: Prisma.RoomRelocationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RoomRelocationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload>
+        }
+        findMany: {
+          args: Prisma.RoomRelocationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload>[]
+        }
+        create: {
+          args: Prisma.RoomRelocationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload>
+        }
+        createMany: {
+          args: Prisma.RoomRelocationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RoomRelocationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload>[]
+        }
+        delete: {
+          args: Prisma.RoomRelocationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload>
+        }
+        update: {
+          args: Prisma.RoomRelocationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload>
+        }
+        deleteMany: {
+          args: Prisma.RoomRelocationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RoomRelocationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RoomRelocationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload>[]
+        }
+        upsert: {
+          args: Prisma.RoomRelocationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomRelocationPayload>
+        }
+        aggregate: {
+          args: Prisma.RoomRelocationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRoomRelocation>
+        }
+        groupBy: {
+          args: Prisma.RoomRelocationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RoomRelocationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RoomRelocationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RoomRelocationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3290,6 +3440,38 @@ export const UserSessionScalarFieldEnum = {
 } as const
 
 export type UserSessionScalarFieldEnum = (typeof UserSessionScalarFieldEnum)[keyof typeof UserSessionScalarFieldEnum]
+
+
+export const BookingModificationScalarFieldEnum = {
+  id: 'id',
+  bookingId: 'bookingId',
+  requestedById: 'requestedById',
+  previousCheckIn: 'previousCheckIn',
+  previousCheckOut: 'previousCheckOut',
+  newCheckIn: 'newCheckIn',
+  newCheckOut: 'newCheckOut',
+  previousTotalPrice: 'previousTotalPrice',
+  newTotalPrice: 'newTotalPrice',
+  priceDifference: 'priceDifference',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type BookingModificationScalarFieldEnum = (typeof BookingModificationScalarFieldEnum)[keyof typeof BookingModificationScalarFieldEnum]
+
+
+export const RoomRelocationScalarFieldEnum = {
+  id: 'id',
+  bookingId: 'bookingId',
+  bookingDetailId: 'bookingDetailId',
+  oldRoomId: 'oldRoomId',
+  newRoomId: 'newRoomId',
+  reason: 'reason',
+  relocatedById: 'relocatedById',
+  relocatedAt: 'relocatedAt'
+} as const
+
+export type RoomRelocationScalarFieldEnum = (typeof RoomRelocationScalarFieldEnum)[keyof typeof RoomRelocationScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3787,6 +3969,8 @@ export type GlobalOmitConfig = {
   roomHold?: Prisma.RoomHoldOmit
   stayRequest?: Prisma.StayRequestOmit
   userSession?: Prisma.UserSessionOmit
+  bookingModification?: Prisma.BookingModificationOmit
+  roomRelocation?: Prisma.RoomRelocationOmit
 }
 
 /* Types for Logging */

@@ -156,4 +156,22 @@ export class BookingController {
   ) {
     return this.bookings.getStatusHistory(params.bookingId, req.user);
   }
+
+  @Get(':bookingId/modifications')
+  @ApiOperation({ summary: 'Get booking modification history' })
+  getModifications(
+    @Param() params: BookingIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.bookings.getModifications(params.bookingId, req.user.sub);
+  }
+
+  @Get(':bookingId/relocations')
+  @ApiOperation({ summary: 'Get booking room relocation history' })
+  getRelocations(
+    @Param() params: BookingIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.bookings.getRelocations(params.bookingId, req.user.sub);
+  }
 }

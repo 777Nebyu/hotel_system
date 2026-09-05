@@ -177,6 +177,7 @@ export const modifyBookingSchema = z
     checkOut: dateOnly.optional(),
     roomIds: z.array(id).min(1).max(10).optional(),
     guestInfos: z.array(bookingGuestSchema).min(1).max(50).optional(),
+    reason: z.string().min(3).max(500).optional(),
   })
   .refine(
     (d) =>

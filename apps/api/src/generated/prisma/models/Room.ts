@@ -275,6 +275,8 @@ export type RoomWhereInput = {
   seasonalPricing?: Prisma.SeasonalPricingListRelationFilter
   details?: Prisma.BookingDetailListRelationFilter
   roomHolds?: Prisma.RoomHoldListRelationFilter
+  relocationsFrom?: Prisma.RoomRelocationListRelationFilter
+  relocationsTo?: Prisma.RoomRelocationListRelationFilter
 }
 
 export type RoomOrderByWithRelationInput = {
@@ -295,6 +297,8 @@ export type RoomOrderByWithRelationInput = {
   seasonalPricing?: Prisma.SeasonalPricingOrderByRelationAggregateInput
   details?: Prisma.BookingDetailOrderByRelationAggregateInput
   roomHolds?: Prisma.RoomHoldOrderByRelationAggregateInput
+  relocationsFrom?: Prisma.RoomRelocationOrderByRelationAggregateInput
+  relocationsTo?: Prisma.RoomRelocationOrderByRelationAggregateInput
 }
 
 export type RoomWhereUniqueInput = Prisma.AtLeast<{
@@ -319,6 +323,8 @@ export type RoomWhereUniqueInput = Prisma.AtLeast<{
   seasonalPricing?: Prisma.SeasonalPricingListRelationFilter
   details?: Prisma.BookingDetailListRelationFilter
   roomHolds?: Prisma.RoomHoldListRelationFilter
+  relocationsFrom?: Prisma.RoomRelocationListRelationFilter
+  relocationsTo?: Prisma.RoomRelocationListRelationFilter
 }, "id" | "hotelId_roomNumber">
 
 export type RoomOrderByWithAggregationInput = {
@@ -372,6 +378,8 @@ export type RoomCreateInput = {
   seasonalPricing?: Prisma.SeasonalPricingCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomUncheckedCreateInput = {
@@ -391,6 +399,8 @@ export type RoomUncheckedCreateInput = {
   seasonalPricing?: Prisma.SeasonalPricingUncheckedCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailUncheckedCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomUpdateInput = {
@@ -410,6 +420,8 @@ export type RoomUpdateInput = {
   seasonalPricing?: Prisma.SeasonalPricingUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomUncheckedUpdateInput = {
@@ -429,6 +441,8 @@ export type RoomUncheckedUpdateInput = {
   seasonalPricing?: Prisma.SeasonalPricingUncheckedUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUncheckedUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomCreateManyInput = {
@@ -680,6 +694,34 @@ export type RoomUpdateOneRequiredWithoutRoomHoldsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RoomUpdateToOneWithWhereWithoutRoomHoldsInput, Prisma.RoomUpdateWithoutRoomHoldsInput>, Prisma.RoomUncheckedUpdateWithoutRoomHoldsInput>
 }
 
+export type RoomCreateNestedOneWithoutRelocationsFromInput = {
+  create?: Prisma.XOR<Prisma.RoomCreateWithoutRelocationsFromInput, Prisma.RoomUncheckedCreateWithoutRelocationsFromInput>
+  connectOrCreate?: Prisma.RoomCreateOrConnectWithoutRelocationsFromInput
+  connect?: Prisma.RoomWhereUniqueInput
+}
+
+export type RoomCreateNestedOneWithoutRelocationsToInput = {
+  create?: Prisma.XOR<Prisma.RoomCreateWithoutRelocationsToInput, Prisma.RoomUncheckedCreateWithoutRelocationsToInput>
+  connectOrCreate?: Prisma.RoomCreateOrConnectWithoutRelocationsToInput
+  connect?: Prisma.RoomWhereUniqueInput
+}
+
+export type RoomUpdateOneRequiredWithoutRelocationsFromNestedInput = {
+  create?: Prisma.XOR<Prisma.RoomCreateWithoutRelocationsFromInput, Prisma.RoomUncheckedCreateWithoutRelocationsFromInput>
+  connectOrCreate?: Prisma.RoomCreateOrConnectWithoutRelocationsFromInput
+  upsert?: Prisma.RoomUpsertWithoutRelocationsFromInput
+  connect?: Prisma.RoomWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RoomUpdateToOneWithWhereWithoutRelocationsFromInput, Prisma.RoomUpdateWithoutRelocationsFromInput>, Prisma.RoomUncheckedUpdateWithoutRelocationsFromInput>
+}
+
+export type RoomUpdateOneRequiredWithoutRelocationsToNestedInput = {
+  create?: Prisma.XOR<Prisma.RoomCreateWithoutRelocationsToInput, Prisma.RoomUncheckedCreateWithoutRelocationsToInput>
+  connectOrCreate?: Prisma.RoomCreateOrConnectWithoutRelocationsToInput
+  upsert?: Prisma.RoomUpsertWithoutRelocationsToInput
+  connect?: Prisma.RoomWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RoomUpdateToOneWithWhereWithoutRelocationsToInput, Prisma.RoomUpdateWithoutRelocationsToInput>, Prisma.RoomUncheckedUpdateWithoutRelocationsToInput>
+}
+
 export type RoomCreateWithoutHotelInput = {
   id?: string
   roomNumber: string
@@ -696,6 +738,8 @@ export type RoomCreateWithoutHotelInput = {
   seasonalPricing?: Prisma.SeasonalPricingCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomUncheckedCreateWithoutHotelInput = {
@@ -714,6 +758,8 @@ export type RoomUncheckedCreateWithoutHotelInput = {
   seasonalPricing?: Prisma.SeasonalPricingUncheckedCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailUncheckedCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomCreateOrConnectWithoutHotelInput = {
@@ -774,6 +820,8 @@ export type RoomCreateWithoutImagesInput = {
   seasonalPricing?: Prisma.SeasonalPricingCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomUncheckedCreateWithoutImagesInput = {
@@ -792,6 +840,8 @@ export type RoomUncheckedCreateWithoutImagesInput = {
   seasonalPricing?: Prisma.SeasonalPricingUncheckedCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailUncheckedCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomCreateOrConnectWithoutImagesInput = {
@@ -826,6 +876,8 @@ export type RoomUpdateWithoutImagesInput = {
   seasonalPricing?: Prisma.SeasonalPricingUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomUncheckedUpdateWithoutImagesInput = {
@@ -844,6 +896,8 @@ export type RoomUncheckedUpdateWithoutImagesInput = {
   seasonalPricing?: Prisma.SeasonalPricingUncheckedUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUncheckedUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomCreateWithoutAmenitiesInput = {
@@ -862,6 +916,8 @@ export type RoomCreateWithoutAmenitiesInput = {
   seasonalPricing?: Prisma.SeasonalPricingCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomUncheckedCreateWithoutAmenitiesInput = {
@@ -880,6 +936,8 @@ export type RoomUncheckedCreateWithoutAmenitiesInput = {
   seasonalPricing?: Prisma.SeasonalPricingUncheckedCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailUncheckedCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomCreateOrConnectWithoutAmenitiesInput = {
@@ -914,6 +972,8 @@ export type RoomUpdateWithoutAmenitiesInput = {
   seasonalPricing?: Prisma.SeasonalPricingUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomUncheckedUpdateWithoutAmenitiesInput = {
@@ -932,6 +992,8 @@ export type RoomUncheckedUpdateWithoutAmenitiesInput = {
   seasonalPricing?: Prisma.SeasonalPricingUncheckedUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUncheckedUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomCreateWithoutAvailabilityInput = {
@@ -950,6 +1012,8 @@ export type RoomCreateWithoutAvailabilityInput = {
   seasonalPricing?: Prisma.SeasonalPricingCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomUncheckedCreateWithoutAvailabilityInput = {
@@ -968,6 +1032,8 @@ export type RoomUncheckedCreateWithoutAvailabilityInput = {
   seasonalPricing?: Prisma.SeasonalPricingUncheckedCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailUncheckedCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomCreateOrConnectWithoutAvailabilityInput = {
@@ -1002,6 +1068,8 @@ export type RoomUpdateWithoutAvailabilityInput = {
   seasonalPricing?: Prisma.SeasonalPricingUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomUncheckedUpdateWithoutAvailabilityInput = {
@@ -1020,6 +1088,8 @@ export type RoomUncheckedUpdateWithoutAvailabilityInput = {
   seasonalPricing?: Prisma.SeasonalPricingUncheckedUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUncheckedUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomCreateWithoutSeasonalPricingInput = {
@@ -1038,6 +1108,8 @@ export type RoomCreateWithoutSeasonalPricingInput = {
   availability?: Prisma.RoomAvailabilityCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomUncheckedCreateWithoutSeasonalPricingInput = {
@@ -1056,6 +1128,8 @@ export type RoomUncheckedCreateWithoutSeasonalPricingInput = {
   availability?: Prisma.RoomAvailabilityUncheckedCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailUncheckedCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomCreateOrConnectWithoutSeasonalPricingInput = {
@@ -1090,6 +1164,8 @@ export type RoomUpdateWithoutSeasonalPricingInput = {
   availability?: Prisma.RoomAvailabilityUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomUncheckedUpdateWithoutSeasonalPricingInput = {
@@ -1108,6 +1184,8 @@ export type RoomUncheckedUpdateWithoutSeasonalPricingInput = {
   availability?: Prisma.RoomAvailabilityUncheckedUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUncheckedUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomCreateWithoutDetailsInput = {
@@ -1126,6 +1204,8 @@ export type RoomCreateWithoutDetailsInput = {
   availability?: Prisma.RoomAvailabilityCreateNestedManyWithoutRoomInput
   seasonalPricing?: Prisma.SeasonalPricingCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomUncheckedCreateWithoutDetailsInput = {
@@ -1144,6 +1224,8 @@ export type RoomUncheckedCreateWithoutDetailsInput = {
   availability?: Prisma.RoomAvailabilityUncheckedCreateNestedManyWithoutRoomInput
   seasonalPricing?: Prisma.SeasonalPricingUncheckedCreateNestedManyWithoutRoomInput
   roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomCreateOrConnectWithoutDetailsInput = {
@@ -1178,6 +1260,8 @@ export type RoomUpdateWithoutDetailsInput = {
   availability?: Prisma.RoomAvailabilityUpdateManyWithoutRoomNestedInput
   seasonalPricing?: Prisma.SeasonalPricingUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomUncheckedUpdateWithoutDetailsInput = {
@@ -1196,6 +1280,8 @@ export type RoomUncheckedUpdateWithoutDetailsInput = {
   availability?: Prisma.RoomAvailabilityUncheckedUpdateManyWithoutRoomNestedInput
   seasonalPricing?: Prisma.SeasonalPricingUncheckedUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomCreateWithoutRoomHoldsInput = {
@@ -1214,6 +1300,8 @@ export type RoomCreateWithoutRoomHoldsInput = {
   availability?: Prisma.RoomAvailabilityCreateNestedManyWithoutRoomInput
   seasonalPricing?: Prisma.SeasonalPricingCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomUncheckedCreateWithoutRoomHoldsInput = {
@@ -1232,6 +1320,8 @@ export type RoomUncheckedCreateWithoutRoomHoldsInput = {
   availability?: Prisma.RoomAvailabilityUncheckedCreateNestedManyWithoutRoomInput
   seasonalPricing?: Prisma.SeasonalPricingUncheckedCreateNestedManyWithoutRoomInput
   details?: Prisma.BookingDetailUncheckedCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutOldRoomInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutNewRoomInput
 }
 
 export type RoomCreateOrConnectWithoutRoomHoldsInput = {
@@ -1266,6 +1356,8 @@ export type RoomUpdateWithoutRoomHoldsInput = {
   availability?: Prisma.RoomAvailabilityUpdateManyWithoutRoomNestedInput
   seasonalPricing?: Prisma.SeasonalPricingUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomUncheckedUpdateWithoutRoomHoldsInput = {
@@ -1284,6 +1376,200 @@ export type RoomUncheckedUpdateWithoutRoomHoldsInput = {
   availability?: Prisma.RoomAvailabilityUncheckedUpdateManyWithoutRoomNestedInput
   seasonalPricing?: Prisma.SeasonalPricingUncheckedUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUncheckedUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedUpdateManyWithoutNewRoomNestedInput
+}
+
+export type RoomCreateWithoutRelocationsFromInput = {
+  id?: string
+  roomNumber: string
+  type: string
+  capacity: number
+  beds?: number
+  bathroom?: number
+  basePrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.RoomStatus
+  description?: string | null
+  hotel: Prisma.HotelCreateNestedOneWithoutRoomsInput
+  images?: Prisma.RoomImageCreateNestedManyWithoutRoomInput
+  amenities?: Prisma.RoomAmenityCreateNestedManyWithoutRoomInput
+  availability?: Prisma.RoomAvailabilityCreateNestedManyWithoutRoomInput
+  seasonalPricing?: Prisma.SeasonalPricingCreateNestedManyWithoutRoomInput
+  details?: Prisma.BookingDetailCreateNestedManyWithoutRoomInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutRoomInput
+  relocationsTo?: Prisma.RoomRelocationCreateNestedManyWithoutNewRoomInput
+}
+
+export type RoomUncheckedCreateWithoutRelocationsFromInput = {
+  id?: string
+  hotelId: string
+  roomNumber: string
+  type: string
+  capacity: number
+  beds?: number
+  bathroom?: number
+  basePrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.RoomStatus
+  description?: string | null
+  images?: Prisma.RoomImageUncheckedCreateNestedManyWithoutRoomInput
+  amenities?: Prisma.RoomAmenityUncheckedCreateNestedManyWithoutRoomInput
+  availability?: Prisma.RoomAvailabilityUncheckedCreateNestedManyWithoutRoomInput
+  seasonalPricing?: Prisma.SeasonalPricingUncheckedCreateNestedManyWithoutRoomInput
+  details?: Prisma.BookingDetailUncheckedCreateNestedManyWithoutRoomInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutRoomInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutNewRoomInput
+}
+
+export type RoomCreateOrConnectWithoutRelocationsFromInput = {
+  where: Prisma.RoomWhereUniqueInput
+  create: Prisma.XOR<Prisma.RoomCreateWithoutRelocationsFromInput, Prisma.RoomUncheckedCreateWithoutRelocationsFromInput>
+}
+
+export type RoomCreateWithoutRelocationsToInput = {
+  id?: string
+  roomNumber: string
+  type: string
+  capacity: number
+  beds?: number
+  bathroom?: number
+  basePrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.RoomStatus
+  description?: string | null
+  hotel: Prisma.HotelCreateNestedOneWithoutRoomsInput
+  images?: Prisma.RoomImageCreateNestedManyWithoutRoomInput
+  amenities?: Prisma.RoomAmenityCreateNestedManyWithoutRoomInput
+  availability?: Prisma.RoomAvailabilityCreateNestedManyWithoutRoomInput
+  seasonalPricing?: Prisma.SeasonalPricingCreateNestedManyWithoutRoomInput
+  details?: Prisma.BookingDetailCreateNestedManyWithoutRoomInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationCreateNestedManyWithoutOldRoomInput
+}
+
+export type RoomUncheckedCreateWithoutRelocationsToInput = {
+  id?: string
+  hotelId: string
+  roomNumber: string
+  type: string
+  capacity: number
+  beds?: number
+  bathroom?: number
+  basePrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.RoomStatus
+  description?: string | null
+  images?: Prisma.RoomImageUncheckedCreateNestedManyWithoutRoomInput
+  amenities?: Prisma.RoomAmenityUncheckedCreateNestedManyWithoutRoomInput
+  availability?: Prisma.RoomAvailabilityUncheckedCreateNestedManyWithoutRoomInput
+  seasonalPricing?: Prisma.SeasonalPricingUncheckedCreateNestedManyWithoutRoomInput
+  details?: Prisma.BookingDetailUncheckedCreateNestedManyWithoutRoomInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutRoomInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutOldRoomInput
+}
+
+export type RoomCreateOrConnectWithoutRelocationsToInput = {
+  where: Prisma.RoomWhereUniqueInput
+  create: Prisma.XOR<Prisma.RoomCreateWithoutRelocationsToInput, Prisma.RoomUncheckedCreateWithoutRelocationsToInput>
+}
+
+export type RoomUpsertWithoutRelocationsFromInput = {
+  update: Prisma.XOR<Prisma.RoomUpdateWithoutRelocationsFromInput, Prisma.RoomUncheckedUpdateWithoutRelocationsFromInput>
+  create: Prisma.XOR<Prisma.RoomCreateWithoutRelocationsFromInput, Prisma.RoomUncheckedCreateWithoutRelocationsFromInput>
+  where?: Prisma.RoomWhereInput
+}
+
+export type RoomUpdateToOneWithWhereWithoutRelocationsFromInput = {
+  where?: Prisma.RoomWhereInput
+  data: Prisma.XOR<Prisma.RoomUpdateWithoutRelocationsFromInput, Prisma.RoomUncheckedUpdateWithoutRelocationsFromInput>
+}
+
+export type RoomUpdateWithoutRelocationsFromInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  roomNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  beds?: Prisma.IntFieldUpdateOperationsInput | number
+  bathroom?: Prisma.IntFieldUpdateOperationsInput | number
+  basePrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumRoomStatusFieldUpdateOperationsInput | $Enums.RoomStatus
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hotel?: Prisma.HotelUpdateOneRequiredWithoutRoomsNestedInput
+  images?: Prisma.RoomImageUpdateManyWithoutRoomNestedInput
+  amenities?: Prisma.RoomAmenityUpdateManyWithoutRoomNestedInput
+  availability?: Prisma.RoomAvailabilityUpdateManyWithoutRoomNestedInput
+  seasonalPricing?: Prisma.SeasonalPricingUpdateManyWithoutRoomNestedInput
+  details?: Prisma.BookingDetailUpdateManyWithoutRoomNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUpdateManyWithoutNewRoomNestedInput
+}
+
+export type RoomUncheckedUpdateWithoutRelocationsFromInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  hotelId?: Prisma.StringFieldUpdateOperationsInput | string
+  roomNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  beds?: Prisma.IntFieldUpdateOperationsInput | number
+  bathroom?: Prisma.IntFieldUpdateOperationsInput | number
+  basePrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumRoomStatusFieldUpdateOperationsInput | $Enums.RoomStatus
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.RoomImageUncheckedUpdateManyWithoutRoomNestedInput
+  amenities?: Prisma.RoomAmenityUncheckedUpdateManyWithoutRoomNestedInput
+  availability?: Prisma.RoomAvailabilityUncheckedUpdateManyWithoutRoomNestedInput
+  seasonalPricing?: Prisma.SeasonalPricingUncheckedUpdateManyWithoutRoomNestedInput
+  details?: Prisma.BookingDetailUncheckedUpdateManyWithoutRoomNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedUpdateManyWithoutNewRoomNestedInput
+}
+
+export type RoomUpsertWithoutRelocationsToInput = {
+  update: Prisma.XOR<Prisma.RoomUpdateWithoutRelocationsToInput, Prisma.RoomUncheckedUpdateWithoutRelocationsToInput>
+  create: Prisma.XOR<Prisma.RoomCreateWithoutRelocationsToInput, Prisma.RoomUncheckedCreateWithoutRelocationsToInput>
+  where?: Prisma.RoomWhereInput
+}
+
+export type RoomUpdateToOneWithWhereWithoutRelocationsToInput = {
+  where?: Prisma.RoomWhereInput
+  data: Prisma.XOR<Prisma.RoomUpdateWithoutRelocationsToInput, Prisma.RoomUncheckedUpdateWithoutRelocationsToInput>
+}
+
+export type RoomUpdateWithoutRelocationsToInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  roomNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  beds?: Prisma.IntFieldUpdateOperationsInput | number
+  bathroom?: Prisma.IntFieldUpdateOperationsInput | number
+  basePrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumRoomStatusFieldUpdateOperationsInput | $Enums.RoomStatus
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hotel?: Prisma.HotelUpdateOneRequiredWithoutRoomsNestedInput
+  images?: Prisma.RoomImageUpdateManyWithoutRoomNestedInput
+  amenities?: Prisma.RoomAmenityUpdateManyWithoutRoomNestedInput
+  availability?: Prisma.RoomAvailabilityUpdateManyWithoutRoomNestedInput
+  seasonalPricing?: Prisma.SeasonalPricingUpdateManyWithoutRoomNestedInput
+  details?: Prisma.BookingDetailUpdateManyWithoutRoomNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUpdateManyWithoutOldRoomNestedInput
+}
+
+export type RoomUncheckedUpdateWithoutRelocationsToInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  hotelId?: Prisma.StringFieldUpdateOperationsInput | string
+  roomNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  beds?: Prisma.IntFieldUpdateOperationsInput | number
+  bathroom?: Prisma.IntFieldUpdateOperationsInput | number
+  basePrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumRoomStatusFieldUpdateOperationsInput | $Enums.RoomStatus
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  images?: Prisma.RoomImageUncheckedUpdateManyWithoutRoomNestedInput
+  amenities?: Prisma.RoomAmenityUncheckedUpdateManyWithoutRoomNestedInput
+  availability?: Prisma.RoomAvailabilityUncheckedUpdateManyWithoutRoomNestedInput
+  seasonalPricing?: Prisma.SeasonalPricingUncheckedUpdateManyWithoutRoomNestedInput
+  details?: Prisma.BookingDetailUncheckedUpdateManyWithoutRoomNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedUpdateManyWithoutOldRoomNestedInput
 }
 
 export type RoomCreateManyHotelInput = {
@@ -1314,6 +1600,8 @@ export type RoomUpdateWithoutHotelInput = {
   seasonalPricing?: Prisma.SeasonalPricingUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomUncheckedUpdateWithoutHotelInput = {
@@ -1332,6 +1620,8 @@ export type RoomUncheckedUpdateWithoutHotelInput = {
   seasonalPricing?: Prisma.SeasonalPricingUncheckedUpdateManyWithoutRoomNestedInput
   details?: Prisma.BookingDetailUncheckedUpdateManyWithoutRoomNestedInput
   roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutRoomNestedInput
+  relocationsFrom?: Prisma.RoomRelocationUncheckedUpdateManyWithoutOldRoomNestedInput
+  relocationsTo?: Prisma.RoomRelocationUncheckedUpdateManyWithoutNewRoomNestedInput
 }
 
 export type RoomUncheckedUpdateManyWithoutHotelInput = {
@@ -1358,6 +1648,8 @@ export type RoomCountOutputType = {
   seasonalPricing: number
   details: number
   roomHolds: number
+  relocationsFrom: number
+  relocationsTo: number
 }
 
 export type RoomCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1367,6 +1659,8 @@ export type RoomCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   seasonalPricing?: boolean | RoomCountOutputTypeCountSeasonalPricingArgs
   details?: boolean | RoomCountOutputTypeCountDetailsArgs
   roomHolds?: boolean | RoomCountOutputTypeCountRoomHoldsArgs
+  relocationsFrom?: boolean | RoomCountOutputTypeCountRelocationsFromArgs
+  relocationsTo?: boolean | RoomCountOutputTypeCountRelocationsToArgs
 }
 
 /**
@@ -1421,6 +1715,20 @@ export type RoomCountOutputTypeCountRoomHoldsArgs<ExtArgs extends runtime.Types.
   where?: Prisma.RoomHoldWhereInput
 }
 
+/**
+ * RoomCountOutputType without action
+ */
+export type RoomCountOutputTypeCountRelocationsFromArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RoomRelocationWhereInput
+}
+
+/**
+ * RoomCountOutputType without action
+ */
+export type RoomCountOutputTypeCountRelocationsToArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RoomRelocationWhereInput
+}
+
 
 export type RoomSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1440,6 +1748,8 @@ export type RoomSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   seasonalPricing?: boolean | Prisma.Room$seasonalPricingArgs<ExtArgs>
   details?: boolean | Prisma.Room$detailsArgs<ExtArgs>
   roomHolds?: boolean | Prisma.Room$roomHoldsArgs<ExtArgs>
+  relocationsFrom?: boolean | Prisma.Room$relocationsFromArgs<ExtArgs>
+  relocationsTo?: boolean | Prisma.Room$relocationsToArgs<ExtArgs>
   _count?: boolean | Prisma.RoomCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["room"]>
 
@@ -1493,6 +1803,8 @@ export type RoomInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   seasonalPricing?: boolean | Prisma.Room$seasonalPricingArgs<ExtArgs>
   details?: boolean | Prisma.Room$detailsArgs<ExtArgs>
   roomHolds?: boolean | Prisma.Room$roomHoldsArgs<ExtArgs>
+  relocationsFrom?: boolean | Prisma.Room$relocationsFromArgs<ExtArgs>
+  relocationsTo?: boolean | Prisma.Room$relocationsToArgs<ExtArgs>
   _count?: boolean | Prisma.RoomCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RoomIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1512,6 +1824,8 @@ export type $RoomPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     seasonalPricing: Prisma.$SeasonalPricingPayload<ExtArgs>[]
     details: Prisma.$BookingDetailPayload<ExtArgs>[]
     roomHolds: Prisma.$RoomHoldPayload<ExtArgs>[]
+    relocationsFrom: Prisma.$RoomRelocationPayload<ExtArgs>[]
+    relocationsTo: Prisma.$RoomRelocationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1925,6 +2239,8 @@ export interface Prisma__RoomClient<T, Null = never, ExtArgs extends runtime.Typ
   seasonalPricing<T extends Prisma.Room$seasonalPricingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Room$seasonalPricingArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SeasonalPricingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   details<T extends Prisma.Room$detailsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Room$detailsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingDetailPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   roomHolds<T extends Prisma.Room$roomHoldsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Room$roomHoldsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomHoldPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  relocationsFrom<T extends Prisma.Room$relocationsFromArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Room$relocationsFromArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomRelocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  relocationsTo<T extends Prisma.Room$relocationsToArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Room$relocationsToArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomRelocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2506,6 +2822,54 @@ export type Room$roomHoldsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.RoomHoldScalarFieldEnum | Prisma.RoomHoldScalarFieldEnum[]
+}
+
+/**
+ * Room.relocationsFrom
+ */
+export type Room$relocationsFromArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RoomRelocation
+   */
+  select?: Prisma.RoomRelocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RoomRelocation
+   */
+  omit?: Prisma.RoomRelocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RoomRelocationInclude<ExtArgs> | null
+  where?: Prisma.RoomRelocationWhereInput
+  orderBy?: Prisma.RoomRelocationOrderByWithRelationInput | Prisma.RoomRelocationOrderByWithRelationInput[]
+  cursor?: Prisma.RoomRelocationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RoomRelocationScalarFieldEnum | Prisma.RoomRelocationScalarFieldEnum[]
+}
+
+/**
+ * Room.relocationsTo
+ */
+export type Room$relocationsToArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RoomRelocation
+   */
+  select?: Prisma.RoomRelocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RoomRelocation
+   */
+  omit?: Prisma.RoomRelocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RoomRelocationInclude<ExtArgs> | null
+  where?: Prisma.RoomRelocationWhereInput
+  orderBy?: Prisma.RoomRelocationOrderByWithRelationInput | Prisma.RoomRelocationOrderByWithRelationInput[]
+  cursor?: Prisma.RoomRelocationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RoomRelocationScalarFieldEnum | Prisma.RoomRelocationScalarFieldEnum[]
 }
 
 /**

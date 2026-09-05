@@ -140,4 +140,13 @@ export class ManagerBookingController {
   ) {
     return this.managerBookings.relocateRoom(params.bookingId, dto, req.user);
   }
+
+  @Get(':bookingId/relocations')
+  @ApiOperation({ summary: 'List room relocations for a booking' })
+  getRelocations(
+    @Param() params: BookingIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.managerBookings.getRelocations(params.bookingId, req.user);
+  }
 }

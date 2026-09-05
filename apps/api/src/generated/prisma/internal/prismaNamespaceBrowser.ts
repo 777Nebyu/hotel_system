@@ -82,7 +82,9 @@ export const ModelName = {
   SuspensionRequest: 'SuspensionRequest',
   RoomHold: 'RoomHold',
   StayRequest: 'StayRequest',
-  UserSession: 'UserSession'
+  UserSession: 'UserSession',
+  BookingModification: 'BookingModification',
+  RoomRelocation: 'RoomRelocation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -536,6 +538,38 @@ export const UserSessionScalarFieldEnum = {
 } as const
 
 export type UserSessionScalarFieldEnum = (typeof UserSessionScalarFieldEnum)[keyof typeof UserSessionScalarFieldEnum]
+
+
+export const BookingModificationScalarFieldEnum = {
+  id: 'id',
+  bookingId: 'bookingId',
+  requestedById: 'requestedById',
+  previousCheckIn: 'previousCheckIn',
+  previousCheckOut: 'previousCheckOut',
+  newCheckIn: 'newCheckIn',
+  newCheckOut: 'newCheckOut',
+  previousTotalPrice: 'previousTotalPrice',
+  newTotalPrice: 'newTotalPrice',
+  priceDifference: 'priceDifference',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type BookingModificationScalarFieldEnum = (typeof BookingModificationScalarFieldEnum)[keyof typeof BookingModificationScalarFieldEnum]
+
+
+export const RoomRelocationScalarFieldEnum = {
+  id: 'id',
+  bookingId: 'bookingId',
+  bookingDetailId: 'bookingDetailId',
+  oldRoomId: 'oldRoomId',
+  newRoomId: 'newRoomId',
+  reason: 'reason',
+  relocatedById: 'relocatedById',
+  relocatedAt: 'relocatedAt'
+} as const
+
+export type RoomRelocationScalarFieldEnum = (typeof RoomRelocationScalarFieldEnum)[keyof typeof RoomRelocationScalarFieldEnum]
 
 
 export const SortOrder = {

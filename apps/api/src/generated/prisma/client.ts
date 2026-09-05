@@ -199,3 +199,13 @@ export type StayRequest = Prisma.StayRequestModel
  * 
  */
 export type UserSession = Prisma.UserSessionModel
+/**
+ * Model BookingModification
+ * 
+ */
+export type BookingModification = Prisma.BookingModificationModel
+/**
+ * Model RoomRelocation
+ * 
+ */
+export type RoomRelocation = Prisma.RoomRelocationModel

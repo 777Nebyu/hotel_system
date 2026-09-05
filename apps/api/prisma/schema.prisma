@@ -118,6 +118,8 @@ model User {
   suspensionRequestsApproved SuspensionRequest[]        @relation("SuspensionApprover")
   roomHolds                  RoomHold[]
   stayRequestsDecided        StayRequest[]              @relation("StayRequestDecider")
+  bookingModifications       BookingModification[]      @relation("BookingModificationRequester")
+  roomRelocations            RoomRelocation[]           @relation("RoomRelocator")
 }
 
 model Country {
@@ -208,6 +210,8 @@ model Room {
   seasonalPricing  SeasonalPricing[]
   details          BookingDetail[]
   roomHolds        RoomHold[]
+  relocationsFrom  RoomRelocation[]   @relation("RelocatedFromRoom")
+  relocationsTo    RoomRelocation[]   @relation("RelocatedToRoom")
 
   @@unique([hotelId, roomNumber])
 }
@@ -274,6 +278,8 @@ model Booking {
   lateCheckOutFee Decimal?        @db.Decimal(10, 2)
   stayRequests    StayRequest[]
   statusHistory   BookingStatusHistory[]
+  modifications   BookingModification[]
+  relocations     RoomRelocation[]
 
   @@index([userId])
   @@index([hotelId])
@@ -562,4 +568,43 @@ model UserSession {
 
   @@index([userId, revokedAt])
   @@index([family])
+}
+
+model BookingModification {
+  id                 String   @id @default(cuid())
+  bookingId          String
+  booking            Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  requestedById      String
+  requestedBy        User     @relation("BookingModificationRequester", fields: [requestedById], references: [id])
+  previousCheckIn    DateTime @db.Date
+  previousCheckOut   DateTime @db.Date
+  newCheckIn         DateTime @db.Date
+  newCheckOut        DateTime @db.Date
+  previousTotalPrice Decimal  @db.Decimal(10, 2)
+  newTotalPrice      Decimal  @db.Decimal(10, 2)
+  priceDifference    Decimal  @db.Decimal(10, 2)
+  reason             String?
+  createdAt          DateTime @default(now())
+
+  @@index([bookingId])
+  @@index([requestedById])
+}
+
+model RoomRelocation {
+  id              String   @id @default(cuid())
+  bookingId       String
+  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingDetailId String
+  oldRoomId       String
+  oldRoom         Room     @relation("RelocatedFromRoom", fields: [oldRoomId], references: [id])
+  newRoomId       String
+  newRoom         Room     @relation("RelocatedToRoom", fields: [newRoomId], references: [id])
+  reason          String
+  relocatedById   String
+  relocatedBy     User     @relation("RoomRelocator", fields: [relocatedById], references: [id])
+  relocatedAt     DateTime @default(now())
+
+  @@index([bookingId])
+  @@index([oldRoomId])
+  @@index([newRoomId])
 }

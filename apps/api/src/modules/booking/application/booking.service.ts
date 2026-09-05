@@ -924,7 +924,22 @@ export class BookingService {
           bookingId,
           status: 'CONFIRMED',
           changedBy: userId,
-          reason: 'Dates/rooms modified by customer',
+          reason: dto.reason ?? 'Dates/rooms modified by customer',
+        },
+      });
+
+      await tx.bookingModification.create({
+        data: {
+          bookingId,
+          requestedById: userId,
+          previousCheckIn: booking.checkIn,
+          previousCheckOut: booking.checkOut,
+          newCheckIn: checkIn,
+          newCheckOut: checkOut,
+          previousTotalPrice: oldTotal,
+          newTotalPrice: newTotal,
+          priceDifference: newTotal - oldTotal,
+          reason: dto.reason ?? 'Dates/rooms modified by customer',
         },
       });
 
@@ -1073,5 +1088,51 @@ export class BookingService {
         );
       }
     }
+  }
+
+  async getModifications(bookingId: string, userId: string) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      select: { userId: true },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+    return this.db.bookingModification.findMany({
+      where: { bookingId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        requestedBy: {
+          select: { id: true, fullName: true, email: true },
+        },
+      },
+    });
+  }
+
+  async getRelocations(bookingId: string, userId: string) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      select: { userId: true },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+    return this.db.roomRelocation.findMany({
+      where: { bookingId },
+      orderBy: { relocatedAt: 'desc' },
+      include: {
+        oldRoom: {
+          select: { id: true, roomNumber: true, type: true, basePrice: true },
+        },
+        newRoom: {
+          select: { id: true, roomNumber: true, type: true, basePrice: true },
+        },
+        relocatedBy: {
+          select: { id: true, fullName: true, email: true },
+        },
+      },
+    });
   }
 }
