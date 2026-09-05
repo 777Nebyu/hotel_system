@@ -84,7 +84,9 @@ export const ModelName = {
   StayRequest: 'StayRequest',
   UserSession: 'UserSession',
   BookingModification: 'BookingModification',
-  RoomRelocation: 'RoomRelocation'
+  RoomRelocation: 'RoomRelocation',
+  ContactThread: 'ContactThread',
+  ContactMessage: 'ContactMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -576,6 +578,32 @@ export const RoomRelocationScalarFieldEnum = {
 } as const
 
 export type RoomRelocationScalarFieldEnum = (typeof RoomRelocationScalarFieldEnum)[keyof typeof RoomRelocationScalarFieldEnum]
+
+
+export const ContactThreadScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  hotelId: 'hotelId',
+  bookingId: 'bookingId',
+  subject: 'subject',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ContactThreadScalarFieldEnum = (typeof ContactThreadScalarFieldEnum)[keyof typeof ContactThreadScalarFieldEnum]
+
+
+export const ContactMessageScalarFieldEnum = {
+  id: 'id',
+  threadId: 'threadId',
+  senderId: 'senderId',
+  content: 'content',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ContactMessageScalarFieldEnum = (typeof ContactMessageScalarFieldEnum)[keyof typeof ContactMessageScalarFieldEnum]
 
 
 export const SortOrder = {

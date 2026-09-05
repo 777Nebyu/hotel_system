@@ -123,3 +123,11 @@ export const StayRequestStatus = {
 } as const
 
 export type StayRequestStatus = (typeof StayRequestStatus)[keyof typeof StayRequestStatus]
+
+
+export const ContactStatus = {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED'
+} as const
+
+export type ContactStatus = (typeof ContactStatus)[keyof typeof ContactStatus]

@@ -372,4 +372,247 @@ export class AdminReportingService {
       total: b.totalPrice.toNumber(),
     }));
   }
+
+  // ===== Hotel-Scoped Reporting (for Hotel Managers) =====
+
+  async hotelOverview(hotelId: string) {
+    const [roomCount, bookingCount, payments, bookingsByStatus] =
+      await Promise.all([
+        this.db.room.count({ where: { hotelId } }),
+        this.db.booking.count({ where: { hotelId } }),
+        this.db.payment.findMany({
+          where: {
+            status: 'SUCCEEDED',
+            booking: { hotelId },
+          },
+          select: { amount: true },
+        }),
+        this.db.booking.groupBy({
+          by: ['status'],
+          where: { hotelId },
+          _count: { _all: true },
+        }),
+      ]);
+
+    const totalRevenue = payments.reduce(
+      (sum, p) => sum + p.amount.toNumber(),
+      0,
+    );
+
+    return {
+      hotelId,
+      roomCount,
+      bookingCount,
+      totalRevenue: Math.round(totalRevenue * 100) / 100,
+      bookingsByStatus: Object.fromEntries(
+        bookingsByStatus.map((row) => [row.status, row._count._all]),
+      ),
+    };
+  }
+
+  async hotelOccupancyRate(hotelId: string) {
+    const [totalRooms, activeBookings] = await Promise.all([
+      this.db.room.count({ where: { hotelId } }),
+      this.db.booking.findMany({
+        where: {
+          hotelId,
+          status: { in: ['CONFIRMED', 'CHECKED_IN'] },
+        },
+        select: { checkIn: true, checkOut: true },
+      }),
+    ]);
+
+    const today = new Date().toDateString();
+    let occupiedToday = 0;
+    for (const booking of activeBookings) {
+      for (
+        let d = booking.checkIn.getTime();
+        d < booking.checkOut.getTime();
+        d += 86_400_000
+      ) {
+        if (new Date(d).toDateString() === today) {
+          occupiedToday += 1;
+          break;
+        }
+      }
+    }
+
+    return {
+      hotelId,
+      totalRooms,
+      occupiedToday,
+      occupancyRate:
+        totalRooms > 0
+          ? Math.round((occupiedToday / totalRooms) * 1000) / 1000
+          : 0,
+    };
+  }
+
+  async hotelMonthlyRevenue(hotelId: string, months = 6) {
+    const start = new Date();
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+    start.setMonth(start.getMonth() - (months - 1));
+
+    const payments = await this.db.payment.findMany({
+      where: {
+        status: 'SUCCEEDED',
+        booking: { hotelId },
+        createdAt: { gte: start },
+      },
+      select: { createdAt: true, amount: true },
+    });
+
+    const byMonth = new Map<string, number>();
+    for (const payment of payments) {
+      const key = `${payment.createdAt.getFullYear()}-${String(
+        payment.createdAt.getMonth() + 1,
+      ).padStart(2, '0')}`;
+      byMonth.set(key, (byMonth.get(key) ?? 0) + payment.amount.toNumber());
+    }
+
+    const series: { month: string; revenue: number }[] = [];
+    const cursor = new Date(start);
+    for (let i = 0; i < months; i++) {
+      const key = `${cursor.getFullYear()}-${String(
+        cursor.getMonth() + 1,
+      ).padStart(2, '0')}`;
+      const rev = byMonth.get(key) ?? 0;
+      series.push({ month: key, revenue: Math.round(rev * 100) / 100 });
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+    return series;
+  }
+
+  async hotelBookingTrends(hotelId: string, days = 14) {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - (days - 1));
+
+    const bookings = await this.db.booking.findMany({
+      where: {
+        hotelId,
+        createdAt: { gte: start },
+      },
+      select: { createdAt: true },
+    });
+
+    const byDay = new Map<string, number>();
+    for (const booking of bookings) {
+      const key = `${booking.createdAt.getFullYear()}-${String(
+        booking.createdAt.getMonth() + 1,
+      ).padStart(2, '0')}-${String(booking.createdAt.getDate()).padStart(2, '0')}`;
+      byDay.set(key, (byDay.get(key) ?? 0) + 1);
+    }
+
+    const series: { date: string; bookings: number }[] = [];
+    const cursor = new Date(start);
+    for (let i = 0; i < days; i++) {
+      const key = `${cursor.getFullYear()}-${String(
+        cursor.getMonth() + 1,
+      ).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+      series.push({ date: key, bookings: byDay.get(key) ?? 0 });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return series;
+  }
+
+  async exportHotelReport(
+    hotelId: string,
+    type: ReportType,
+    format: ReportFormat,
+  ) {
+    let rows: ReportRow[] = [];
+    switch (type) {
+      case 'booking': {
+        const bookings = await this.db.booking.findMany({
+          where: { hotelId },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            user: { select: { fullName: true, email: true } },
+          },
+        });
+        rows = bookings.map((b) => ({
+          id: b.id,
+          customer: b.user.fullName,
+          email: b.user.email,
+          checkIn: b.checkIn.toISOString().slice(0, 10),
+          checkOut: b.checkOut.toISOString().slice(0, 10),
+          status: b.status,
+          total: b.totalPrice.toNumber(),
+        }));
+        break;
+      }
+      case 'revenue': {
+        const series = await this.hotelMonthlyRevenue(hotelId, 12);
+        rows = series.map((s) => ({ month: s.month, revenue: s.revenue }));
+        break;
+      }
+      case 'occupancy': {
+        const occ = await this.hotelOccupancyRate(hotelId);
+        rows = [
+          {
+            hotelId: occ.hotelId,
+            totalRooms: occ.totalRooms,
+            occupiedToday: occ.occupiedToday,
+            occupancyRate: `${(occ.occupancyRate * 100).toFixed(1)}%`,
+          },
+        ];
+        break;
+      }
+      case 'cancellation': {
+        const cancellations = await this.db.booking.findMany({
+          where: { hotelId, status: 'CANCELLED' },
+          orderBy: { updatedAt: 'desc' },
+          include: {
+            user: { select: { fullName: true, email: true } },
+          },
+        });
+        rows = cancellations.map((b) => ({
+          id: b.id,
+          customer: b.user.fullName,
+          email: b.user.email,
+          cancelledAt: b.updatedAt.toISOString().slice(0, 10),
+          total: b.totalPrice.toNumber(),
+        }));
+        break;
+      }
+      case 'customer': {
+        const bookings = await this.db.booking.findMany({
+          where: { hotelId },
+          include: {
+            user: { select: { id: true, fullName: true, email: true } },
+            payment: { select: { status: true, amount: true } },
+          },
+        });
+        const byCustomer = new Map<
+          string,
+          { id: string; customer: string; email: string; bookings: number; spend: number }
+        >();
+        for (const b of bookings) {
+          const entry = byCustomer.get(b.user.id) ?? {
+            id: b.user.id,
+            customer: b.user.fullName,
+            email: b.user.email,
+            bookings: 0,
+            spend: 0,
+          };
+          entry.bookings += 1;
+          if (b.payment?.status === 'SUCCEEDED') {
+            entry.spend += b.payment.amount.toNumber();
+          }
+          byCustomer.set(b.user.id, entry);
+        }
+        rows = Array.from(byCustomer.values())
+          .map((r) => ({ ...r, spend: Math.round(r.spend * 100) / 100 }))
+          .sort((a, b) => b.spend - a.spend);
+        break;
+      }
+    }
+
+    const exporter = exporterFor(format);
+    const buffer = await exporter.export(`${REPORT_TITLES[type]} (Hotel)`, rows);
+    const ext = format === 'excel' ? 'xlsx' : 'pdf';
+    return { buffer, fileName: `hotel-${hotelId}-${type}.${ext}` };
+  }
 }

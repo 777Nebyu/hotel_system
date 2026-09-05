@@ -99,4 +99,5 @@ export * from './notification';
 export * from './coupon';
 export * from './admin';
 export * from './staff';
+export * from './contact';
 

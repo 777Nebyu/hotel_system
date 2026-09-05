@@ -187,3 +187,13 @@ export type BookingModification = Prisma.BookingModificationModel
  * 
  */
 export type RoomRelocation = Prisma.RoomRelocationModel
+/**
+ * Model ContactThread
+ * 
+ */
+export type ContactThread = Prisma.ContactThreadModel
+/**
+ * Model ContactMessage
+ * 
+ */
+export type ContactMessage = Prisma.ContactMessageModel

@@ -70,6 +70,12 @@ export class ReviewService {
 
   async update(reviewId: string, input: UpdateReviewInput, actorId: string) {
     const review = await this.getOwned(reviewId, actorId);
+    const ageMs = Date.now() - review.createdAt.getTime();
+    if (ageMs > 48 * 60 * 60 * 1000) {
+      throw new BadRequestException(
+        'Reviews can only be edited within 48 hours of posting',
+      );
+    }
     const updated = await this.db.review.update({
       where: { id: review.id },
       data: {

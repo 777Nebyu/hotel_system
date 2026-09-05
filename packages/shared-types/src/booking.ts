@@ -60,6 +60,12 @@ export const bookingGuestSchema = z.object({
   fullName: z.string().min(1).max(120),
   email: z.string().email().optional(),
   phone: z.string().min(3).max(30).optional(),
+  nationality: z.string().max(80).optional(),
+  idType: z
+    .enum(['PASSPORT', 'NATIONAL_ID', 'DRIVERS_LICENSE'])
+    .or(z.string())
+    .optional(),
+  idNumber: z.string().max(50).optional(),
 });
 export type BookingGuest = z.infer<typeof bookingGuestSchema>;
 

@@ -20,6 +20,9 @@ import { AdminExportController } from './presentation/admin-export.controller';
 import { AdminImportService } from './application/admin-import.service';
 import { AdminImportController } from './presentation/admin-import.controller';
 
+import { ResourceScopeHelper } from '../../common/guards/resource-scope.helper';
+import { ManagerStaffController } from './presentation/manager-staff.controller';
+
 @Module({
   controllers: [
     AdminUsersController,
@@ -28,6 +31,7 @@ import { AdminImportController } from './presentation/admin-import.controller';
     AdminReviewController,
     AdminSettingController,
     AdminStaffController,
+    ManagerStaffController,
     AdminSuspensionController,
     AdminExportController,
     AdminImportController,
@@ -43,6 +47,7 @@ import { AdminImportController } from './presentation/admin-import.controller';
     AdminExportService,
     AdminImportService,
     AuditService,
+    ResourceScopeHelper,
   ],
 })
 export class AdminModule {}

@@ -120,6 +120,8 @@ model User {
   stayRequestsDecided        StayRequest[]              @relation("StayRequestDecider")
   bookingModifications       BookingModification[]      @relation("BookingModificationRequester")
   roomRelocations            RoomRelocation[]           @relation("RoomRelocator")
+  contactThreads             ContactThread[]            @relation("CustomerContactThreads")
+  sentContactMessages        ContactMessage[]           @relation("SentContactMessages")
 }
 
 model Country {
@@ -164,6 +166,7 @@ model Hotel {
   favorites        Favorite[]
   staffAssignments StaffHotel[]
   statusHistory    HotelStatusHistory[]
+  contactThreads   ContactThread[]            @relation("HotelContactThreads")
 }
 
 model HotelImage {
@@ -285,6 +288,7 @@ model Booking {
   statusHistory   BookingStatusHistory[]
   modifications   BookingModification[]
   relocations     RoomRelocation[]
+  contactThreads  ContactThread[]
 
   @@index([userId])
   @@index([hotelId])
@@ -614,3 +618,42 @@ model RoomRelocation {
   @@index([oldRoomId])
   @@index([newRoomId])
 }
+
+enum ContactStatus {
+  OPEN
+  CLOSED
+}
+
+model ContactThread {
+  id         String           @id @default(cuid())
+  customerId String
+  customer   User             @relation("CustomerContactThreads", fields: [customerId], references: [id])
+  hotelId    String
+  hotel      Hotel            @relation("HotelContactThreads", fields: [hotelId], references: [id], onDelete: Cascade)
+  bookingId  String?
+  booking    Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  subject    String
+  status     ContactStatus    @default(OPEN)
+  messages   ContactMessage[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([customerId])
+  @@index([hotelId])
+  @@index([bookingId])
+}
+
+model ContactMessage {
+  id        String        @id @default(cuid())
+  threadId  String
+  thread    ContactThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User          @relation("SentContactMessages", fields: [senderId], references: [id])
+  content   String
+  readAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  @@index([threadId])
+  @@index([senderId])
+}
+
