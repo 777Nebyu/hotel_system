@@ -42,6 +42,9 @@ export type UserMinAggregateOutputType = {
   phone: string | null
   role: $Enums.Role | null
   isActive: boolean | null
+  status: $Enums.UserStatus | null
+  deletedAt: Date | null
+  deletionScheduledFor: Date | null
   profilePhotoUrl: string | null
   emailVerifiedAt: Date | null
   verificationToken: string | null
@@ -65,6 +68,9 @@ export type UserMaxAggregateOutputType = {
   phone: string | null
   role: $Enums.Role | null
   isActive: boolean | null
+  status: $Enums.UserStatus | null
+  deletedAt: Date | null
+  deletionScheduledFor: Date | null
   profilePhotoUrl: string | null
   emailVerifiedAt: Date | null
   verificationToken: string | null
@@ -88,6 +94,9 @@ export type UserCountAggregateOutputType = {
   phone: number
   role: number
   isActive: number
+  status: number
+  deletedAt: number
+  deletionScheduledFor: number
   profilePhotoUrl: number
   emailVerifiedAt: number
   verificationToken: number
@@ -121,6 +130,9 @@ export type UserMinAggregateInputType = {
   phone?: true
   role?: true
   isActive?: true
+  status?: true
+  deletedAt?: true
+  deletionScheduledFor?: true
   profilePhotoUrl?: true
   emailVerifiedAt?: true
   verificationToken?: true
@@ -144,6 +156,9 @@ export type UserMaxAggregateInputType = {
   phone?: true
   role?: true
   isActive?: true
+  status?: true
+  deletedAt?: true
+  deletionScheduledFor?: true
   profilePhotoUrl?: true
   emailVerifiedAt?: true
   verificationToken?: true
@@ -167,6 +182,9 @@ export type UserCountAggregateInputType = {
   phone?: true
   role?: true
   isActive?: true
+  status?: true
+  deletedAt?: true
+  deletionScheduledFor?: true
   profilePhotoUrl?: true
   emailVerifiedAt?: true
   verificationToken?: true
@@ -277,6 +295,9 @@ export type UserGroupByOutputType = {
   phone: string | null
   role: $Enums.Role
   isActive: boolean
+  status: $Enums.UserStatus
+  deletedAt: Date | null
+  deletionScheduledFor: Date | null
   profilePhotoUrl: string | null
   emailVerifiedAt: Date | null
   verificationToken: string | null
@@ -323,6 +344,9 @@ export type UserWhereInput = {
   phone?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   isActive?: Prisma.BoolFilter<"User"> | boolean
+  status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
+  deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  deletionScheduledFor?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   profilePhotoUrl?: Prisma.StringNullableFilter<"User"> | string | null
   emailVerifiedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   verificationToken?: Prisma.StringNullableFilter<"User"> | string | null
@@ -359,6 +383,9 @@ export type UserOrderByWithRelationInput = {
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletionScheduledFor?: Prisma.SortOrderInput | Prisma.SortOrder
   profilePhotoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   verificationToken?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -400,6 +427,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   phone?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   isActive?: Prisma.BoolFilter<"User"> | boolean
+  status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
+  deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  deletionScheduledFor?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   profilePhotoUrl?: Prisma.StringNullableFilter<"User"> | string | null
   emailVerifiedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   resetPasswordExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -434,6 +464,9 @@ export type UserOrderByWithAggregationInput = {
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletionScheduledFor?: Prisma.SortOrderInput | Prisma.SortOrder
   profilePhotoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   verificationToken?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -465,6 +498,9 @@ export type UserScalarWhereWithAggregatesInput = {
   phone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   role?: Prisma.EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
   isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  status?: Prisma.EnumUserStatusWithAggregatesFilter<"User"> | $Enums.UserStatus
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  deletionScheduledFor?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   profilePhotoUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   emailVerifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   verificationToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -488,6 +524,9 @@ export type UserCreateInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -524,6 +563,9 @@ export type UserUncheckedCreateInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -560,6 +602,9 @@ export type UserUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -596,6 +641,9 @@ export type UserUncheckedUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -632,6 +680,9 @@ export type UserCreateManyInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -655,6 +706,9 @@ export type UserUpdateManyMutationInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -678,6 +732,9 @@ export type UserUncheckedUpdateManyInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -701,6 +758,9 @@ export type UserCountOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
+  deletionScheduledFor?: Prisma.SortOrder
   profilePhotoUrl?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrder
   verificationToken?: Prisma.SortOrder
@@ -728,6 +788,9 @@ export type UserMaxOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
+  deletionScheduledFor?: Prisma.SortOrder
   profilePhotoUrl?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrder
   verificationToken?: Prisma.SortOrder
@@ -751,6 +814,9 @@ export type UserMinOrderByAggregateInput = {
   phone?: Prisma.SortOrder
   role?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
+  deletionScheduledFor?: Prisma.SortOrder
   profilePhotoUrl?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrder
   verificationToken?: Prisma.SortOrder
@@ -794,6 +860,10 @@ export type EnumRoleFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type EnumUserStatusFieldUpdateOperationsInput = {
+  set?: $Enums.UserStatus
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -1010,6 +1080,9 @@ export type UserCreateWithoutHotelsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1045,6 +1118,9 @@ export type UserUncheckedCreateWithoutHotelsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1096,6 +1172,9 @@ export type UserUpdateWithoutHotelsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1131,6 +1210,9 @@ export type UserUncheckedUpdateWithoutHotelsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1166,6 +1248,9 @@ export type UserCreateWithoutBookingsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1201,6 +1286,9 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1252,6 +1340,9 @@ export type UserUpdateWithoutBookingsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1287,6 +1378,9 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1322,6 +1416,9 @@ export type UserCreateWithoutReviewsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1357,6 +1454,9 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1408,6 +1508,9 @@ export type UserUpdateWithoutReviewsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1443,6 +1546,9 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1478,6 +1584,9 @@ export type UserCreateWithoutFavoritesInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1513,6 +1622,9 @@ export type UserUncheckedCreateWithoutFavoritesInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1564,6 +1676,9 @@ export type UserUpdateWithoutFavoritesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1599,6 +1714,9 @@ export type UserUncheckedUpdateWithoutFavoritesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1634,6 +1752,9 @@ export type UserCreateWithoutNotificationsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1669,6 +1790,9 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1720,6 +1844,9 @@ export type UserUpdateWithoutNotificationsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1755,6 +1882,9 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1790,6 +1920,9 @@ export type UserCreateWithoutAuditLogsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1825,6 +1958,9 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1876,6 +2012,9 @@ export type UserUpdateWithoutAuditLogsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1911,6 +2050,9 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1946,6 +2088,9 @@ export type UserCreateWithoutNotificationPreferencesInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -1981,6 +2126,9 @@ export type UserUncheckedCreateWithoutNotificationPreferencesInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2032,6 +2180,9 @@ export type UserUpdateWithoutNotificationPreferencesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2067,6 +2218,9 @@ export type UserUncheckedUpdateWithoutNotificationPreferencesInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2102,6 +2256,9 @@ export type UserCreateWithoutStaffHotelsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2137,6 +2294,9 @@ export type UserUncheckedCreateWithoutStaffHotelsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2188,6 +2348,9 @@ export type UserUpdateWithoutStaffHotelsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2223,6 +2386,9 @@ export type UserUncheckedUpdateWithoutStaffHotelsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2258,6 +2424,9 @@ export type UserCreateWithoutDisputesOpenedInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2293,6 +2462,9 @@ export type UserUncheckedCreateWithoutDisputesOpenedInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2344,6 +2516,9 @@ export type UserUpdateWithoutDisputesOpenedInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2379,6 +2554,9 @@ export type UserUncheckedUpdateWithoutDisputesOpenedInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2414,6 +2592,9 @@ export type UserCreateWithoutSuspensionRequestsMadeInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2449,6 +2630,9 @@ export type UserUncheckedCreateWithoutSuspensionRequestsMadeInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2489,6 +2673,9 @@ export type UserCreateWithoutSuspensionRequestsApprovedInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2524,6 +2711,9 @@ export type UserUncheckedCreateWithoutSuspensionRequestsApprovedInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2575,6 +2765,9 @@ export type UserUpdateWithoutSuspensionRequestsMadeInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2610,6 +2803,9 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsMadeInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2656,6 +2852,9 @@ export type UserUpdateWithoutSuspensionRequestsApprovedInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2691,6 +2890,9 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsApprovedInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2726,6 +2928,9 @@ export type UserCreateWithoutRoomHoldsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2761,6 +2966,9 @@ export type UserUncheckedCreateWithoutRoomHoldsInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2812,6 +3020,9 @@ export type UserUpdateWithoutRoomHoldsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2847,6 +3058,9 @@ export type UserUncheckedUpdateWithoutRoomHoldsInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2882,6 +3096,9 @@ export type UserCreateWithoutStayRequestsDecidedInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2917,6 +3134,9 @@ export type UserUncheckedCreateWithoutStayRequestsDecidedInput = {
   phone?: string | null
   role?: $Enums.Role
   isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
@@ -2968,6 +3188,9 @@ export type UserUpdateWithoutStayRequestsDecidedInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3003,6 +3226,9 @@ export type UserUncheckedUpdateWithoutStayRequestsDecidedInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3177,6 +3403,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   phone?: boolean
   role?: boolean
   isActive?: boolean
+  status?: boolean
+  deletedAt?: boolean
+  deletionScheduledFor?: boolean
   profilePhotoUrl?: boolean
   emailVerifiedAt?: boolean
   verificationToken?: boolean
@@ -3214,6 +3443,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   phone?: boolean
   role?: boolean
   isActive?: boolean
+  status?: boolean
+  deletedAt?: boolean
+  deletionScheduledFor?: boolean
   profilePhotoUrl?: boolean
   emailVerifiedAt?: boolean
   verificationToken?: boolean
@@ -3237,6 +3469,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   phone?: boolean
   role?: boolean
   isActive?: boolean
+  status?: boolean
+  deletedAt?: boolean
+  deletionScheduledFor?: boolean
   profilePhotoUrl?: boolean
   emailVerifiedAt?: boolean
   verificationToken?: boolean
@@ -3260,6 +3495,9 @@ export type UserSelectScalar = {
   phone?: boolean
   role?: boolean
   isActive?: boolean
+  status?: boolean
+  deletedAt?: boolean
+  deletionScheduledFor?: boolean
   profilePhotoUrl?: boolean
   emailVerifiedAt?: boolean
   verificationToken?: boolean
@@ -3275,7 +3513,7 @@ export type UserSelectScalar = {
   pushToken?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "phone" | "role" | "isActive" | "profilePhotoUrl" | "emailVerifiedAt" | "verificationToken" | "resetPasswordToken" | "resetPasswordExpiresAt" | "refreshTokenHash" | "refreshTokenFamily" | "lastLoginAt" | "loginAttempts" | "lockedUntil" | "createdAt" | "updatedAt" | "pushToken", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "phone" | "role" | "isActive" | "status" | "deletedAt" | "deletionScheduledFor" | "profilePhotoUrl" | "emailVerifiedAt" | "verificationToken" | "resetPasswordToken" | "resetPasswordExpiresAt" | "refreshTokenHash" | "refreshTokenFamily" | "lastLoginAt" | "loginAttempts" | "lockedUntil" | "createdAt" | "updatedAt" | "pushToken", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   hotels?: boolean | Prisma.User$hotelsArgs<ExtArgs>
   staffHotels?: boolean | Prisma.User$staffHotelsArgs<ExtArgs>
@@ -3320,6 +3558,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     phone: string | null
     role: $Enums.Role
     isActive: boolean
+    status: $Enums.UserStatus
+    deletedAt: Date | null
+    deletionScheduledFor: Date | null
     profilePhotoUrl: string | null
     emailVerifiedAt: Date | null
     verificationToken: string | null
@@ -3776,6 +4017,9 @@ export interface UserFieldRefs {
   readonly phone: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'Role'>
   readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
+  readonly status: Prisma.FieldRef<"User", 'UserStatus'>
+  readonly deletedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly deletionScheduledFor: Prisma.FieldRef<"User", 'DateTime'>
   readonly profilePhotoUrl: Prisma.FieldRef<"User", 'String'>
   readonly emailVerifiedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly verificationToken: Prisma.FieldRef<"User", 'String'>

@@ -1,4 +1,4 @@
-﻿import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -65,6 +65,14 @@ export class BookingExpirationProcessor extends WorkerHost {
             data: { status: 'FAILED' },
           });
         }
+        await tx.bookingStatusHistory.create({
+          data: {
+            bookingId: booking.id,
+            status: 'CANCELLED',
+            changedBy: 'system',
+            reason: 'Payment timeout (30 minutes)',
+          },
+        });
       });
 
       this.emitter.emit(

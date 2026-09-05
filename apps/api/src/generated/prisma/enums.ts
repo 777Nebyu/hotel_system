@@ -97,6 +97,17 @@ export const SuspensionRequestStatus = {
 export type SuspensionRequestStatus = (typeof SuspensionRequestStatus)[keyof typeof SuspensionRequestStatus]
 
 
+export const UserStatus = {
+  ACTIVE: 'ACTIVE',
+  EMAIL_UNVERIFIED: 'EMAIL_UNVERIFIED',
+  SUSPENDED: 'SUSPENDED',
+  DEACTIVATED: 'DEACTIVATED',
+  DELETED: 'DELETED'
+} as const
+
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
+
+
 export const StayRequestType = {
   EARLY_CHECKIN: 'EARLY_CHECKIN',
   LATE_CHECKOUT: 'LATE_CHECKOUT'

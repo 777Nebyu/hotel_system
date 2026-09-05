@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Optional,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -11,12 +12,14 @@ import { Inject } from '@nestjs/common';
 import { randomBytes, randomUUID } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import type {
+  DeactivateAccountInput,
   LoginInput,
   RegisterInput,
   UpdateProfileInput,
 } from '@repo/shared-types';
 import { User } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditService } from '../../../common/services/audit.service';
 import {
   STORAGE_SERVICE,
   type StorageService,
@@ -52,6 +55,8 @@ export class IdentityService {
     private readonly mail: MailProducer,
     @Inject(STORAGE_SERVICE)
     private readonly storage: StorageService,
+    @Optional()
+    private readonly audit?: AuditService,
   ) {}
 
   private safeUser(user: User): SafeUser<User> {
@@ -128,6 +133,7 @@ export class IdentityService {
         phone: dto.phone,
         passwordHash: await bcrypt.hash(dto.password, BCRYPT_ROUNDS),
         verificationToken,
+        status: 'EMAIL_UNVERIFIED',
       },
     });
 
@@ -164,8 +170,28 @@ export class IdentityService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    if (!user.isActive) {
-      throw new ForbiddenException('This account is not active');
+    if (user.status === 'DELETED') {
+      throw new ForbiddenException('This account has been deleted');
+    }
+
+    if (user.status === 'SUSPENDED') {
+      throw new ForbiddenException('This account has been suspended');
+    }
+
+    if (user.status === 'DEACTIVATED' || !user.isActive) {
+      if (user.deletionScheduledFor && user.deletionScheduledFor > new Date()) {
+        await this.db.user.update({
+          where: { id: user.id },
+          data: {
+            status: 'ACTIVE',
+            isActive: true,
+            deletionScheduledFor: null,
+          },
+        });
+        await this.audit?.record(user.id, 'USER_REACTIVATED', 'User', user.id);
+      } else {
+        throw new ForbiddenException('This account is not active');
+      }
     }
 
     await this.db.user.update({
@@ -215,7 +241,11 @@ export class IdentityService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    if (!user.isActive) {
+    if (
+      user.status === 'DELETED' ||
+      user.status === 'SUSPENDED' ||
+      !user.isActive
+    ) {
       throw new ForbiddenException('This account is not active');
     }
 
@@ -285,9 +315,51 @@ export class IdentityService {
   async verifyEmail(token: string): Promise<{ message: string }> {
     await this.db.user.update({
       where: { verificationToken: token },
-      data: { emailVerifiedAt: new Date(), verificationToken: null },
+      data: {
+        emailVerifiedAt: new Date(),
+        verificationToken: null,
+        status: 'ACTIVE',
+      },
     });
     return { message: 'Email verified' };
+  }
+
+  async deactivateAccount(
+    userId: string,
+    dto?: DeactivateAccountInput,
+  ): Promise<{ message: string }> {
+    const scheduled = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await this.db.user.update({
+      where: { id: userId },
+      data: {
+        status: 'DEACTIVATED',
+        isActive: false,
+        deletionScheduledFor: scheduled,
+        refreshTokenHash: null,
+        refreshTokenFamily: null,
+      },
+    });
+
+    await this.db.booking.updateMany({
+      where: { userId, status: 'PENDING' },
+      data: { status: 'CANCELLED' },
+    });
+
+    await this.audit?.record(userId, 'USER_DEACTIVATED', 'User', userId, {
+      reason: dto?.reason,
+      deletionScheduledFor: scheduled,
+    });
+
+    return {
+      message:
+        'Account deactivated. You have 30 days to log in to reactivate before deletion.',
+    };
+  }
+
+  async deleteAccount(userId: string): Promise<{ message: string }> {
+    return this.deactivateAccount(userId, {
+      reason: 'User requested account deletion',
+    });
   }
 
   async requestPasswordReset(email: string): Promise<{ message: string }> {

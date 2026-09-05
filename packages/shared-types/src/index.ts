@@ -54,6 +54,29 @@ export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export const forgotPasswordSchema = emailSchema;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
+export const userStatusSchema = z.enum([
+  'ACTIVE',
+  'EMAIL_UNVERIFIED',
+  'SUSPENDED',
+  'DEACTIVATED',
+  'DELETED',
+]);
+export type UserStatus = z.infer<typeof userStatusSchema>;
+
+export const exportQuerySchema = z.object({
+  type: z.enum(['bookings', 'payments', 'reviews', 'users']),
+  format: z.enum(['csv', 'excel']).default('csv'),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  hotelId: z.string().optional(),
+});
+export type ExportQueryInput = z.infer<typeof exportQuerySchema>;
+
+export const deactivateAccountSchema = z.object({
+  reason: z.string().min(3).max(500).optional(),
+});
+export type DeactivateAccountInput = z.infer<typeof deactivateAccountSchema>;
+
 export * from './catalog';
 export * from './booking';
 export * from './review';

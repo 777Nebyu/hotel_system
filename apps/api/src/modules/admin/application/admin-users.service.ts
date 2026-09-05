@@ -79,22 +79,39 @@ export class AdminUsersService {
     });
     const updated = await this.db.user.update({
       where: { id: userId },
-      data: { isActive: dto.isActive },
+      data: {
+        isActive: dto.isActive,
+        status: dto.isActive ? 'ACTIVE' : 'SUSPENDED',
+        deletionScheduledFor: dto.isActive ? null : undefined,
+        ...(dto.isActive
+          ? {}
+          : { refreshTokenHash: null, refreshTokenFamily: null }),
+      },
       select: {
         id: true,
         email: true,
         fullName: true,
         role: true,
         isActive: true,
+        status: true,
       },
     });
+
+    if (!dto.isActive) {
+      await this.db.booking.updateMany({
+        where: { userId, status: 'PENDING' },
+        data: { status: 'CANCELLED' },
+      });
+    }
+
     await this.audit.record(
       actorId,
-      dto.isActive ? 'ACTIVATE' : 'DEACTIVATE',
+      dto.isActive ? 'ACTIVATE' : 'SUSPEND',
       'User',
       userId,
       {
         isActive: { from: user.isActive, to: dto.isActive },
+        status: { from: user.status, to: dto.isActive ? 'ACTIVE' : 'SUSPENDED' },
       },
     );
     return updated;

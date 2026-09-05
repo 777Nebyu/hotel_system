@@ -69,6 +69,14 @@ enum SuspensionRequestStatus {
   CANCELLED
 }
 
+enum UserStatus {
+  ACTIVE
+  EMAIL_UNVERIFIED
+  SUSPENDED
+  DEACTIVATED
+  DELETED
+}
+
 model User {
   id                     String         @id @default(cuid())
   email                  String         @unique
@@ -77,6 +85,9 @@ model User {
   phone                  String?
   role                   Role           @default(CUSTOMER)
   isActive               Boolean        @default(true)
+  status                 UserStatus     @default(ACTIVE)
+  deletedAt              DateTime?
+  deletionScheduledFor   DateTime?
   profilePhotoUrl        String?
   emailVerifiedAt        DateTime?
   verificationToken      String?        @unique
@@ -257,6 +268,7 @@ model Booking {
   lateCheckOut    Boolean         @default(false)
   lateCheckOutFee Decimal?        @db.Decimal(10, 2)
   stayRequests    StayRequest[]
+  statusHistory   BookingStatusHistory[]
 
   @@index([userId])
   @@index([hotelId])
@@ -277,6 +289,18 @@ model BookingDetail {
   relocationReason String?
   relocatedAt      DateTime?
   relocatedBy      String?
+}
+
+model BookingStatusHistory {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  status    String
+  changedBy String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([bookingId])
 }
 
 model Payment {

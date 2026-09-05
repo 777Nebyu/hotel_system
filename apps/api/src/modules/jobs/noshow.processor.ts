@@ -58,6 +58,15 @@ export class NoShowProcessor extends WorkerHost {
         },
       });
 
+      await this.db.bookingStatusHistory.create({
+        data: {
+          bookingId: booking.id,
+          status: 'NO_SHOW',
+          changedBy: 'system',
+          reason: 'Check-in date passed without guest arrival',
+        },
+      });
+
       await this.audit.record(
         'system',
         'BOOKING_NO_SHOW',

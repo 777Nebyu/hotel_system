@@ -207,7 +207,7 @@ export class BookingService {
         },
       });
 
-      return tx.booking.create({
+      const created = await tx.booking.create({
         data: {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           bookingRef: bookingRef!,
@@ -243,6 +243,17 @@ export class BookingService {
           payment: true,
         },
       });
+
+      await tx.bookingStatusHistory.create({
+        data: {
+          bookingId: created.id,
+          status: 'PENDING',
+          changedBy: userId,
+          reason: 'Booking created',
+        },
+      });
+
+      return created;
     });
 
     this.emitter.emit(
@@ -303,6 +314,16 @@ export class BookingService {
           status: 'REFUNDED',
         };
       }
+
+      await tx.bookingStatusHistory.create({
+        data: {
+          bookingId: booking.id,
+          status: 'CANCELLED',
+          changedBy: userId,
+          reason: 'Cancelled by customer',
+        },
+      });
+
       return cancelled;
     });
 
@@ -382,6 +403,14 @@ export class BookingService {
         await tx.booking.update({
           where: { id: bookingId },
           data: { status: 'CANCELLED' },
+        });
+        await tx.bookingStatusHistory.create({
+          data: {
+            bookingId,
+            status: 'CANCELLED',
+            changedBy: userId,
+            reason: 'All rooms cancelled',
+          },
         });
         if (paymentSucceeded && booking.payment) {
           await tx.payment.update({
@@ -886,6 +915,15 @@ export class BookingService {
         },
       });
 
+      await tx.bookingStatusHistory.create({
+        data: {
+          bookingId,
+          status: 'CONFIRMED',
+          changedBy: userId,
+          reason: 'Dates/rooms modified by customer',
+        },
+      });
+
       await this.audit.record(userId, 'BOOKING_MODIFIED', 'Booking', bookingId, {
         previousCheckIn: booking.checkIn,
         newCheckIn: checkIn,
@@ -904,6 +942,23 @@ export class BookingService {
         additionalCharge: newTotal > oldTotal ? newTotal - oldTotal : 0,
         refundAmount,
       };
+    });
+  }
+
+  async getStatusHistory(
+    bookingId: string,
+    actor: { sub: string; role: string },
+  ) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (actor.role === 'CUSTOMER' && booking.userId !== actor.sub) {
+      throw new ForbiddenException('Access denied');
+    }
+    return this.db.bookingStatusHistory.findMany({
+      where: { bookingId },
+      orderBy: { createdAt: 'asc' },
     });
   }
 

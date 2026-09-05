@@ -147,4 +147,13 @@ export class BookingController {
   ) {
     return this.bookings.modifyBooking(params.bookingId, dto, req.user.sub);
   }
+
+  @Get(':bookingId/status-history')
+  @ApiOperation({ summary: 'Get booking status history' })
+  getStatusHistory(
+    @Param() params: BookingIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.bookings.getStatusHistory(params.bookingId, req.user);
+  }
 }

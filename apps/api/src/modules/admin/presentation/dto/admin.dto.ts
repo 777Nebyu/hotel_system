@@ -6,6 +6,7 @@ import {
   adminReviewsQuerySchema,
   adminUsersQuerySchema,
   auditLogsQuerySchema,
+  exportQuerySchema,
   reassignManagerSchema,
   rejectHotelSchema,
   reportParamsSchema,
@@ -22,6 +23,7 @@ export class AdminUsersQueryDto extends createZodDto(adminUsersQuerySchema) {}
 export class UpdateUserRoleDto extends createZodDto(updateUserRoleSchema) {}
 export class SetUserActiveDto extends createZodDto(setUserActiveSchema) {}
 export class UserIdParamsDto extends createZodDto(userIdParamsSchema) {}
+export class ExportQueryDto extends createZodDto(exportQuerySchema) {}
 
 export class AdminHotelsQueryDto extends createZodDto(adminHotelsQuerySchema) {}
 export class UpdateHotelStatusDto extends createZodDto(

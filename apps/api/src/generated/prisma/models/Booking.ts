@@ -327,6 +327,7 @@ export type BookingWhereInput = {
   review?: Prisma.XOR<Prisma.ReviewNullableScalarRelationFilter, Prisma.ReviewWhereInput> | null
   disputes?: Prisma.DisputeListRelationFilter
   stayRequests?: Prisma.StayRequestListRelationFilter
+  statusHistory?: Prisma.BookingStatusHistoryListRelationFilter
 }
 
 export type BookingOrderByWithRelationInput = {
@@ -354,6 +355,7 @@ export type BookingOrderByWithRelationInput = {
   review?: Prisma.ReviewOrderByWithRelationInput
   disputes?: Prisma.DisputeOrderByRelationAggregateInput
   stayRequests?: Prisma.StayRequestOrderByRelationAggregateInput
+  statusHistory?: Prisma.BookingStatusHistoryOrderByRelationAggregateInput
 }
 
 export type BookingWhereUniqueInput = Prisma.AtLeast<{
@@ -384,6 +386,7 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   review?: Prisma.XOR<Prisma.ReviewNullableScalarRelationFilter, Prisma.ReviewWhereInput> | null
   disputes?: Prisma.DisputeListRelationFilter
   stayRequests?: Prisma.StayRequestListRelationFilter
+  statusHistory?: Prisma.BookingStatusHistoryListRelationFilter
 }, "id" | "bookingRef">
 
 export type BookingOrderByWithAggregationInput = {
@@ -457,6 +460,7 @@ export type BookingCreateInput = {
   review?: Prisma.ReviewCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateInput = {
@@ -482,6 +486,7 @@ export type BookingUncheckedCreateInput = {
   review?: Prisma.ReviewUncheckedCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeUncheckedCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestUncheckedCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUpdateInput = {
@@ -507,6 +512,7 @@ export type BookingUpdateInput = {
   review?: Prisma.ReviewUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateInput = {
@@ -532,6 +538,7 @@ export type BookingUncheckedUpdateInput = {
   review?: Prisma.ReviewUncheckedUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUncheckedUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUncheckedUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateManyInput = {
@@ -798,6 +805,20 @@ export type BookingUpdateOneRequiredWithoutDetailsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutDetailsInput, Prisma.BookingUpdateWithoutDetailsInput>, Prisma.BookingUncheckedUpdateWithoutDetailsInput>
 }
 
+export type BookingCreateNestedOneWithoutStatusHistoryInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutStatusHistoryInput, Prisma.BookingUncheckedCreateWithoutStatusHistoryInput>
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutStatusHistoryInput
+  connect?: Prisma.BookingWhereUniqueInput
+}
+
+export type BookingUpdateOneRequiredWithoutStatusHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.BookingCreateWithoutStatusHistoryInput, Prisma.BookingUncheckedCreateWithoutStatusHistoryInput>
+  connectOrCreate?: Prisma.BookingCreateOrConnectWithoutStatusHistoryInput
+  upsert?: Prisma.BookingUpsertWithoutStatusHistoryInput
+  connect?: Prisma.BookingWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.BookingUpdateToOneWithWhereWithoutStatusHistoryInput, Prisma.BookingUpdateWithoutStatusHistoryInput>, Prisma.BookingUncheckedUpdateWithoutStatusHistoryInput>
+}
+
 export type BookingCreateNestedOneWithoutPaymentInput = {
   create?: Prisma.XOR<Prisma.BookingCreateWithoutPaymentInput, Prisma.BookingUncheckedCreateWithoutPaymentInput>
   connectOrCreate?: Prisma.BookingCreateOrConnectWithoutPaymentInput
@@ -878,6 +899,7 @@ export type BookingCreateWithoutUserInput = {
   review?: Prisma.ReviewCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutUserInput = {
@@ -902,6 +924,7 @@ export type BookingUncheckedCreateWithoutUserInput = {
   review?: Prisma.ReviewUncheckedCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeUncheckedCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestUncheckedCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutUserInput = {
@@ -975,6 +998,7 @@ export type BookingCreateWithoutHotelInput = {
   review?: Prisma.ReviewCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutHotelInput = {
@@ -999,6 +1023,7 @@ export type BookingUncheckedCreateWithoutHotelInput = {
   review?: Prisma.ReviewUncheckedCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeUncheckedCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestUncheckedCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutHotelInput = {
@@ -1049,6 +1074,7 @@ export type BookingCreateWithoutDetailsInput = {
   review?: Prisma.ReviewCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutDetailsInput = {
@@ -1073,6 +1099,7 @@ export type BookingUncheckedCreateWithoutDetailsInput = {
   review?: Prisma.ReviewUncheckedCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeUncheckedCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestUncheckedCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutDetailsInput = {
@@ -1113,6 +1140,7 @@ export type BookingUpdateWithoutDetailsInput = {
   review?: Prisma.ReviewUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutDetailsInput = {
@@ -1133,6 +1161,123 @@ export type BookingUncheckedUpdateWithoutDetailsInput = {
   earlyCheckInFee?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lateCheckOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lateCheckOutFee?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  payment?: Prisma.PaymentUncheckedUpdateOneWithoutBookingNestedInput
+  review?: Prisma.ReviewUncheckedUpdateOneWithoutBookingNestedInput
+  disputes?: Prisma.DisputeUncheckedUpdateManyWithoutBookingNestedInput
+  stayRequests?: Prisma.StayRequestUncheckedUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingCreateWithoutStatusHistoryInput = {
+  id?: string
+  bookingRef: string
+  checkIn: Date | string
+  checkOut: Date | string
+  status?: $Enums.BookingStatus
+  totalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  bookingSource?: $Enums.BookingSource
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  actualCheckIn?: Date | string | null
+  actualCheckOut?: Date | string | null
+  earlyCheckIn?: boolean
+  earlyCheckInFee?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lateCheckOut?: boolean
+  lateCheckOutFee?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  user: Prisma.UserCreateNestedOneWithoutBookingsInput
+  hotel: Prisma.HotelCreateNestedOneWithoutBookingsInput
+  details?: Prisma.BookingDetailCreateNestedManyWithoutBookingInput
+  payment?: Prisma.PaymentCreateNestedOneWithoutBookingInput
+  review?: Prisma.ReviewCreateNestedOneWithoutBookingInput
+  disputes?: Prisma.DisputeCreateNestedManyWithoutBookingInput
+  stayRequests?: Prisma.StayRequestCreateNestedManyWithoutBookingInput
+}
+
+export type BookingUncheckedCreateWithoutStatusHistoryInput = {
+  id?: string
+  bookingRef: string
+  userId: string
+  hotelId: string
+  checkIn: Date | string
+  checkOut: Date | string
+  status?: $Enums.BookingStatus
+  totalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  bookingSource?: $Enums.BookingSource
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  actualCheckIn?: Date | string | null
+  actualCheckOut?: Date | string | null
+  earlyCheckIn?: boolean
+  earlyCheckInFee?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lateCheckOut?: boolean
+  lateCheckOutFee?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  details?: Prisma.BookingDetailUncheckedCreateNestedManyWithoutBookingInput
+  payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutBookingInput
+  review?: Prisma.ReviewUncheckedCreateNestedOneWithoutBookingInput
+  disputes?: Prisma.DisputeUncheckedCreateNestedManyWithoutBookingInput
+  stayRequests?: Prisma.StayRequestUncheckedCreateNestedManyWithoutBookingInput
+}
+
+export type BookingCreateOrConnectWithoutStatusHistoryInput = {
+  where: Prisma.BookingWhereUniqueInput
+  create: Prisma.XOR<Prisma.BookingCreateWithoutStatusHistoryInput, Prisma.BookingUncheckedCreateWithoutStatusHistoryInput>
+}
+
+export type BookingUpsertWithoutStatusHistoryInput = {
+  update: Prisma.XOR<Prisma.BookingUpdateWithoutStatusHistoryInput, Prisma.BookingUncheckedUpdateWithoutStatusHistoryInput>
+  create: Prisma.XOR<Prisma.BookingCreateWithoutStatusHistoryInput, Prisma.BookingUncheckedCreateWithoutStatusHistoryInput>
+  where?: Prisma.BookingWhereInput
+}
+
+export type BookingUpdateToOneWithWhereWithoutStatusHistoryInput = {
+  where?: Prisma.BookingWhereInput
+  data: Prisma.XOR<Prisma.BookingUpdateWithoutStatusHistoryInput, Prisma.BookingUncheckedUpdateWithoutStatusHistoryInput>
+}
+
+export type BookingUpdateWithoutStatusHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingRef?: Prisma.StringFieldUpdateOperationsInput | string
+  checkIn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  checkOut?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  totalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  bookingSource?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actualCheckIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  actualCheckOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  earlyCheckInFee?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lateCheckOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lateCheckOutFee?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  user?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput
+  hotel?: Prisma.HotelUpdateOneRequiredWithoutBookingsNestedInput
+  details?: Prisma.BookingDetailUpdateManyWithoutBookingNestedInput
+  payment?: Prisma.PaymentUpdateOneWithoutBookingNestedInput
+  review?: Prisma.ReviewUpdateOneWithoutBookingNestedInput
+  disputes?: Prisma.DisputeUpdateManyWithoutBookingNestedInput
+  stayRequests?: Prisma.StayRequestUpdateManyWithoutBookingNestedInput
+}
+
+export type BookingUncheckedUpdateWithoutStatusHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingRef?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  hotelId?: Prisma.StringFieldUpdateOperationsInput | string
+  checkIn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  checkOut?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+  totalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  bookingSource?: Prisma.EnumBookingSourceFieldUpdateOperationsInput | $Enums.BookingSource
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actualCheckIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  actualCheckOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  earlyCheckIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  earlyCheckInFee?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lateCheckOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lateCheckOutFee?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  details?: Prisma.BookingDetailUncheckedUpdateManyWithoutBookingNestedInput
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutBookingNestedInput
   review?: Prisma.ReviewUncheckedUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUncheckedUpdateManyWithoutBookingNestedInput
@@ -1161,6 +1306,7 @@ export type BookingCreateWithoutPaymentInput = {
   review?: Prisma.ReviewCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutPaymentInput = {
@@ -1185,6 +1331,7 @@ export type BookingUncheckedCreateWithoutPaymentInput = {
   review?: Prisma.ReviewUncheckedCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeUncheckedCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestUncheckedCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutPaymentInput = {
@@ -1225,6 +1372,7 @@ export type BookingUpdateWithoutPaymentInput = {
   review?: Prisma.ReviewUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutPaymentInput = {
@@ -1249,6 +1397,7 @@ export type BookingUncheckedUpdateWithoutPaymentInput = {
   review?: Prisma.ReviewUncheckedUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUncheckedUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUncheckedUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateWithoutReviewInput = {
@@ -1273,6 +1422,7 @@ export type BookingCreateWithoutReviewInput = {
   payment?: Prisma.PaymentCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutReviewInput = {
@@ -1297,6 +1447,7 @@ export type BookingUncheckedCreateWithoutReviewInput = {
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeUncheckedCreateNestedManyWithoutBookingInput
   stayRequests?: Prisma.StayRequestUncheckedCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutReviewInput = {
@@ -1337,6 +1488,7 @@ export type BookingUpdateWithoutReviewInput = {
   payment?: Prisma.PaymentUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutReviewInput = {
@@ -1361,6 +1513,7 @@ export type BookingUncheckedUpdateWithoutReviewInput = {
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUncheckedUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUncheckedUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateWithoutDisputesInput = {
@@ -1385,6 +1538,7 @@ export type BookingCreateWithoutDisputesInput = {
   payment?: Prisma.PaymentCreateNestedOneWithoutBookingInput
   review?: Prisma.ReviewCreateNestedOneWithoutBookingInput
   stayRequests?: Prisma.StayRequestCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutDisputesInput = {
@@ -1409,6 +1563,7 @@ export type BookingUncheckedCreateWithoutDisputesInput = {
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutBookingInput
   review?: Prisma.ReviewUncheckedCreateNestedOneWithoutBookingInput
   stayRequests?: Prisma.StayRequestUncheckedCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutDisputesInput = {
@@ -1449,6 +1604,7 @@ export type BookingUpdateWithoutDisputesInput = {
   payment?: Prisma.PaymentUpdateOneWithoutBookingNestedInput
   review?: Prisma.ReviewUpdateOneWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutDisputesInput = {
@@ -1473,6 +1629,7 @@ export type BookingUncheckedUpdateWithoutDisputesInput = {
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutBookingNestedInput
   review?: Prisma.ReviewUncheckedUpdateOneWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUncheckedUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateWithoutStayRequestsInput = {
@@ -1497,6 +1654,7 @@ export type BookingCreateWithoutStayRequestsInput = {
   payment?: Prisma.PaymentCreateNestedOneWithoutBookingInput
   review?: Prisma.ReviewCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryCreateNestedManyWithoutBookingInput
 }
 
 export type BookingUncheckedCreateWithoutStayRequestsInput = {
@@ -1521,6 +1679,7 @@ export type BookingUncheckedCreateWithoutStayRequestsInput = {
   payment?: Prisma.PaymentUncheckedCreateNestedOneWithoutBookingInput
   review?: Prisma.ReviewUncheckedCreateNestedOneWithoutBookingInput
   disputes?: Prisma.DisputeUncheckedCreateNestedManyWithoutBookingInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedCreateNestedManyWithoutBookingInput
 }
 
 export type BookingCreateOrConnectWithoutStayRequestsInput = {
@@ -1561,6 +1720,7 @@ export type BookingUpdateWithoutStayRequestsInput = {
   payment?: Prisma.PaymentUpdateOneWithoutBookingNestedInput
   review?: Prisma.ReviewUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutStayRequestsInput = {
@@ -1585,6 +1745,7 @@ export type BookingUncheckedUpdateWithoutStayRequestsInput = {
   payment?: Prisma.PaymentUncheckedUpdateOneWithoutBookingNestedInput
   review?: Prisma.ReviewUncheckedUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUncheckedUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingCreateManyUserInput = {
@@ -1628,6 +1789,7 @@ export type BookingUpdateWithoutUserInput = {
   review?: Prisma.ReviewUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutUserInput = {
@@ -1652,6 +1814,7 @@ export type BookingUncheckedUpdateWithoutUserInput = {
   review?: Prisma.ReviewUncheckedUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUncheckedUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUncheckedUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateManyWithoutUserInput = {
@@ -1714,6 +1877,7 @@ export type BookingUpdateWithoutHotelInput = {
   review?: Prisma.ReviewUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateWithoutHotelInput = {
@@ -1738,6 +1902,7 @@ export type BookingUncheckedUpdateWithoutHotelInput = {
   review?: Prisma.ReviewUncheckedUpdateOneWithoutBookingNestedInput
   disputes?: Prisma.DisputeUncheckedUpdateManyWithoutBookingNestedInput
   stayRequests?: Prisma.StayRequestUncheckedUpdateManyWithoutBookingNestedInput
+  statusHistory?: Prisma.BookingStatusHistoryUncheckedUpdateManyWithoutBookingNestedInput
 }
 
 export type BookingUncheckedUpdateManyWithoutHotelInput = {
@@ -1768,12 +1933,14 @@ export type BookingCountOutputType = {
   details: number
   disputes: number
   stayRequests: number
+  statusHistory: number
 }
 
 export type BookingCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   details?: boolean | BookingCountOutputTypeCountDetailsArgs
   disputes?: boolean | BookingCountOutputTypeCountDisputesArgs
   stayRequests?: boolean | BookingCountOutputTypeCountStayRequestsArgs
+  statusHistory?: boolean | BookingCountOutputTypeCountStatusHistoryArgs
 }
 
 /**
@@ -1807,6 +1974,13 @@ export type BookingCountOutputTypeCountStayRequestsArgs<ExtArgs extends runtime.
   where?: Prisma.StayRequestWhereInput
 }
 
+/**
+ * BookingCountOutputType without action
+ */
+export type BookingCountOutputTypeCountStatusHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookingStatusHistoryWhereInput
+}
+
 
 export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1833,6 +2007,7 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   review?: boolean | Prisma.Booking$reviewArgs<ExtArgs>
   disputes?: boolean | Prisma.Booking$disputesArgs<ExtArgs>
   stayRequests?: boolean | Prisma.Booking$stayRequestsArgs<ExtArgs>
+  statusHistory?: boolean | Prisma.Booking$statusHistoryArgs<ExtArgs>
   _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["booking"]>
 
@@ -1909,6 +2084,7 @@ export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   review?: boolean | Prisma.Booking$reviewArgs<ExtArgs>
   disputes?: boolean | Prisma.Booking$disputesArgs<ExtArgs>
   stayRequests?: boolean | Prisma.Booking$stayRequestsArgs<ExtArgs>
+  statusHistory?: boolean | Prisma.Booking$statusHistoryArgs<ExtArgs>
   _count?: boolean | Prisma.BookingCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type BookingIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1930,6 +2106,7 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     review: Prisma.$ReviewPayload<ExtArgs> | null
     disputes: Prisma.$DisputePayload<ExtArgs>[]
     stayRequests: Prisma.$StayRequestPayload<ExtArgs>[]
+    statusHistory: Prisma.$BookingStatusHistoryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2350,6 +2527,7 @@ export interface Prisma__BookingClient<T, Null = never, ExtArgs extends runtime.
   review<T extends Prisma.Booking$reviewArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$reviewArgs<ExtArgs>>): Prisma.Prisma__ReviewClient<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   disputes<T extends Prisma.Booking$disputesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$disputesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DisputePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   stayRequests<T extends Prisma.Booking$stayRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$stayRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StayRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  statusHistory<T extends Prisma.Booking$statusHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Booking$statusHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingStatusHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2904,6 +3082,30 @@ export type Booking$stayRequestsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.StayRequestScalarFieldEnum | Prisma.StayRequestScalarFieldEnum[]
+}
+
+/**
+ * Booking.statusHistory
+ */
+export type Booking$statusHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BookingStatusHistory
+   */
+  select?: Prisma.BookingStatusHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BookingStatusHistory
+   */
+  omit?: Prisma.BookingStatusHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingStatusHistoryInclude<ExtArgs> | null
+  where?: Prisma.BookingStatusHistoryWhereInput
+  orderBy?: Prisma.BookingStatusHistoryOrderByWithRelationInput | Prisma.BookingStatusHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.BookingStatusHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookingStatusHistoryScalarFieldEnum | Prisma.BookingStatusHistoryScalarFieldEnum[]
 }
 
 /**

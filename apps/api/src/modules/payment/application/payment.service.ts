@@ -143,6 +143,17 @@ export class PaymentService {
         },
       });
 
+      if (changed.count > 0) {
+        await this.db.bookingStatusHistory.create({
+          data: {
+            bookingId,
+            status: 'CONFIRMED',
+            changedBy: 'system',
+            reason: 'Payment completed',
+          },
+        });
+      }
+
       const updated = await this.db.payment.findUniqueOrThrow({
         where: { id: payment.id },
       });
@@ -274,6 +285,15 @@ export class PaymentService {
         'CASH',
       ),
     );
+
+    await this.db.bookingStatusHistory.create({
+      data: {
+        bookingId,
+        status: 'CONFIRMED',
+        changedBy: actor.sub,
+        reason: 'Payment collected in cash at hotel',
+      },
+    });
 
     await this.audit.record(
       actor.sub,

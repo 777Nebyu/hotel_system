@@ -340,6 +340,15 @@ export class ManagerBookingService {
       },
     });
 
+    await this.db.bookingStatusHistory.create({
+      data: {
+        bookingId,
+        status: 'NO_SHOW',
+        changedBy: actor.sub,
+        reason: 'Marked as no-show by staff/manager',
+      },
+    });
+
     await this.audit.record(actor.sub, 'BOOKING_NO_SHOW', 'Booking', bookingId, {
       markedBy: actor.sub,
     });
@@ -459,6 +468,15 @@ export class ManagerBookingService {
         payment: true,
       },
     });
+    await this.db.bookingStatusHistory.create({
+      data: {
+        bookingId,
+        status: to,
+        changedBy: actor.sub,
+        reason: `Status transition from ${booking.status} to ${to}`,
+      },
+    });
+
     await this.audit.record(actor.sub, `BOOKING_${to}`, 'Booking', bookingId, {
       from: booking.status,
       to,

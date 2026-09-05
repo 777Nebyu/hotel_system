@@ -65,6 +65,7 @@ export const ModelName = {
   SeasonalPricing: 'SeasonalPricing',
   Booking: 'Booking',
   BookingDetail: 'BookingDetail',
+  BookingStatusHistory: 'BookingStatusHistory',
   Payment: 'Payment',
   PaymentAttempt: 'PaymentAttempt',
   Review: 'Review',
@@ -106,6 +107,9 @@ export const UserScalarFieldEnum = {
   phone: 'phone',
   role: 'role',
   isActive: 'isActive',
+  status: 'status',
+  deletedAt: 'deletedAt',
+  deletionScheduledFor: 'deletionScheduledFor',
   profilePhotoUrl: 'profilePhotoUrl',
   emailVerifiedAt: 'emailVerifiedAt',
   verificationToken: 'verificationToken',
@@ -280,6 +284,18 @@ export const BookingDetailScalarFieldEnum = {
 } as const
 
 export type BookingDetailScalarFieldEnum = (typeof BookingDetailScalarFieldEnum)[keyof typeof BookingDetailScalarFieldEnum]
+
+
+export const BookingStatusHistoryScalarFieldEnum = {
+  id: 'id',
+  bookingId: 'bookingId',
+  status: 'status',
+  changedBy: 'changedBy',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type BookingStatusHistoryScalarFieldEnum = (typeof BookingStatusHistoryScalarFieldEnum)[keyof typeof BookingStatusHistoryScalarFieldEnum]
 
 
 export const PaymentScalarFieldEnum = {

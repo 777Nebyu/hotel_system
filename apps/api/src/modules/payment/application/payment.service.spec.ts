@@ -45,6 +45,9 @@ describe('PaymentService lifecycle protections', () => {
       paymentAttempt: {
         create: jest.fn().mockResolvedValue({}),
       },
+      bookingStatusHistory: {
+        create: jest.fn().mockResolvedValue({}),
+      },
     };
     emitter = { emit: jest.fn() };
     registry = {

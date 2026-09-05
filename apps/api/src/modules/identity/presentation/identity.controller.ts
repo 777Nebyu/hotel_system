@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -13,6 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import {
+  deactivateAccountSchema,
   emailSchema,
   loginSchema,
   refreshTokenSchema,
@@ -21,6 +23,7 @@ import {
   updateProfileSchema,
 } from '@repo/shared-types';
 import type {
+  DeactivateAccountInput,
   EmailInput,
   LoginInput,
   RefreshTokenInput,
@@ -119,5 +122,23 @@ export class IdentityController {
     @Req() req: { user: { sub: string } },
   ) {
     return this.service.updateProfilePhoto(req.user.sub, file);
+  }
+
+  @Post('me/deactivate')
+  @ApiBearerAuth()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  deactivate(
+    @Body(new ZodValidationPipe(deactivateAccountSchema))
+    dto: DeactivateAccountInput,
+    @Req() req: { user: { sub: string } },
+  ) {
+    return this.service.deactivateAccount(req.user.sub, dto);
+  }
+
+  @Delete('me')
+  @ApiBearerAuth()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  deleteAccount(@Req() req: { user: { sub: string } }) {
+    return this.service.deleteAccount(req.user.sub);
   }
 }

@@ -15,6 +15,9 @@ import { AdminStaffController } from './presentation/admin-staff.controller';
 import { AdminSuspensionController } from './presentation/admin-suspension.controller';
 import { AdminUsersController } from './presentation/admin-users.controller';
 
+import { AdminExportService } from './application/admin-export.service';
+import { AdminExportController } from './presentation/admin-export.controller';
+
 @Module({
   controllers: [
     AdminUsersController,
@@ -24,6 +27,7 @@ import { AdminUsersController } from './presentation/admin-users.controller';
     AdminSettingController,
     AdminStaffController,
     AdminSuspensionController,
+    AdminExportController,
   ],
   providers: [
     AdminUsersService,
@@ -33,6 +37,7 @@ import { AdminUsersController } from './presentation/admin-users.controller';
     AdminSettingService,
     AdminStaffService,
     AdminSuspensionService,
+    AdminExportService,
     AuditService,
   ],
 })
