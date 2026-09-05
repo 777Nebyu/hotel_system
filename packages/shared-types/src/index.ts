@@ -77,6 +77,21 @@ export const deactivateAccountSchema = z.object({
 });
 export type DeactivateAccountInput = z.infer<typeof deactivateAccountSchema>;
 
+export const sessionIdParamsSchema = z.object({
+  id: z.string().min(1),
+});
+export type SessionIdParams = z.infer<typeof sessionIdParamsSchema>;
+
+export const flagUserSchema = z.object({
+  reason: z.string().min(3).max(500),
+});
+export type FlagUserInput = z.infer<typeof flagUserSchema>;
+
+export const unflagUserSchema = z.object({
+  reason: z.string().min(3).max(500).optional(),
+});
+export type UnflagUserInput = z.infer<typeof unflagUserSchema>;
+
 export * from './catalog';
 export * from './booking';
 export * from './review';
@@ -84,3 +99,4 @@ export * from './notification';
 export * from './coupon';
 export * from './admin';
 export * from './staff';
+

@@ -30,6 +30,7 @@ import { JobsModule } from './modules/jobs/jobs.module';
 import { DisputeModule } from './modules/dispute/dispute.module';
 import { FeatureFlagModule } from './modules/feature-flags/feature-flag.module';
 import { FeatureFlagGuard } from './modules/feature-flags/feature-flag.guard';
+import { FraudModule } from './modules/fraud/fraud.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { FeatureFlagGuard } from './modules/feature-flags/feature-flag.guard';
     JobsModule,
     DisputeModule,
     FeatureFlagModule,
+    FraudModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

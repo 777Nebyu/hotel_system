@@ -13,6 +13,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import type { Request } from 'express';
 import {
   deactivateAccountSchema,
   emailSchema,
@@ -20,6 +21,7 @@ import {
   refreshTokenSchema,
   registerSchema,
   resetPasswordSchema,
+  sessionIdParamsSchema,
   updateProfileSchema,
 } from '@repo/shared-types';
 import type {
@@ -29,11 +31,13 @@ import type {
   RefreshTokenInput,
   RegisterInput,
   ResetPasswordInput,
+  SessionIdParams,
   UpdateProfileInput,
 } from '@repo/shared-types';
 import { Public } from '../../../common/decorators/public.decorator';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { IdentityService } from '../application/identity.service';
+import type { JwtUser } from '../infrastructure/jwt.strategy';
 
 @ApiTags('identity')
 @Controller('auth')
@@ -43,15 +47,27 @@ export class IdentityController {
   @Post('register')
   @Public()
   @Throttle({ default: { ttl: 60000, limit: 5 } })
-  register(@Body(new ZodValidationPipe(registerSchema)) dto: RegisterInput) {
-    return this.service.register(dto);
+  register(
+    @Body(new ZodValidationPipe(registerSchema)) dto: RegisterInput,
+    @Req() req: Request,
+  ) {
+    return this.service.register(dto, {
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip,
+    });
   }
 
   @Post('login')
   @Public()
   @Throttle({ default: { ttl: 60000, limit: 5 } })
-  login(@Body(new ZodValidationPipe(loginSchema)) dto: LoginInput) {
-    return this.service.login(dto);
+  login(
+    @Body(new ZodValidationPipe(loginSchema)) dto: LoginInput,
+    @Req() req: Request,
+  ) {
+    return this.service.login(dto, {
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip,
+    });
   }
 
   @Post('refresh')
@@ -59,14 +75,42 @@ export class IdentityController {
   @Throttle({ default: { ttl: 60000, limit: 5 } })
   refresh(
     @Body(new ZodValidationPipe(refreshTokenSchema)) dto: RefreshTokenInput,
+    @Req() req: Request,
   ) {
-    return this.service.refresh(dto.refreshToken);
+    return this.service.refresh(dto.refreshToken, {
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip,
+    });
   }
 
   @Post('logout')
   @ApiBearerAuth()
-  logout(@Req() req: { user: { sub: string } }) {
-    return this.service.logout(req.user.sub);
+  logout(@Req() req: { user: JwtUser }) {
+    return this.service.logout(req.user.sub, req.user.sessionId);
+  }
+
+  @Get('sessions')
+  @ApiBearerAuth()
+  listSessions(@Req() req: { user: JwtUser }) {
+    return this.service.listSessions(req.user.sub, req.user.sessionId);
+  }
+
+  @Delete('sessions/:id')
+  @ApiBearerAuth()
+  revokeSession(
+    @Param(new ZodValidationPipe(sessionIdParamsSchema)) params: SessionIdParams,
+    @Req() req: { user: JwtUser },
+  ) {
+    return this.service.revokeSession(req.user.sub, params.id);
+  }
+
+  @Delete('sessions')
+  @ApiBearerAuth()
+  revokeAllOtherSessions(@Req() req: { user: JwtUser }) {
+    return this.service.revokeAllOtherSessions(
+      req.user.sub,
+      req.user.sessionId,
+    );
   }
 
   @Post('forgot-password')

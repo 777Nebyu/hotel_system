@@ -131,4 +131,32 @@ describe('PaymentService lifecycle protections', () => {
       },
     });
   });
+
+  it('records failed attempt and triggers fraud check when charge is not approved', async () => {
+    const mockFraud = {
+      checkPaymentFailureVelocity: jest.fn().mockResolvedValue(false),
+    };
+    (service as any).fraud = mockFraud;
+
+    registry.get.mockReturnValue({
+      charge: jest.fn().mockResolvedValue({
+        approved: false,
+        providerRef: null,
+      }),
+    });
+
+    const res = await service.mockCallback(
+      'booking-1',
+      { reference: 'fail' },
+      'test-webhook-secret',
+    );
+
+    expect(res.status).toBe('FAILED');
+    expect(db.paymentAttempt.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ outcome: 'FAILED' }),
+      }),
+    );
+    expect(mockFraud.checkPaymentFailureVelocity).toHaveBeenCalledWith('user-1');
+  });
 });

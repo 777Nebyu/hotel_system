@@ -172,3 +172,8 @@ export type RoomHold = Prisma.RoomHoldModel
  * 
  */
 export type StayRequest = Prisma.StayRequestModel
+/**
+ * Model UserSession
+ * 
+ */
+export type UserSession = Prisma.UserSessionModel

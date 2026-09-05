@@ -101,8 +101,12 @@ model User {
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
   pushToken              String?
+  isFlagged              Boolean                    @default(false)
+  flagReason             String?
+  flaggedAt              DateTime?
   hotels                     Hotel[]                    @relation("HotelManager")
   staffHotels                StaffHotel[]
+  sessions                   UserSession[]
   bookings                   Booking[]
   reviews                    Review[]
   favorites                  Favorite[]
@@ -541,4 +545,21 @@ model StayRequest {
 
   @@index([bookingId])
   @@index([status])
+}
+
+model UserSession {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokenHash String
+  family           String
+  deviceName       String?
+  userAgent        String?
+  ipAddress        String?
+  lastActiveAt     DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  revokedAt        DateTime?
+
+  @@index([userId, revokedAt])
+  @@index([family])
 }

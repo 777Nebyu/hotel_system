@@ -10,8 +10,10 @@ import {
 } from './infrastructure/gateways';
 import { PaymentController } from './presentation/payment.controller';
 import { PaymentService } from './application/payment.service';
+import { FraudModule } from '../fraud/fraud.module';
 
 @Module({
+  imports: [FraudModule],
   controllers: [PaymentController],
   providers: [
     PaymentService,

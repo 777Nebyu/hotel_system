@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +13,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PaymentGatewayRegistry } from '../infrastructure/gateway-registry';
 import { AuditService } from '../../../common/services/audit.service';
+import { FraudService } from '../../fraud/application/fraud.service';
 import {
   PaymentCompletedEvent,
   PaymentRefundedEvent,
@@ -40,6 +42,8 @@ export class PaymentService {
     private readonly registry: PaymentGatewayRegistry,
     private readonly config: ConfigService,
     private readonly audit: AuditService,
+    @Optional()
+    private readonly fraud?: FraudService,
   ) {}
 
   async createIntent(bookingId: string, method: PaymentMethod, userId: string) {
@@ -206,6 +210,11 @@ export class PaymentService {
         providerRef: result.providerRef ?? body.transactionId ?? null,
       },
     });
+
+    if (this.fraud && payment.booking?.userId) {
+      void this.fraud.checkPaymentFailureVelocity(payment.booking.userId);
+    }
+
     return { status: 'FAILED' as const, paymentId: payment.id };
   }
 

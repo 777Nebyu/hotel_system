@@ -58,6 +58,9 @@ export type UserMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   pushToken: string | null
+  isFlagged: boolean | null
+  flagReason: string | null
+  flaggedAt: Date | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -84,6 +87,9 @@ export type UserMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   pushToken: string | null
+  isFlagged: boolean | null
+  flagReason: string | null
+  flaggedAt: Date | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -110,6 +116,9 @@ export type UserCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   pushToken: number
+  isFlagged: number
+  flagReason: number
+  flaggedAt: number
   _all: number
 }
 
@@ -146,6 +155,9 @@ export type UserMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   pushToken?: true
+  isFlagged?: true
+  flagReason?: true
+  flaggedAt?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -172,6 +184,9 @@ export type UserMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   pushToken?: true
+  isFlagged?: true
+  flagReason?: true
+  flaggedAt?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -198,6 +213,9 @@ export type UserCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   pushToken?: true
+  isFlagged?: true
+  flagReason?: true
+  flaggedAt?: true
   _all?: true
 }
 
@@ -311,6 +329,9 @@ export type UserGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   pushToken: string | null
+  isFlagged: boolean
+  flagReason: string | null
+  flaggedAt: Date | null
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
   _sum: UserSumAggregateOutputType | null
@@ -360,8 +381,12 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   pushToken?: Prisma.StringNullableFilter<"User"> | string | null
+  isFlagged?: Prisma.BoolFilter<"User"> | boolean
+  flagReason?: Prisma.StringNullableFilter<"User"> | string | null
+  flaggedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   hotels?: Prisma.HotelListRelationFilter
   staffHotels?: Prisma.StaffHotelListRelationFilter
+  sessions?: Prisma.UserSessionListRelationFilter
   bookings?: Prisma.BookingListRelationFilter
   reviews?: Prisma.ReviewListRelationFilter
   favorites?: Prisma.FavoriteListRelationFilter
@@ -399,8 +424,12 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pushToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  isFlagged?: Prisma.SortOrder
+  flagReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  flaggedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   hotels?: Prisma.HotelOrderByRelationAggregateInput
   staffHotels?: Prisma.StaffHotelOrderByRelationAggregateInput
+  sessions?: Prisma.UserSessionOrderByRelationAggregateInput
   bookings?: Prisma.BookingOrderByRelationAggregateInput
   reviews?: Prisma.ReviewOrderByRelationAggregateInput
   favorites?: Prisma.FavoriteOrderByRelationAggregateInput
@@ -441,8 +470,12 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   pushToken?: Prisma.StringNullableFilter<"User"> | string | null
+  isFlagged?: Prisma.BoolFilter<"User"> | boolean
+  flagReason?: Prisma.StringNullableFilter<"User"> | string | null
+  flaggedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   hotels?: Prisma.HotelListRelationFilter
   staffHotels?: Prisma.StaffHotelListRelationFilter
+  sessions?: Prisma.UserSessionListRelationFilter
   bookings?: Prisma.BookingListRelationFilter
   reviews?: Prisma.ReviewListRelationFilter
   favorites?: Prisma.FavoriteListRelationFilter
@@ -480,6 +513,9 @@ export type UserOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pushToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  isFlagged?: Prisma.SortOrder
+  flagReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  flaggedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -514,6 +550,9 @@ export type UserScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   pushToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  isFlagged?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  flagReason?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  flaggedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
 }
 
 export type UserCreateInput = {
@@ -540,8 +579,12 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -579,8 +622,12 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -618,8 +665,12 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -657,8 +708,12 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -696,6 +751,9 @@ export type UserCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -722,6 +780,9 @@ export type UserUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -748,6 +809,9 @@ export type UserUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -774,6 +838,9 @@ export type UserCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pushToken?: Prisma.SortOrder
+  isFlagged?: Prisma.SortOrder
+  flagReason?: Prisma.SortOrder
+  flaggedAt?: Prisma.SortOrder
 }
 
 export type UserAvgOrderByAggregateInput = {
@@ -804,6 +871,9 @@ export type UserMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pushToken?: Prisma.SortOrder
+  isFlagged?: Prisma.SortOrder
+  flagReason?: Prisma.SortOrder
+  flaggedAt?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -830,6 +900,9 @@ export type UserMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pushToken?: Prisma.SortOrder
+  isFlagged?: Prisma.SortOrder
+  flagReason?: Prisma.SortOrder
+  flaggedAt?: Prisma.SortOrder
 }
 
 export type UserSumOrderByAggregateInput = {
@@ -1072,6 +1145,20 @@ export type UserUpdateOneWithoutStayRequestsDecidedNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutStayRequestsDecidedInput, Prisma.UserUpdateWithoutStayRequestsDecidedInput>, Prisma.UserUncheckedUpdateWithoutStayRequestsDecidedInput>
 }
 
+export type UserCreateNestedOneWithoutSessionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSessionsInput, Prisma.UserUncheckedCreateWithoutSessionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSessionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSessionsInput, Prisma.UserUncheckedCreateWithoutSessionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSessionsInput
+  upsert?: Prisma.UserUpsertWithoutSessionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSessionsInput, Prisma.UserUpdateWithoutSessionsInput>, Prisma.UserUncheckedUpdateWithoutSessionsInput>
+}
+
 export type UserCreateWithoutHotelsInput = {
   id?: string
   email: string
@@ -1096,7 +1183,11 @@ export type UserCreateWithoutHotelsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -1134,7 +1225,11 @@ export type UserUncheckedCreateWithoutHotelsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -1188,7 +1283,11 @@ export type UserUpdateWithoutHotelsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -1226,7 +1325,11 @@ export type UserUncheckedUpdateWithoutHotelsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -1264,8 +1367,12 @@ export type UserCreateWithoutBookingsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1302,8 +1409,12 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1356,8 +1467,12 @@ export type UserUpdateWithoutBookingsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -1394,8 +1509,12 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -1432,8 +1551,12 @@ export type UserCreateWithoutReviewsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1470,8 +1593,12 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1524,8 +1651,12 @@ export type UserUpdateWithoutReviewsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -1562,8 +1693,12 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -1600,8 +1735,12 @@ export type UserCreateWithoutFavoritesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
@@ -1638,8 +1777,12 @@ export type UserUncheckedCreateWithoutFavoritesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -1692,8 +1835,12 @@ export type UserUpdateWithoutFavoritesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
@@ -1730,8 +1877,12 @@ export type UserUncheckedUpdateWithoutFavoritesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -1768,8 +1919,12 @@ export type UserCreateWithoutNotificationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -1806,8 +1961,12 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -1860,8 +2019,12 @@ export type UserUpdateWithoutNotificationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -1898,8 +2061,12 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -1936,8 +2103,12 @@ export type UserCreateWithoutAuditLogsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -1974,8 +2145,12 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -2028,8 +2203,12 @@ export type UserUpdateWithoutAuditLogsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -2066,8 +2245,12 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -2104,8 +2287,12 @@ export type UserCreateWithoutNotificationPreferencesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -2142,8 +2329,12 @@ export type UserUncheckedCreateWithoutNotificationPreferencesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -2196,8 +2387,12 @@ export type UserUpdateWithoutNotificationPreferencesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -2234,8 +2429,12 @@ export type UserUncheckedUpdateWithoutNotificationPreferencesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -2272,7 +2471,11 @@ export type UserCreateWithoutStaffHotelsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -2310,7 +2513,11 @@ export type UserUncheckedCreateWithoutStaffHotelsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -2364,7 +2571,11 @@ export type UserUpdateWithoutStaffHotelsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -2402,7 +2613,11 @@ export type UserUncheckedUpdateWithoutStaffHotelsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -2440,8 +2655,12 @@ export type UserCreateWithoutDisputesOpenedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -2478,8 +2697,12 @@ export type UserUncheckedCreateWithoutDisputesOpenedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -2532,8 +2755,12 @@ export type UserUpdateWithoutDisputesOpenedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -2570,8 +2797,12 @@ export type UserUncheckedUpdateWithoutDisputesOpenedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -2608,8 +2839,12 @@ export type UserCreateWithoutSuspensionRequestsMadeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -2646,8 +2881,12 @@ export type UserUncheckedCreateWithoutSuspensionRequestsMadeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -2689,8 +2928,12 @@ export type UserCreateWithoutSuspensionRequestsApprovedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -2727,8 +2970,12 @@ export type UserUncheckedCreateWithoutSuspensionRequestsApprovedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -2781,8 +3028,12 @@ export type UserUpdateWithoutSuspensionRequestsMadeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -2819,8 +3070,12 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsMadeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -2868,8 +3123,12 @@ export type UserUpdateWithoutSuspensionRequestsApprovedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -2906,8 +3165,12 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsApprovedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -2944,8 +3207,12 @@ export type UserCreateWithoutRoomHoldsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -2982,8 +3249,12 @@ export type UserUncheckedCreateWithoutRoomHoldsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -3036,8 +3307,12 @@ export type UserUpdateWithoutRoomHoldsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -3074,8 +3349,12 @@ export type UserUncheckedUpdateWithoutRoomHoldsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -3112,8 +3391,12 @@ export type UserCreateWithoutStayRequestsDecidedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
@@ -3150,8 +3433,12 @@ export type UserUncheckedCreateWithoutStayRequestsDecidedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
   staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
   reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
   favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
@@ -3204,8 +3491,12 @@ export type UserUpdateWithoutStayRequestsDecidedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
@@ -3242,8 +3533,12 @@ export type UserUncheckedUpdateWithoutStayRequestsDecidedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
   staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
   reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
   favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
@@ -3256,6 +3551,190 @@ export type UserUncheckedUpdateWithoutStayRequestsDecidedInput = {
   roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
 }
 
+export type UserCreateWithoutSessionsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  role?: $Enums.Role
+  isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
+  profilePhotoUrl?: string | null
+  emailVerifiedAt?: Date | string | null
+  verificationToken?: string | null
+  resetPasswordToken?: string | null
+  resetPasswordExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  refreshTokenFamily?: string | null
+  lastLoginAt?: Date | string | null
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
+  hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
+  staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  notificationPreferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserUncheckedCreateWithoutSessionsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  role?: $Enums.Role
+  isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
+  profilePhotoUrl?: string | null
+  emailVerifiedAt?: Date | string | null
+  verificationToken?: string | null
+  resetPasswordToken?: string | null
+  resetPasswordExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  refreshTokenFamily?: string | null
+  lastLoginAt?: Date | string | null
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
+  hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
+  staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  notificationPreferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserCreateOrConnectWithoutSessionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSessionsInput, Prisma.UserUncheckedCreateWithoutSessionsInput>
+}
+
+export type UserUpsertWithoutSessionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSessionsInput, Prisma.UserUncheckedUpdateWithoutSessionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSessionsInput, Prisma.UserUncheckedCreateWithoutSessionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSessionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSessionsInput, Prisma.UserUncheckedUpdateWithoutSessionsInput>
+}
+
+export type UserUpdateWithoutSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshTokenFamily?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
+  staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  notificationPreferences?: Prisma.NotificationPreferenceUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshTokenFamily?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
+  staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  notificationPreferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
 
 /**
  * Count Type UserCountOutputType
@@ -3264,6 +3743,7 @@ export type UserUncheckedUpdateWithoutStayRequestsDecidedInput = {
 export type UserCountOutputType = {
   hotels: number
   staffHotels: number
+  sessions: number
   bookings: number
   reviews: number
   favorites: number
@@ -3280,6 +3760,7 @@ export type UserCountOutputType = {
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   hotels?: boolean | UserCountOutputTypeCountHotelsArgs
   staffHotels?: boolean | UserCountOutputTypeCountStaffHotelsArgs
+  sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   bookings?: boolean | UserCountOutputTypeCountBookingsArgs
   reviews?: boolean | UserCountOutputTypeCountReviewsArgs
   favorites?: boolean | UserCountOutputTypeCountFavoritesArgs
@@ -3315,6 +3796,13 @@ export type UserCountOutputTypeCountHotelsArgs<ExtArgs extends runtime.Types.Ext
  */
 export type UserCountOutputTypeCountStaffHotelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.StaffHotelWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserSessionWhereInput
 }
 
 /**
@@ -3419,8 +3907,12 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   pushToken?: boolean
+  isFlagged?: boolean
+  flagReason?: boolean
+  flaggedAt?: boolean
   hotels?: boolean | Prisma.User$hotelsArgs<ExtArgs>
   staffHotels?: boolean | Prisma.User$staffHotelsArgs<ExtArgs>
+  sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   bookings?: boolean | Prisma.User$bookingsArgs<ExtArgs>
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
   favorites?: boolean | Prisma.User$favoritesArgs<ExtArgs>
@@ -3459,6 +3951,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   pushToken?: boolean
+  isFlagged?: boolean
+  flagReason?: boolean
+  flaggedAt?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -3485,6 +3980,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   pushToken?: boolean
+  isFlagged?: boolean
+  flagReason?: boolean
+  flaggedAt?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -3511,12 +4009,16 @@ export type UserSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   pushToken?: boolean
+  isFlagged?: boolean
+  flagReason?: boolean
+  flaggedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "phone" | "role" | "isActive" | "status" | "deletedAt" | "deletionScheduledFor" | "profilePhotoUrl" | "emailVerifiedAt" | "verificationToken" | "resetPasswordToken" | "resetPasswordExpiresAt" | "refreshTokenHash" | "refreshTokenFamily" | "lastLoginAt" | "loginAttempts" | "lockedUntil" | "createdAt" | "updatedAt" | "pushToken", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "phone" | "role" | "isActive" | "status" | "deletedAt" | "deletionScheduledFor" | "profilePhotoUrl" | "emailVerifiedAt" | "verificationToken" | "resetPasswordToken" | "resetPasswordExpiresAt" | "refreshTokenHash" | "refreshTokenFamily" | "lastLoginAt" | "loginAttempts" | "lockedUntil" | "createdAt" | "updatedAt" | "pushToken" | "isFlagged" | "flagReason" | "flaggedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   hotels?: boolean | Prisma.User$hotelsArgs<ExtArgs>
   staffHotels?: boolean | Prisma.User$staffHotelsArgs<ExtArgs>
+  sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   bookings?: boolean | Prisma.User$bookingsArgs<ExtArgs>
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
   favorites?: boolean | Prisma.User$favoritesArgs<ExtArgs>
@@ -3538,6 +4040,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     hotels: Prisma.$HotelPayload<ExtArgs>[]
     staffHotels: Prisma.$StaffHotelPayload<ExtArgs>[]
+    sessions: Prisma.$UserSessionPayload<ExtArgs>[]
     bookings: Prisma.$BookingPayload<ExtArgs>[]
     reviews: Prisma.$ReviewPayload<ExtArgs>[]
     favorites: Prisma.$FavoritePayload<ExtArgs>[]
@@ -3574,6 +4077,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     createdAt: Date
     updatedAt: Date
     pushToken: string | null
+    isFlagged: boolean
+    flagReason: string | null
+    flaggedAt: Date | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -3970,6 +4476,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   hotels<T extends Prisma.User$hotelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$hotelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HotelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   staffHotels<T extends Prisma.User$staffHotelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$staffHotelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StaffHotelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   bookings<T extends Prisma.User$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviews<T extends Prisma.User$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   favorites<T extends Prisma.User$favoritesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$favoritesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoritePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4033,6 +4540,9 @@ export interface UserFieldRefs {
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly pushToken: Prisma.FieldRef<"User", 'String'>
+  readonly isFlagged: Prisma.FieldRef<"User", 'Boolean'>
+  readonly flagReason: Prisma.FieldRef<"User", 'String'>
+  readonly flaggedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
     
 
@@ -4471,6 +4981,30 @@ export type User$staffHotelsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.StaffHotelScalarFieldEnum | Prisma.StaffHotelScalarFieldEnum[]
+}
+
+/**
+ * User.sessions
+ */
+export type User$sessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserSession
+   */
+  select?: Prisma.UserSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserSession
+   */
+  omit?: Prisma.UserSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserSessionInclude<ExtArgs> | null
+  where?: Prisma.UserSessionWhereInput
+  orderBy?: Prisma.UserSessionOrderByWithRelationInput | Prisma.UserSessionOrderByWithRelationInput[]
+  cursor?: Prisma.UserSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserSessionScalarFieldEnum | Prisma.UserSessionScalarFieldEnum[]
 }
 
 /**

@@ -10,6 +10,7 @@ export interface JwtUser {
   role: Role;
   hotelId?: string;
   family: string;
+  sessionId?: string;
 }
 
 @Injectable()

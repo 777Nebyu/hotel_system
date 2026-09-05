@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
   Optional,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -32,12 +33,37 @@ const BCRYPT_ROUNDS = 12;
 const MAX_LOGIN_ATTEMPTS = 10;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 
+export interface SessionMeta {
+  userAgent?: string;
+  ipAddress?: string;
+  sessionId?: string;
+}
+
+export function parseDeviceName(userAgent?: string): string {
+  if (!userAgent) return 'Unknown Device';
+  let os = 'Unknown OS';
+  if (/windows/i.test(userAgent)) os = 'Windows';
+  else if (/macintosh|mac os/i.test(userAgent)) os = 'macOS';
+  else if (/iphone|ipad|ipod/i.test(userAgent)) os = 'iOS';
+  else if (/android/i.test(userAgent)) os = 'Android';
+  else if (/linux/i.test(userAgent)) os = 'Linux';
+
+  let browser = 'Browser';
+  if (/edg/i.test(userAgent)) browser = 'Edge';
+  else if (/chrome|crios/i.test(userAgent)) browser = 'Chrome';
+  else if (/safari/i.test(userAgent)) browser = 'Safari';
+  else if (/firefox|fxios/i.test(userAgent)) browser = 'Firefox';
+
+  return `${browser} on ${os}`;
+}
+
 interface JwtPayload {
   sub: string;
   email: string;
   role: User['role'];
   hotelId?: string;
   family: string;
+  sessionId?: string;
 }
 
 export interface AuthResult {
@@ -82,15 +108,45 @@ export class IdentityService {
   private async issueTokens(
     user: Pick<User, 'id' | 'email' | 'role'>,
     family?: string,
+    meta?: SessionMeta,
   ): Promise<Pick<AuthResult, 'accessToken' | 'refreshToken'>> {
     const tokenFamily = family ?? randomUUID();
     const hotelId = await this.resolveHotelId(user.id, user.role);
+
+    let sessionId = meta?.sessionId;
+    if (this.db.userSession) {
+      if (sessionId) {
+        await this.db.userSession.update({
+          where: { id: sessionId },
+          data: {
+            family: tokenFamily,
+            lastActiveAt: new Date(),
+            ...(meta?.ipAddress ? { ipAddress: meta.ipAddress } : {}),
+            ...(meta?.userAgent ? { userAgent: meta.userAgent } : {}),
+          },
+        });
+      } else {
+        const session = await this.db.userSession.create({
+          data: {
+            userId: user.id,
+            family: tokenFamily,
+            refreshTokenHash: '',
+            deviceName: parseDeviceName(meta?.userAgent),
+            userAgent: meta?.userAgent,
+            ipAddress: meta?.ipAddress,
+            lastActiveAt: new Date(),
+          },
+        });
+        sessionId = session.id;
+      }
+    }
 
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
       family: tokenFamily,
+      ...(sessionId ? { sessionId } : {}),
       ...(hotelId ? { hotelId } : {}),
     };
 
@@ -108,10 +164,19 @@ export class IdentityService {
       ) as JwtSignOptions['expiresIn'],
     });
 
+    const refreshTokenHash = await bcrypt.hash(refreshToken, BCRYPT_ROUNDS);
+
+    if (sessionId && this.db.userSession) {
+      await this.db.userSession.update({
+        where: { id: sessionId },
+        data: { refreshTokenHash },
+      });
+    }
+
     await this.db.user.update({
       where: { id: user.id },
       data: {
-        refreshTokenHash: await bcrypt.hash(refreshToken, BCRYPT_ROUNDS),
+        refreshTokenHash,
         refreshTokenFamily: tokenFamily,
       },
     });
@@ -119,7 +184,10 @@ export class IdentityService {
     return { accessToken, refreshToken };
   }
 
-  async register(dto: RegisterInput): Promise<AuthResult> {
+  async register(
+    dto: RegisterInput,
+    meta?: SessionMeta,
+  ): Promise<AuthResult> {
     const email = dto.email.toLowerCase();
     const existing = await this.db.user.findUnique({ where: { email } });
     if (existing) {
@@ -139,10 +207,16 @@ export class IdentityService {
 
     void this.mail.enqueueVerification(email, verificationToken);
 
-    return { user: this.safeUser(user), ...(await this.issueTokens(user)) };
+    return {
+      user: this.safeUser(user),
+      ...(await this.issueTokens(user, undefined, meta)),
+    };
   }
 
-  async login(dto: LoginInput): Promise<AuthResult> {
+  async login(
+    dto: LoginInput,
+    meta?: SessionMeta,
+  ): Promise<AuthResult> {
     const user = await this.db.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
@@ -203,10 +277,16 @@ export class IdentityService {
       },
     });
 
-    return { user: this.safeUser(user), ...(await this.issueTokens(user)) };
+    return {
+      user: this.safeUser(user),
+      ...(await this.issueTokens(user, undefined, meta)),
+    };
   }
 
-  async refresh(refreshToken: string): Promise<AuthResult> {
+  async refresh(
+    refreshToken: string,
+    meta?: SessionMeta,
+  ): Promise<AuthResult> {
     let payload: JwtPayload;
     try {
       payload = await this.jwt.verifyAsync<JwtPayload>(refreshToken, {
@@ -218,30 +298,59 @@ export class IdentityService {
 
     const user = await this.db.user.findUnique({ where: { id: payload.sub } });
 
-    const tokenValid =
-      user !== null &&
-      user.refreshTokenHash !== null &&
-      (await bcrypt.compare(refreshToken, user.refreshTokenHash));
+    if (payload.sessionId && this.db.userSession) {
+      const session = await this.db.userSession.findUnique({
+        where: { id: payload.sessionId },
+      });
 
-    if (!user || !tokenValid) {
-      if (user && payload.family && user.refreshTokenFamily !== null) {
+      if (
+        !session ||
+        session.userId !== user?.id ||
+        session.revokedAt !== null
+      ) {
+        throw new UnauthorizedException(
+          'Session has been revoked or is invalid',
+        );
+      }
+
+      const tokenValid =
+        session.refreshTokenHash !== null &&
+        (await bcrypt.compare(refreshToken, session.refreshTokenHash));
+
+      if (!tokenValid || session.family !== payload.family) {
+        await this.db.userSession.update({
+          where: { id: session.id },
+          data: { revokedAt: new Date() },
+        });
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+    } else {
+      const tokenValid =
+        user !== null &&
+        user.refreshTokenHash !== null &&
+        (await bcrypt.compare(refreshToken, user.refreshTokenHash));
+
+      if (!user || !tokenValid) {
+        if (user && payload.family && user.refreshTokenFamily !== null) {
+          await this.db.user.update({
+            where: { id: user.id },
+            data: { refreshTokenHash: null, refreshTokenFamily: null },
+          });
+        }
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      if (user.refreshTokenFamily !== payload.family) {
         await this.db.user.update({
           where: { id: user.id },
           data: { refreshTokenHash: null, refreshTokenFamily: null },
         });
+        throw new UnauthorizedException('Invalid refresh token');
       }
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    if (user.refreshTokenFamily !== payload.family) {
-      await this.db.user.update({
-        where: { id: user.id },
-        data: { refreshTokenHash: null, refreshTokenFamily: null },
-      });
-      throw new UnauthorizedException('Invalid refresh token');
     }
 
     if (
+      !user ||
       user.status === 'DELETED' ||
       user.status === 'SUSPENDED' ||
       !user.isActive
@@ -251,11 +360,20 @@ export class IdentityService {
 
     return {
       user: this.safeUser(user),
-      ...(await this.issueTokens(user, payload.family)),
+      ...(await this.issueTokens(user, payload.family, {
+        ...meta,
+        sessionId: payload.sessionId,
+      })),
     };
   }
 
-  async logout(id: string): Promise<{ message: string }> {
+  async logout(id: string, sessionId?: string): Promise<{ message: string }> {
+    if (sessionId && this.db.userSession) {
+      await this.db.userSession.updateMany({
+        where: { id: sessionId, userId: id },
+        data: { revokedAt: new Date() },
+      });
+    }
     await this.db.user.update({
       where: { id },
       data: { refreshTokenHash: null, refreshTokenFamily: null },
@@ -407,5 +525,59 @@ export class IdentityService {
       },
     });
     return { message: 'Password reset' };
+  }
+
+  async listSessions(userId: string, currentSessionId?: string) {
+    if (!this.db.userSession) return [];
+    const sessions = await this.db.userSession.findMany({
+      where: { userId, revokedAt: null },
+      orderBy: { lastActiveAt: 'desc' },
+    });
+    return sessions.map((s) => ({
+      id: s.id,
+      deviceName: s.deviceName || 'Unknown Device',
+      ipAddress: s.ipAddress,
+      lastActiveAt: s.lastActiveAt,
+      createdAt: s.createdAt,
+      isCurrent: s.id === currentSessionId,
+    }));
+  }
+
+  async revokeSession(
+    userId: string,
+    sessionId: string,
+  ): Promise<{ message: string }> {
+    if (!this.db.userSession) {
+      return { message: 'Session revoked successfully' };
+    }
+    const session = await this.db.userSession.findFirst({
+      where: { id: sessionId, userId },
+    });
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+    await this.db.userSession.update({
+      where: { id: sessionId },
+      data: { revokedAt: new Date() },
+    });
+    return { message: 'Session revoked successfully' };
+  }
+
+  async revokeAllOtherSessions(
+    userId: string,
+    currentSessionId?: string,
+  ): Promise<{ message: string }> {
+    if (!this.db.userSession) {
+      return { message: 'All other sessions revoked successfully' };
+    }
+    await this.db.userSession.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+        ...(currentSessionId ? { id: { not: currentSessionId } } : {}),
+      },
+      data: { revokedAt: new Date() },
+    });
+    return { message: 'All other sessions revoked successfully' };
   }
 }

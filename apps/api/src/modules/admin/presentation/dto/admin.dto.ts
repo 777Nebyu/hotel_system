@@ -7,12 +7,14 @@ import {
   adminUsersQuerySchema,
   auditLogsQuerySchema,
   exportQuerySchema,
+  flagUserSchema,
   reassignManagerSchema,
   rejectHotelSchema,
   reportParamsSchema,
   reportQuerySchema,
   setUserActiveSchema,
   settingParamsSchema,
+  unflagUserSchema,
   updateHotelStatusSchema,
   updateUserRoleSchema,
   upsertSettingSchema,
@@ -24,6 +26,8 @@ export class UpdateUserRoleDto extends createZodDto(updateUserRoleSchema) {}
 export class SetUserActiveDto extends createZodDto(setUserActiveSchema) {}
 export class UserIdParamsDto extends createZodDto(userIdParamsSchema) {}
 export class ExportQueryDto extends createZodDto(exportQuerySchema) {}
+export class FlagUserDto extends createZodDto(flagUserSchema) {}
+export class UnflagUserDto extends createZodDto(unflagUserSchema) {}
 
 export class AdminHotelsQueryDto extends createZodDto(adminHotelsQuerySchema) {}
 export class UpdateHotelStatusDto extends createZodDto(

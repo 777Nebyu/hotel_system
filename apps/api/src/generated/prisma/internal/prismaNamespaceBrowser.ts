@@ -81,7 +81,8 @@ export const ModelName = {
   Dispute: 'Dispute',
   SuspensionRequest: 'SuspensionRequest',
   RoomHold: 'RoomHold',
-  StayRequest: 'StayRequest'
+  StayRequest: 'StayRequest',
+  UserSession: 'UserSession'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -123,7 +124,10 @@ export const UserScalarFieldEnum = {
   lockedUntil: 'lockedUntil',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  pushToken: 'pushToken'
+  pushToken: 'pushToken',
+  isFlagged: 'isFlagged',
+  flagReason: 'flagReason',
+  flaggedAt: 'flaggedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -516,6 +520,22 @@ export const StayRequestScalarFieldEnum = {
 } as const
 
 export type StayRequestScalarFieldEnum = (typeof StayRequestScalarFieldEnum)[keyof typeof StayRequestScalarFieldEnum]
+
+
+export const UserSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  refreshTokenHash: 'refreshTokenHash',
+  family: 'family',
+  deviceName: 'deviceName',
+  userAgent: 'userAgent',
+  ipAddress: 'ipAddress',
+  lastActiveAt: 'lastActiveAt',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type UserSessionScalarFieldEnum = (typeof UserSessionScalarFieldEnum)[keyof typeof UserSessionScalarFieldEnum]
 
 
 export const SortOrder = {

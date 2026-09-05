@@ -1,14 +1,23 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { NOTIFICATION_CHANNELS, NOTIFICATION_TYPES } from '../domain';
+import {
+  PUSH_NOTIFICATION_PROVIDER,
+  type PushNotificationProvider,
+} from '../infrastructure/push';
 import type { NotificationsQuery } from '@repo/shared-types';
 
 @Injectable()
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
 
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    @Optional()
+    @Inject(PUSH_NOTIFICATION_PROVIDER)
+    private readonly pushProvider?: PushNotificationProvider,
+  ) {}
 
   async notify(input: {
     userId: string;
@@ -54,10 +63,41 @@ export class NotificationService {
         select: { pushToken: true },
       });
       if (user?.pushToken) {
-        sentAt = new Date();
-        this.logger.log(
-          `Dispatched push notification to device token ${user.pushToken.slice(0, 10)}... for user ${input.userId}`,
-        );
+        if (this.pushProvider) {
+          const payloadObj =
+            typeof input.payload === 'object' && input.payload !== null
+              ? (input.payload as Record<string, unknown>)
+              : {};
+          const title =
+            (payloadObj.title as string) || `Notification: ${input.type}`;
+          const body =
+            (payloadObj.message as string) ||
+            (payloadObj.body as string) ||
+            'You have a new update';
+
+          const result = await this.pushProvider.send({
+            token: user.pushToken,
+            title,
+            body,
+            data: payloadObj,
+          });
+
+          if (result.success) {
+            sentAt = new Date();
+            this.logger.log(
+              `Delivered push notification (${result.messageId}) to user ${input.userId}`,
+            );
+          } else {
+            this.logger.warn(
+              `Push delivery failed for user ${input.userId}: ${result.error}`,
+            );
+          }
+        } else {
+          sentAt = new Date();
+          this.logger.log(
+            `Dispatched push notification to device token ${user.pushToken.slice(0, 10)}... for user ${input.userId}`,
+          );
+        }
       }
     }
 

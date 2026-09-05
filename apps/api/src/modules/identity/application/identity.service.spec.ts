@@ -30,9 +30,22 @@ type HotelDelegateMock = {
   findFirst: jest.Mock;
 };
 
+type UserSessionDelegateMock = {
+  findUnique: jest.Mock;
+  findFirst: jest.Mock;
+  findMany: jest.Mock;
+  create: jest.Mock;
+  update: jest.Mock;
+  updateMany: jest.Mock;
+};
+
 describe('IdentityService', () => {
   let service: IdentityService;
-  let db: { user: UserDelegateMock; hotel: HotelDelegateMock };
+  let db: {
+    user: UserDelegateMock;
+    hotel: HotelDelegateMock;
+    userSession: UserSessionDelegateMock;
+  };
   let jwt: { signAsync: jest.Mock; verifyAsync: jest.Mock };
   let config: { getOrThrow: jest.Mock };
   let mail: {
@@ -76,6 +89,18 @@ describe('IdentityService', () => {
       },
       hotel: {
         findFirst: jest.fn().mockResolvedValue(null),
+      },
+      userSession: {
+        findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn().mockImplementation((args) =>
+          Promise.resolve({ id: 'session-1', ...args.data }),
+        ),
+        update: jest.fn().mockImplementation((args) =>
+          Promise.resolve({ id: args.where.id, ...args.data }),
+        ),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
     };
     jwt = {
@@ -474,5 +499,106 @@ describe('IdentityService', () => {
 
     expect(result.profilePhotoUrl).toBe('/uploads/profiles/x.jpg');
     expect(storage.upload).toHaveBeenCalledWith(file, 'profiles');
+  });
+
+  describe('Session Management', () => {
+    it('creates a user session record upon login with device info', async () => {
+      db.user.findUnique.mockResolvedValue(baseUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      const result = await service.login(
+        { email: 'test@example.com', password: 'password123' },
+        { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', ipAddress: '127.0.0.1' },
+      );
+
+      expect(result.accessToken).toBeDefined();
+      expect(db.userSession.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            userId: 'user-1',
+            ipAddress: '127.0.0.1',
+            deviceName: expect.stringContaining('Windows'),
+          }),
+        }),
+      );
+    });
+
+    it('lists active sessions and flags current session', async () => {
+      const now = new Date();
+      db.userSession.findMany.mockResolvedValue([
+        {
+          id: 'session-1',
+          deviceName: 'Chrome on Windows',
+          ipAddress: '127.0.0.1',
+          lastActiveAt: now,
+          createdAt: now,
+        },
+        {
+          id: 'session-2',
+          deviceName: 'Safari on iOS',
+          ipAddress: '10.0.0.2',
+          lastActiveAt: now,
+          createdAt: now,
+        },
+      ]);
+
+      const sessions = await service.listSessions('user-1', 'session-1');
+
+      expect(sessions).toHaveLength(2);
+      expect(sessions[0].isCurrent).toBe(true);
+      expect(sessions[1].isCurrent).toBe(false);
+    });
+
+    it('revokes a specific session', async () => {
+      db.userSession.findFirst.mockResolvedValue({ id: 'session-2', userId: 'user-1' });
+
+      const res = await service.revokeSession('user-1', 'session-2');
+
+      expect(res.message).toContain('revoked');
+      expect(db.userSession.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'session-2' },
+          data: expect.objectContaining({ revokedAt: expect.any(Date) }),
+        }),
+      );
+    });
+
+    it('revokes all other sessions except current', async () => {
+      const res = await service.revokeAllOtherSessions('user-1', 'session-1');
+
+      expect(res.message).toContain('revoked');
+      expect(db.userSession.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 'user-1',
+            revokedAt: null,
+            id: { not: 'session-1' },
+          }),
+          data: expect.objectContaining({ revokedAt: expect.any(Date) }),
+        }),
+      );
+    });
+
+    it('rejects refresh token if session has been revoked', async () => {
+      jwt.verifyAsync.mockResolvedValue({
+        sub: 'user-1',
+        email: 'test@example.com',
+        role: 'CUSTOMER',
+        family: 'family-abc',
+        sessionId: 'session-revoked',
+      });
+      db.user.findUnique.mockResolvedValue(baseUser);
+      db.userSession.findUnique.mockResolvedValue({
+        id: 'session-revoked',
+        userId: 'user-1',
+        revokedAt: new Date(),
+        refreshTokenHash: 'hashed',
+        family: 'family-abc',
+      });
+
+      await expect(service.refresh('token-revoked')).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
   });
 });

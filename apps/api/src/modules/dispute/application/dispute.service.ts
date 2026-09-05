@@ -1,10 +1,12 @@
-﻿import {
+import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { DisputeStatus, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { FraudService } from '../../fraud/application/fraud.service';
 import type {
   CreateDisputeInput,
   DisputeQuery,
@@ -13,7 +15,11 @@ import type {
 
 @Injectable()
 export class DisputeService {
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    @Optional()
+    private readonly fraud?: FraudService,
+  ) {}
 
   async create(dto: CreateDisputeInput, userId: string) {
     const booking = await this.db.booking.findUnique({
@@ -23,7 +29,7 @@ export class DisputeService {
     if (booking.userId !== userId) {
       throw new ForbiddenException('You can only dispute your own bookings');
     }
-    return this.db.dispute.create({
+    const dispute = await this.db.dispute.create({
       data: {
         bookingId: dto.bookingId,
         openedById: userId,
@@ -34,6 +40,12 @@ export class DisputeService {
         openedBy: { select: { id: true, fullName: true, email: true } },
       },
     });
+
+    if (this.fraud) {
+      void this.fraud.checkDisputeVelocity(userId);
+    }
+
+    return dispute;
   }
 
   async listForUser(userId: string, query: DisputeQuery) {

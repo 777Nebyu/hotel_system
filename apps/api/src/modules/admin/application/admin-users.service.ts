@@ -40,6 +40,9 @@ export class AdminUsersService {
           phone: true,
           role: true,
           isActive: true,
+          isFlagged: true,
+          flagReason: true,
+          flaggedAt: true,
           profilePhotoUrl: true,
           emailVerifiedAt: true,
           createdAt: true,
@@ -127,6 +130,9 @@ export class AdminUsersService {
         phone: true,
         role: true,
         isActive: true,
+        isFlagged: true,
+        flagReason: true,
+        flaggedAt: true,
         profilePhotoUrl: true,
         emailVerifiedAt: true,
         createdAt: true,
@@ -138,5 +144,80 @@ export class AdminUsersService {
     });
     if (!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async listFlagged() {
+    return this.db.user.findMany({
+      where: { isFlagged: true },
+      orderBy: { flaggedAt: 'desc' },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        phone: true,
+        role: true,
+        isFlagged: true,
+        flagReason: true,
+        flaggedAt: true,
+        createdAt: true,
+        _count: {
+          select: { bookings: true, reviews: true, favorites: true },
+        },
+      },
+    });
+  }
+
+  async flagUser(userId: string, reason: string, actorId: string) {
+    await this.db.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+    const updated = await this.db.user.update({
+      where: { id: userId },
+      data: {
+        isFlagged: true,
+        flagReason: reason,
+        flaggedAt: new Date(),
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        isFlagged: true,
+        flagReason: true,
+        flaggedAt: true,
+      },
+    });
+    await this.audit.record(actorId, 'USER_FLAGGED', 'User', userId, {
+      reason,
+    });
+    return updated;
+  }
+
+  async unflagUser(userId: string, reason: string | undefined, actorId: string) {
+    await this.db.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+    const updated = await this.db.user.update({
+      where: { id: userId },
+      data: {
+        isFlagged: false,
+        flagReason: null,
+        flaggedAt: null,
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        isFlagged: true,
+        flagReason: true,
+        flaggedAt: true,
+      },
+    });
+    await this.audit.record(actorId, 'USER_UNFLAGGED', 'User', userId, {
+      reason: reason || 'Manual unflag by admin',
+    });
+    return updated;
   }
 }
