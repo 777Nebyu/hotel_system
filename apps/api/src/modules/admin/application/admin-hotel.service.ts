@@ -56,6 +56,20 @@ export class AdminHotelService {
               : before.rejectionReason,
       },
     });
+    await this.db.hotelStatusHistory.create({
+      data: {
+        hotelId,
+        status,
+        changedBy: actorId,
+        reason:
+          dto.rejectionReason ??
+          (status === 'ACTIVE'
+            ? 'Status updated to ACTIVE'
+            : status === 'SUSPENDED'
+              ? 'Hotel manually suspended by admin'
+              : null),
+      },
+    });
     await this.audit.record(actorId, 'UPDATE_STATUS', 'Hotel', hotelId, {
       status: { from: before.status, to: status },
       rejectionReason: updated.rejectionReason,
@@ -72,6 +86,14 @@ export class AdminHotelService {
       data: {
         status: HotelStatus.ACTIVE,
         rejectionReason: null,
+      },
+    });
+    await this.db.hotelStatusHistory.create({
+      data: {
+        hotelId,
+        status: HotelStatus.ACTIVE,
+        changedBy: actorId,
+        reason: 'Hotel approved by admin',
       },
     });
     await this.audit.record(actorId, 'APPROVE_HOTEL', 'Hotel', hotelId, {
@@ -91,11 +113,31 @@ export class AdminHotelService {
         rejectionReason: reason,
       },
     });
+    await this.db.hotelStatusHistory.create({
+      data: {
+        hotelId,
+        status: HotelStatus.REJECTED,
+        changedBy: actorId,
+        reason,
+      },
+    });
     await this.audit.record(actorId, 'REJECT_HOTEL', 'Hotel', hotelId, {
       status: { from: before.status, to: HotelStatus.REJECTED },
       reason,
     });
     return updated;
+  }
+
+  async getStatusHistory(hotelId: string) {
+    const hotel = await this.db.hotel.findUnique({
+      where: { id: hotelId },
+      select: { id: true },
+    });
+    if (!hotel) throw new NotFoundException('Hotel not found');
+    return this.db.hotelStatusHistory.findMany({
+      where: { hotelId },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async reassignManager(

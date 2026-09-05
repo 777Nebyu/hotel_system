@@ -1,4 +1,4 @@
-﻿import {
+import {
   BadRequestException,
   ForbiddenException,
   Injectable,
@@ -122,6 +122,14 @@ export class AdminSuspensionService {
       await this.db.hotel.update({
         where: { id: targetId },
         data: { status: HotelStatus.SUSPENDED },
+      });
+      await this.db.hotelStatusHistory.create({
+        data: {
+          hotelId: targetId,
+          status: HotelStatus.SUSPENDED,
+          changedBy: actorId,
+          reason: 'Suspended via approved emergency two-admin suspension',
+        },
       });
     }
   }

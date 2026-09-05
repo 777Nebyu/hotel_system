@@ -120,7 +120,11 @@ export class BookingService {
       select: { emailVerifiedAt: true, role: true },
     });
     if (!user) throw new NotFoundException('User not found');
-    if (user.role === 'CUSTOMER' && !user.emailVerifiedAt) {
+    if (
+      user.role === 'CUSTOMER' &&
+      !user.emailVerifiedAt &&
+      input.bookingSource !== 'WALK_IN'
+    ) {
       throw new BadRequestException(
         'You must verify your email address before making a booking',
       );

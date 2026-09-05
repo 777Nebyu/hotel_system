@@ -85,6 +85,16 @@ export class ManagerCatalogController {
     return this.manager.deleteHotel(params.id, req.user);
   }
 
+  @Get('hotels/:id/status-history')
+  @Roles(Role.MANAGER, Role.ADMIN)
+  @ApiOperation({ summary: 'Get hotel status history' })
+  getHotelStatusHistory(
+    @Param() params: HotelIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.manager.getHotelStatusHistory(params.id, req.user);
+  }
+
   @Get('hotels/:id/policy')
   @Roles(Role.MANAGER, Role.ADMIN)
   @ApiOperation({ summary: 'Get hotel policy rules' })

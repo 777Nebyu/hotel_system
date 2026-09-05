@@ -5,12 +5,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
+import * as bcrypt from 'bcrypt';
 import { BookingStatus, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
 import { AuditService } from '../../../common/services/audit.service';
+import { BookingService } from './booking.service';
 import { canTransition } from '../domain';
 import type {
+  CreateBookingInput,
+  CreateWalkInBookingInput,
   DecideStayRequestInput,
   EarlyCheckInActionInput,
   LateCheckOutActionInput,
@@ -29,6 +34,7 @@ export class ManagerBookingService {
     private readonly db: PrismaService,
     private readonly scope: ResourceScopeHelper,
     private readonly audit: AuditService,
+    private readonly bookings: BookingService,
   ) {}
 
   async listBookings(query: ManageBookingsQuery, actor: BookingActor) {
@@ -482,6 +488,113 @@ export class ManagerBookingService {
       to,
     });
     return updated;
+  }
+
+  async createWalkInBooking(
+    dto: CreateWalkInBookingInput,
+    actor: BookingActor,
+  ) {
+    await this.assertCanManage(dto.hotelId, actor);
+
+    let guest = dto.guestEmail
+      ? await this.db.user.findUnique({
+          where: { email: dto.guestEmail.toLowerCase() },
+        })
+      : null;
+
+    if (!guest) {
+      const email = dto.guestEmail
+        ? dto.guestEmail.toLowerCase()
+        : `walkin_${Date.now()}_${randomBytes(4).toString('hex')}@hotel.local`;
+      const passwordHash = await bcrypt.hash(
+        randomBytes(16).toString('hex'),
+        10,
+      );
+      guest = await this.db.user.create({
+        data: {
+          email,
+          fullName: dto.guestName,
+          phone: dto.guestPhone,
+          passwordHash,
+          role: 'CUSTOMER',
+          status: 'ACTIVE',
+          emailVerifiedAt: new Date(),
+        },
+      });
+    }
+
+    const bookingInput: CreateBookingInput = {
+      hotelId: dto.hotelId,
+      roomIds: dto.roomIds,
+      checkIn: dto.checkIn,
+      checkOut: dto.checkOut,
+      guests: dto.guests,
+      guestInfos: [
+        {
+          fullName: dto.guestName,
+          email: dto.guestEmail,
+          phone: dto.guestPhone,
+        },
+      ],
+      paymentMethod: dto.paymentMethod,
+      bookingSource: 'WALK_IN',
+      promoCode: dto.promoCode,
+    };
+
+    const booking = await this.bookings.createBooking(bookingInput, guest.id);
+
+    if (dto.paidImmediately) {
+      await this.db.$transaction(async (tx) => {
+        await tx.booking.update({
+          where: { id: booking.id },
+          data: { status: 'CONFIRMED' },
+        });
+        if (booking.payment) {
+          await tx.payment.update({
+            where: { id: booking.payment.id },
+            data: { status: 'SUCCEEDED' },
+          });
+          await tx.paymentAttempt.create({
+            data: {
+              paymentId: booking.payment.id,
+              method: dto.paymentMethod,
+              outcome: 'SUCCESS',
+            },
+          });
+        }
+        await tx.bookingStatusHistory.create({
+          data: {
+            bookingId: booking.id,
+            status: 'CONFIRMED',
+            changedBy: actor.sub,
+            reason: `Walk-in booking confirmed (paid via ${dto.paymentMethod} at hotel)`,
+          },
+        });
+      });
+    }
+
+    await this.audit.record(
+      actor.sub,
+      'WALK_IN_BOOKING_CREATED',
+      'Booking',
+      booking.id,
+      {
+        hotelId: dto.hotelId,
+        paidImmediately: dto.paidImmediately,
+        guestName: dto.guestName,
+        bookingRef: booking.bookingRef,
+      },
+    );
+
+    return this.db.booking.findUniqueOrThrow({
+      where: { id: booking.id },
+      include: {
+        hotel: { select: { id: true, name: true } },
+        details: { include: { room: true } },
+        payment: true,
+        user: { select: { id: true, fullName: true, email: true, phone: true } },
+      },
+    });
   }
 
   private async managedHotelIds(actor: BookingActor): Promise<string[]> {

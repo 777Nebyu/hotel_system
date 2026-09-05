@@ -14,7 +14,10 @@ import {
   ManageBookingsQueryDto,
   RelocateRoomDto,
   StayRequestIdParamsDto,
+  CreateWalkInBookingDto,
 } from './dto/manager-booking.dto';
+
+import { RequireFeatureFlag } from '../../feature-flags/feature-flag.decorator';
 
 class HotelIdParamsDto extends createZodDto(hotelIdParamsSchema) {}
 
@@ -28,6 +31,16 @@ interface AuthedRequest {
 @Controller('bookings')
 export class ManagerBookingController {
   constructor(private readonly managerBookings: ManagerBookingService) {}
+
+  @Post('walk-in')
+  @RequireFeatureFlag('ENABLE_WALK_IN_BOOKINGS')
+  @ApiOperation({ summary: 'Create a walk-in booking at hotel front desk' })
+  createWalkIn(
+    @Body() dto: CreateWalkInBookingDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.managerBookings.createWalkInBooking(dto, req.user);
+  }
 
   @Get('manage')
   @ApiOperation({ summary: 'List bookings across managed hotels' })

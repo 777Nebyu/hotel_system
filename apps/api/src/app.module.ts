@@ -28,6 +28,8 @@ import { CouponModule } from './modules/coupon/coupon.module';
 import { InvoiceModule } from './modules/invoice/invoice.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { DisputeModule } from './modules/dispute/dispute.module';
+import { FeatureFlagModule } from './modules/feature-flags/feature-flag.module';
+import { FeatureFlagGuard } from './modules/feature-flags/feature-flag.guard';
 
 @Module({
   imports: [
@@ -60,12 +62,14 @@ import { DisputeModule } from './modules/dispute/dispute.module';
     InvoiceModule,
     JobsModule,
     DisputeModule,
+    FeatureFlagModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: FeatureFlagGuard },
   ],
 })
 export class AppModule implements NestModule {

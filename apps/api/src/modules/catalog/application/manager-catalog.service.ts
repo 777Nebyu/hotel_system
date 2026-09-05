@@ -131,6 +131,14 @@ export class ManagerCatalogService {
     return { deleted: true };
   }
 
+  async getHotelStatusHistory(hotelId: string, actor: CatalogActor) {
+    await this.assertCanManage(hotelId, actor);
+    return this.db.hotelStatusHistory.findMany({
+      where: { hotelId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async getHotelPolicy(hotelId: string, actor: CatalogActor) {
     await this.assertCanManage(hotelId, actor);
     const policy = await this.db.hotelPolicy.findUnique({

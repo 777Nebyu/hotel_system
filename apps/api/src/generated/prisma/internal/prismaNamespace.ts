@@ -412,6 +412,7 @@ export const ModelName = {
   Booking: 'Booking',
   BookingDetail: 'BookingDetail',
   BookingStatusHistory: 'BookingStatusHistory',
+  HotelStatusHistory: 'HotelStatusHistory',
   Payment: 'Payment',
   PaymentAttempt: 'PaymentAttempt',
   Review: 'Review',
@@ -442,7 +443,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "country" | "city" | "hotel" | "hotelImage" | "amenity" | "hotelAmenity" | "room" | "roomImage" | "roomAmenity" | "roomAvailability" | "seasonalPricing" | "booking" | "bookingDetail" | "bookingStatusHistory" | "payment" | "paymentAttempt" | "review" | "favorite" | "coupon" | "notification" | "auditLog" | "platformSetting" | "hotelPolicy" | "notificationPreference" | "staffHotel" | "dispute" | "suspensionRequest" | "roomHold" | "stayRequest"
+    modelProps: "user" | "country" | "city" | "hotel" | "hotelImage" | "amenity" | "hotelAmenity" | "room" | "roomImage" | "roomAmenity" | "roomAvailability" | "seasonalPricing" | "booking" | "bookingDetail" | "bookingStatusHistory" | "hotelStatusHistory" | "payment" | "paymentAttempt" | "review" | "favorite" | "coupon" | "notification" | "auditLog" | "platformSetting" | "hotelPolicy" | "notificationPreference" | "staffHotel" | "dispute" | "suspensionRequest" | "roomHold" | "stayRequest"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1553,6 +1554,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.BookingStatusHistoryCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.BookingStatusHistoryCountAggregateOutputType> | number
+        }
+      }
+    }
+    HotelStatusHistory: {
+      payload: Prisma.$HotelStatusHistoryPayload<ExtArgs>
+      fields: Prisma.HotelStatusHistoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HotelStatusHistoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HotelStatusHistoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload>
+        }
+        findFirst: {
+          args: Prisma.HotelStatusHistoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HotelStatusHistoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload>
+        }
+        findMany: {
+          args: Prisma.HotelStatusHistoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload>[]
+        }
+        create: {
+          args: Prisma.HotelStatusHistoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload>
+        }
+        createMany: {
+          args: Prisma.HotelStatusHistoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HotelStatusHistoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload>[]
+        }
+        delete: {
+          args: Prisma.HotelStatusHistoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload>
+        }
+        update: {
+          args: Prisma.HotelStatusHistoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.HotelStatusHistoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HotelStatusHistoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HotelStatusHistoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.HotelStatusHistoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HotelStatusHistoryPayload>
+        }
+        aggregate: {
+          args: Prisma.HotelStatusHistoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHotelStatusHistory>
+        }
+        groupBy: {
+          args: Prisma.HotelStatusHistoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HotelStatusHistoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HotelStatusHistoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HotelStatusHistoryCountAggregateOutputType> | number
         }
       }
     }
@@ -2904,6 +2979,18 @@ export const BookingStatusHistoryScalarFieldEnum = {
 export type BookingStatusHistoryScalarFieldEnum = (typeof BookingStatusHistoryScalarFieldEnum)[keyof typeof BookingStatusHistoryScalarFieldEnum]
 
 
+export const HotelStatusHistoryScalarFieldEnum = {
+  id: 'id',
+  hotelId: 'hotelId',
+  status: 'status',
+  changedBy: 'changedBy',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type HotelStatusHistoryScalarFieldEnum = (typeof HotelStatusHistoryScalarFieldEnum)[keyof typeof HotelStatusHistoryScalarFieldEnum]
+
+
 export const PaymentScalarFieldEnum = {
   id: 'id',
   bookingId: 'bookingId',
@@ -3589,6 +3676,7 @@ export type GlobalOmitConfig = {
   booking?: Prisma.BookingOmit
   bookingDetail?: Prisma.BookingDetailOmit
   bookingStatusHistory?: Prisma.BookingStatusHistoryOmit
+  hotelStatusHistory?: Prisma.HotelStatusHistoryOmit
   payment?: Prisma.PaymentOmit
   paymentAttempt?: Prisma.PaymentAttemptOmit
   review?: Prisma.ReviewOmit

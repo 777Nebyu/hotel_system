@@ -66,6 +66,7 @@ export const ModelName = {
   Booking: 'Booking',
   BookingDetail: 'BookingDetail',
   BookingStatusHistory: 'BookingStatusHistory',
+  HotelStatusHistory: 'HotelStatusHistory',
   Payment: 'Payment',
   PaymentAttempt: 'PaymentAttempt',
   Review: 'Review',
@@ -296,6 +297,18 @@ export const BookingStatusHistoryScalarFieldEnum = {
 } as const
 
 export type BookingStatusHistoryScalarFieldEnum = (typeof BookingStatusHistoryScalarFieldEnum)[keyof typeof BookingStatusHistoryScalarFieldEnum]
+
+
+export const HotelStatusHistoryScalarFieldEnum = {
+  id: 'id',
+  hotelId: 'hotelId',
+  status: 'status',
+  changedBy: 'changedBy',
+  reason: 'reason',
+  createdAt: 'createdAt'
+} as const
+
+export type HotelStatusHistoryScalarFieldEnum = (typeof HotelStatusHistoryScalarFieldEnum)[keyof typeof HotelStatusHistoryScalarFieldEnum]
 
 
 export const PaymentScalarFieldEnum = {

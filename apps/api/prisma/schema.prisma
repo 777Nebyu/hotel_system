@@ -157,6 +157,7 @@ model Hotel {
   reviews          Review[]
   favorites        Favorite[]
   staffAssignments StaffHotel[]
+  statusHistory    HotelStatusHistory[]
 }
 
 model HotelImage {
@@ -301,6 +302,18 @@ model BookingStatusHistory {
   createdAt DateTime @default(now())
 
   @@index([bookingId])
+}
+
+model HotelStatusHistory {
+  id        String      @id @default(cuid())
+  hotelId   String
+  hotel     Hotel       @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  status    HotelStatus
+  changedBy String
+  reason    String?
+  createdAt DateTime    @default(now())
+
+  @@index([hotelId])
 }
 
 model Payment {

@@ -192,3 +192,21 @@ export const relocateRoomSchema = z.object({
   reason: z.string().min(3).max(500),
 });
 export type RelocateRoomInput = z.infer<typeof relocateRoomSchema>;
+
+export const createWalkInBookingSchema = z
+  .object({
+    hotelId: id,
+    roomIds: z.array(id).min(1).max(10),
+    checkIn: dateOnly,
+    checkOut: dateOnly,
+    guests: guestsSchema.default({ adults: 1, children: 0 }),
+    guestName: z.string().min(2).max(120),
+    guestEmail: z.string().email().optional(),
+    guestPhone: z.string().min(3).max(30),
+    guestIdNumber: z.string().min(3).max(50).optional(),
+    paymentMethod: paymentMethodSchema.default('CASH'),
+    paidImmediately: z.boolean().default(true),
+    promoCode: z.string().min(3).max(20).optional(),
+  })
+  .refine((d) => d.checkOut > d.checkIn, stayRefine);
+export type CreateWalkInBookingInput = z.infer<typeof createWalkInBookingSchema>;

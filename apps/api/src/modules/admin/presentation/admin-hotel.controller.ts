@@ -80,4 +80,10 @@ export class AdminHotelController {
   ) {
     return this.hotels.reassignManager(params.id, dto, req.user.sub);
   }
+
+  @Get(':id/status-history')
+  @ApiOperation({ summary: 'Get hotel status transition history' })
+  getStatusHistory(@Param() params: HotelIdParamsDto) {
+    return this.hotels.getStatusHistory(params.id);
+  }
 }
