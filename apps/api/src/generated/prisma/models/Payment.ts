@@ -46,6 +46,7 @@ export type PaymentMinAggregateOutputType = {
   invoiceUrl: string | null
   refundAmount: runtime.Decimal | null
   refundedAt: Date | null
+  deletedAt: Date | null
   createdAt: Date | null
 }
 
@@ -59,6 +60,7 @@ export type PaymentMaxAggregateOutputType = {
   invoiceUrl: string | null
   refundAmount: runtime.Decimal | null
   refundedAt: Date | null
+  deletedAt: Date | null
   createdAt: Date | null
 }
 
@@ -72,6 +74,7 @@ export type PaymentCountAggregateOutputType = {
   invoiceUrl: number
   refundAmount: number
   refundedAt: number
+  deletedAt: number
   createdAt: number
   _all: number
 }
@@ -97,6 +100,7 @@ export type PaymentMinAggregateInputType = {
   invoiceUrl?: true
   refundAmount?: true
   refundedAt?: true
+  deletedAt?: true
   createdAt?: true
 }
 
@@ -110,6 +114,7 @@ export type PaymentMaxAggregateInputType = {
   invoiceUrl?: true
   refundAmount?: true
   refundedAt?: true
+  deletedAt?: true
   createdAt?: true
 }
 
@@ -123,6 +128,7 @@ export type PaymentCountAggregateInputType = {
   invoiceUrl?: true
   refundAmount?: true
   refundedAt?: true
+  deletedAt?: true
   createdAt?: true
   _all?: true
 }
@@ -223,6 +229,7 @@ export type PaymentGroupByOutputType = {
   invoiceUrl: string | null
   refundAmount: runtime.Decimal | null
   refundedAt: Date | null
+  deletedAt: Date | null
   createdAt: Date
   _count: PaymentCountAggregateOutputType | null
   _avg: PaymentAvgAggregateOutputType | null
@@ -259,6 +266,7 @@ export type PaymentWhereInput = {
   invoiceUrl?: Prisma.StringNullableFilter<"Payment"> | string | null
   refundAmount?: Prisma.DecimalNullableFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.DateTimeNullableFilter<"Payment"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"Payment"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Payment"> | Date | string
   booking?: Prisma.XOR<Prisma.BookingScalarRelationFilter, Prisma.BookingWhereInput>
   attempts?: Prisma.PaymentAttemptListRelationFilter
@@ -274,6 +282,7 @@ export type PaymentOrderByWithRelationInput = {
   invoiceUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   refundAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   refundedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   booking?: Prisma.BookingOrderByWithRelationInput
   attempts?: Prisma.PaymentAttemptOrderByRelationAggregateInput
@@ -292,6 +301,7 @@ export type PaymentWhereUniqueInput = Prisma.AtLeast<{
   invoiceUrl?: Prisma.StringNullableFilter<"Payment"> | string | null
   refundAmount?: Prisma.DecimalNullableFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.DateTimeNullableFilter<"Payment"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableFilter<"Payment"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Payment"> | Date | string
   booking?: Prisma.XOR<Prisma.BookingScalarRelationFilter, Prisma.BookingWhereInput>
   attempts?: Prisma.PaymentAttemptListRelationFilter
@@ -307,6 +317,7 @@ export type PaymentOrderByWithAggregationInput = {
   invoiceUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   refundAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   refundedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.PaymentCountOrderByAggregateInput
   _avg?: Prisma.PaymentAvgOrderByAggregateInput
@@ -328,6 +339,7 @@ export type PaymentScalarWhereWithAggregatesInput = {
   invoiceUrl?: Prisma.StringNullableWithAggregatesFilter<"Payment"> | string | null
   refundAmount?: Prisma.DecimalNullableWithAggregatesFilter<"Payment"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Payment"> | Date | string | null
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Payment"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Payment"> | Date | string
 }
 
@@ -340,6 +352,7 @@ export type PaymentCreateInput = {
   invoiceUrl?: string | null
   refundAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Date | string | null
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   booking: Prisma.BookingCreateNestedOneWithoutPaymentInput
   attempts?: Prisma.PaymentAttemptCreateNestedManyWithoutPaymentInput
@@ -355,6 +368,7 @@ export type PaymentUncheckedCreateInput = {
   invoiceUrl?: string | null
   refundAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Date | string | null
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   attempts?: Prisma.PaymentAttemptUncheckedCreateNestedManyWithoutPaymentInput
 }
@@ -368,6 +382,7 @@ export type PaymentUpdateInput = {
   invoiceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refundAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   booking?: Prisma.BookingUpdateOneRequiredWithoutPaymentNestedInput
   attempts?: Prisma.PaymentAttemptUpdateManyWithoutPaymentNestedInput
@@ -383,6 +398,7 @@ export type PaymentUncheckedUpdateInput = {
   invoiceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refundAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attempts?: Prisma.PaymentAttemptUncheckedUpdateManyWithoutPaymentNestedInput
 }
@@ -397,6 +413,7 @@ export type PaymentCreateManyInput = {
   invoiceUrl?: string | null
   refundAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Date | string | null
+  deletedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -409,6 +426,7 @@ export type PaymentUpdateManyMutationInput = {
   invoiceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refundAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -422,6 +440,7 @@ export type PaymentUncheckedUpdateManyInput = {
   invoiceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refundAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -440,6 +459,7 @@ export type PaymentCountOrderByAggregateInput = {
   invoiceUrl?: Prisma.SortOrder
   refundAmount?: Prisma.SortOrder
   refundedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -458,6 +478,7 @@ export type PaymentMaxOrderByAggregateInput = {
   invoiceUrl?: Prisma.SortOrder
   refundAmount?: Prisma.SortOrder
   refundedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -471,6 +492,7 @@ export type PaymentMinOrderByAggregateInput = {
   invoiceUrl?: Prisma.SortOrder
   refundAmount?: Prisma.SortOrder
   refundedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -543,6 +565,7 @@ export type PaymentCreateWithoutBookingInput = {
   invoiceUrl?: string | null
   refundAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Date | string | null
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   attempts?: Prisma.PaymentAttemptCreateNestedManyWithoutPaymentInput
 }
@@ -556,6 +579,7 @@ export type PaymentUncheckedCreateWithoutBookingInput = {
   invoiceUrl?: string | null
   refundAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Date | string | null
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   attempts?: Prisma.PaymentAttemptUncheckedCreateNestedManyWithoutPaymentInput
 }
@@ -585,6 +609,7 @@ export type PaymentUpdateWithoutBookingInput = {
   invoiceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refundAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attempts?: Prisma.PaymentAttemptUpdateManyWithoutPaymentNestedInput
 }
@@ -598,6 +623,7 @@ export type PaymentUncheckedUpdateWithoutBookingInput = {
   invoiceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refundAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   attempts?: Prisma.PaymentAttemptUncheckedUpdateManyWithoutPaymentNestedInput
 }
@@ -611,6 +637,7 @@ export type PaymentCreateWithoutAttemptsInput = {
   invoiceUrl?: string | null
   refundAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Date | string | null
+  deletedAt?: Date | string | null
   createdAt?: Date | string
   booking: Prisma.BookingCreateNestedOneWithoutPaymentInput
 }
@@ -625,6 +652,7 @@ export type PaymentUncheckedCreateWithoutAttemptsInput = {
   invoiceUrl?: string | null
   refundAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Date | string | null
+  deletedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -653,6 +681,7 @@ export type PaymentUpdateWithoutAttemptsInput = {
   invoiceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refundAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   booking?: Prisma.BookingUpdateOneRequiredWithoutPaymentNestedInput
 }
@@ -667,6 +696,7 @@ export type PaymentUncheckedUpdateWithoutAttemptsInput = {
   invoiceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refundAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -711,6 +741,7 @@ export type PaymentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   invoiceUrl?: boolean
   refundAmount?: boolean
   refundedAt?: boolean
+  deletedAt?: boolean
   createdAt?: boolean
   booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
   attempts?: boolean | Prisma.Payment$attemptsArgs<ExtArgs>
@@ -727,6 +758,7 @@ export type PaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   invoiceUrl?: boolean
   refundAmount?: boolean
   refundedAt?: boolean
+  deletedAt?: boolean
   createdAt?: boolean
   booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
@@ -741,6 +773,7 @@ export type PaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   invoiceUrl?: boolean
   refundAmount?: boolean
   refundedAt?: boolean
+  deletedAt?: boolean
   createdAt?: boolean
   booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
@@ -755,10 +788,11 @@ export type PaymentSelectScalar = {
   invoiceUrl?: boolean
   refundAmount?: boolean
   refundedAt?: boolean
+  deletedAt?: boolean
   createdAt?: boolean
 }
 
-export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "method" | "amount" | "status" | "providerRef" | "invoiceUrl" | "refundAmount" | "refundedAt" | "createdAt", ExtArgs["result"]["payment"]>
+export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "method" | "amount" | "status" | "providerRef" | "invoiceUrl" | "refundAmount" | "refundedAt" | "deletedAt" | "createdAt", ExtArgs["result"]["payment"]>
 export type PaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
   attempts?: boolean | Prisma.Payment$attemptsArgs<ExtArgs>
@@ -787,6 +821,7 @@ export type $PaymentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     invoiceUrl: string | null
     refundAmount: runtime.Decimal | null
     refundedAt: Date | null
+    deletedAt: Date | null
     createdAt: Date
   }, ExtArgs["result"]["payment"]>
   composites: {}
@@ -1222,6 +1257,7 @@ export interface PaymentFieldRefs {
   readonly invoiceUrl: Prisma.FieldRef<"Payment", 'String'>
   readonly refundAmount: Prisma.FieldRef<"Payment", 'Decimal'>
   readonly refundedAt: Prisma.FieldRef<"Payment", 'DateTime'>
+  readonly deletedAt: Prisma.FieldRef<"Payment", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Payment", 'DateTime'>
 }
     

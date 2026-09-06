@@ -62,6 +62,7 @@ export type BookingDetailCountAggregateOutputType = {
   roomId: number
   guestCount: number
   guestInfo: number
+  roomSnapshot: number
   relocatedFrom: number
   relocationReason: number
   relocatedAt: number
@@ -106,6 +107,7 @@ export type BookingDetailCountAggregateInputType = {
   roomId?: true
   guestCount?: true
   guestInfo?: true
+  roomSnapshot?: true
   relocatedFrom?: true
   relocationReason?: true
   relocatedAt?: true
@@ -205,6 +207,7 @@ export type BookingDetailGroupByOutputType = {
   roomId: string
   guestCount: number
   guestInfo: runtime.JsonValue
+  roomSnapshot: runtime.JsonValue | null
   relocatedFrom: string | null
   relocationReason: string | null
   relocatedAt: Date | null
@@ -240,6 +243,7 @@ export type BookingDetailWhereInput = {
   roomId?: Prisma.StringFilter<"BookingDetail"> | string
   guestCount?: Prisma.IntFilter<"BookingDetail"> | number
   guestInfo?: Prisma.JsonFilter<"BookingDetail">
+  roomSnapshot?: Prisma.JsonNullableFilter<"BookingDetail">
   relocatedFrom?: Prisma.StringNullableFilter<"BookingDetail"> | string | null
   relocationReason?: Prisma.StringNullableFilter<"BookingDetail"> | string | null
   relocatedAt?: Prisma.DateTimeNullableFilter<"BookingDetail"> | Date | string | null
@@ -254,6 +258,7 @@ export type BookingDetailOrderByWithRelationInput = {
   roomId?: Prisma.SortOrder
   guestCount?: Prisma.SortOrder
   guestInfo?: Prisma.SortOrder
+  roomSnapshot?: Prisma.SortOrderInput | Prisma.SortOrder
   relocatedFrom?: Prisma.SortOrderInput | Prisma.SortOrder
   relocationReason?: Prisma.SortOrderInput | Prisma.SortOrder
   relocatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -271,6 +276,7 @@ export type BookingDetailWhereUniqueInput = Prisma.AtLeast<{
   roomId?: Prisma.StringFilter<"BookingDetail"> | string
   guestCount?: Prisma.IntFilter<"BookingDetail"> | number
   guestInfo?: Prisma.JsonFilter<"BookingDetail">
+  roomSnapshot?: Prisma.JsonNullableFilter<"BookingDetail">
   relocatedFrom?: Prisma.StringNullableFilter<"BookingDetail"> | string | null
   relocationReason?: Prisma.StringNullableFilter<"BookingDetail"> | string | null
   relocatedAt?: Prisma.DateTimeNullableFilter<"BookingDetail"> | Date | string | null
@@ -285,6 +291,7 @@ export type BookingDetailOrderByWithAggregationInput = {
   roomId?: Prisma.SortOrder
   guestCount?: Prisma.SortOrder
   guestInfo?: Prisma.SortOrder
+  roomSnapshot?: Prisma.SortOrderInput | Prisma.SortOrder
   relocatedFrom?: Prisma.SortOrderInput | Prisma.SortOrder
   relocationReason?: Prisma.SortOrderInput | Prisma.SortOrder
   relocatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -305,6 +312,7 @@ export type BookingDetailScalarWhereWithAggregatesInput = {
   roomId?: Prisma.StringWithAggregatesFilter<"BookingDetail"> | string
   guestCount?: Prisma.IntWithAggregatesFilter<"BookingDetail"> | number
   guestInfo?: Prisma.JsonWithAggregatesFilter<"BookingDetail">
+  roomSnapshot?: Prisma.JsonNullableWithAggregatesFilter<"BookingDetail">
   relocatedFrom?: Prisma.StringNullableWithAggregatesFilter<"BookingDetail"> | string | null
   relocationReason?: Prisma.StringNullableWithAggregatesFilter<"BookingDetail"> | string | null
   relocatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BookingDetail"> | Date | string | null
@@ -315,6 +323,7 @@ export type BookingDetailCreateInput = {
   id?: string
   guestCount: number
   guestInfo: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: string | null
   relocationReason?: string | null
   relocatedAt?: Date | string | null
@@ -329,6 +338,7 @@ export type BookingDetailUncheckedCreateInput = {
   roomId: string
   guestCount: number
   guestInfo: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: string | null
   relocationReason?: string | null
   relocatedAt?: Date | string | null
@@ -339,6 +349,7 @@ export type BookingDetailUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guestCount?: Prisma.IntFieldUpdateOperationsInput | number
   guestInfo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -353,6 +364,7 @@ export type BookingDetailUncheckedUpdateInput = {
   roomId?: Prisma.StringFieldUpdateOperationsInput | string
   guestCount?: Prisma.IntFieldUpdateOperationsInput | number
   guestInfo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -365,6 +377,7 @@ export type BookingDetailCreateManyInput = {
   roomId: string
   guestCount: number
   guestInfo: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: string | null
   relocationReason?: string | null
   relocatedAt?: Date | string | null
@@ -375,6 +388,7 @@ export type BookingDetailUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guestCount?: Prisma.IntFieldUpdateOperationsInput | number
   guestInfo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -387,6 +401,7 @@ export type BookingDetailUncheckedUpdateManyInput = {
   roomId?: Prisma.StringFieldUpdateOperationsInput | string
   guestCount?: Prisma.IntFieldUpdateOperationsInput | number
   guestInfo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -409,6 +424,7 @@ export type BookingDetailCountOrderByAggregateInput = {
   roomId?: Prisma.SortOrder
   guestCount?: Prisma.SortOrder
   guestInfo?: Prisma.SortOrder
+  roomSnapshot?: Prisma.SortOrder
   relocatedFrom?: Prisma.SortOrder
   relocationReason?: Prisma.SortOrder
   relocatedAt?: Prisma.SortOrder
@@ -533,6 +549,7 @@ export type BookingDetailCreateWithoutRoomInput = {
   id?: string
   guestCount: number
   guestInfo: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: string | null
   relocationReason?: string | null
   relocatedAt?: Date | string | null
@@ -545,6 +562,7 @@ export type BookingDetailUncheckedCreateWithoutRoomInput = {
   bookingId: string
   guestCount: number
   guestInfo: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: string | null
   relocationReason?: string | null
   relocatedAt?: Date | string | null
@@ -586,6 +604,7 @@ export type BookingDetailScalarWhereInput = {
   roomId?: Prisma.StringFilter<"BookingDetail"> | string
   guestCount?: Prisma.IntFilter<"BookingDetail"> | number
   guestInfo?: Prisma.JsonFilter<"BookingDetail">
+  roomSnapshot?: Prisma.JsonNullableFilter<"BookingDetail">
   relocatedFrom?: Prisma.StringNullableFilter<"BookingDetail"> | string | null
   relocationReason?: Prisma.StringNullableFilter<"BookingDetail"> | string | null
   relocatedAt?: Prisma.DateTimeNullableFilter<"BookingDetail"> | Date | string | null
@@ -596,6 +615,7 @@ export type BookingDetailCreateWithoutBookingInput = {
   id?: string
   guestCount: number
   guestInfo: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: string | null
   relocationReason?: string | null
   relocatedAt?: Date | string | null
@@ -608,6 +628,7 @@ export type BookingDetailUncheckedCreateWithoutBookingInput = {
   roomId: string
   guestCount: number
   guestInfo: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: string | null
   relocationReason?: string | null
   relocatedAt?: Date | string | null
@@ -645,6 +666,7 @@ export type BookingDetailCreateManyRoomInput = {
   bookingId: string
   guestCount: number
   guestInfo: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: string | null
   relocationReason?: string | null
   relocatedAt?: Date | string | null
@@ -655,6 +677,7 @@ export type BookingDetailUpdateWithoutRoomInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guestCount?: Prisma.IntFieldUpdateOperationsInput | number
   guestInfo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -667,6 +690,7 @@ export type BookingDetailUncheckedUpdateWithoutRoomInput = {
   bookingId?: Prisma.StringFieldUpdateOperationsInput | string
   guestCount?: Prisma.IntFieldUpdateOperationsInput | number
   guestInfo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -678,6 +702,7 @@ export type BookingDetailUncheckedUpdateManyWithoutRoomInput = {
   bookingId?: Prisma.StringFieldUpdateOperationsInput | string
   guestCount?: Prisma.IntFieldUpdateOperationsInput | number
   guestInfo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -689,6 +714,7 @@ export type BookingDetailCreateManyBookingInput = {
   roomId: string
   guestCount: number
   guestInfo: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: string | null
   relocationReason?: string | null
   relocatedAt?: Date | string | null
@@ -699,6 +725,7 @@ export type BookingDetailUpdateWithoutBookingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guestCount?: Prisma.IntFieldUpdateOperationsInput | number
   guestInfo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -711,6 +738,7 @@ export type BookingDetailUncheckedUpdateWithoutBookingInput = {
   roomId?: Prisma.StringFieldUpdateOperationsInput | string
   guestCount?: Prisma.IntFieldUpdateOperationsInput | number
   guestInfo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -722,6 +750,7 @@ export type BookingDetailUncheckedUpdateManyWithoutBookingInput = {
   roomId?: Prisma.StringFieldUpdateOperationsInput | string
   guestCount?: Prisma.IntFieldUpdateOperationsInput | number
   guestInfo?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  roomSnapshot?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   relocatedFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   relocatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -736,6 +765,7 @@ export type BookingDetailSelect<ExtArgs extends runtime.Types.Extensions.Interna
   roomId?: boolean
   guestCount?: boolean
   guestInfo?: boolean
+  roomSnapshot?: boolean
   relocatedFrom?: boolean
   relocationReason?: boolean
   relocatedAt?: boolean
@@ -750,6 +780,7 @@ export type BookingDetailSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   roomId?: boolean
   guestCount?: boolean
   guestInfo?: boolean
+  roomSnapshot?: boolean
   relocatedFrom?: boolean
   relocationReason?: boolean
   relocatedAt?: boolean
@@ -764,6 +795,7 @@ export type BookingDetailSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   roomId?: boolean
   guestCount?: boolean
   guestInfo?: boolean
+  roomSnapshot?: boolean
   relocatedFrom?: boolean
   relocationReason?: boolean
   relocatedAt?: boolean
@@ -778,13 +810,14 @@ export type BookingDetailSelectScalar = {
   roomId?: boolean
   guestCount?: boolean
   guestInfo?: boolean
+  roomSnapshot?: boolean
   relocatedFrom?: boolean
   relocationReason?: boolean
   relocatedAt?: boolean
   relocatedBy?: boolean
 }
 
-export type BookingDetailOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "roomId" | "guestCount" | "guestInfo" | "relocatedFrom" | "relocationReason" | "relocatedAt" | "relocatedBy", ExtArgs["result"]["bookingDetail"]>
+export type BookingDetailOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "roomId" | "guestCount" | "guestInfo" | "roomSnapshot" | "relocatedFrom" | "relocationReason" | "relocatedAt" | "relocatedBy", ExtArgs["result"]["bookingDetail"]>
 export type BookingDetailInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
   room?: boolean | Prisma.RoomDefaultArgs<ExtArgs>
@@ -810,6 +843,7 @@ export type $BookingDetailPayload<ExtArgs extends runtime.Types.Extensions.Inter
     roomId: string
     guestCount: number
     guestInfo: runtime.JsonValue
+    roomSnapshot: runtime.JsonValue | null
     relocatedFrom: string | null
     relocationReason: string | null
     relocatedAt: Date | null
@@ -1244,6 +1278,7 @@ export interface BookingDetailFieldRefs {
   readonly roomId: Prisma.FieldRef<"BookingDetail", 'String'>
   readonly guestCount: Prisma.FieldRef<"BookingDetail", 'Int'>
   readonly guestInfo: Prisma.FieldRef<"BookingDetail", 'Json'>
+  readonly roomSnapshot: Prisma.FieldRef<"BookingDetail", 'Json'>
   readonly relocatedFrom: Prisma.FieldRef<"BookingDetail", 'String'>
   readonly relocationReason: Prisma.FieldRef<"BookingDetail", 'String'>
   readonly relocatedAt: Prisma.FieldRef<"BookingDetail", 'DateTime'>

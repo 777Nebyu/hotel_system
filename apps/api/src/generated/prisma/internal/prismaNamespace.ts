@@ -3322,6 +3322,7 @@ export const BookingScalarFieldEnum = {
   taxRate: 'taxRate',
   taxAmount: 'taxAmount',
   bookingSource: 'bookingSource',
+  deletedAt: 'deletedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   actualCheckIn: 'actualCheckIn',
@@ -3341,6 +3342,7 @@ export const BookingDetailScalarFieldEnum = {
   roomId: 'roomId',
   guestCount: 'guestCount',
   guestInfo: 'guestInfo',
+  roomSnapshot: 'roomSnapshot',
   relocatedFrom: 'relocatedFrom',
   relocationReason: 'relocationReason',
   relocatedAt: 'relocatedAt',
@@ -3384,6 +3386,7 @@ export const PaymentScalarFieldEnum = {
   invoiceUrl: 'invoiceUrl',
   refundAmount: 'refundAmount',
   refundedAt: 'refundedAt',
+  deletedAt: 'deletedAt',
   createdAt: 'createdAt'
 } as const
 
