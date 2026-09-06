@@ -56,6 +56,7 @@ export class ManagerBookingService {
     const hotelIds = await this.managedHotelIds(actor);
     const where: Prisma.BookingWhereInput = {
       hotelId: { in: hotelIds },
+      deletedAt: null,
       ...(query.status ? { status: query.status as BookingStatus } : {}),
       ...(query.hotelId ? { hotelId: query.hotelId } : {}),
     };

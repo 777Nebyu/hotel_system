@@ -251,4 +251,166 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
       expect(res.refundAmount).toBe(0);
     });
   });
+
+  describe('createBooking - Room Snapshot', () => {
+    it('creates booking with roomSnapshot in booking details', async () => {
+      const futureCheckIn = new Date(Date.now() + 10 * 24 * 3600 * 1000);
+      const futureCheckOut = new Date(futureCheckIn.getTime() + 2 * 24 * 3600 * 1000);
+      const checkInStr = futureCheckIn.toISOString().slice(0, 10);
+      const checkOutStr = futureCheckOut.toISOString().slice(0, 10);
+
+      const mockHotel = {
+        id: 'hotel-1',
+        name: 'Grand Luxury Hotel',
+        address: '100 Main Avenue',
+        status: 'ACTIVE',
+        policy: { taxRate: 0.15 },
+      };
+
+      const mockRoom = {
+        id: 'room-1',
+        hotelId: 'hotel-1',
+        roomNumber: '305',
+        type: 'SUITE',
+        status: 'AVAILABLE',
+        capacity: 2,
+        beds: 1,
+        bathroom: 1,
+        basePrice: { toNumber: () => 150 },
+        description: 'Deluxe Suite with ocean view',
+        seasonalPricing: [],
+        availability: [],
+      };
+
+      const mockTx: any = {
+        hotel: { findUnique: jest.fn().mockResolvedValue(mockHotel) },
+        room: { findMany: jest.fn().mockResolvedValue([mockRoom]) },
+        booking: {
+          findUnique: jest.fn().mockResolvedValue(null),
+          findFirst: jest.fn().mockResolvedValue(null),
+          create: jest.fn().mockImplementation(({ data }) => ({
+            id: 'booking-new-1',
+            ...data,
+            totalPrice: { toNumber: () => 345 },
+            subtotal: { toNumber: () => 300 },
+          })),
+        },
+        bookingDetail: { findMany: jest.fn().mockResolvedValue([]) },
+        roomHold: {
+          findMany: jest.fn().mockResolvedValue([]),
+          updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+        },
+        bookingStatusHistory: { create: jest.fn().mockResolvedValue({}) },
+        $queryRaw: jest.fn().mockResolvedValue([{ locked: true }]),
+      };
+
+      db.user = {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'user-1',
+          emailVerifiedAt: new Date(),
+          role: 'CUSTOMER',
+        }),
+      };
+      db.$transaction = jest.fn(async (cb) => cb(mockTx));
+
+      const input = {
+        hotelId: 'hotel-1',
+        roomIds: ['room-1'],
+        checkIn: checkInStr,
+        checkOut: checkOutStr,
+        guests: { adults: 2, children: 0 },
+        guestInfos: [{ fullName: 'John Doe', age: 30 }],
+      };
+
+      await service.createBooking(input as any, 'user-1');
+
+      expect(mockTx.booking.create).toHaveBeenCalled();
+      const createCall = mockTx.booking.create.mock.calls[0][0];
+      const detailCreate = createCall.data.details.create[0];
+
+      expect(detailCreate.roomId).toBe('room-1');
+      expect(detailCreate.roomSnapshot).toEqual({
+        roomNumber: '305',
+        type: 'SUITE',
+        capacity: 2,
+        beds: 1,
+        bathroom: 1,
+        basePrice: 150,
+        description: 'Deluxe Suite with ocean view',
+        hotelName: 'Grand Luxury Hotel',
+        hotelAddress: '100 Main Avenue',
+      });
+    });
+  });
+
+  describe('softDeleteBooking and myBookings filter', () => {
+    it('soft deletes booking and associated payments with deletedAt timestamp', async () => {
+      db.booking.findUnique = jest.fn().mockResolvedValue({
+        id: 'booking-del-1',
+        userId: 'user-1',
+        status: 'CONFIRMED',
+      });
+
+      const mockTx: any = {
+        booking: {
+          update: jest.fn().mockResolvedValue({
+            id: 'booking-del-1',
+            status: 'CONFIRMED',
+            deletedAt: new Date(),
+          }),
+        },
+        payment: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+        bookingStatusHistory: {
+          create: jest.fn().mockResolvedValue({}),
+        },
+      };
+      db.$transaction = jest.fn(async (cb) => cb(mockTx));
+
+      const res = await service.softDeleteBooking('booking-del-1', 'user-1', 'User requested delete');
+
+      expect(mockTx.booking.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'booking-del-1' },
+          data: { deletedAt: expect.any(Date) },
+        }),
+      );
+      expect(mockTx.payment.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { bookingId: 'booking-del-1' },
+          data: { deletedAt: expect.any(Date) },
+        }),
+      );
+      expect(res.deletedAt).toBeDefined();
+    });
+
+    it('throws ForbiddenException when another user attempts to soft delete booking', async () => {
+      db.booking.findUnique = jest.fn().mockResolvedValue({
+        id: 'booking-del-1',
+        userId: 'other-user',
+        status: 'CONFIRMED',
+      });
+
+      await expect(
+        service.softDeleteBooking('booking-del-1', 'user-1'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('filters out soft deleted bookings in myBookings', async () => {
+      db.booking.findMany = jest.fn().mockResolvedValue([]);
+
+      await service.myBookings('user-1');
+
+      expect(db.booking.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 'user-1',
+            deletedAt: null,
+          }),
+        }),
+      );
+    });
+  });
 });
+

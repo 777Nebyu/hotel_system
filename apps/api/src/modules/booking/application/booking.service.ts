@@ -144,6 +144,7 @@ export class BookingService {
         select: {
           id: true,
           name: true,
+          address: true,
           status: true,
           policy: { select: { taxRate: true } },
         },
@@ -243,15 +244,34 @@ export class BookingService {
           taxAmount: quote.taxAmount,
           bookingSource: input.bookingSource ?? 'ONLINE',
           details: {
-            create: quote.rooms.map((line) => ({
-              roomId: line.roomId,
-              guestCount,
-              guestInfo: {
-                adults: input.guests.adults,
-                children: input.guests.children,
-                guests: input.guestInfos,
-              },
-            })),
+            create: quote.rooms.map((line) => {
+              const room = rooms.find((r) => r.id === line.roomId);
+              return {
+                roomId: line.roomId,
+                guestCount,
+                guestInfo: {
+                  adults: input.guests.adults,
+                  children: input.guests.children,
+                  guests: input.guestInfos,
+                },
+                roomSnapshot: room
+                  ? {
+                      roomNumber: room.roomNumber,
+                      type: room.type,
+                      capacity: room.capacity,
+                      beds: room.beds,
+                      bathroom: room.bathroom,
+                      basePrice:
+                        typeof (room.basePrice as any)?.toNumber === 'function'
+                          ? (room.basePrice as any).toNumber()
+                          : Number(room.basePrice),
+                      description: room.description ?? null,
+                      hotelName: hotel.name,
+                      hotelAddress: hotel.address ?? null,
+                    }
+                  : undefined,
+              };
+            }),
           },
           payment: {
             create: {
@@ -539,10 +559,41 @@ export class BookingService {
     };
   }
 
+  async softDeleteBooking(bookingId: string, userId: string, reason?: string) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      select: { id: true, userId: true, status: true },
+    });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('You cannot delete this booking');
+    }
+    const deleted = await this.db.$transaction(async (tx) => {
+      const b = await tx.booking.update({
+        where: { id: bookingId },
+        data: { deletedAt: new Date() },
+      });
+      await tx.payment.updateMany({
+        where: { bookingId },
+        data: { deletedAt: new Date() },
+      });
+      await tx.bookingStatusHistory.create({
+        data: {
+          bookingId,
+          status: b.status,
+          changedBy: userId,
+          reason: reason ?? 'Booking soft deleted',
+        },
+      });
+      return b;
+    });
+    return deleted;
+  }
+
   async myBookings(userId: string, scope?: 'upcoming' | 'past') {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
-    const where: Prisma.BookingWhereInput = { userId };
+    const where: Prisma.BookingWhereInput = { userId, deletedAt: null };
     if (scope === 'upcoming') {
       where.status = { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] };
       where.checkOut = { gte: startOfToday };

@@ -49,6 +49,13 @@ export class BookingController {
     return this.bookings.createBooking(dto, req.user.sub);
   }
 
+  @Delete(':bookingId')
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @ApiOperation({ summary: 'Soft delete a booking record and associated payment' })
+  softDelete(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
+    return this.bookings.softDeleteBooking(params.bookingId, req.user.sub);
+  }
+
   @Get('my')
   @ApiOperation({
     summary: 'List the current user bookings, optionally split by scope',

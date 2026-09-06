@@ -272,6 +272,7 @@ model Booking {
   taxRate       Decimal       @default(0.15) @db.Decimal(5, 2)
   taxAmount     Decimal       @default(0.00) @db.Decimal(10, 2)
   bookingSource BookingSource @default(ONLINE)
+  deletedAt     DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   details         BookingDetail[]
@@ -295,6 +296,7 @@ model Booking {
   @@index([status])
   @@index([checkIn, checkOut])
   @@index([bookingRef])
+  @@index([deletedAt])
 }
 
 model BookingDetail {
@@ -305,6 +307,7 @@ model BookingDetail {
   room             Room      @relation(fields: [roomId], references: [id])
   guestCount       Int
   guestInfo        Json
+  roomSnapshot     Json?
   relocatedFrom    String?
   relocationReason String?
   relocatedAt      DateTime?
@@ -346,10 +349,12 @@ model Payment {
   invoiceUrl   String?
   refundAmount Decimal?         @db.Decimal(10, 2)
   refundedAt   DateTime?
+  deletedAt    DateTime?
   createdAt    DateTime         @default(now())
   attempts     PaymentAttempt[]
 
   @@index([status])
+  @@index([deletedAt])
 }
 
 model PaymentAttempt {
