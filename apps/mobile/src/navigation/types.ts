@@ -1,0 +1,66 @@
+import type { Room } from '../types';
+
+export type RootStackParamList = {
+  Auth: { initialMode?: 'login' | 'register' } | undefined;
+  MainTabs: undefined;
+  Search: undefined;
+  HotelDetail: { hotelId: string };
+  RoomDetail: { room: Room; hotelName: string; hotelId: string; checkIn: string; checkOut: string; hotelImages?: { id: string; url: string; isPrimary: boolean }[] };
+  BookingFlow: {
+    hotelId: string;
+    roomId: string;
+    hotelName?: string;
+    roomType?: string;
+    roomCapacity?: number;
+    checkIn?: string;
+    checkOut?: string;
+    promoCode?: string;
+  };
+  BookingDetail: { bookingId: string };
+  Review: { hotelId: string; hotelName: string; mode?: 'create' | 'edit'; existingReview?: { id: string; rating: number; comment: string } | null };
+  ForgotPassword: undefined;
+  VerifyEmail: { token: string };
+  ResetPassword: { token: string };
+  Notifications: undefined;
+  MyReviews: undefined;
+  AdminOverview: undefined;
+  AdminUsers: undefined;
+  AdminHotels: undefined;
+  AdminBookings: undefined;
+  AdminPayments: undefined;
+  AdminCoupons: undefined;
+  AdminReviews: undefined;
+  AdminReports: undefined;
+  AdminSettings: undefined;
+  AdminAuditLog: undefined;
+  ManagerOverview: undefined;
+  ManagerBookings: undefined;
+  ManagerHotel: undefined;
+  ManagerRooms: undefined;
+  ManagerReports: undefined;
+  ManagerMore: undefined;
+  BookingModify: { bookingId: string };
+  Disputes: undefined;
+  DisputeDetail: { disputeId: string };
+  ContactInbox: undefined;
+  ContactThread: { threadId: string };
+  ContactNew: { hotelId?: string };
+  AdminStaffHotels: undefined;
+  AdminDisputes: undefined;
+  AdminEmergency: undefined;
+  AdminFeatureFlags: undefined;
+  WalkInBooking: undefined;
+  EarlyCheckinLateCheckout: { bookingId: string; mode: 'early-checkin' | 'late-checkout' };
+  Splash: undefined;
+  Settings: undefined;
+  Help: undefined;
+  Onboarding: undefined;
+  AccountSecurity: undefined;
+};
+
+export type TabParamList = {
+  HomeTab: undefined;
+  BookingsTab: undefined;
+  FavoritesTab: undefined;
+  ProfileTab: undefined;
+};
