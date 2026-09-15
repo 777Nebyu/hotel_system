@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "YayeTech Hotel",
+    "slug": "yayetech-hotel",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yayetech.hotel"
+    },
+    "android": {
+      "package": "com.yayetech.hotel"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

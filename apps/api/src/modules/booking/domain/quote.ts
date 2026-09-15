@@ -1,0 +1,84 @@
+import { roundCurrency } from '../../catalog/domain/pricing';
+
+export interface QuoteRoomLine {
+  roomId: string;
+  roomNumber: string;
+  pricePerNight: number;
+  nights: number;
+  roomTotal: number;
+}
+
+export interface BookingQuote {
+  hotelId: string;
+  checkIn: Date;
+  checkOut: Date;
+  nights: number;
+  guests: { adults: number; children: number };
+  rooms: QuoteRoomLine[];
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  serviceFee: number;
+  discount: number;
+  total: number;
+  couponCode?: string;
+}
+
+export interface QuoteRoomSpec {
+  roomId: string;
+  roomNumber: string;
+  nightly: number[];
+}
+
+export function buildQuote(input: {
+  hotelId: string;
+  checkIn: Date;
+  checkOut: Date;
+  adults: number;
+  children: number;
+  rooms: QuoteRoomSpec[];
+  discount?: number;
+  couponCode?: string;
+  taxRate?: number;
+}): BookingQuote {
+  const nights = Math.round(
+    (input.checkOut.getTime() - input.checkIn.getTime()) / 86_400_000,
+  );
+  const span = Math.max(1, nights);
+  const rooms: QuoteRoomLine[] = input.rooms.map((room) => {
+    const roomTotal = roundCurrency(
+      room.nightly.reduce((sum, price) => sum + price, 0),
+    );
+    const pricePerNight = roundCurrency(roomTotal / span);
+    return {
+      roomId: room.roomId,
+      roomNumber: room.roomNumber,
+      pricePerNight,
+      nights,
+      roomTotal,
+    };
+  });
+  const subtotal = roundCurrency(
+    rooms.reduce((sum, line) => sum + line.roomTotal, 0),
+  );
+  const taxRate = input.taxRate !== undefined ? input.taxRate : 0.15;
+  const taxAmount = roundCurrency(subtotal * taxRate);
+  const serviceFee = roundCurrency(subtotal * 0.05);
+  const discount = roundCurrency(input.discount ?? 0);
+  const total = roundCurrency(subtotal + taxAmount + serviceFee - discount);
+  return {
+    hotelId: input.hotelId,
+    checkIn: input.checkIn,
+    checkOut: input.checkOut,
+    nights,
+    guests: { adults: input.adults, children: input.children },
+    rooms,
+    subtotal,
+    taxRate,
+    taxAmount,
+    serviceFee,
+    discount,
+    total,
+    couponCode: input.couponCode,
+  };
+}

@@ -1,0 +1,52 @@
+import { Module } from '@nestjs/common';
+import { AuditService } from '../../common/services/audit.service';
+import { PaymentGatewayRegistry } from './infrastructure/gateway-registry';
+import {
+  CashGateway,
+  CbeBirrGateway,
+  CreditCardGateway,
+  PayPalGateway,
+  TelebirrGateway,
+} from './infrastructure/gateways';
+import { PaymentController } from './presentation/payment.controller';
+import { PaymentService } from './application/payment.service';
+import { FraudModule } from '../fraud/fraud.module';
+
+@Module({
+  imports: [FraudModule],
+  controllers: [PaymentController],
+  providers: [
+    PaymentService,
+    AuditService,
+    CreditCardGateway,
+    PayPalGateway,
+    TelebirrGateway,
+    CbeBirrGateway,
+    CashGateway,
+    {
+      provide: PaymentGatewayRegistry,
+      useFactory: (
+        creditCard: CreditCardGateway,
+        paypal: PayPalGateway,
+        telebirr: TelebirrGateway,
+        cbeBirr: CbeBirrGateway,
+        cash: CashGateway,
+      ) =>
+        new PaymentGatewayRegistry([
+          creditCard,
+          paypal,
+          telebirr,
+          cbeBirr,
+          cash,
+        ]),
+      inject: [
+        CreditCardGateway,
+        PayPalGateway,
+        TelebirrGateway,
+        CbeBirrGateway,
+        CashGateway,
+      ],
+    },
+  ],
+})
+export class PaymentModule {}

@@ -1,0 +1,11 @@
+export const DEFAULT_FEATURE_FLAGS = {
+  ENABLE_WALK_IN_BOOKINGS: true,
+  ENABLE_EARLY_CHECKIN_LATE_CHECKOUT: true,
+  ENABLE_ROOM_RELOCATION: true,
+  ENABLE_COUPONS: true,
+  ENABLE_DISPUTES: true,
+  MAINTENANCE_MODE: false,
+} as const;
+
+export type FeatureFlagKey = keyof typeof DEFAULT_FEATURE_FLAGS;
+export const FEATURE_FLAG_KEY_METADATA = 'FEATURE_FLAG_KEY';

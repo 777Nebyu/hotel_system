@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: yayetech-hotel-api
+    env: node
+    plan: free
+    buildCommand: pnpm install && pnpm --filter=api exec prisma generate && pnpm --filter=api exec nest build
+    startCommand: node apps/api/dist/src/main.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: MOCK_PAYMENT_WEBHOOK_SECRET
+        generateValue: true
