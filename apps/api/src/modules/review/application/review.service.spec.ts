@@ -12,7 +12,7 @@ describe('ReviewService sanitization', () => {
       },
     };
     const emitter = { emit: jest.fn() };
-    const service = new ReviewService(db as never, emitter as never);
+    const service = new ReviewService(db as never, emitter as never, {} as never, {} as never);
 
     await service.create(
       {
@@ -46,7 +46,7 @@ describe('ReviewService sanitization', () => {
         },
       };
       const emitter = { emit: jest.fn() };
-      const service = new ReviewService(db as never, emitter as never);
+      const service = new ReviewService(db as never, emitter as never, {} as never, {} as never);
 
       const result = await service.update(
         'review-1',
@@ -77,7 +77,7 @@ describe('ReviewService sanitization', () => {
         },
       };
       const emitter = { emit: jest.fn() };
-      const service = new ReviewService(db as never, emitter as never);
+      const service = new ReviewService(db as never, emitter as never, {} as never, {} as never);
 
       await expect(
         service.update(

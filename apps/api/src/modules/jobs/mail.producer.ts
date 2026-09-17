@@ -33,6 +33,10 @@ export class MailProducer {
     return this.enqueue(this.email.verificationMail(to, token));
   }
 
+  enqueueWelcome(to: string, fullName: string): Promise<void> {
+    return this.enqueue(this.email.welcomeMail(to, fullName));
+  }
+
   enqueuePasswordReset(to: string, token: string): Promise<void> {
     return this.enqueue(this.email.passwordResetMail(to, token));
   }

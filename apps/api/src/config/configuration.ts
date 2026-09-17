@@ -24,6 +24,7 @@ const envSchema = z.object({
   EMAIL_USER: z.string().optional(),
   EMAIL_PASS: z.string().optional(),
   EMAIL_FROM: z.preprocess((val) => (val === '' ? undefined : val), z.string().email().optional()),
+  GOOGLE_CLIENT_ID: z.string().optional(),
   MOCK_PAYMENT_WEBHOOK_SECRET: z.string().min(16).default('development-mock-payment-secret'),
 });
 
@@ -57,6 +58,7 @@ export const appConfigSchema = z.object({
   nodeEnv: z.enum(['development', 'test', 'production']),
   port: z.number().int().positive(),
   webOrigin: z.string().optional(),
+  googleClientId: z.string().optional(),
   database: databaseConfigSchema,
   jwt: jwtConfigSchema,
   redis: redisConfigSchema,
@@ -86,6 +88,7 @@ export function configuration(): AppConfig {
     nodeEnv: env.NODE_ENV,
     port: env.PORT,
     webOrigin: env.WEB_ORIGIN,
+    googleClientId: env.GOOGLE_CLIENT_ID,
     database: { url: env.DATABASE_URL },
     jwt: {
       accessSecret: env.JWT_ACCESS_SECRET,
