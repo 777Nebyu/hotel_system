@@ -50,6 +50,7 @@ describe('IdentityService', () => {
   let config: { getOrThrow: jest.Mock };
   let mail: {
     enqueueVerification: jest.Mock;
+    enqueueWelcome: jest.Mock;
     enqueuePasswordReset: jest.Mock;
   };
   let storage: { upload: jest.Mock; remove: jest.Mock };
@@ -60,9 +61,10 @@ describe('IdentityService', () => {
     fullName: 'Test User',
     phone: null,
     role: 'CUSTOMER' as const,
+    status: 'ACTIVE' as const,
     isActive: true,
     profilePhotoUrl: null,
-    emailVerifiedAt: null,
+    emailVerifiedAt: new Date(),
     verificationToken: null,
     resetPasswordToken: null,
     resetPasswordExpiresAt: null,
@@ -116,6 +118,7 @@ describe('IdentityService', () => {
     };
     mail = {
       enqueueVerification: jest.fn().mockResolvedValue(undefined),
+      enqueueWelcome: jest.fn().mockResolvedValue(undefined),
       enqueuePasswordReset: jest.fn().mockResolvedValue(undefined),
     };
     storage = {
@@ -173,7 +176,7 @@ describe('IdentityService', () => {
     expect(result.user).not.toHaveProperty('refreshTokenFamily');
     expect(result.user).not.toHaveProperty('loginAttempts');
     expect(result.user).not.toHaveProperty('lockedUntil');
-    expect(result.accessToken).toBe('mock-access-token');
+    expect(result.accessToken).toBe('');
     expect(mail.enqueueVerification).toHaveBeenCalledWith(
       'test@example.com',
       expect.any(String),
@@ -241,6 +244,19 @@ describe('IdentityService', () => {
 
   it('rejects login for a deactivated (isActive=false) account with 403', async () => {
     db.user.findUnique.mockResolvedValue({ ...baseUser, isActive: false });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+    await expect(
+      service.login({ email: 'test@example.com', password: 'password123' }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('rejects login for an unverified (EMAIL_UNVERIFIED) user with 403', async () => {
+    db.user.findUnique.mockResolvedValue({
+      ...baseUser,
+      status: 'EMAIL_UNVERIFIED',
+      emailVerifiedAt: null,
+    });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
     await expect(

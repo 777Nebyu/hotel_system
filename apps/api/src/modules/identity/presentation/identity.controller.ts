@@ -70,6 +70,25 @@ export class IdentityController {
     });
   }
 
+  @Post('google')
+  @Public()
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
+  googleAuth(
+    @Body()
+    dto: {
+      credential?: string;
+      email?: string;
+      fullName?: string;
+      googleId?: string;
+    },
+    @Req() req: Request,
+  ) {
+    return this.service.googleAuth(dto, {
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip,
+    });
+  }
+
   @Post('refresh')
   @Public()
   @Throttle({ default: { ttl: 60000, limit: 5 } })

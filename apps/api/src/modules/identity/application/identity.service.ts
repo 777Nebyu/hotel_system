@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   Optional,
   UnauthorizedException,
@@ -76,6 +77,8 @@ export interface AuthResult {
 
 @Injectable()
 export class IdentityService {
+  private readonly logger = new Logger(IdentityService.name);
+
   constructor(
     private readonly db: PrismaService,
     private readonly jwt: JwtService,
@@ -210,6 +213,7 @@ export class IdentityService {
     });
 
     void this.mail.enqueueVerification(email, verificationToken);
+    void this.mail.enqueueWelcome(email, user.fullName);
     this.emitter?.emit(
       UserEventNames.REGISTERED,
       new UserRegisteredEvent(user.id, user.email, user.fullName, verificationToken),
@@ -217,7 +221,8 @@ export class IdentityService {
 
     return {
       user: this.safeUser(user),
-      ...(await this.issueTokens(user, undefined, meta)),
+      accessToken: '',
+      refreshToken: '',
     };
   }
 
@@ -260,6 +265,12 @@ export class IdentityService {
       throw new ForbiddenException('This account has been suspended');
     }
 
+    if (user.status === 'EMAIL_UNVERIFIED' || !user.emailVerifiedAt) {
+      throw new ForbiddenException(
+        'Please verify your email address before signing in. Check your inbox for the verification link.',
+      );
+    }
+
     if (user.status === 'DEACTIVATED' || !user.isActive) {
       if (user.deletionScheduledFor && user.deletionScheduledFor > new Date()) {
         await this.db.user.update({
@@ -284,6 +295,104 @@ export class IdentityService {
         lastLoginAt: new Date(),
       },
     });
+
+    return {
+      user: this.safeUser(user),
+      ...(await this.issueTokens(user, undefined, meta)),
+    };
+  }
+
+  async googleAuth(
+    dto: {
+      credential?: string;
+      email?: string;
+      fullName?: string;
+      googleId?: string;
+    },
+    meta?: SessionMeta,
+  ): Promise<AuthResult> {
+    let email = dto.email;
+    let fullName = dto.fullName || 'Google Guest';
+    let profilePhotoUrl: string | undefined = undefined;
+
+    if (dto.credential) {
+      try {
+        const parts = dto.credential.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(
+            Buffer.from(parts[1], 'base64').toString('utf8'),
+          );
+          if (payload.email) {
+            email = payload.email;
+            fullName = payload.name || payload.given_name || fullName;
+            profilePhotoUrl = payload.picture || profilePhotoUrl;
+          }
+        }
+      } catch (e) {
+        this.logger.warn(`Failed to parse Google credential token: ${e}`);
+      }
+    }
+
+    if (!email) {
+      throw new BadRequestException('Valid Google email address is required');
+    }
+
+    email = email.toLowerCase().trim();
+
+    let user = await this.db.user.findUnique({ where: { email } });
+
+    if (!user) {
+      const randomPassword = randomBytes(32).toString('hex');
+      const passwordHash = await bcrypt.hash(randomPassword, BCRYPT_ROUNDS);
+
+      user = await this.db.user.create({
+        data: {
+          email,
+          fullName,
+          passwordHash,
+          profilePhotoUrl: profilePhotoUrl ?? null,
+          role: 'CUSTOMER',
+          status: 'ACTIVE',
+          emailVerifiedAt: new Date(),
+          isActive: true,
+        },
+      });
+
+      this.emitter?.emit(
+        UserEventNames.REGISTERED,
+        new UserRegisteredEvent(user.id, user.email, user.fullName, ''),
+      );
+
+      void this.mail.enqueueWelcome(user.email, user.fullName);
+    } else {
+      if (user.status === 'EMAIL_UNVERIFIED' || !user.emailVerifiedAt) {
+        user = await this.db.user.update({
+          where: { id: user.id },
+          data: {
+            emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
+            status: 'ACTIVE',
+            profilePhotoUrl: user.profilePhotoUrl ?? profilePhotoUrl ?? null,
+          },
+        });
+      }
+
+      if (
+        user.status === 'DEACTIVATED' ||
+        user.status === 'SUSPENDED' ||
+        !user.isActive
+      ) {
+        throw new ForbiddenException('This account is not active');
+      }
+
+      await this.db.user.update({
+        where: { id: user.id },
+        data: {
+          loginAttempts: 0,
+          lockedUntil: null,
+          lastLoginAt: new Date(),
+        },
+      });
+    }
 
     return {
       user: this.safeUser(user),
@@ -439,15 +548,21 @@ export class IdentityService {
   }
 
   async verifyEmail(token: string): Promise<{ message: string }> {
-    await this.db.user.update({
+    const user = await this.db.user.findFirst({
       where: { verificationToken: token },
+    });
+    if (!user) {
+      throw new BadRequestException('Invalid or expired verification link');
+    }
+    await this.db.user.update({
+      where: { id: user.id },
       data: {
         emailVerifiedAt: new Date(),
         verificationToken: null,
         status: 'ACTIVE',
       },
     });
-    return { message: 'Email verified' };
+    return { message: 'Email verified successfully' };
   }
 
   async deactivateAccount(
@@ -530,6 +645,8 @@ export class IdentityService {
         refreshTokenFamily: null,
         loginAttempts: 0,
         lockedUntil: null,
+        emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
+        status: user.status === 'EMAIL_UNVERIFIED' ? 'ACTIVE' : user.status,
       },
     });
     return { message: 'Password reset' };

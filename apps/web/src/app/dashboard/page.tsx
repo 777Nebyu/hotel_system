@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, Suspense } from 'react'
+import { useState, useMemo, Suspense, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -15,6 +15,7 @@ import {
 import { useFavoritesQuery, useToggleFavoriteMutation } from '@/hooks/use-catalog'
 import { useMyPaymentsQuery } from '@/hooks/use-payment'
 import { useMyReviewsQuery, useCreateReviewMutation, useDeleteReviewMutation } from '@/hooks/use-catalog'
+import { useUpdateProfileMutation, useUploadProfilePhotoMutation } from '@/hooks/use-auth'
 import { bookingService } from '@/services/booking.service'
 import { formatEthiopianBirr } from '@/lib/currency'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -40,6 +41,15 @@ import {
   UserCheck,
   Building,
   Sparkles,
+  Camera,
+  Check,
+  Lock,
+  KeyRound,
+  Eye,
+  EyeOff,
+  User as UserIcon,
+  Phone,
+  Mail,
 } from 'lucide-react'
 
 const FALLBACK_IMAGE =
@@ -135,6 +145,150 @@ function CustomerDashboardContent() {
   const toggleFavoriteMutation = useToggleFavoriteMutation()
   const createReviewMutation = useCreateReviewMutation()
   const deleteReviewMutation = useDeleteReviewMutation()
+
+  // Profile & Photo Edit State
+  const [profileFullName, setProfileFullName] = useState(user?.fullName || '')
+  const [profilePhone, setProfilePhone] = useState(user?.phone || '')
+  const [photoFeedback, setPhotoFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [profileFeedback, setProfileFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Security / Password State
+  const [showPasswordSection, setShowPasswordSection] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [passwordFeedback, setPasswordFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  const updateProfileMutation = useUpdateProfileMutation()
+  const uploadProfilePhotoMutation = useUploadProfilePhotoMutation()
+
+  useEffect(() => {
+    if (user) {
+      setProfileFullName(user.fullName || '')
+      setProfilePhone(user.phone || '')
+    }
+  }, [user?.fullName, user?.phone])
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhotoFeedback(null)
+
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoFeedback({
+        type: 'error',
+        message: 'Image size exceeds 5MB limit. Please choose a smaller file.',
+      })
+      return
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setPhotoFeedback({
+        type: 'error',
+        message: 'Only image files (JPG, PNG, WebP) are allowed.',
+      })
+      return
+    }
+
+    try {
+      await uploadProfilePhotoMutation.mutateAsync(file)
+      setPhotoFeedback({
+        type: 'success',
+        message: 'Profile photo uploaded and updated successfully!',
+      })
+    } catch (err: unknown) {
+      const errorMsg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as Error)?.message ||
+        'Failed to upload photo'
+      setPhotoFeedback({
+        type: 'error',
+        message: errorMsg,
+      })
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setProfileFeedback(null)
+
+    if (profileFullName.trim().length < 2) {
+      setProfileFeedback({
+        type: 'error',
+        message: 'Full name must be at least 2 characters long.',
+      })
+      return
+    }
+
+    try {
+      await updateProfileMutation.mutateAsync({
+        fullName: profileFullName.trim(),
+        phone: profilePhone.trim() || null,
+      })
+      setProfileFeedback({
+        type: 'success',
+        message: 'Personal details updated successfully!',
+      })
+    } catch (err: unknown) {
+      const errorMsg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as Error)?.message ||
+        'Failed to update profile'
+      setProfileFeedback({
+        type: 'error',
+        message: errorMsg,
+      })
+    }
+  }
+
+  const handleSavePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordFeedback(null)
+
+    if (newPassword.length < 8) {
+      setPasswordFeedback({
+        type: 'error',
+        message: 'New password must be at least 8 characters long.',
+      })
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordFeedback({
+        type: 'error',
+        message: 'New passwords do not match.',
+      })
+      return
+    }
+
+    try {
+      await updateProfileMutation.mutateAsync({
+        currentPassword,
+        newPassword,
+      })
+      setPasswordFeedback({
+        type: 'success',
+        message: 'Password changed successfully!',
+      })
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err: unknown) {
+      const errorMsg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as Error)?.message ||
+        'Failed to update password'
+      setPasswordFeedback({
+        type: 'error',
+        message: errorMsg,
+      })
+    }
+  }
 
   const bookings: Booking[] = useMemo(() => bookingsData?.data || [], [bookingsData?.data])
   const payments: Payment[] = useMemo(() => paymentsData?.data || [], [paymentsData?.data])
@@ -926,66 +1080,393 @@ function CustomerDashboardContent() {
 
         {/* TAB 6: PROFILE & SECURITY */}
         {currentTab === 'profile' && (
-          <div className="max-w-2xl space-y-6">
+          <div className="max-w-3xl space-y-6">
             <div>
               <h2 className="font-serif text-2xl font-bold text-[#0F2942]">Profile & Identity</h2>
               <p className="text-xs text-slate-500">
-                Manage your personal guest profile information and account security.
+                Manage your personal guest profile information, profile photo, and account security.
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
-              <div className="flex items-center gap-4 pb-4 border-b border-slate-100">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0F2942] to-[#163859] text-white flex items-center justify-center font-serif text-xl font-bold">
-                  {user?.fullName?.charAt(0).toUpperCase() || 'G'}
+            {/* Profile Photo & Guest Overview Card */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pb-6 border-b border-slate-100">
+                {/* Avatar with Camera Overlay */}
+                <div className="relative group shrink-0">
+                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#0F2942] to-[#163859] text-white flex items-center justify-center font-serif text-3xl font-bold overflow-hidden shadow-md ring-4 ring-slate-100/80">
+                    {user?.profilePhotoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={user.profilePhotoUrl}
+                        alt={user.fullName || 'Guest Profile'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      user?.fullName?.charAt(0).toUpperCase() || 'G'
+                    )}
+                  </div>
+
+                  {/* Camera overlay on hover */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadProfilePhotoMutation.isPending}
+                    aria-label="Upload new profile photo"
+                    className="absolute inset-0 rounded-2xl bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px] cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    {uploadProfilePhotoMutation.isPending ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-[#D4AF37]" />
+                    ) : (
+                      <>
+                        <Camera className="w-6 h-6 mb-1 text-[#D4AF37]" />
+                        <span className="text-[10px] font-bold tracking-wide uppercase">Change</span>
+                      </>
+                    )}
+                  </button>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
                 </div>
-                <div>
-                  <h3 className="font-serif font-bold text-slate-900 text-lg">{user?.fullName}</h3>
-                  <p className="text-xs text-slate-500">{user?.role} Account · Member since {formatDate(user?.createdAt || '')}</p>
+
+                <div className="space-y-2 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-serif font-bold text-slate-900 text-xl">{user?.fullName || 'Guest'}</h3>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#917215] border border-[#D4AF37]/30 uppercase tracking-wider">
+                      {user?.role || 'CUSTOMER'} Account
+                    </span>
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 inline-flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Guest
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Member since {formatDate(user?.createdAt || '')} · High-resolution profile photo is visible on your stay bookings & reviews.
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadProfilePhotoMutation.isPending}
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-800 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-60"
+                    >
+                      {uploadProfilePhotoMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0F2942]" />
+                          Uploading to Cloudinary...
+                        </>
+                      ) : (
+                        <>
+                          <Camera className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          Upload New Photo
+                        </>
+                      )}
+                    </button>
+                    <span className="text-[11px] text-slate-400">JPG, PNG or WebP · Max 5MB</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                    Full Legal Name
-                  </label>
-                  <input
-                    type="text"
-                    disabled
-                    value={user?.fullName || ''}
-                    className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm text-slate-700"
-                  />
+              {/* Photo Upload Toast / Feedback */}
+              {photoFeedback && (
+                <div
+                  className={`p-3 rounded-xl flex items-center gap-2.5 text-xs font-medium ${
+                    photoFeedback.type === 'success'
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-800 border border-rose-200'
+                  }`}
+                >
+                  {photoFeedback.type === 'success' ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  )}
+                  <span>{photoFeedback.message}</span>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoFeedback(null)}
+                    className="ml-auto text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 </div>
+              )}
+
+              {/* Profile Edit Form */}
+              <form onSubmit={handleSaveProfile} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Personal Information
+                  </h4>
+                  <span className="text-[11px] text-slate-400">Keep your details up to date</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                      <UserIcon className="w-3.5 h-3.5 text-slate-400" />
+                      Full Legal Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={profileFullName}
+                      onChange={(e) => setProfileFullName(e.target.value)}
+                      placeholder="e.g. Samuel Bekele"
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-slate-400" />
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={profilePhone}
+                      onChange={(e) => setProfilePhone(e.target.value)}
+                      placeholder="e.g. +251 91 123 4567"
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all bg-white"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                    Email Address
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-slate-400" />
+                      Email Address
+                    </span>
+                    <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">
+                      Verified Identity
+                    </span>
                   </label>
                   <input
                     type="email"
                     disabled
                     value={user?.email || ''}
-                    className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm text-slate-700"
+                    className="w-full border border-slate-200 bg-slate-50/80 rounded-xl px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed"
                   />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Your email is verified and connected to your booking notifications and active security tokens.
+                  </p>
                 </div>
-              </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-semibold text-slate-900">Sign Out of Session</div>
-                  <div className="text-[11px] text-slate-500">Safely terminate active browser access.</div>
+                {/* Profile Edit Feedback */}
+                {profileFeedback && (
+                  <div
+                    className={`p-3 rounded-xl flex items-center gap-2.5 text-xs font-medium ${
+                      profileFeedback.type === 'success'
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        : 'bg-rose-50 text-rose-800 border border-rose-200'
+                    }`}
+                  >
+                    {profileFeedback.type === 'success' ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                    )}
+                    <span>{profileFeedback.message}</span>
+                    <button
+                      type="button"
+                      onClick={() => setProfileFeedback(null)}
+                      className="ml-auto text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileFullName(user?.fullName || '')
+                      setProfilePhone(user?.phone || '')
+                      setProfileFeedback(null)
+                    }}
+                    disabled={
+                      updateProfileMutation.isPending ||
+                      (profileFullName === (user?.fullName || '') && profilePhone === (user?.phone || ''))
+                    }
+                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Reset Changes
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={
+                      updateProfileMutation.isPending ||
+                      !profileFullName.trim() ||
+                      (profileFullName === (user?.fullName || '') && profilePhone === (user?.phone || ''))
+                    }
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0F2942] to-[#1a446c] hover:from-[#163859] hover:to-[#225686] text-white text-xs font-bold shadow-md shadow-[#0F2942]/10 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]"
+                  >
+                    {updateProfileMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+                        Saving Profile...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        Save Profile Changes
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Account Security & Password Card */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <KeyRound className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif font-bold text-slate-900 text-base">Account Password</h3>
+                    <p className="text-xs text-slate-500">Update your secret credentials to keep your reservations protected.</p>
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
-                    logout()
-                    router.push('/')
+                    setShowPasswordSection((prev) => !prev)
+                    setPasswordFeedback(null)
                   }}
-                  className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
                 >
-                  Sign Out
+                  {showPasswordSection ? 'Hide' : 'Change Password'}
                 </button>
               </div>
+
+              {showPasswordSection && (
+                <form onSubmit={handleSavePassword} className="space-y-4 pt-1 animate-in fade-in-50 duration-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                        Current Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showCurrentPassword ? 'text' : 'password'}
+                          required
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        >
+                          {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                        New Password (min. 8 characters)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? 'text' : 'password'}
+                          required
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        >
+                          {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all bg-white"
+                    />
+                  </div>
+
+                  {passwordFeedback && (
+                    <div
+                      className={`p-3 rounded-xl flex items-center gap-2.5 text-xs font-medium ${
+                        passwordFeedback.type === 'success'
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          : 'bg-rose-50 text-rose-800 border border-rose-200'
+                      }`}
+                    >
+                      {passwordFeedback.type === 'success' ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      )}
+                      <span>{passwordFeedback.message}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="submit"
+                      disabled={updateProfileMutation.isPending || !currentPassword || !newPassword || !confirmPassword}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {updateProfileMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+                          Updating Password...
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          Update Password
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+
+            {/* Session Management & Sign Out */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold text-slate-900">Sign Out of Session</div>
+                <div className="text-xs text-slate-500 mt-0.5">Safely terminate active browser access on this device.</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  logout()
+                  router.push('/')
+                }}
+                className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors cursor-pointer border border-rose-200/60"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         )}

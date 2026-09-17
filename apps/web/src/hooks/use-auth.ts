@@ -24,8 +24,30 @@ export function useRegisterMutation() {
   return useMutation({
     mutationFn: (dto: RegisterInput) => authService.register(dto),
     onSuccess: (data) => {
-      setSession(data)
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      if (data?.accessToken) {
+        setSession(data)
+        queryClient.invalidateQueries({ queryKey: ['profile'] })
+      }
+    },
+  })
+}
+
+export function useGoogleLoginMutation() {
+  const queryClient = useQueryClient()
+  const setSession = useAuth((s) => s.setSession)
+
+  return useMutation({
+    mutationFn: (dto: {
+      credential?: string
+      email?: string
+      fullName?: string
+      googleId?: string
+    }) => authService.googleLogin(dto),
+    onSuccess: (data) => {
+      if (data?.accessToken) {
+        setSession(data)
+        queryClient.invalidateQueries({ queryKey: ['profile'] })
+      }
     },
   })
 }
@@ -70,5 +92,38 @@ export function useProfileQuery() {
     },
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
+  })
+}
+
+export function useUpdateProfileMutation() {
+  const queryClient = useQueryClient()
+  const setUser = useAuth((s) => s.setUser)
+
+  return useMutation({
+    mutationFn: (dto: {
+      fullName?: string
+      phone?: string | null
+      currentPassword?: string
+      newPassword?: string
+    }) => authService.updateProfile(dto),
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser)
+      queryClient.setQueryData(['profile', updatedUser.id], updatedUser)
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    },
+  })
+}
+
+export function useUploadProfilePhotoMutation() {
+  const queryClient = useQueryClient()
+  const setUser = useAuth((s) => s.setUser)
+
+  return useMutation({
+    mutationFn: (file: File) => authService.uploadProfilePhoto(file),
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser)
+      queryClient.setQueryData(['profile', updatedUser.id], updatedUser)
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    },
   })
 }

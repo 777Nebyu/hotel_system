@@ -163,8 +163,17 @@ export default function NavBar() {
                 aria-expanded={userMenuOpen}
                 aria-haspopup="true"
               >
-                <div className="w-8 h-8 rounded-lg bg-[#D4AF37] text-[#0F2942] flex items-center justify-center font-bold text-xs">
-                  {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
+                <div className="w-8 h-8 rounded-lg bg-[#D4AF37] text-[#0F2942] flex items-center justify-center font-bold text-xs overflow-hidden shrink-0">
+                  {user.profilePhotoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={user.profilePhotoUrl}
+                      alt={user.fullName || 'User'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    user.fullName ? user.fullName[0].toUpperCase() : 'U'
+                  )}
                 </div>
                 <div className="flex flex-col text-left">
                   <span className="text-xs font-bold leading-tight truncate max-w-[120px] text-white">
