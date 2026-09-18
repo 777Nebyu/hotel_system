@@ -1,4 +1,4 @@
-import { Platform, useColorScheme, Dimensions } from 'react-native';
+import { Platform, useColorScheme, useWindowDimensions } from 'react-native';
 
 // ─── 3 Base Colors ──────────────────────────────────────────────────────────
 // Emerald — primary actions, accents
@@ -108,7 +108,7 @@ export const radius = { card: 14, cardLg: 20, pill: 999, sm: 8 } as const;
 
 // ─── Responsive padding ─────────────────────────────────────────────────────
 export function useResponsivePadding(): number {
-  const w = Dimensions.get('window').width;
+  const { width: w } = useWindowDimensions();
   if (w < 360) return 16;
   if (w < 390) return 16;
   if (w < 431) return 20;

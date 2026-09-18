@@ -91,7 +91,11 @@ export default function AdminPaymentsScreen({ onBack }: Props) {
     try {
       const { File, Paths } = await import('expo-file-system');
       const Sharing = await import('expo-sharing');
-      const blob = await requestBlob('/admin/payments/export', { method: 'GET', token });
+      const blob = await requestBlob('/admin/export', {
+        method: 'POST',
+        body: { type: 'payments', format: 'csv' },
+        token,
+      });
       const reader = new FileReader();
       reader.onload = async () => {
         const base64 = (reader.result as string).split(',')[1];
@@ -168,32 +172,34 @@ export default function AdminPaymentsScreen({ onBack }: Props) {
       />
 
       {/* Status tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabs}>
-        {STATUS_TABS.map((tab) => {
-          const isActive = statusTab === tab.key;
-          const count = tabCounts[tab.key] ?? 0;
-          return (
-            <Pressable
-              key={tab.key}
-              onPress={() => setStatusTab(tab.key)}
-              style={({ pressed }) => [
-                s.tabPill,
-                isActive && s.tabPillActive,
-                pressed && { opacity: 0.7 },
-              ]}
-            >
-              <Text style={[s.tabText, isActive && s.tabTextActive]}>
-                {tab.label}
-              </Text>
-              <View style={[s.tabCount, isActive && s.tabCountActive]}>
-                <Text style={[s.tabCountText, isActive && s.tabCountTextActive]}>
-                  {count}
+      <View style={s.tabsWrap}>
+        <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabs}>
+          {STATUS_TABS.map((tab) => {
+            const isActive = statusTab === tab.key;
+            const count = tabCounts[tab.key] ?? 0;
+            return (
+              <Pressable
+                key={tab.key}
+                onPress={() => setStatusTab(tab.key)}
+                style={({ pressed }) => [
+                  s.tabPill,
+                  isActive && s.tabPillActive,
+                  pressed && { opacity: 0.7 },
+                ]}
+              >
+                <Text style={[s.tabText, isActive && s.tabTextActive]}>
+                  {tab.label}
                 </Text>
-              </View>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+                <View style={[s.tabCount, isActive && s.tabCountActive]}>
+                  <Text style={[s.tabCountText, isActive && s.tabCountTextActive]}>
+                    {count}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       {loading ? (
         <SkeletonList count={6} />
@@ -273,7 +279,7 @@ export default function AdminPaymentsScreen({ onBack }: Props) {
           }}
           contentContainerStyle={s.list}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void fetchPayments(); }} tintColor={c.teal} />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void fetchPayments(); }} tintColor={c.teal} colors={[c.teal]} />
           }
         />
       )}
@@ -318,6 +324,7 @@ const makeStyles = (c: ReturnType<typeof useThemeColors>) => StyleSheet.create({
   list:       { padding: 16, gap: 12, paddingBottom: 48 },
   flex:       { flex: 1 },
   exportBtn:  { padding: 4 },
+  tabsWrap:   { maxHeight: 48 },
   tabs:       { paddingHorizontal: 12, paddingVertical: 8, gap: 6 },
   tabPill:    { flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: c.lineStrong, backgroundColor: c.paperDeep },
   tabPillActive:{ backgroundColor: c.teal, borderColor: c.teal },

@@ -392,18 +392,28 @@ describe('PaymentGatewayRegistry', () => {
   });
 
   // ── retrieved gateway is fully functional ────────────────────────────
-  it('the retrieved CREDIT_CARD gateway actually processes a charge', async () => {
+  it('the retrieved CREDIT_CARD gateway actually processes a payment', async () => {
     const gw = registry.get('CREDIT_CARD');
-    const result = await gw.charge({
-      amount: 100,
-      reference: '4242424242424242',
-    });
+    const { providerRef } = await gw.initiate(
+      { id: 'test-booking', totalPrice: 100, currency: 'ETB' },
+      100,
+      'ETB',
+      '4242424242424242',
+    );
+    expect(providerRef).toBeTruthy();
+    const result = await gw.confirm(providerRef, '4242424242424242');
     expect(result.approved).toBe(true);
   });
 
   it('the retrieved CASH gateway always approves', async () => {
     const gw = registry.get('CASH');
-    const result = await gw.charge({ amount: 50, reference: 'any' });
+    const { providerRef } = await gw.initiate(
+      { id: 'test-booking', totalPrice: 50, currency: 'ETB' },
+      50,
+      'ETB',
+      'any',
+    );
+    const result = await gw.confirm(providerRef, 'any');
     expect(result.approved).toBe(true);
   });
 

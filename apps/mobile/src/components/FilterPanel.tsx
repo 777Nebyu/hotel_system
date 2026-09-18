@@ -4,8 +4,9 @@ import { Button } from './Shared';
 import { font, radius } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 
-const ROOM_TYPES = ['SINGLE', 'DOUBLE', 'TWIN', 'SUITE', 'FAMILY'];
-const AMENITIES = ['Wi-Fi', 'Pool', 'Spa', 'Restaurant', 'Gym', 'Parking', 'Bar', 'Conference Room'];
+// Must match the shared/API RoomType enum.
+const ROOM_TYPES = ['STANDARD', 'DELUXE', 'SUITE', 'FAMILY', 'EXECUTIVE'];
+const AMENITIES = ['Wi-Fi', 'Pool', 'Spa', 'Restaurant', 'Gym', 'Parking', 'Breakfast', 'Airport Shuttle', 'Pet Friendly', 'A/C'];
 const SORT_OPTIONS = [
   { key: 'popularity', label: 'Popularity' },
   { key: 'rating_desc', label: 'Highest rated' },
@@ -15,6 +16,7 @@ const SORT_OPTIONS = [
 
 export interface FilterValues {
   city: string;
+  country: string;
   priceMin: string;
   priceMax: string;
   minRating: string;
@@ -25,7 +27,7 @@ export interface FilterValues {
 }
 
 export const EMPTY_FILTERS: FilterValues = {
-  city: '', priceMin: '', priceMax: '', minRating: '', roomType: '', amenities: [], sort: '', guests: '',
+  city: '', country: '', priceMin: '', priceMax: '', minRating: '', roomType: '', amenities: [], sort: '', guests: '',
 };
 
 type Props = {
@@ -108,6 +110,17 @@ export default function FilterPanel({ visible, onClose, values, onChange, onAppl
                   </Pressable>
                 ))}
               </ScrollView>
+            </View>
+
+            <View style={fp.section}>
+              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>Country</Text>
+              <TextInput
+                value={values.country}
+                onChangeText={(t) => onChange({ ...values, country: t })}
+                placeholder="Any country"
+                placeholderTextColor={c.inkMuted}
+                style={[fp.priceInput, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink }]}
+              />
             </View>
 
             <View style={fp.section}>

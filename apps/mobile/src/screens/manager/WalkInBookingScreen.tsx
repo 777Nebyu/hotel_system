@@ -26,7 +26,7 @@ import { hapticSuccess, hapticError } from '../../hooks/useHaptics';
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const PAYMENT_METHODS = [
-  { value: 'CASH_AT_HOTEL', label: 'Cash at Hotel', icon: 'cash-outline' as const },
+  { value: 'CASH', label: 'Cash at Hotel', icon: 'cash-outline' as const },
   { value: 'CREDIT_CARD', label: 'Credit Card', icon: 'card-outline' as const },
 ] as const;
 
@@ -96,7 +96,7 @@ export default function WalkInBookingScreen() {
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [totalPrice, setTotalPrice] = useState<number | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<string>('CASH_AT_HOTEL');
+  const [paymentMethod, setPaymentMethod] = useState<string>('CASH');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
 
   // Date picker state
@@ -116,7 +116,7 @@ export default function WalkInBookingScreen() {
     setSelectedRoomId('');
     setRoomType('');
     setTotalPrice(null);
-    request<HotelPolicy>(`/catalog/hotels/${managedHotelId}/policies`, { token })
+    request<HotelPolicy>(`/catalog/hotels/${managedHotelId}/policy`, { token })
       .then((res) => setPolicies(res))
       .catch(() => {});
   }, [managedHotelId, token]);
@@ -182,7 +182,7 @@ export default function WalkInBookingScreen() {
   useEffect(() => { setTotalPrice(totalPriceCalc); }, [totalPriceCalc]);
 
   const validate = (): string | null => {
-    if (!fullName.trim()) return 'Guest full name is required.';
+    if (!fullName.trim() || fullName.trim().length < 2) return 'Guest full name is required (min 2 characters).';
     if (!phone.trim() || phone.replace(/\s/g, '').length < 3) return 'Valid phone number is required.';
     if (!checkIn || !checkOut) return 'Both check-in and check-out dates are required.';
     if (checkIn >= checkOut) return 'Check-out must be after check-in.';
@@ -193,7 +193,7 @@ export default function WalkInBookingScreen() {
 
   const validateField = (field: string) => {
     const errs: Record<string, string | undefined> = {};
-    if (field === 'fullName' && !fullName.trim()) errs.fullName = 'Guest full name is required.';
+    if (field === 'fullName' && (!fullName.trim() || fullName.trim().length < 2)) errs.fullName = 'Guest full name is required (min 2 characters).';
     if (field === 'phone' && (!phone.trim() || phone.replace(/\s/g, '').length < 3)) errs.phone = 'Valid phone number is required.';
     if (field === 'checkIn' && !checkIn) errs.checkIn = 'Check-in date is required.';
     if (field === 'checkOut' && !checkOut) errs.checkOut = 'Check-out date is required.';
@@ -205,7 +205,7 @@ export default function WalkInBookingScreen() {
     const err = validate();
     if (err) {
       const errs: Record<string, string | undefined> = {};
-      if (!fullName.trim()) errs.fullName = 'Guest full name is required.';
+      if (!fullName.trim() || fullName.trim().length < 2) errs.fullName = 'Guest full name is required (min 2 characters).';
       if (!phone.trim() || phone.replace(/\s/g, '').length < 3) errs.phone = 'Valid phone number is required.';
       if (!checkIn || !checkOut) errs.checkIn = 'Both dates are required.';
       else if (checkIn >= checkOut) errs.checkOut = 'Check-out must be after check-in.';
@@ -217,7 +217,7 @@ export default function WalkInBookingScreen() {
     setSubmitting(true);
     try {
       const res = await request<{ id: string; reference: string }>(
-        '/bookings/manage/walk-in',
+        '/bookings/walk-in',
         {
           method: 'POST',
           token,
@@ -227,13 +227,11 @@ export default function WalkInBookingScreen() {
             checkIn,
             checkOut,
             guests: { adults, children },
-            guestInfos: [{
-              fullName: fullName.trim(),
-              email: email.trim() || undefined,
-              phone: phone.trim() || undefined,
-            }],
             paymentMethod,
-            guestFullName: fullName.trim(),
+            // Walk-in payments are collected at the desk; the API uses this
+            // flag to immediately confirm the booking and mark payment paid.
+            paidImmediately: true,
+            guestName: fullName.trim(),
             guestPhone: phone.trim() || undefined,
             guestEmail: email.trim() || undefined,
             guestIdNumber: idNumber.trim() || undefined,
@@ -267,7 +265,7 @@ export default function WalkInBookingScreen() {
       <ScreenHeader
         title="Walk-in Booking"
         onBack={() => navigation.goBack()}
-        subtitle={paymentMethod === 'CASH_AT_HOTEL' ? 'Cash payment · immediately confirmed' : 'Card payment · immediately confirmed'}
+        subtitle={paymentMethod === 'CASH' ? 'Cash payment · immediately confirmed' : 'Card payment · immediately confirmed'}
       />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {/* Hotel selection */}

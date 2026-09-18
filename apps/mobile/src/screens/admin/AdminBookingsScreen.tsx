@@ -100,7 +100,11 @@ export default function AdminBookingsScreen({ onNavigate, onBack }: Props) { // 
     try {
       const { File, Paths } = await import('expo-file-system');
       const Sharing = await import('expo-sharing');
-      const blob = await requestBlob('/admin/bookings/export', { method: 'GET', token });
+      const blob = await requestBlob('/admin/export', {
+        method: 'POST',
+        body: { type: 'bookings', format: 'csv' },
+        token,
+      });
       const reader = new FileReader();
       reader.onload = async () => {
         const base64 = (reader.result as string).split(',')[1];
@@ -131,7 +135,7 @@ export default function AdminBookingsScreen({ onNavigate, onBack }: Props) { // 
     if (!cancelReason.trim()) { toast('error', 'Provide a cancellation reason'); return; }
     setCancelling(true);
     try {
-      await request(`/bookings/manage/${cancelTarget.id}/admin-cancel`, {
+      await request(`/bookings/${cancelTarget.id}/cancel`, {
         method: 'POST',
         body: { reason: cancelReason.trim() },
         token,
@@ -151,7 +155,8 @@ export default function AdminBookingsScreen({ onNavigate, onBack }: Props) { // 
   const performAction = async (id: string, action: string) => {
     setActionLoading(id);
     try {
-      await request(`/bookings/manage/${id}/${action}`, { method: 'POST', token });
+      const endpoint = action === 'mark-paid' ? `/payments/${id}/cash-paid` : `/bookings/${id}/${action}`;
+      await request(endpoint, { method: 'POST', token });
       toast('success', `${action.replace(/-/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase())} successful`);
       void fetchBookings();
     } catch (err: any) {
@@ -200,32 +205,34 @@ export default function AdminBookingsScreen({ onNavigate, onBack }: Props) { // 
       />
 
       {/* Status tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabs}>
-        {STATUS_TABS.map((tabItem) => {
-          const isActive = tab === tabItem.key;
-          const count = tabCounts[tabItem.key] ?? 0;
-          return (
-            <Pressable
-              key={tabItem.key}
-              onPress={() => setTab(tabItem.key)}
-              style={({ pressed }) => [
-                s.tabPill,
-                isActive && s.tabPillActive,
-                pressed && { opacity: 0.7 },
-              ]}
-            >
-              <Text style={[s.tabText, isActive && s.tabTextActive]}>
-                {tabItem.label}
-              </Text>
-              <View style={[s.tabCount, isActive && s.tabCountActive]}>
-                <Text style={[s.tabCountText, isActive && s.tabCountTextActive]}>
-                  {count}
+      <View style={s.tabsWrap}>
+        <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabs}>
+          {STATUS_TABS.map((tabItem) => {
+            const isActive = tab === tabItem.key;
+            const count = tabCounts[tabItem.key] ?? 0;
+            return (
+              <Pressable
+                key={tabItem.key}
+                onPress={() => setTab(tabItem.key)}
+                style={({ pressed }) => [
+                  s.tabPill,
+                  isActive && s.tabPillActive,
+                  pressed && { opacity: 0.7 },
+                ]}
+              >
+                <Text style={[s.tabText, isActive && s.tabTextActive]}>
+                  {tabItem.label}
                 </Text>
-              </View>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+                <View style={[s.tabCount, isActive && s.tabCountActive]}>
+                  <Text style={[s.tabCountText, isActive && s.tabCountTextActive]}>
+                    {count}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       {/* Search */}
       <View style={s.searchBar}>
@@ -406,6 +413,7 @@ const makeStyles = (c: ReturnType<typeof useThemeColors>) => StyleSheet.create({
   list:       { padding: 16, gap: 12, paddingBottom: 48 },
   flex:       { flex: 1 },
   exportBtn:  { padding: 4 },
+  tabsWrap:   { maxHeight: 48 },
   tabs:       { paddingHorizontal: 12, paddingVertical: 8, gap: 6 },
   tabPill:    { flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: c.lineStrong, backgroundColor: c.paperDeep },
   tabPillActive:{ backgroundColor: c.teal, borderColor: c.teal },

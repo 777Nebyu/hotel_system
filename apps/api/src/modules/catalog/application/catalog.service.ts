@@ -217,22 +217,35 @@ export class CatalogService {
       },
     });
 
+    const roomIds = rooms.map((r) => r.id);
+    const overlappingBookings = await this.db.bookingDetail.findMany({
+      where: {
+        roomId: { in: roomIds },
+        booking: {
+          status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+          checkIn: { lt: checkOut },
+          checkOut: { gt: checkIn },
+        },
+      },
+      select: { roomId: true },
+    });
+    const bookedRoomIds = new Set(overlappingBookings.map((b) => b.roomId));
+
     return rooms.map((room) => {
       const range = priceRange(room, room.seasonalPricing, checkIn, checkOut);
+      const statusAvailable = roomAvailableAcross(
+        room.status,
+        room.availability,
+        checkIn,
+        checkOut,
+      );
+      const hasNoOverlappingBooking = !bookedRoomIds.has(room.id);
       return {
         ...this.toRoomPayload(room),
-        availableAcrossRange: roomAvailableAcross(
-          room.status,
-          room.availability,
-          checkIn,
-          checkOut,
-        ),
-        availableNights: availableNights(
-          room.status,
-          room.availability,
-          checkIn,
-          checkOut,
-        ),
+        availableAcrossRange: statusAvailable && hasNoOverlappingBooking,
+        availableNights: hasNoOverlappingBooking
+          ? availableNights(room.status, room.availability, checkIn, checkOut)
+          : 0,
         totalNights,
         priceRange: range
           ? { min: roundCurrency(range.min), max: roundCurrency(range.max) }

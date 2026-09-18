@@ -131,7 +131,7 @@ export default function ProfileEditScreen() {
     try {
       const compressedUri = await compressImage(asset.uri);
       const formData = new FormData();
-      formData.append('file', { uri: compressedUri, name: 'photo.jpg', type: 'image/jpeg' } as any);
+      formData.append('photo', { uri: compressedUri, name: 'photo.jpg', type: 'image/jpeg' } as any);
       const res = await requestFormData<{ profilePhotoUrl: string }>('/auth/me/photo', formData, session?.accessToken);
       dispatch(updateUser({ profilePhotoUrl: res.profilePhotoUrl }));
       Alert.alert('Updated', 'Profile photo updated successfully.');
@@ -220,7 +220,20 @@ export default function ProfileEditScreen() {
 
   const navigate = (screen: string) => {
     hapticLight();
-    navigation.navigate(screen as any);
+    // Tab routes live inside the tab navigator nested under the root stack.
+    if (screen === 'BookingsTab' || screen === 'FavoritesTab' || screen === 'ProfileTab') {
+      (navigation.getParent() as any)?.navigate('MainTabs', { screen });
+      return;
+    }
+    // All other screens (AccountSecurity, MyReviews, Disputes, etc.) are root
+    // stack screens. Since ProfileEditScreen lives inside the tab navigator,
+    // we must navigate through the parent root stack.
+    const parent = navigation.getParent();
+    if (parent) {
+      parent.navigate(screen as any);
+    } else {
+      navigation.navigate(screen as any);
+    }
   };
 
   return (
@@ -626,6 +639,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
+    overflow: 'hidden',
   },
   avatarWrap: { position: 'relative' },
   avatar: { width: 68, height: 68, borderRadius: 34, alignItems: 'center', justifyContent: 'center' },
@@ -667,6 +681,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     marginBottom: 16,
+    overflow: 'hidden',
   },
   roleIconCircle: {
     width: 36,
@@ -728,7 +743,7 @@ const styles = StyleSheet.create({
   tabText: { fontSize: 13, fontWeight: '700' },
   tabTextActive: { color: '#FFFFFF' },
 
-  card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 16 },
+  card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 16, overflow: 'hidden' },
   sectionLabel: { fontSize: 17, fontWeight: '800', letterSpacing: -0.2, marginBottom: 12 },
   fieldGroup: { marginBottom: 12 },
   fieldLabel: { fontSize: 11, fontWeight: '700', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.8 },

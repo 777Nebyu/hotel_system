@@ -47,8 +47,9 @@ export default function AdminEmergencyScreen({ onBack }: AdminEmergencyScreenPro
 
   const loadAuditLog = async (hotelId: string) => {
     try {
-      const res = await request<any>(`/admin/hotels/${hotelId}/emergency-log`, { method: 'GET', token });
-      setAuditLog(Array.isArray(res) ? res : res?.data ?? []);
+      const res = await request<any>('/admin/suspensions/pending', { method: 'GET', token });
+      const pending = Array.isArray(res) ? res : res?.data ?? [];
+      setAuditLog(pending.filter((entry: any) => entry.targetId === hotelId));
     } catch { setAuditLog([]); }
   };
 
@@ -64,12 +65,21 @@ export default function AdminEmergencyScreen({ onBack }: AdminEmergencyScreenPro
     }
     const newStatus = confirmType === 'suspend' ? 'SUSPENDED' : 'ACTIVE';
     try {
-      await request(`/admin/hotels/${selectedHotel}/emergency`, {
-        method: 'PATCH',
-        body: { status: newStatus, reason: reason || 'Emergency action', confirmText: 'CONFIRM' },
-        token,
-      });
-      toast('success', newStatus === 'SUSPENDED' ? 'Hotel suspended' : 'Hotel reactivated');
+      if (confirmType === 'suspend') {
+        await request('/admin/suspensions', {
+          method: 'POST',
+          body: { targetType: 'HOTEL', targetId: selectedHotel, reason: reason.trim() || 'Emergency hotel suspension requested.' },
+          token,
+        });
+        toast('success', 'Suspension request submitted for second-admin approval');
+      } else {
+        await request(`/admin/hotels/${selectedHotel}/status`, {
+          method: 'PATCH',
+          body: { status: newStatus },
+          token,
+        });
+        toast('success', 'Hotel reactivated');
+      }
       setReason('');
       setConfirmText('');
       fetchData();
@@ -164,7 +174,7 @@ export default function AdminEmergencyScreen({ onBack }: AdminEmergencyScreenPro
         />
       )}
 
-      <ConfirmDialog open={confirmVisible} onClose={() => setConfirmVisible(false)} onConfirm={doConfirmAction} title={confirmType === 'suspend' ? 'Emergency Suspend' : 'Reactivate'} body={`Are you sure you want to ${confirmType} this hotel? All active bookings will be cancelled.`} />
+      <ConfirmDialog open={confirmVisible} onClose={() => setConfirmVisible(false)} onConfirm={doConfirmAction} title={confirmType === 'suspend' ? 'Emergency Suspend' : 'Reactivate'} body={`Are you sure you want to ${confirmType} this hotel? Only pending bookings are cancelled; confirmed bookings remain valid.`} />
     </View>
   );
 }

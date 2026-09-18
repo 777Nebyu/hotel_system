@@ -7,22 +7,36 @@ import {
   CreditCardGateway,
   PayPalGateway,
   TelebirrGateway,
+  ChapaMockProvider,
+  BankMockProvider,
+  MockSmsService,
 } from './infrastructure/gateways';
+import { OtpService } from './application/otp.service';
 import { PaymentController } from './presentation/payment.controller';
+import { MockSmsController } from './presentation/mock-sms.controller';
+import { AdminSandboxController } from './presentation/admin-sandbox.controller';
 import { PaymentService } from './application/payment.service';
 import { FraudModule } from '../fraud/fraud.module';
 
 @Module({
   imports: [FraudModule],
-  controllers: [PaymentController],
+  controllers: [
+    PaymentController,
+    MockSmsController,
+    AdminSandboxController,
+  ],
   providers: [
     PaymentService,
     AuditService,
+    OtpService,
+    MockSmsService,
     CreditCardGateway,
     PayPalGateway,
     TelebirrGateway,
     CbeBirrGateway,
     CashGateway,
+    BankMockProvider,
+    ChapaMockProvider,
     {
       provide: PaymentGatewayRegistry,
       useFactory: (
@@ -47,6 +61,14 @@ import { FraudModule } from '../fraud/fraud.module';
         CashGateway,
       ],
     },
+  ],
+  exports: [
+    PaymentService,
+    OtpService,
+    MockSmsService,
+    ChapaMockProvider,
+    BankMockProvider,
+    PaymentGatewayRegistry,
   ],
 })
 export class PaymentModule {}

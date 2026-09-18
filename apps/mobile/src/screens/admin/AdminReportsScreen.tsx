@@ -124,7 +124,7 @@ export default function AdminReportsScreen({ onBack }: Props) {
   const handleExport = async (type: string) => {
     setExporting(type);
     try {
-      await requestBlob(`/admin/reports/${type}?format=csv`, { method: 'GET', token });
+      await requestBlob(`/admin/reports/${type}?format=excel`, { method: 'GET', token });
       toast('success', `${type} report exported`);
     } catch (err: any) {
       toast('error', err.message || 'Export failed');
@@ -241,7 +241,7 @@ export default function AdminReportsScreen({ onBack }: Props) {
           <Text style={s.exportHint}>Download reports as CSV for external analysis.</Text>
           <View style={s.exportGrid}>
             {[
-              { key: 'booking-trends', label: 'Bookings', icon: 'calendar-outline' },
+              { key: 'booking', label: 'Bookings', icon: 'calendar-outline' },
               { key: 'revenue',        label: 'Revenue',  icon: 'cash-outline'     },
               { key: 'occupancy',      label: 'Occupancy',icon: 'bed-outline'      },
               { key: 'overview',       label: 'Overview', icon: 'stats-chart'      },

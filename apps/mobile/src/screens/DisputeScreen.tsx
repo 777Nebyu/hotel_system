@@ -7,7 +7,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import * as ImagePicker from 'expo-image-picker';
 import { useAppSelector } from '../store/hooks';
-import { requestFormData } from '../api';
 import { classifyAndAnnounce } from '../errors';
 import { sanitizeText } from '../lib/sanitize';
 import { Badge, Button, Card, EmptyState, ErrorBox } from '../components/Shared';
@@ -17,7 +16,6 @@ import { useDisputes, useCreateDispute } from '../hooks/useQueries';
 import { font } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { compressImage } from '../lib/compressImage';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -145,19 +143,6 @@ export default function DisputeScreen() {
     setEvidence((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const uploadEvidence = async (): Promise<string[]> => {
-    if (evidence.length === 0) return [];
-    const uploadedIds: string[] = [];
-    for (const file of evidence) {
-      const compressedUri = await compressImage(file.uri);
-      const formData = new FormData();
-      formData.append('file', { uri: compressedUri, name: file.name, type: file.type } as any);
-      const res = await requestFormData<{ id: string }>('/upload/dispute-evidence', formData, token);
-      uploadedIds.push(res.id);
-    }
-    return uploadedIds;
-  };
-
   const validateField = (field: string) => {
     const errs: Record<string, string | undefined> = {};
     if (field === 'subject' && !sanitizeText(subject)) errs.subject = 'Subject is required.';
@@ -174,17 +159,19 @@ export default function DisputeScreen() {
     const errs: Record<string, string | undefined> = {};
     if (!sanitizedSubject) errs.subject = 'Subject is required.';
     if (!sanitizedDescription) errs.description = 'Description is required.';
+    if (!bookingRef.trim()) errs.bookingRef = 'A booking ID is required to file a dispute.';
     if (Object.keys(errs).length > 0) { setFieldErrors(errs); return; }
     setFieldErrors({});
     try {
       setUploading(true);
-      const evidenceIds = await uploadEvidence();
+      // The current disputes API accepts only bookingId and reason. Do not
+      // upload evidence here because there is no server field to attach it to.
       await createDispute.mutateAsync({
-        type,
-        subject: sanitizedSubject,
-        description: sanitizedDescription,
-        bookingId: bookingRef.trim() || undefined,
-        evidenceIds: evidenceIds.length > 0 ? evidenceIds : undefined,
+        // The API stores a dispute as a bookingId plus a single reason field.
+        // Keep the user-facing subject/description, but send the contract the
+        // backend validates instead of silently dropping unsupported fields.
+        bookingId: bookingRef.trim(),
+        reason: `${sanitizedSubject}\n\n${sanitizedDescription}`,
       });
       toast('success', t('disputes.submitted'));
       setShowForm(false);
@@ -238,8 +225,9 @@ export default function DisputeScreen() {
           {fieldErrors.description ? <Text style={styles.fieldError}>{fieldErrors.description}</Text> : null}
           <Text style={styles.charCount}>{description.length}/5000</Text>
 
-          <Text style={styles.label}>{t('disputes.bookingRef')} {t('disputes.optional')}</Text>
-          <TextInput value={bookingRef} onChangeText={setBookingRef} placeholder="Booking ID (first 8 chars)" placeholderTextColor={c.inkMuted} style={styles.input} autoCapitalize="characters" />
+          <Text style={styles.label}>{t('disputes.bookingRef')} *</Text>
+          <TextInput value={bookingRef} onChangeText={(v) => { setBookingRef(v); setFieldErrors((p) => ({ ...p, bookingRef: undefined })); }} placeholder="Enter the full booking ID" placeholderTextColor={c.inkMuted} style={[styles.input, fieldErrors.bookingRef && styles.inputError]} autoCapitalize="none" />
+          {fieldErrors.bookingRef ? <Text style={styles.fieldError}>{fieldErrors.bookingRef}</Text> : null}
 
           <Text style={styles.label}>{t('disputes.evidence')} {t('disputes.optional')}</Text>
           <Text style={styles.hint}>{t('disputes.evidenceHint')}</Text>

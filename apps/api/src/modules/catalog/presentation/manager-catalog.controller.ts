@@ -97,7 +97,7 @@ export class ManagerCatalogController {
   }
 
   @Get('hotels/:id/policy')
-  @Roles(Role.MANAGER, Role.ADMIN)
+  @Roles(Role.MANAGER, Role.STAFF, Role.ADMIN)
   @ApiOperation({ summary: 'Get hotel policy rules' })
   getHotelPolicy(
     @Param() params: HotelIdParamsDto,

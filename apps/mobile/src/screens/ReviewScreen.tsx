@@ -1,21 +1,22 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 import { useAppSelector } from '../store/hooks';
 import { request, requestFormData } from '../api';
 import { Button, Card, Stars } from '../components/Shared';
 import { textProps } from '../components/ScaledText';
-import { font } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import { reviewSchema } from '../lib/schemas';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
 import { sanitizeText } from '../lib/sanitize';
 import { compressImage } from '../lib/compressImage';
+import { Ionicons } from '@expo/vector-icons';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'Review'>;
@@ -25,11 +26,12 @@ const RATING_WORDS = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'] as c
 export default function ReviewScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
-  const { hotelId, hotelName, mode = 'create', existingReview } = route.params;
+  const { hotelId, hotelName, bookingId, mode = 'create', existingReview } = route.params;
   const session = useAppSelector((s) => s.auth.session);
   const token = session?.accessToken ?? '';
   const { isOffline } = useNetworkStatus();
   const pad = useResponsivePadding();
+  const insets = useSafeAreaInsets();
   const { colors: c } = useTheme();
 
   useEffect(() => {
@@ -61,7 +63,21 @@ export default function ReviewScreen() {
       mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: 5 - photos.length, quality: 0.8,
     });
     if (!result.canceled) {
-      setPhotos((prev) => [...prev, ...result.assets.map((a) => ({ uri: a.uri, asset: a }))].slice(0, 5));
+      const validPhotos: { uri: string; asset: ImagePicker.ImagePickerAsset }[] = [];
+      for (const asset of result.assets) {
+        const filename = asset.uri.split('/').pop()?.toLowerCase() ?? '';
+        const ext = filename.split('.').pop() ?? '';
+        if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+          Alert.alert('Invalid file type', 'Only JPG, PNG, and WebP images are allowed.');
+          continue;
+        }
+        if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
+          Alert.alert('File too large', 'Photos must be under 5MB each.');
+          continue;
+        }
+        validPhotos.push({ uri: asset.uri, asset });
+      }
+      setPhotos((prev) => [...prev, ...validPhotos].slice(0, 5));
     }
   };
 
@@ -91,7 +107,6 @@ export default function ReviewScreen() {
     const sanitizedComment = sanitizeText(comment);
     const errs: Record<string, string | undefined> = {};
     if (!rating) errs.rating = 'Please select a rating.';
-    if (!sanitizedComment) errs.comment = 'Please write a review.';
     if (Object.keys(errs).length > 0) { setFieldErrors(errs); return; }
     setFieldErrors({});
     try {
@@ -107,7 +122,7 @@ export default function ReviewScreen() {
         await request(`/reviews/${existingReview.id}`, { method: 'PATCH', body: { rating, comment: sanitizedComment }, token });
         reviewId = existingReview.id;
       } else {
-        const created = await request<{ id: string }>('/reviews', { method: 'POST', body: { hotelId, rating, comment: sanitizedComment }, token });
+        const created = await request<{ id: string }>('/reviews', { method: 'POST', body: { hotelId, bookingId, rating, comment: sanitizedComment }, token });
         reviewId = created.id;
       }
       for (const photo of photos) {
@@ -125,38 +140,12 @@ export default function ReviewScreen() {
     } finally { setLoading(false); }
   };
 
-  const s = useMemo(() => StyleSheet.create({
-    container: { flex: 1, backgroundColor: c.paper },
-    content: { padding: 20, paddingBottom: 40 },
-    backText: { color: c.teal, fontSize: 15, fontWeight: '600', marginBottom: 12 },
-    title: { fontFamily: font.display, color: c.ink, fontSize: 26, fontWeight: '600', letterSpacing: -0.3 },
-    subtitle: { color: c.inkSoft, fontSize: 14, marginTop: 4, marginBottom: 20 },
-    card: { gap: 10 },
-    label: { color: c.inkSoft, fontSize: 13, fontWeight: '600', marginTop: 4 },
-    starsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
-    star: { fontSize: 38, color: c.lineStrong },
-    starActive: { color: c.gold },
-    ratingWord: { color: c.goldDeep, fontSize: 14, fontWeight: '600', marginLeft: 4 },
-    input: { backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: c.lineStrong, paddingHorizontal: 12, paddingVertical: 12, fontSize: 15, color: c.ink },
-    inputError: { borderColor: '#EF4444' },
-    fieldError: { color: '#EF4444', fontSize: 12, marginTop: 2 },
-    hintRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 6, marginTop: 14, paddingHorizontal: 4 },
-    hint: { color: c.inkMuted, fontSize: 12, flex: 1 },
-    photoSection: { marginTop: 4 },
-    photoHint: { color: c.inkMuted, fontSize: 11, marginTop: 2 },
-    photoRow: { flexDirection: 'row' as const, gap: 8, marginTop: 8 },
-    photoThumb: { width: 64, height: 64, borderRadius: 8, overflow: 'hidden' as const },
-    photoImage: { width: 64, height: 64 },
-    photoRemove: { position: 'absolute' as const, top: -4, right: -4, width: 20, height: 20, borderRadius: 10, backgroundColor: c.brick, alignItems: 'center' as const, justifyContent: 'center' as const },
-    photoRemoveText: { color: c.surface, fontSize: 14, fontWeight: '700', marginTop: -1 },
-    photoPlaceholder: { width: 64, height: 64, borderRadius: 8, borderWidth: 1.5, borderColor: c.lineStrong, borderStyle: 'dashed' as const, alignItems: 'center' as const, justifyContent: 'center' as const },
-    photoPlus: { fontSize: 24, color: c.inkMuted },
-  }), [c]);
+  const s = makeStyles(c);
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={[s.content, { paddingHorizontal: pad }]}>
-      <Pressable onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Go back">
-        <Text style={s.backText}>← Back</Text>
+    <ScrollView style={s.container} contentContainerStyle={[s.content, { paddingHorizontal: pad, paddingTop: insets.top + 12 }]}>
+      <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={s.backBtn}>
+        <Ionicons name="arrow-back" size={20} color={c.teal} />
       </Pressable>
       <Text {...textProps} style={s.title}>{mode === 'edit' ? 'Edit review' : `Review ${hotelName}`}</Text>
       <Text style={s.subtitle}>{mode === 'edit' ? 'Update your review' : 'Share your experience'}</Text>
@@ -174,7 +163,7 @@ export default function ReviewScreen() {
               accessibilityLabel={`${st} star${st > 1 ? 's' : ''}`}
               accessibilityHint={`Rate ${st} out of 5 stars`}
             >
-              <Text style={[s.star, st <= rating && s.starActive]}>{st <= rating ? '★' : '☆'}</Text>
+              <Text style={[s.star, st <= rating && s.starActive]}>{st <= rating ? '\u2605' : '\u2606'}</Text>
             </Pressable>
           ))}
           {rating > 0 && <Text style={s.ratingWord}>{RATING_WORDS[rating]}</Text>}
@@ -184,19 +173,19 @@ export default function ReviewScreen() {
         <TextInput
           value={comment}
           onChangeText={(v) => { setComment(v); setFieldErrors((p) => ({ ...p, comment: undefined })); }}
-          onBlur={() => { if (!comment.trim()) setFieldErrors((p) => ({ ...p, comment: 'Please write a review.' })); }}
           placeholder="Clean rooms, honest breakfast, staff who actually smile..."
           placeholderTextColor={c.inkMuted}
           style={[s.input, { height: 120 }, fieldErrors.comment && s.inputError]}
           multiline
           textAlignVertical="top"
+          maxLength={2000}
           accessibilityLabel="Your review comments"
         />
         {fieldErrors.comment ? <Text style={s.fieldError}>{fieldErrors.comment}</Text> : null}
 
         <View style={s.photoSection}>
           <Text style={s.label}>Add photos</Text>
-          <Text style={s.photoHint}>{photos.length}/5 · optional</Text>
+          <Text style={s.photoHint}>{photos.length}/5 \u00B7 optional</Text>
           <View style={s.photoRow}>
             {photos.map((p, i) => (
               <View key={i} style={s.photoThumb}>
@@ -207,7 +196,7 @@ export default function ReviewScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Remove photo ${i + 1}`}
                 >
-                  <Text style={s.photoRemoveText}>×</Text>
+                  <Text style={s.photoRemoveText}>{'\u2715'}</Text>
                 </Pressable>
               </View>
             ))}
@@ -239,3 +228,31 @@ export default function ReviewScreen() {
     </ScrollView>
   );
 }
+
+const makeStyles = (c: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.paper },
+  content: { paddingBottom: 40 },
+  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: c.paperDeep, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  title: { fontFamily: 'Georgia', color: c.ink, fontSize: 26, fontWeight: '600', letterSpacing: -0.3 },
+  subtitle: { color: c.inkSoft, fontSize: 14, marginTop: 4, marginBottom: 20 },
+  card: { gap: 10 },
+  label: { color: c.inkSoft, fontSize: 13, fontWeight: '600', marginTop: 4 },
+  starsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8 },
+  star: { fontSize: 38, color: c.lineStrong },
+  starActive: { color: c.gold },
+  ratingWord: { color: c.goldDeep, fontSize: 14, fontWeight: '600', marginLeft: 4 },
+  input: { backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: c.lineStrong, paddingHorizontal: 12, paddingVertical: 12, fontSize: 15, color: c.ink },
+  inputError: { borderColor: c.brick },
+  fieldError: { color: c.brick, fontSize: 12, marginTop: 2 },
+  hintRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 6, marginTop: 14, paddingHorizontal: 4 },
+  hint: { color: c.inkMuted, fontSize: 12, flex: 1 },
+  photoSection: { marginTop: 4 },
+  photoHint: { color: c.inkMuted, fontSize: 11, marginTop: 2 },
+  photoRow: { flexDirection: 'row' as const, gap: 8, marginTop: 8 },
+  photoThumb: { width: 64, height: 64, borderRadius: 8, overflow: 'hidden' as const },
+  photoImage: { width: 64, height: 64 },
+  photoRemove: { position: 'absolute' as const, top: -4, right: -4, width: 20, height: 20, borderRadius: 10, backgroundColor: c.brick, alignItems: 'center' as const, justifyContent: 'center' as const },
+  photoRemoveText: { color: c.surface, fontSize: 14, fontWeight: '700', marginTop: -1 },
+  photoPlaceholder: { width: 64, height: 64, borderRadius: 8, borderWidth: 1.5, borderColor: c.lineStrong, borderStyle: 'dashed' as const, alignItems: 'center' as const, justifyContent: 'center' as const },
+  photoPlus: { fontSize: 24, color: c.inkMuted },
+});

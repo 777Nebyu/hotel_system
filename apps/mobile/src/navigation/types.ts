@@ -5,7 +5,7 @@ export type RootStackParamList = {
   MainTabs: undefined;
   Search: undefined;
   HotelDetail: { hotelId: string };
-  RoomDetail: { room: Room; hotelName: string; hotelId: string; checkIn: string; checkOut: string; hotelImages?: { id: string; url: string; isPrimary: boolean }[] };
+  RoomDetail: { room: Room; hotelName: string; hotelId: string; checkIn: string; checkOut: string; hotelImages?: { id: string; url: string; isPrimary: boolean }[]; guests?: { adults: number; children: number } };
   BookingFlow: {
     hotelId: string;
     roomId: string;
@@ -16,8 +16,17 @@ export type RootStackParamList = {
     checkOut?: string;
     promoCode?: string;
   };
+  MockAuth: {
+    bookingId: string;
+    method: string;
+    amount: number;
+    currency?: string;
+    hotelName: string;
+    reference: string;
+  };
+  PaymentHistory: undefined;
   BookingDetail: { bookingId: string };
-  Review: { hotelId: string; hotelName: string; mode?: 'create' | 'edit'; existingReview?: { id: string; rating: number; comment: string } | null };
+  Review: { hotelId: string; hotelName: string; bookingId?: string; mode?: 'create' | 'edit'; existingReview?: { id: string; rating: number; comment: string } | null };
   ForgotPassword: undefined;
   VerifyEmail: { token: string };
   ResetPassword: { token: string };
@@ -35,6 +44,7 @@ export type RootStackParamList = {
   AdminAuditLog: undefined;
   ManagerOverview: undefined;
   ManagerBookings: undefined;
+  ManagerBilling: undefined;
   ManagerHotel: undefined;
   ManagerRooms: undefined;
   ManagerReports: undefined;
@@ -51,6 +61,42 @@ export type RootStackParamList = {
   AdminFeatureFlags: undefined;
   WalkInBooking: undefined;
   EarlyCheckinLateCheckout: { bookingId: string; mode: 'early-checkin' | 'late-checkout' };
+  ChapaCheckout: {
+    bookingId: string;
+    method: string;
+    amount: number;
+    currency?: string;
+    hotelName: string;
+    roomType?: string;
+    phone?: string;
+  };
+  TelebirrOtp: {
+    bookingId: string;
+    amount: number;
+    currency?: string;
+    hotelName: string;
+    phone: string;
+  };
+  BankAuth: {
+    bookingId: string;
+    paymentId: string;
+    amount: number;
+    currency?: string;
+    hotelName: string;
+    method: string;
+    bankCode: string;
+    cbeReference?: string;
+  };
+  PaymentResult: {
+    bookingId: string;
+    status: 'SUCCEEDED' | 'FAILED' | 'PROCESSING' | 'CANCELLED' | 'UNKNOWN';
+    amount: number;
+    currency?: string;
+    hotelName: string;
+    method: string;
+    reference: string;
+  };
+  MockSmsInbox: undefined;
   Splash: undefined;
   Settings: undefined;
   Help: undefined;

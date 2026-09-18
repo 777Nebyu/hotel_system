@@ -43,7 +43,13 @@ export default function EarlyCheckinLateCheckoutScreen() {
 
   const isEarlyCheckIn = mode === 'early-checkin';
   const title = isEarlyCheckIn ? 'Early Check-in' : 'Late Check-out';
-  const action = isEarlyCheckIn ? 'check-in-early' : 'check-out-late';
+  const action = isEarlyCheckIn ? 'early-checkin' : 'late-checkout';
+
+  const requiredStatus = isEarlyCheckIn ? 'CONFIRMED' : 'CHECKED_IN';
+  const statusOk = booking?.status === requiredStatus;
+  const statusError = booking && !statusOk
+    ? `${title} requires booking status ${requiredStatus.replace('_', ' ')}. Current status: ${booking.status.replace('_', ' ')}.`
+    : null;
 
   useEffect(() => {
     (async () => {
@@ -65,7 +71,7 @@ export default function EarlyCheckinLateCheckoutScreen() {
     }
     setBusy(true);
     try {
-      await request(`/bookings/manage/${bookingId}/${action}`, { method: 'POST', token });
+      await request(`/bookings/${bookingId}/${action}`, { method: 'POST', token });
       hapticSuccess();
       Alert.alert('Success', `${title} approved successfully.`, [
         { text: 'OK', onPress: () => navigation.goBack() },
@@ -88,6 +94,7 @@ export default function EarlyCheckinLateCheckoutScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         {error && <Text style={styles.errorText}>{error}</Text>}
+        {statusError && <Text style={[styles.errorText, { marginBottom: 12 }]}>{statusError}</Text>}
 
         {booking && (
           <>
@@ -176,7 +183,7 @@ export default function EarlyCheckinLateCheckoutScreen() {
                 title={`Approve ${title}`}
                 onPress={handleConfirm}
                 loading={busy}
-                disabled={!consent}
+                disabled={!consent || !statusOk}
               />
             </View>
           </>

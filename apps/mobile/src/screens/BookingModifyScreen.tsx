@@ -97,6 +97,18 @@ export default function BookingModifyScreen() {
       setFieldErrors(errs);
       return Alert.alert(t('bookingModify.error'), t('bookingFlow.missingDatesMsg'));
     }
+    // BOOKMOD-001: New check-in < new check-out
+    if (new Date(checkIn) >= new Date(checkOut)) {
+      setFieldErrors({ checkOut: 'Check-out must be after check-in.' });
+      return Alert.alert(t('bookingModify.error'), 'Check-out must be after check-in.');
+    }
+    // BOOKMOD-001: New dates are today or in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(checkIn) < today) {
+      setFieldErrors({ checkIn: 'Check-in date must be today or in the future.' });
+      return Alert.alert(t('bookingModify.error'), 'Check-in date must be today or in the future.');
+    }
     setFieldErrors({});
     setSaving(true);
     try {
@@ -125,9 +137,9 @@ export default function BookingModifyScreen() {
   if (error) return <View style={styles.center}><ErrorBox message={error} onRetry={load} /></View>;
   if (!booking) return null;
 
-  // BOOKMOD-001: Date modification requires CONFIRMED status
+  // BOOKMOD-001: Date modification requires CONFIRMED or PENDING status
   // BOOKMOD-003: Guest info modification allowed for PENDING or CONFIRMED
-  const canModifyDates = booking.status === 'CONFIRMED';
+  const canModifyDates = booking.status === 'CONFIRMED' || booking.status === 'PENDING';
   const canModifyGuests = booking.status === 'PENDING' || booking.status === 'CONFIRMED';
   const canModify = canModifyDates || canModifyGuests;
   if (!canModify) {
@@ -153,9 +165,6 @@ export default function BookingModifyScreen() {
         <Text style={styles.label}>{t('bookingFlow.checkOut')} (YYYY-MM-DD)</Text>
         <TextInput value={checkOut} onChangeText={(v) => { setCheckOut(v); setFieldErrors((p) => ({ ...p, checkOut: undefined })); }} onBlur={() => { if (!checkOut) setFieldErrors((p) => ({ ...p, checkOut: 'Check-out date is required.' })); }} placeholder="2099-01-17" placeholderTextColor={colors.inkMuted} style={[styles.input, fieldErrors.checkOut && styles.inputError]} editable={canModifyDates} />
         {fieldErrors.checkOut ? <Text style={styles.fieldError}>{fieldErrors.checkOut}</Text> : null}
-        {!canModifyDates && canModifyGuests && (
-          <Text style={[styles.label, { color: colors.inkMuted, fontStyle: 'italic', marginTop: 0 }]}>Date changes require a confirmed booking</Text>
-        )}
 
         <View style={styles.row}>
           <View style={styles.flex}>

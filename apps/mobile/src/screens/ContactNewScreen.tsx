@@ -4,13 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 import { useAppSelector } from '../store/hooks';
 import { Button, Card } from '../components/Shared';
 import { useCreateContactThread, useBookingHistory } from '../hooks/useQueries';
-import { colors, font, radius } from '../theme';
-import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { useTheme } from '../hooks/useTheme';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { Ionicons } from '@expo/vector-icons';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'ContactNew'>;
@@ -20,6 +22,8 @@ export default function ContactNewScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
+  const insets = useSafeAreaInsets();
+  const { colors: c } = useTheme();
   const session = useAppSelector((s) => s.auth.session);
   const token = session?.accessToken ?? '';
   const { isOffline } = useNetworkStatus();
@@ -80,65 +84,64 @@ export default function ContactNewScreen() {
     }
   };
 
+  const s = makeStyles(c);
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingHorizontal: pad }]}>
-      <Pressable onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>{'< Back'}</Text>
+    <ScrollView style={s.container} contentContainerStyle={[s.content, { paddingHorizontal: pad, paddingTop: insets.top + 12 }]}>
+      <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={s.backBtn}>
+        <Ionicons name="arrow-back" size={20} color={c.teal} />
       </Pressable>
 
-      <Text style={styles.title}>{t('contact.newMessage')}</Text>
-      <Text style={styles.subtitle}>{t('contact.newMessageSubtitle')}</Text>
+      <Text style={s.title}>{t('contact.newMessage')}</Text>
+      <Text style={s.subtitle}>{t('contact.newMessageSubtitle')}</Text>
 
-      <Card style={styles.form}>
-        {/* Hotel Selector */}
-        <Text style={styles.label}>{t('contact.hotel')}</Text>
+      <Card style={s.form}>
+        <Text style={s.label}>{t('contact.hotel')}</Text>
         {hotels.length > 0 ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.hotelRow}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.hotelRow}>
             {hotels.map((h) => (
               <Pressable
                 key={h.id}
                 onPress={() => setHotelId(h.id)}
-                style={[styles.hotelChip, hotelId === h.id && styles.hotelChipActive]}
+                style={[s.hotelChip, hotelId === h.id && s.hotelChipActive]}
               >
-                <Text style={[styles.hotelChipText, hotelId === h.id && styles.hotelChipTextActive]}>
+                <Text style={[s.hotelChipText, hotelId === h.id && s.hotelChipTextActive]}>
                   {h.name}
                 </Text>
               </Pressable>
             ))}
           </ScrollView>
         ) : (
-          <Text style={styles.noHotels}>{t('contact.noBookedHotels')}</Text>
+          <Text style={s.noHotels}>{t('contact.noBookedHotels')}</Text>
         )}
 
-        {/* Subject */}
-        <Text style={styles.label}>{t('contact.subject')}</Text>
+        <Text style={s.label}>{t('contact.subject')}</Text>
         <TextInput
-          style={[styles.input, fieldErrors.subject && styles.inputError]}
+          style={[s.input, fieldErrors.subject && s.inputError]}
           value={subject}
           onChangeText={(v) => { setSubject(v); setFieldErrors((p) => ({ ...p, subject: undefined })); }}
           onBlur={() => validateField('subject')}
           placeholder={t('contact.subjectPlaceholder')}
-          placeholderTextColor={colors.inkMuted}
+          placeholderTextColor={c.inkMuted}
           maxLength={100}
         />
-        {fieldErrors.subject ? <Text style={styles.fieldError}>{fieldErrors.subject}</Text> : null}
+        {fieldErrors.subject ? <Text style={s.fieldError}>{fieldErrors.subject}</Text> : null}
 
-        {/* Message */}
-        <Text style={styles.label}>{t('contact.message')}</Text>
+        <Text style={s.label}>{t('contact.message')}</Text>
         <TextInput
-          style={[styles.input, styles.textArea, fieldErrors.message && styles.inputError]}
+          style={[s.input, s.textArea, fieldErrors.message && s.inputError]}
           value={message}
           onChangeText={(v) => { setMessage(v); setFieldErrors((p) => ({ ...p, message: undefined })); }}
           onBlur={() => validateField('message')}
           placeholder={t('contact.messagePlaceholder')}
-          placeholderTextColor={colors.inkMuted}
+          placeholderTextColor={c.inkMuted}
           multiline
           numberOfLines={6}
           textAlignVertical="top"
           maxLength={5000}
         />
-        {fieldErrors.message ? <Text style={styles.fieldError}>{fieldErrors.message}</Text> : null}
-        <Text style={styles.charCount}>{message.length}/5000</Text>
+        {fieldErrors.message ? <Text style={s.fieldError}>{fieldErrors.message}</Text> : null}
+        <Text style={s.charCount}>{message.length}/5000</Text>
       </Card>
 
       <Button
@@ -151,23 +154,23 @@ export default function ContactNewScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.paper },
-  content: { padding: 20, paddingBottom: 40 },
-  backText: { color: colors.teal, fontSize: 15, fontWeight: '600', marginBottom: 12 },
-  title: { fontFamily: font.display, color: colors.ink, fontSize: 24, fontWeight: '600', marginBottom: 4 },
-  subtitle: { color: colors.inkMuted, fontSize: 14, marginBottom: 20 },
+const makeStyles = (c: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.paper },
+  content: { paddingBottom: 40 },
+  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: c.paperDeep, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  title: { fontFamily: 'Georgia', color: c.ink, fontSize: 24, fontWeight: '600', marginBottom: 4 },
+  subtitle: { color: c.inkMuted, fontSize: 14, marginBottom: 20 },
   form: { gap: 10, marginBottom: 20 },
-  label: { color: colors.inkSoft, fontSize: 13, fontWeight: '600', marginTop: 4 },
-  input: { backgroundColor: colors.surface, borderRadius: radius.card, borderWidth: 1, borderColor: colors.lineStrong, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: colors.ink },
-  inputError: { borderColor: '#EF4444' },
-  fieldError: { color: '#EF4444', fontSize: 12, marginTop: 2 },
-  textArea: { minHeight: 140, textAlignVertical: 'top' },
-  charCount: { color: colors.inkMuted, fontSize: 11, textAlign: 'right', marginTop: 2 },
+  label: { color: c.inkSoft, fontSize: 13, fontWeight: '600', marginTop: 4 },
+  input: { backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.lineStrong, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: c.ink },
+  inputError: { borderColor: c.brick },
+  fieldError: { color: c.brick, fontSize: 12, marginTop: 2 },
+  textArea: { minHeight: 140, textAlignVertical: 'top' as const },
+  charCount: { color: c.inkMuted, fontSize: 11, textAlign: 'right', marginTop: 2 },
   hotelRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  hotelChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surface },
-  hotelChipActive: { borderColor: colors.teal, backgroundColor: colors.tealTint },
-  hotelChipText: { fontSize: 13, color: colors.inkSoft, fontWeight: '600' },
-  hotelChipTextActive: { color: colors.teal },
-  noHotels: { color: colors.inkMuted, fontSize: 13, fontStyle: 'italic', marginTop: 4 },
+  hotelChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: c.lineStrong, backgroundColor: c.surface },
+  hotelChipActive: { borderColor: c.teal, backgroundColor: c.tealTint },
+  hotelChipText: { fontSize: 13, color: c.inkSoft, fontWeight: '600' },
+  hotelChipTextActive: { color: c.teal },
+  noHotels: { color: c.inkMuted, fontSize: 13, fontStyle: 'italic', marginTop: 4 },
 });

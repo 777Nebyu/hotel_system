@@ -310,7 +310,7 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await request<DashboardStats>('/bookings/manage/dashboard/stats', { token });
+      const res = await request<DashboardStats>('/bookings/dashboard/stats', { token });
       setStats(res);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');
@@ -550,7 +550,7 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
             { icon: 'person-add-outline', color: GOLD,    bg: GOLD_LIGHT,    label: 'Walk-in Guest',    screen: 'WalkInBooking',                    roles: ['MANAGER','STAFF','ADMIN'] },
             { icon: 'bed-outline',        color: BLUE,    bg: BLUE_BG,       label: 'Room Mgmt',        screen: 'ManagerRooms',                     roles: ['MANAGER','ADMIN'] },
             { icon: 'key-outline',        color: SUCCESS, bg: SUCCESS_BG,    label: 'Check-in',         screen: 'ManagerBookings',                  roles: ['MANAGER','STAFF','ADMIN'] },
-            { icon: 'receipt-outline',    color: WARNING, bg: WARNING_BG,    label: 'Billing',          screen: 'ManagerBookings',                  roles: ['MANAGER','STAFF','ADMIN'] },
+            { icon: 'receipt-outline',    color: WARNING, bg: WARNING_BG,    label: 'Billing',          screen: 'ManagerBilling',                   roles: ['MANAGER','STAFF'] },
             { icon: 'stats-chart',        color: EMERALD, bg: EMERALD_LIGHT, label: 'Reports',          screen: 'ManagerReports',                   roles: ['MANAGER','STAFF','ADMIN'] },
           ]
             .filter(a => a.roles.includes(userRole))

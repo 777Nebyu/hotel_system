@@ -8,6 +8,8 @@ export const NOTIFICATION_TYPES = {
   PAYMENT_RECEIVED: 'payment_received',
   PAYMENT_REFUNDED: 'payment_refunded',
   CHECK_IN_REMINDER: 'check_in_reminder',
+  MANAGER_ASSIGNED: 'manager_assigned',
+  MANAGER_REMOVED: 'manager_removed',
 } as const;
 
 export const NOTIFICATION_CHANNELS = {

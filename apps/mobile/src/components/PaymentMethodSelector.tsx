@@ -78,12 +78,23 @@ function formatExpiry(text: string): string {
   return digits;
 }
 
+function detectCardBrand(num: string): string | null {
+  const clean = num.replace(/\D/g, '');
+  if (clean.startsWith('4')) return 'Visa';
+  if (/^5[1-5]/.test(clean) || /^2[2-7]/.test(clean)) return 'Mastercard';
+  if (/^3[47]/.test(clean)) return 'American Express';
+  return null;
+}
+
 export default function PaymentMethodSelector({ value, onChange, onDetailsChange, details }: Props) {
   const [cardNumber, setCardNumber] = useState(details?.cardNumber ?? '');
   const [cardExpiry, setCardExpiry] = useState(details?.cardExpiry ?? '');
   const [cardCvv, setCardCvv] = useState(details?.cardCvv ?? '');
   const [telebirrPhone, setTelebirrPhone] = useState(details?.telebirrPhone ?? '');
+  const [cbePhone, setCbePhone] = useState(details?.telebirrPhone ?? '');
   const [paypalEmail, setPaypalEmail] = useState(details?.paypalEmail ?? '');
+
+  const cardBrand = detectCardBrand(cardNumber);
 
   const updateDetails = (partial: PaymentDetails) => {
     const updated = { cardNumber, cardExpiry, cardCvv, telebirrPhone, paypalEmail, ...partial };
@@ -127,7 +138,14 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
 
       {value === 'CREDIT_CARD' && (
         <View style={styles.subForm}>
-          <Text style={styles.fieldLabel}>Card number</Text>
+          <View style={styles.fieldHeaderRow}>
+            <Text style={styles.fieldLabel}>Card number</Text>
+            {cardBrand && (
+              <View style={styles.brandBadge}>
+                <Text style={styles.brandBadgeText}>{cardBrand}</Text>
+              </View>
+            )}
+          </View>
           <TextInput
             style={styles.input}
             inputMode="numeric"
@@ -198,6 +216,22 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
         </View>
       )}
 
+      {value === 'CBE_BIRR' && (
+        <View style={styles.subForm}>
+          <Text style={styles.fieldLabel}>CBE Birr mobile number</Text>
+          <TextInput
+            style={styles.input}
+            inputMode="tel"
+            placeholder="09··· ··· ···"
+            placeholderTextColor={colors.inkMuted}
+            maxLength={10}
+            value={cbePhone}
+            onChangeText={(t) => { setCbePhone(t); updateDetails({ telebirrPhone: t }); }}
+          />
+          <Text style={styles.hint}>Open the CBE Birr app on your phone and approve the payment request</Text>
+        </View>
+      )}
+
       {value === 'CASH_AT_HOTEL' && (
         <View style={styles.cashInfo}>
           <Text style={styles.cashInfoText}>
@@ -234,7 +268,10 @@ const styles = StyleSheet.create({
   optionName: { fontSize: 14, fontWeight: '600', color: colors.ink },
   optionTag: { fontSize: 12, color: colors.inkMuted, marginTop: 1, lineHeight: 16 },
   subForm: { marginTop: 12, gap: 8, backgroundColor: colors.paperDeep, borderRadius: 14, borderWidth: 1, borderColor: colors.line, padding: 14 },
+  fieldHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   fieldLabel: { fontSize: 13, fontWeight: '600', color: colors.inkSoft },
+  brandBadge: { backgroundColor: colors.tealTint, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: colors.teal },
+  brandBadgeText: { fontSize: 11, fontWeight: '700', color: colors.teal },
   input: { backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.lineStrong, paddingHorizontal: 12, paddingVertical: 12, fontSize: 15, color: colors.ink },
   hint: { fontSize: 12, color: colors.inkMuted, marginTop: 2 },
   row: { flexDirection: 'row', gap: 10 },

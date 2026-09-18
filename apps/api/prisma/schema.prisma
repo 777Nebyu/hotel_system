@@ -34,8 +34,14 @@ enum RoomStatus {
 
 enum PaymentStatus {
   PENDING
+  PENDING_AT_HOTEL
+  PROCESSING
+  OTP_SENT
   SUCCEEDED
   FAILED
+  CANCELLED
+  EXPIRED
+  TIMEOUT
   REFUNDED
 }
 
@@ -292,6 +298,7 @@ model Booking {
   modifications   BookingModification[]
   relocations     RoomRelocation[]
   contactThreads  ContactThread[]
+  paymentAttempts PaymentAttempt[]
 
   @@index([userId])
   @@index([hotelId])
@@ -310,6 +317,8 @@ model BookingDetail {
   guestCount       Int
   guestInfo        Json
   roomSnapshot     Json?
+  checkIn          DateTime  @db.Date
+  checkOut         DateTime  @db.Date
   relocatedFrom    String?
   relocationReason String?
   relocatedAt      DateTime?
@@ -317,15 +326,19 @@ model BookingDetail {
 }
 
 model BookingStatusHistory {
-  id        String   @id @default(cuid())
-  bookingId String
-  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  status    String
-  changedBy String
-  reason    String?
-  createdAt DateTime @default(now())
+  id         String        @id @default(cuid())
+  bookingId  String
+  booking    Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  fromStatus BookingStatus
+  toStatus   BookingStatus
+  status     String?
+  reason     String?
+  changedBy  String?
+  actorId    String?
+  createdAt  DateTime      @default(now())
 
   @@index([bookingId])
+  @@index([createdAt(sort: Desc)])
 }
 
 model HotelStatusHistory {
@@ -341,35 +354,75 @@ model HotelStatusHistory {
 }
 
 model Payment {
-  id           String           @id @default(cuid())
-  bookingId    String           @unique
-  booking      Booking          @relation(fields: [bookingId], references: [id])
-  method       String
-  amount       Decimal          @db.Decimal(10, 2)
-  status       PaymentStatus    @default(PENDING)
-  providerRef  String?
-  invoiceUrl   String?
-  refundAmount Decimal?         @db.Decimal(10, 2)
-  refundedAt   DateTime?
-  deletedAt    DateTime?
-  createdAt    DateTime         @default(now())
-  attempts     PaymentAttempt[]
+  id                    String           @id @default(cuid())
+  bookingId             String           @unique
+  booking               Booking          @relation(fields: [bookingId], references: [id])
+  userId                String?
+  provider              String           @default("CHAPA")
+  method                String
+  amount                Decimal          @db.Decimal(10, 2)
+  currency              String           @default("ETB")
+  status                PaymentStatus    @default(PENDING)
+  txRef                 String?          @unique
+  providerRef           String?          @unique
+  checkoutSessionId     String?
+  bankCode              String?
+  transactionId         String?
+  verificationCodeHash  String?
+  verificationExpiresAt DateTime?
+  verificationAttempts  Int              @default(0)
+  idempotencyKey        String?          @unique
+  failureReason         String?
+  metadata              Json?
+  invoiceUrl            String?
+  refundAmount          Decimal?         @db.Decimal(10, 2)
+  refundedAt            DateTime?
+  completedAt           DateTime?
+  deletedAt             DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @default(now()) @updatedAt
+  attempts              PaymentAttempt[]
+  events                PaymentEvent[]
 
   @@index([status])
+  @@index([txRef])
+  @@index([idempotencyKey])
+  @@index([createdAt(sort: Desc)])
   @@index([deletedAt])
+}
+
+model PaymentEvent {
+  id        String   @id @default(cuid())
+  paymentId String
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  eventType String
+  status    String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([paymentId])
+  @@index([eventType])
+  @@index([createdAt(sort: Desc)])
 }
 
 model PaymentAttempt {
   id           String   @id @default(cuid())
-  paymentId    String
-  payment      Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  bookingId    String
+  booking      Booking  @relation(fields: [bookingId], references: [id])
+  paymentId    String?
+  payment      Payment? @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   method       String
-  outcome      String
+  outcome      String   @default("INITIATED")
+  status       String   @default("INITIATED")
+  amount       Decimal  @db.Decimal(10, 2)
   providerRef  String?
   errorMessage String?
+  error        String?
   attemptedAt  DateTime @default(now())
+  createdAt    DateTime @default(now())
 
   @@index([paymentId])
+  @@index([bookingId])
 }
 
 model Review {

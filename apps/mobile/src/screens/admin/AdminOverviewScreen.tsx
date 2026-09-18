@@ -20,7 +20,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Alert,
   Animated,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -37,6 +36,7 @@ import { request } from '../../api';
 import { ErrorBox } from '../../components/Shared';
 import { SkeletonCard } from '../../components/Skeleton';
 import { useThemeColors, shadowCard } from '../../theme';
+import { useTheme } from '../../hooks/useTheme';
 
 function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace('#', '');
@@ -290,6 +290,8 @@ const nr = StyleSheet.create({
 export default function AdminOverviewScreen({ onNavigate, onBack }: Props) {
   const insets   = useSafeAreaInsets();
   const c        = useThemeColors();
+  const { colorScheme } = useTheme();
+  const statusBarStyle = colorScheme === 'dark' ? 'light-content' : 'dark-content';
   const s        = useMemo(() => makeStyles(c), [c]);
   const dispatch = useAppDispatch();
 
@@ -363,7 +365,7 @@ export default function AdminOverviewScreen({ onNavigate, onBack }: Props) {
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) return (
     <View style={[s.root, { backgroundColor: c.paper }]}>
-      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'dark-content'} backgroundColor={c.paper} />
+      <StatusBar barStyle={statusBarStyle} backgroundColor={c.paper} />
       <View style={[s.headerShell, { paddingTop: insets.top + 8, backgroundColor: c.paper }]}>
         <View style={s.headerRow}>
           <View style={[s.headerBtn, { backgroundColor: c.surface, borderColor: c.line }]} />
@@ -390,7 +392,7 @@ export default function AdminOverviewScreen({ onNavigate, onBack }: Props) {
   // ── Error ──────────────────────────────────────────────────────────────────
   if (error) return (
     <View style={[s.root, { backgroundColor: c.paper }]}>
-      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'dark-content'} backgroundColor={c.paper} />
+      <StatusBar barStyle={statusBarStyle} backgroundColor={c.paper} />
       <View style={[s.headerShell, { paddingTop: insets.top + 8, backgroundColor: c.paper }]}>
         <Pressable onPress={onBack} hitSlop={10} style={[s.headerBtn, { backgroundColor: c.surface, borderColor: c.line }]}>
           <Ionicons name="arrow-back" size={20} color={c.ink} />
@@ -402,7 +404,7 @@ export default function AdminOverviewScreen({ onNavigate, onBack }: Props) {
 
   return (
     <View style={[s.root, { backgroundColor: c.paper }]}>
-      <StatusBar barStyle={Platform.OS === 'ios' ? 'dark-content' : 'dark-content'} backgroundColor={c.paper} />
+      <StatusBar barStyle={statusBarStyle} backgroundColor={c.paper} />
 
       {/* ── Fixed header ────────────────────────────────────────────────────── */}
       <Animated.View style={[
@@ -489,7 +491,8 @@ export default function AdminOverviewScreen({ onNavigate, onBack }: Props) {
         {/* Row 1: Hotels (hero) + Users */}
         <View style={s.kpiRow}>
           {/* Hero card — Hotels */}
-          <View style={[s.kpiHero, { backgroundColor: c.umber }, shadowCard]}>
+          {/* Match the manager dashboard: emerald is the primary KPI surface. */}
+          <View style={[s.kpiHero, { backgroundColor: c.teal }, shadowCard]}>
             <View style={s.kpiCircleA} />
             <View style={s.kpiCircleB} />
             <View style={s.kpiHeroBody}>

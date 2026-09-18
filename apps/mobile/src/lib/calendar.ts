@@ -1,4 +1,3 @@
-import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 interface CalendarEvent {
@@ -40,6 +39,7 @@ function generateICS(event: CalendarEvent): string {
 
 export async function addBookingToCalendar(event: CalendarEvent): Promise<boolean> {
   try {
+    const { File, Paths } = await import('expo-file-system');
     const icsContent = generateICS(event);
     const filename = `yayetech-booking-${Date.now()}.ics`;
     const file = new File(Paths.document, filename);

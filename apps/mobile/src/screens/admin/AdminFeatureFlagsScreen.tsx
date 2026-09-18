@@ -26,10 +26,10 @@ export default function AdminFeatureFlagsScreen({ onBack }: AdminFeatureFlagsScr
   const fetchSettings = async () => {
     try {
       setError(null);
-      const res = await request<any>('/admin/settings', { method: 'GET', token });
+      const res = await request<any>('/admin/feature-flags', { method: 'GET', token });
       const settingsMap: Record<string, any> = {};
       const items = Array.isArray(res) ? res : res?.settings ?? [];
-      items.forEach((s: any) => { settingsMap[s.key] = s.value; });
+      items.forEach((s: any) => { settingsMap[s.key] = s.enabled ?? s.value; });
       setSettings(settingsMap);
     } catch (err: any) {
       setError(err.message || 'Failed to load settings');
@@ -49,13 +49,8 @@ export default function AdminFeatureFlagsScreen({ onBack }: AdminFeatureFlagsScr
       // When a flag key doesn't exist in local state yet (settings[key] is
       // undefined), typeof undefined === 'object' is false, so we must
       // always wrap the value — never send a bare boolean.
-      const existingValue = settings[key];
-      const value =
-        typeof existingValue === 'object' && existingValue !== null
-          ? { ...existingValue, enabled }   // preserve any extra fields on the object
-          : { enabled };                     // new flag or bare value → always object
-      await request(`/admin/settings/${key}`, { method: 'PUT', body: { value }, token });
-      setSettings((prev) => ({ ...prev, [key]: value }));
+      await request(`/admin/feature-flags/${key}`, { method: 'PATCH', body: { enabled, reason: 'Updated from Admin mobile' }, token });
+      setSettings((prev) => ({ ...prev, [key]: enabled }));
       toast('success', 'Feature flag updated');
     } catch (err: any) {
       toast('error', err.message || 'Failed to update');
@@ -72,11 +67,12 @@ export default function AdminFeatureFlagsScreen({ onBack }: AdminFeatureFlagsScr
   };
 
   const knownFlags = [
-    { key: 'maintenance_mode', label: 'Maintenance Mode', desc: 'When enabled, customers see a maintenance screen and cannot book.' },
-    { key: 'feature_flag:booking_modification', label: 'Booking Modification', desc: 'Allow customers to modify existing bookings.' },
-    { key: 'feature_flag:price_lock', label: 'Price Lock', desc: 'Enable 15-minute price lock during checkout.' },
-    { key: 'feature_flag:disputes', label: 'Disputes', desc: 'Allow customers to open disputes.' },
-    { key: 'feature_flag:contact_messaging', label: 'Contact Messaging', desc: 'Enable guest-to-hotel messaging.' },
+    { key: 'MAINTENANCE_MODE', label: 'Maintenance Mode', desc: 'When enabled, customers see a maintenance screen and cannot book.' },
+    { key: 'ENABLE_WALK_IN_BOOKINGS', label: 'Walk-in Bookings', desc: 'Allow front-desk walk-in reservations.' },
+    { key: 'ENABLE_EARLY_CHECKIN_LATE_CHECKOUT', label: 'Early/Late Checkout', desc: 'Allow staff to approve early check-in and late checkout.' },
+    { key: 'ENABLE_ROOM_RELOCATION', label: 'Room Relocation', desc: 'Allow staff to move guests to another room.' },
+    { key: 'ENABLE_COUPONS', label: 'Coupons', desc: 'Enable promotional coupon codes.' },
+    { key: 'ENABLE_DISPUTES', label: 'Disputes', desc: 'Allow customers to open disputes.' },
   ];
 
   return (
@@ -94,12 +90,12 @@ export default function AdminFeatureFlagsScreen({ onBack }: AdminFeatureFlagsScr
               <Text style={styles.sectionTitle}>Maintenance Mode</Text>
               <Text style={styles.sectionDesc}>When enabled, customers see a maintenance screen and cannot book. Admin/Manager/Staff are unaffected.</Text>
               <View style={styles.toggleRow}>
-                <Text style={styles.toggleLabel}>{getFlagEnabled('maintenance_mode') ? 'ON' : 'OFF'}</Text>
-                 <Switch value={getFlagEnabled('maintenance_mode')} onValueChange={(v) => toggleFlag('maintenance_mode', v)} disabled={savingKey === 'maintenance_mode'} trackColor={{ false: c.line, true: c.brick }} thumbColor={c.surface} />
+              <Text style={styles.toggleLabel}>{getFlagEnabled('MAINTENANCE_MODE') ? 'ON' : 'OFF'}</Text>
+                 <Switch value={getFlagEnabled('MAINTENANCE_MODE')} onValueChange={(v) => toggleFlag('MAINTENANCE_MODE', v)} disabled={savingKey === 'MAINTENANCE_MODE'} trackColor={{ false: c.line, true: c.brick }} thumbColor={c.surface} />
               </View>
             </Card>
 
-            {knownFlags.filter((f) => f.key !== 'maintenance_mode').map((flag) => (
+            {knownFlags.filter((f) => f.key !== 'MAINTENANCE_MODE').map((flag) => (
               <Card key={flag.key} style={styles.section}>
                 <View style={styles.toggleRow}>
                   <View style={{ flex: 1 }}>

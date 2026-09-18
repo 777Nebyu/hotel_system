@@ -93,7 +93,7 @@ const { width: SW } = Dimensions.get('window');
 const RECENT_KEY = 'yayetech.recent_v3';
 
 type Nav     = NativeStackNavigationProp<RootStackParamList>;
-type SortKey = '' | 'rating_desc' | 'price_asc' | 'price_desc';
+type SortKey = '' | 'popularity' | 'rating_desc' | 'price_asc' | 'price_desc';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -748,6 +748,7 @@ export default function SearchScreen() {
   // ── Search params ──────────────────────────────────────────────────────────
   const searchParams = useMemo(() => ({
     city:      debouncedCity || undefined,
+    country:   filters.country || undefined,
     minRating: filters.minRating ? Number(filters.minRating) : undefined,
     minPrice:  filters.priceMin  ? Number(filters.priceMin)  : undefined,
     maxPrice:  filters.priceMax  ? Number(filters.priceMax)  : undefined,
@@ -957,6 +958,7 @@ export default function SearchScreen() {
               >
                 {([
                   { key: '' as SortKey,           label: 'Recommended', am: 'የሚመከሩ' },
+                  { key: 'popularity' as SortKey, label: 'Popularity',  am: 'ተወዳጊ' },
                   { key: 'rating_desc' as SortKey, label: 'Top Rated',   am: 'ምርጥ ደረጃ' },
                   { key: 'price_asc'  as SortKey,  label: 'Lowest Price',am: 'ዝቅተኛ ዋጋ' },
                   { key: 'price_desc' as SortKey,  label: 'Highest Price',am: 'ከፍተኛ ዋጋ' },

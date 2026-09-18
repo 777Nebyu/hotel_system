@@ -20,6 +20,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { useAppSelector } from '../store/hooks';
 import {
   useHotelDetail,
+  useHotelRooms,
   useHotelReviews,
   useFavorites,
   useToggleFavorite,
@@ -244,6 +245,7 @@ export default function HotelDetailScreen() {
   const effectiveCheckOut = flowCheckOut || defaultCheckOut;
 
   const { data: hotel, isLoading, error, refetch } = useHotelDetail(token, hotelId);
+  const { data: roomsData } = useHotelRooms(token, hotelId, effectiveCheckIn, effectiveCheckOut);
   const { data: reviewsData } = useHotelReviews(token, hotelId);
   const { data: favoritesData } = useFavorites(token);
   const toggleFavorite = useToggleFavorite(token);
@@ -268,7 +270,7 @@ export default function HotelDetailScreen() {
 
   useEffect(() => {
     if (!hotelId) return;
-    request<{ data: any }>(`/catalog/hotels/${hotelId}/policies`, { token })
+    request<{ data: any }>(`/catalog/hotels/${hotelId}/policy`, { token })
       .then((res) => setPolicies(res.data ?? res))
       .catch(() => {});
   }, [hotelId, token]);
@@ -289,9 +291,10 @@ export default function HotelDetailScreen() {
         checkIn: '',
         checkOut: '',
         hotelImages: hotel?.images,
+        guests: { adults: parseInt(flowAdults) || 2, children: parseInt(flowChildren) || 0 },
       });
     },
-    [navigation, session, hotel, hotelId],
+    [navigation, session, hotel, hotelId, flowAdults, flowChildren],
   );
 
   const handleToggleFavorite = useCallback(() => {
@@ -327,9 +330,13 @@ export default function HotelDetailScreen() {
     : [FALLBACK];
   const activeImageUrl = gallery[activeImageIndex] ?? gallery[0];
 
-  const lowestPrice = hotel.rooms?.length
-    ? Math.min(...hotel.rooms.map((r: any) => Number(r.basePrice)))
-    : null;
+  // Use availability data with seasonal pricing when dates are provided
+  const roomsWithAvailability = roomsData?.data ?? roomsData;
+  const lowestPrice = Array.isArray(roomsWithAvailability) && roomsWithAvailability.length > 0
+    ? Math.min(...roomsWithAvailability.map((r: any) => Number(r.minPrice ?? r.basePrice ?? Infinity)).filter((p: number) => isFinite(p) && p > 0))
+    : hotel.rooms?.length
+      ? Math.min(...hotel.rooms.map((r: any) => Number(r.basePrice)))
+      : null;
 
   return (
     <View style={[styles.container, { backgroundColor: c.paper }]}>
@@ -493,6 +500,7 @@ export default function HotelDetailScreen() {
                       checkIn: effectiveCheckIn,
                       checkOut: effectiveCheckOut,
                       hotelImages: hotel?.images,
+                      guests: { adults: parseInt(flowAdults) || 2, children: parseInt(flowChildren) || 0 },
                     });
                   }}
                   onBookRoom={() => {

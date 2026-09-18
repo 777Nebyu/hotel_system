@@ -49,9 +49,8 @@ export default function AdminReviewsScreen({ onBack }: Props) {
 
   // Flag modal
   const [flagModal,  setFlagModal]  = useState(false);
-  const [flagTarget, setFlagTarget] = useState<string | null>(null);
   const [flagReason, setFlagReason] = useState('');
-  const [flagging,   setFlagging]   = useState(false);
+  const [flagging]                  = useState(false);
 
   // Delete confirm
   const [deleteId,      setDeleteId]      = useState<string | null>(null);
@@ -60,23 +59,11 @@ export default function AdminReviewsScreen({ onBack }: Props) {
   const fetchReviews = useCallback(async () => {
     setError(null);
     try {
-      // Flagged tab hits the dedicated flagged endpoint; All tab hits general list
-      const path = tab === 'FLAGGED' ? '/reviews/admin/flagged' : '/admin/reviews';
-      const res = await request<any>(path, { method: 'GET', token });
-      setReviews(Array.isArray(res) ? res : res?.data ?? []);
+      const res = await request<any>('/admin/reviews', { method: 'GET', token });
+      const all = Array.isArray(res) ? res : res?.data ?? [];
+      setReviews(tab === 'FLAGGED' ? all.filter((r: any) => r.flagged) : all);
     } catch (err: any) {
-      // If flagged endpoint doesn't exist yet, fall back to all + client filter
-      if (tab === 'FLAGGED') {
-        try {
-          const fallback = await request<any>('/admin/reviews', { method: 'GET', token });
-          const all = Array.isArray(fallback) ? fallback : fallback?.data ?? [];
-          setReviews(all.filter((r: any) => r.flagged));
-        } catch {
-          setError(err.message || 'Failed to load reviews');
-        }
-      } else {
-        setError(err.message || 'Failed to load reviews');
-      }
+      setError(err.message || 'Failed to load reviews');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -86,47 +73,17 @@ export default function AdminReviewsScreen({ onBack }: Props) {
   useEffect(() => { void fetchReviews(); }, [fetchReviews]);
 
   // ── Flag a review ──────────────────────────────────────────────────────────
-  const openFlagModal = (id: string) => {
-    setFlagTarget(id);
-    setFlagReason('');
-    setFlagModal(true);
+  const openFlagModal = () => {
+    toast('info', 'Flagging not available', 'Review flagging will be available in a future update.');
   };
 
   const submitFlag = async () => {
-    if (!flagTarget) return;
-    setFlagging(true);
-    try {
-      await request(`/reviews/${flagTarget}/flag`, {
-        method: 'POST',
-        body: { reason: flagReason.trim() || 'Flagged by admin' },
-        token,
-      });
-      setReviews((prev) =>
-        prev.map((r) => r.id === flagTarget ? { ...r, flagged: true, flagReason: flagReason.trim() } : r),
-      );
-      toast('success', 'Review flagged');
-      setFlagModal(false);
-    } catch (err: any) {
-      toast('error', err.message || 'Failed to flag');
-    } finally {
-      setFlagging(false);
-    }
+    // No-op: backend does not support review flagging yet
   };
 
   // ── Unflag a review ────────────────────────────────────────────────────────
-  const unflagReview = async (id: string) => {
-    try {
-      await request(`/reviews/${id}/unflag`, { method: 'POST', body: {}, token });
-      // Remove from flagged tab or update flag status in all tab
-      if (tab === 'FLAGGED') {
-        setReviews((prev) => prev.filter((r) => r.id !== id));
-      } else {
-        setReviews((prev) => prev.map((r) => r.id === id ? { ...r, flagged: false, flagReason: null } : r));
-      }
-      toast('success', 'Review unflagged');
-    } catch (err: any) {
-      toast('error', err.message || 'Failed to unflag');
-    }
+  const unflagReview = async () => {
+    toast('info', 'Unflagging not available', 'Review unflagging will be available in a future update.');
   };
 
   // ── Delete a review ────────────────────────────────────────────────────────
@@ -238,14 +195,14 @@ export default function AdminReviewsScreen({ onBack }: Props) {
                     title="Unflag"
                     variant="secondary"
                     size="sm"
-                    onPress={() => unflagReview(rv.id)}
+                    onPress={() => unflagReview()}
                   />
                 ) : (
                   <Button
                     title="Flag"
                     variant="gold"
                     size="sm"
-                    onPress={() => openFlagModal(rv.id)}
+                    onPress={() => openFlagModal()}
                   />
                 )}
                 <Button

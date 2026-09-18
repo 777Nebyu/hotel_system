@@ -27,6 +27,8 @@ class HotelIdParamsDto extends createZodDto(hotelIdParamsSchema) {}
 
 const listThreadsQuerySchema = z.object({
   hotelId: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(50),
 });
 class ListThreadsQueryDto extends createZodDto(listThreadsQuerySchema) {}
 
@@ -57,7 +59,7 @@ export class ContactController {
     @Query() query: ListThreadsQueryDto,
     @Req() req: AuthedRequest,
   ) {
-    return this.contact.listThreads(req.user, query.hotelId);
+    return this.contact.listThreads(req.user, query.hotelId, query.page, query.pageSize);
   }
 
   @Get('contact/threads/:threadId')

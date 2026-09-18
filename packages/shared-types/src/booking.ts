@@ -16,8 +16,14 @@ export type BookingStatus = z.infer<typeof bookingStatusSchema>;
 
 export const paymentStatusSchema = z.enum([
   'PENDING',
+  'PENDING_AT_HOTEL',
+  'PROCESSING',
+  'OTP_SENT',
   'SUCCEEDED',
   'FAILED',
+  'CANCELLED',
+  'EXPIRED',
+  'TIMEOUT',
   'REFUNDED',
 ]);
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
@@ -28,6 +34,11 @@ export const paymentMethodSchema = z.enum([
   'TELEBIRR',
   'CBE_BIRR',
   'CASH',
+  'CHAPA',
+  'AWASH_BANK',
+  'ENAT_BANK',
+  'AMHARA_BANK',
+  'COOP_BANK',
 ]);
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 
@@ -107,6 +118,7 @@ export const paymentMethodSchemaInput = z.object({
 export type PaymentMethodInput = z.infer<typeof paymentMethodSchemaInput>;
 
 export const mockGatewayCallbackSchema = z.object({
+  status: z.enum(['SUCCEEDED', 'FAILED']).optional(),
   reference: z.string().min(1).max(64).optional(),
   transactionId: z.string().optional(),
   message: z.string().optional(),
@@ -217,3 +229,34 @@ export const createWalkInBookingSchema = z
   })
   .refine((d) => d.checkOut > d.checkIn, stayRefine);
 export type CreateWalkInBookingInput = z.infer<typeof createWalkInBookingSchema>;
+
+// ── Chapa Payment Schemas ─────────────────────────────────────────────────────
+
+export const verifyOtpSchema = z.object({
+  code: z.string().length(6).regex(/^\d{6}$/, 'Must be a 6-digit code'),
+});
+export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
+
+export const bankCallbackSchema = z.object({
+  status: z.enum(['AUTHORIZED', 'DECLINED', 'INSUFFICIENT_BALANCE', 'TIMEOUT']),
+  bankTransactionId: z.string().optional(),
+  pin: z.string().min(4).max(6).optional(),
+});
+export type BankCallbackInput = z.infer<typeof bankCallbackSchema>;
+
+export const chapaIntentSchema = z.object({
+  method: paymentMethodSchema,
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  bankCode: z.string().optional(),
+  accountNumber: z.string().optional(),
+});
+export type ChapaIntentInput = z.infer<typeof chapaIntentSchema>;
+
+export const chapaWebhookSchema = z.object({
+  tx_ref: z.string().min(1),
+  status: z.enum(['SUCCESS', 'FAILED', 'CANCELLED']),
+  amount: z.number().positive().optional(),
+  currency: z.string().default('ETB'),
+});
+export type ChapaWebhookInput = z.infer<typeof chapaWebhookSchema>;

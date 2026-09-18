@@ -92,39 +92,177 @@ export class ManagerBookingService {
     const hotelIds = await this.managedHotelIds(actor);
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const [pendingApprovals, todaysCheckIns, todaysCheckOuts, activeGuests] =
-      await Promise.all([
-        this.db.booking.count({
-          where: { hotelId: { in: hotelIds }, status: 'PENDING' },
-        }),
-        this.db.booking.count({
-          where: {
-            hotelId: { in: hotelIds },
-            status: 'CONFIRMED',
-            checkIn: { lte: today },
-          },
-        }),
-        this.db.booking.count({
-          where: {
-            hotelId: { in: hotelIds },
-            status: 'CHECKED_IN',
-            checkOut: { lte: today },
-          },
-        }),
-        this.db.booking.count({
-          where: {
-            hotelId: { in: hotelIds },
-            status: { in: ['CONFIRMED', 'CHECKED_IN'] },
-          },
-        }),
-      ]);
+    // Start of current week (Monday)
+    const weekStart = new Date(today);
+    const dayOfWeek = weekStart.getDay();
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    weekStart.setDate(weekStart.getDate() - daysFromMonday);
 
-    return {
+    // Start of current month
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const [
       pendingApprovals,
       todaysCheckIns,
       todaysCheckOuts,
       activeGuests,
+      totalRooms,
+      availableRooms,
+      maintenanceRooms,
+      todayRevenueAgg,
+      weekPayments,
+      monthPayments,
+      todayArrivals,
+      todayDepartures,
+    ] = await Promise.all([
+      // Pending bookings
+      this.db.booking.count({
+        where: { hotelId: { in: hotelIds }, status: 'PENDING' },
+      }),
+      // Today's arrivals: check-in is today, status CONFIRMED
+      this.db.booking.count({
+        where: {
+          hotelId: { in: hotelIds },
+          status: 'CONFIRMED',
+          checkIn: { gte: today, lt: tomorrow },
+        },
+      }),
+      // Today's departures: check-out is today or earlier, status CHECKED_IN
+      this.db.booking.count({
+        where: {
+          hotelId: { in: hotelIds },
+          status: 'CHECKED_IN',
+          checkOut: { lte: today },
+        },
+      }),
+      // Active guests (confirmed + checked-in)
+      this.db.booking.count({
+        where: {
+          hotelId: { in: hotelIds },
+          status: { in: ['CONFIRMED', 'CHECKED_IN'] },
+        },
+      }),
+      // Total rooms
+      this.db.room.count({
+        where: { hotelId: { in: hotelIds } },
+      }),
+      // Available rooms
+      this.db.room.count({
+        where: { hotelId: { in: hotelIds }, status: 'AVAILABLE' },
+      }),
+      // Maintenance rooms
+      this.db.room.count({
+        where: { hotelId: { in: hotelIds }, status: 'MAINTENANCE' },
+      }),
+      // Today's revenue
+      this.db.payment.aggregate({
+        where: {
+          status: 'SUCCEEDED',
+          booking: { hotelId: { in: hotelIds } },
+          createdAt: { gte: today, lt: tomorrow },
+        },
+        _sum: { amount: true },
+      }),
+      // This week's payments for daily revenue chart
+      this.db.payment.findMany({
+        where: {
+          status: 'SUCCEEDED',
+          booking: { hotelId: { in: hotelIds } },
+          createdAt: { gte: weekStart },
+        },
+        select: { amount: true, createdAt: true },
+      }),
+      // This month's revenue
+      this.db.payment.aggregate({
+        where: {
+          status: 'SUCCEEDED',
+          booking: { hotelId: { in: hotelIds } },
+          createdAt: { gte: monthStart },
+        },
+        _sum: { amount: true },
+      }),
+      // Today's arrivals list
+      this.db.booking.findMany({
+        where: {
+          hotelId: { in: hotelIds },
+          status: 'CONFIRMED',
+          checkIn: { gte: today, lt: tomorrow },
+        },
+        include: {
+          user: { select: { fullName: true } },
+          details: { include: { room: { select: { roomNumber: true } } } },
+        },
+        orderBy: { checkIn: 'asc' },
+      }),
+      // Today's departures list
+      this.db.booking.findMany({
+        where: {
+          hotelId: { in: hotelIds },
+          status: 'CHECKED_IN',
+          checkOut: { lte: today },
+        },
+        include: {
+          user: { select: { fullName: true } },
+          details: { include: { room: { select: { roomNumber: true } } } },
+        },
+        orderBy: { checkOut: 'asc' },
+      }),
+    ]);
+
+    // Occupancy rate
+    const occupancyRate =
+      totalRooms > 0
+        ? Math.round(((totalRooms - availableRooms) / totalRooms) * 100)
+        : 0;
+
+    // Weekly revenue array (Mon=0 .. Sun=6)
+    const weeklyRevenue = new Array(7).fill(0);
+    for (const p of weekPayments) {
+      const d = new Date(p.createdAt);
+      const idx = d.getDay() === 0 ? 6 : d.getDay() - 1;
+      weeklyRevenue[idx] += p.amount.toNumber();
+    }
+
+    // Map arrivals to frontend shape
+    const arrivals = todayArrivals.map((b) => ({
+      id: b.id,
+      guestName: b.user?.fullName ?? 'Guest',
+      roomNumber: b.details?.[0]?.room?.roomNumber ?? '-',
+      checkIn: b.checkIn.toISOString(),
+      checkOut: b.checkOut.toISOString(),
+      status: b.status,
+      guestCount: b.details?.[0]?.guestCount,
+    }));
+
+    // Map departures to frontend shape
+    const departures = todayDepartures.map((b) => ({
+      id: b.id,
+      guestName: b.user?.fullName ?? 'Guest',
+      roomNumber: b.details?.[0]?.room?.roomNumber ?? '-',
+      checkIn: b.checkIn.toISOString(),
+      checkOut: b.checkOut.toISOString(),
+      status: b.status,
+      guestCount: b.details?.[0]?.guestCount,
+    }));
+
+    return {
+      occupancyRate,
+      arrivalsToday: todaysCheckIns,
+      departuresToday: todaysCheckOuts,
+      pendingQueue: pendingApprovals,
+      monthlyRevenue: monthPayments._sum.amount?.toNumber() ?? 0,
+      todayRevenue: todayRevenueAgg._sum.amount?.toNumber() ?? 0,
+      availableRooms,
+      totalRooms,
+      cleaningRooms: 0,
+      maintenanceRooms,
+      pendingPayments: pendingApprovals,
+      weeklyRevenue,
+      arrivals,
+      departures,
     };
   }
 
@@ -502,7 +640,8 @@ export class ManagerBookingService {
     await this.db.bookingStatusHistory.create({
       data: {
         bookingId,
-        status: 'NO_SHOW',
+        fromStatus: 'CONFIRMED',
+        toStatus: 'NO_SHOW',
         changedBy: actor.sub,
         reason: 'Marked as no-show by staff/manager',
       },
@@ -639,7 +778,8 @@ export class ManagerBookingService {
       await tx.bookingStatusHistory.create({
         data: {
           bookingId,
-          status: 'CHECKED_IN',
+          fromStatus: 'CHECKED_IN',
+          toStatus: 'CHECKED_IN',
           changedBy: actor.sub,
           reason: `Room relocated from ${oldRoom.roomNumber} to ${newRoom.roomNumber}. Reason: ${dto.reason}`,
         },
@@ -725,6 +865,7 @@ export class ManagerBookingService {
   ) {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
+      include: { details: true },
     });
     if (!booking) throw new NotFoundException('Booking not found');
     await this.assertCanManage(booking.hotelId, actor);
@@ -748,7 +889,8 @@ export class ManagerBookingService {
     await this.db.bookingStatusHistory.create({
       data: {
         bookingId,
-        status: to,
+        fromStatus: booking.status,
+        toStatus: to,
         changedBy: actor.sub,
         reason: `Status transition from ${booking.status} to ${to}`,
       },
@@ -775,6 +917,13 @@ export class ManagerBookingService {
         await this.db.room.updateMany({
           where: { id: { in: roomIds } },
           data: { status: 'CLEANING' },
+        });
+        await this.db.roomAvailability.deleteMany({
+          where: {
+            roomId: { in: roomIds },
+            date: { gte: booking.checkIn, lt: booking.checkOut },
+            status: 'UNAVAILABLE',
+          },
         });
       }
       this.emitter?.emit(
@@ -857,16 +1006,20 @@ export class ManagerBookingService {
           });
           await tx.paymentAttempt.create({
             data: {
+              bookingId: booking.id,
               paymentId: booking.payment.id,
               method: dto.paymentMethod,
               outcome: 'SUCCESS',
+              status: 'SUCCEEDED',
+              amount: booking.totalPrice,
             },
           });
         }
         await tx.bookingStatusHistory.create({
           data: {
             bookingId: booking.id,
-            status: 'CONFIRMED',
+            fromStatus: 'PENDING',
+            toStatus: 'CONFIRMED',
             changedBy: actor.sub,
             reason: `Walk-in booking confirmed (paid via ${dto.paymentMethod} at hotel)`,
           },

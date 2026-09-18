@@ -27,9 +27,18 @@ const TYPE_META: Record<string, { icon: string; color: string }> = {
   BOOKING_CHECKED_OUT:{ icon: '👋', color: colors.inkMuted },
   BOOKING_NO_SHOW:    { icon: '⚠️', color: '#F59E0B' },
   PAYMENT_COMPLETED:  { icon: '💳', color: '#16A34A' },
+  PAYMENT_RECEIVED:   { icon: '💳', color: '#16A34A' },
   PAYMENT_REFUNDED:   { icon: '↩️', color: '#F59E0B' },
   PAYMENT_FAILED:     { icon: '🚫', color: '#EF4444' },
   CHECK_IN_REMINDER:  { icon: '⏰', color: colors.teal },
+  CHECKIN_REMINDER:   { icon: '⏰', color: colors.teal },
+  WELCOME:            { icon: '👋', color: colors.teal },
+  EMAIL_VERIFICATION: { icon: '📧', color: '#3B82F6' },
+  PASSWORD_RESET:     { icon: '🔒', color: '#F59E0B' },
+  REVIEW_RESPONSE:    { icon: '💬', color: '#8B5CF6' },
+  COUPON_EXPIRY:      { icon: '🎫', color: '#EF4444' },
+  HOTEL_APPROVED:     { icon: '🏨', color: '#16A34A' },
+  HOTEL_SUSPENDED:    { icon: '🚫', color: '#EF4444' },
 };
 
 function formatMessage(type: string, payload: Record<string, any> = {}) {
@@ -43,9 +52,18 @@ function formatMessage(type: string, payload: Record<string, any> = {}) {
     case 'BOOKING_CHECKED_IN': return { title: 'Checked In', body: hotel ? `Welcome to ${hotel}!` : 'You are checked in. Enjoy your stay!' };
     case 'BOOKING_CHECKED_OUT':return { title: 'Checked Out', body: 'We hope you enjoyed your stay.' };
     case 'PAYMENT_COMPLETED':  return { title: 'Payment Confirmed', body: amount ? `${amount} received successfully.` : 'Your payment was confirmed.' };
+    case 'PAYMENT_RECEIVED':   return { title: 'Payment Received', body: amount ? `${amount} received successfully.` : 'Your payment was received.' };
     case 'PAYMENT_REFUNDED':   return { title: 'Refund Processed', body: amount ? `${amount} refund is on its way.` : 'Your refund has been processed.' };
     case 'PAYMENT_FAILED':     return { title: 'Payment Failed', body: 'Please retry your payment.' };
     case 'CHECK_IN_REMINDER':  return { title: 'Check-in Tomorrow', body: hotel ? `Your stay at ${hotel} starts tomorrow.` : 'Your check-in is tomorrow.' };
+    case 'CHECKIN_REMINDER':   return { title: 'Check-in Reminder', body: hotel ? `Your stay at ${hotel} starts soon.` : 'Your check-in is coming up.' };
+    case 'WELCOME':            return { title: 'Welcome!', body: 'Welcome to Yayetech Hotel. Start exploring!' };
+    case 'EMAIL_VERIFICATION': return { title: 'Verify Your Email', body: 'Please verify your email address to access all features.' };
+    case 'PASSWORD_RESET':     return { title: 'Password Reset', body: 'Your password has been reset successfully.' };
+    case 'REVIEW_RESPONSE':    return { title: 'Review Response', body: 'A hotel has responded to your review.' };
+    case 'COUPON_EXPIRY':      return { title: 'Coupon Expiring', body: 'Your coupon is about to expire. Use it soon!' };
+    case 'HOTEL_APPROVED':     return { title: 'Hotel Approved', body: 'Your hotel listing has been approved.' };
+    case 'HOTEL_SUSPENDED':    return { title: 'Hotel Suspended', body: 'Your hotel listing has been suspended. Please contact support.' };
     default:
       return {
         title: type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),

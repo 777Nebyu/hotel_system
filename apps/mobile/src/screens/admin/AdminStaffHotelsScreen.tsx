@@ -58,8 +58,21 @@ export default function AdminStaffHotelsScreen({ onBack }: Props) {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await request<any>('/admin/staff-hotels', { method: 'GET', token });
-      setAssignments(Array.isArray(res) ? res : res?.data ?? []);
+      const hotelRes = await request<any>('/admin/hotels', { method: 'GET', token });
+      const hts = Array.isArray(hotelRes) ? hotelRes : hotelRes?.data ?? [];
+      const allAssignments: any[] = [];
+      await Promise.all(
+        hts.map(async (hotel: any) => {
+          try {
+            const staffRes = await request<any[]>(`/admin/hotels/${hotel.id}/staff`, { method: 'GET', token });
+            const staffList = Array.isArray(staffRes) ? staffRes : (staffRes as any)?.data ?? [];
+            for (const s of staffList) {
+              allAssignments.push({ id: `${s.id}-${hotel.id}`, userId: s.id, hotelId: hotel.id, user: s, hotel });
+            }
+          } catch { /* skip hotels with no staff */ }
+        }),
+      );
+      setAssignments(allAssignments);
     } catch (err: any) {
       setError(err.message || 'Failed to load assignments');
     } finally {
@@ -72,13 +85,13 @@ export default function AdminStaffHotelsScreen({ onBack }: Props) {
 
   const openAssignModal = async () => {
     try {
-      const [staffRes, hotelRes] = await Promise.all([
-        request<any>('/admin/users/staff', { method: 'GET', token }),
-        request<any>('/admin/hotels',       { method: 'GET', token }),
+      const [usersRes, hotelRes] = await Promise.all([
+        request<any>('/admin/users', { method: 'GET', token }),
+        request<any>('/admin/hotels', { method: 'GET', token }),
       ]);
-      const staff = Array.isArray(staffRes) ? staffRes : staffRes?.data ?? [];
-      const hts   = Array.isArray(hotelRes) ? hotelRes : hotelRes?.data ?? [];
-      setStaffUsers(staff.filter((u: any) => u.role === 'STAFF' || u.role === 'MANAGER'));
+      const allUsers = Array.isArray(usersRes) ? usersRes : usersRes?.users ?? [];
+      const hts = Array.isArray(hotelRes) ? hotelRes : hotelRes?.data ?? [];
+      setStaffUsers(allUsers.filter((u: any) => u.role === 'STAFF' || u.role === 'MANAGER'));
       setHotels(hts);
       setSelUser(''); setSelHotel('');
       setShowAssign(true);
@@ -94,9 +107,9 @@ export default function AdminStaffHotelsScreen({ onBack }: Props) {
     }
     setAssigning(true);
     try {
-      await request('/admin/staff-hotels', {
+      await request(`/admin/hotels/${selHotel}/staff`, {
         method: 'POST',
-        body: { userId: selUser, hotelId: selHotel },
+        body: { userId: selUser },
         token,
       });
       toast('success', 'Staff assigned to hotel');
@@ -119,9 +132,8 @@ export default function AdminStaffHotelsScreen({ onBack }: Props) {
     const assignment = assignments.find((a) => a.id === removeId);
     if (!assignment) return;
     try {
-      await request('/admin/staff-hotels', {
+      await request(`/admin/hotels/${assignment.hotelId}/staff/${assignment.userId}`, {
         method: 'DELETE',
-        body: { userId: assignment.userId, hotelId: assignment.hotelId },
         token,
       });
       setAssignments((prev) => prev.filter((a) => a.id !== removeId));

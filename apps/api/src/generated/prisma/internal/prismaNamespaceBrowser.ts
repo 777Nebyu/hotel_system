@@ -68,6 +68,7 @@ export const ModelName = {
   BookingStatusHistory: 'BookingStatusHistory',
   HotelStatusHistory: 'HotelStatusHistory',
   Payment: 'Payment',
+  PaymentEvent: 'PaymentEvent',
   PaymentAttempt: 'PaymentAttempt',
   Review: 'Review',
   Favorite: 'Favorite',
@@ -293,6 +294,8 @@ export const BookingDetailScalarFieldEnum = {
   guestCount: 'guestCount',
   guestInfo: 'guestInfo',
   roomSnapshot: 'roomSnapshot',
+  checkIn: 'checkIn',
+  checkOut: 'checkOut',
   relocatedFrom: 'relocatedFrom',
   relocationReason: 'relocationReason',
   relocatedAt: 'relocatedAt',
@@ -305,9 +308,12 @@ export type BookingDetailScalarFieldEnum = (typeof BookingDetailScalarFieldEnum)
 export const BookingStatusHistoryScalarFieldEnum = {
   id: 'id',
   bookingId: 'bookingId',
+  fromStatus: 'fromStatus',
+  toStatus: 'toStatus',
   status: 'status',
-  changedBy: 'changedBy',
   reason: 'reason',
+  changedBy: 'changedBy',
+  actorId: 'actorId',
   createdAt: 'createdAt'
 } as const
 
@@ -329,28 +335,60 @@ export type HotelStatusHistoryScalarFieldEnum = (typeof HotelStatusHistoryScalar
 export const PaymentScalarFieldEnum = {
   id: 'id',
   bookingId: 'bookingId',
+  userId: 'userId',
+  provider: 'provider',
   method: 'method',
   amount: 'amount',
+  currency: 'currency',
   status: 'status',
+  txRef: 'txRef',
   providerRef: 'providerRef',
+  checkoutSessionId: 'checkoutSessionId',
+  bankCode: 'bankCode',
+  transactionId: 'transactionId',
+  verificationCodeHash: 'verificationCodeHash',
+  verificationExpiresAt: 'verificationExpiresAt',
+  verificationAttempts: 'verificationAttempts',
+  idempotencyKey: 'idempotencyKey',
+  failureReason: 'failureReason',
+  metadata: 'metadata',
   invoiceUrl: 'invoiceUrl',
   refundAmount: 'refundAmount',
   refundedAt: 'refundedAt',
+  completedAt: 'completedAt',
   deletedAt: 'deletedAt',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
 
 
+export const PaymentEventScalarFieldEnum = {
+  id: 'id',
+  paymentId: 'paymentId',
+  eventType: 'eventType',
+  status: 'status',
+  payload: 'payload',
+  createdAt: 'createdAt'
+} as const
+
+export type PaymentEventScalarFieldEnum = (typeof PaymentEventScalarFieldEnum)[keyof typeof PaymentEventScalarFieldEnum]
+
+
 export const PaymentAttemptScalarFieldEnum = {
   id: 'id',
+  bookingId: 'bookingId',
   paymentId: 'paymentId',
   method: 'method',
   outcome: 'outcome',
+  status: 'status',
+  amount: 'amount',
   providerRef: 'providerRef',
   errorMessage: 'errorMessage',
-  attemptedAt: 'attemptedAt'
+  error: 'error',
+  attemptedAt: 'attemptedAt',
+  createdAt: 'createdAt'
 } as const
 
 export type PaymentAttemptScalarFieldEnum = (typeof PaymentAttemptScalarFieldEnum)[keyof typeof PaymentAttemptScalarFieldEnum]

@@ -147,9 +147,14 @@ export default function ManagerRoomsScreen({ onBack, onNavigate: _ }: Props) { /
 
   const updatePrice = useCallback(async (roomId: string) => {
     if (!priceValue) return;
+    const num = Number(priceValue);
+    if (isNaN(num) || num <= 0) {
+      toast('error', 'Invalid price', 'Price must be a positive number');
+      return;
+    }
     setSavingPrice(roomId);
     try {
-      await request(`/catalog/rooms/${roomId}`, { method: 'PATCH', body: { basePrice: Number(priceValue) }, token });
+      await request(`/catalog/rooms/${roomId}`, { method: 'PATCH', body: { basePrice: num }, token });
       toast('success', 'Price updated');
       setEditingPrice(null);
       void refetch();
@@ -171,7 +176,7 @@ export default function ManagerRoomsScreen({ onBack, onNavigate: _ }: Props) { /
           text: 'Confirm',
           onPress: async () => {
             try {
-              await request(`/catalog/rooms/${room.id}/status`, { method: 'PATCH', body: { status: newStatus }, token });
+              await request(`/catalog/rooms/${room.id}`, { method: 'PATCH', body: { status: newStatus }, token });
               toast('success', `Room set to ${newStatus}`);
               void refetch();
             } catch (err) {
@@ -236,6 +241,16 @@ export default function ManagerRoomsScreen({ onBack, onNavigate: _ }: Props) { /
   const addSeasonal = useCallback(async (roomId: string) => {
     if (!seasonalForm.priceOverride || !seasonalForm.startDate || !seasonalForm.endDate) {
       return Alert.alert('Required', 'Price override, start date, and end date are required');
+    }
+    const priceNum = Number(seasonalForm.priceOverride);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      return Alert.alert('Invalid price', 'Price override must be a positive number');
+    }
+    if (seasonalForm.startDate >= seasonalForm.endDate) {
+      return Alert.alert('Invalid dates', 'Start date must be before end date');
+    }
+    if (seasonalForm.startDate < new Date().toISOString().split('T')[0]) {
+      return Alert.alert('Invalid date', 'Start date must be today or in the future');
     }
     setSavingSeasonal(true);
     try {

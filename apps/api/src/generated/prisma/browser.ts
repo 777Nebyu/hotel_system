@@ -103,6 +103,11 @@ export type HotelStatusHistory = Prisma.HotelStatusHistoryModel
  */
 export type Payment = Prisma.PaymentModel
 /**
+ * Model PaymentEvent
+ * 
+ */
+export type PaymentEvent = Prisma.PaymentEventModel
+/**
  * Model PaymentAttempt
  * 
  */

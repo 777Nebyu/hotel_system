@@ -115,6 +115,7 @@ export class AdminUsersService {
       {
         isActive: { from: user.isActive, to: dto.isActive },
         status: { from: user.status, to: dto.isActive ? 'ACTIVE' : 'SUSPENDED' },
+        reason: dto.reason,
       },
     );
     return updated;

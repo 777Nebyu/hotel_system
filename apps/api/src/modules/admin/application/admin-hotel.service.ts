@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { HotelStatus, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
+import { NotificationService } from '../../notification/application/notification.service';
+import { NOTIFICATION_TYPES, NOTIFICATION_CHANNELS } from '../../notification/domain';
 import {
   HotelApprovedEvent,
   HotelEventNames,
@@ -16,9 +18,20 @@ import type {
 
 @Injectable()
 export class AdminHotelService {
+  // HOTEL-002/003: Valid state transitions per policy
+  private readonly VALID_TRANSITIONS: Record<string, string[]> = {
+    DRAFT: ['PENDING_APPROVAL'],
+    PENDING_APPROVAL: ['ACTIVE', 'REJECTED'],
+    ACTIVE: ['SUSPENDED'],
+    SUSPENDED: ['ACTIVE'],
+    REJECTED: ['PENDING_APPROVAL'],
+  };
+
   constructor(
     private readonly db: PrismaService,
     private readonly audit: AuditService,
+    @Optional()
+    private readonly notifications?: NotificationService,
     @Optional()
     private readonly emitter?: EventEmitter2,
   ) {}
@@ -52,6 +65,13 @@ export class AdminHotelService {
       where: { id: hotelId },
     });
     const status = dto.status as HotelStatus;
+    // HOTEL-002/003: Validate state transition
+    const allowed = this.VALID_TRANSITIONS[before.status];
+    if (!allowed || !allowed.includes(status)) {
+      throw new BadRequestException(
+        `Cannot transition hotel from ${before.status} to ${status}`,
+      );
+    }
     const updated = await this.db.hotel.update({
       where: { id: hotelId },
       data: {
@@ -174,12 +194,13 @@ export class AdminHotelService {
     if (dto.managerId) {
       const manager = await this.db.user.findUnique({
         where: { id: dto.managerId },
-        select: { id: true },
+        select: { id: true, fullName: true },
       });
       if (!manager) throw new NotFoundException('Manager not found');
     }
     const before = await this.db.hotel.findUniqueOrThrow({
       where: { id: hotelId },
+      select: { id: true, name: true, managerId: true },
     });
     const updated = await this.db.hotel.update({
       where: { id: hotelId },
@@ -188,6 +209,34 @@ export class AdminHotelService {
     await this.audit.record(actorId, 'REASSIGN_MANAGER', 'Hotel', hotelId, {
       managerId: { from: before.managerId, to: dto.managerId },
     });
+    // MGR-001: Notify new manager of assignment
+    if (dto.managerId && this.notifications) {
+      await this.notifications.notify({
+        userId: dto.managerId,
+        type: NOTIFICATION_TYPES.MANAGER_ASSIGNED,
+        channel: NOTIFICATION_CHANNELS.IN_APP,
+        payload: {
+          title: 'Hotel Assignment',
+          message: `You have been assigned to manage ${before.name}`,
+          hotelId,
+          hotelName: before.name,
+        },
+      });
+    }
+    // MGR-003: Notify old manager of removal
+    if (before.managerId && before.managerId !== dto.managerId && this.notifications) {
+      await this.notifications.notify({
+        userId: before.managerId,
+        type: NOTIFICATION_TYPES.MANAGER_REMOVED,
+        channel: NOTIFICATION_CHANNELS.IN_APP,
+        payload: {
+          title: 'Hotel Assignment Removed',
+          message: `You are no longer managing ${before.name}`,
+          hotelId,
+          hotelName: before.name,
+        },
+      });
+    }
     return updated;
   }
 }

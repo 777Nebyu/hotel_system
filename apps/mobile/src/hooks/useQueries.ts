@@ -20,10 +20,11 @@ async function cachedFetch<T>(key: string, fetcher: () => Promise<T>, maxAge = 3
 
 export const useHotelSearch = (
   token: string | null | undefined,
-  params: { city?: string; keyword?: string; minPrice?: number; maxPrice?: number; minRating?: number; roomType?: string; amenities?: string[]; sort?: string; guests?: string; page?: number; pageSize?: number; checkIn?: string; checkOut?: string }
+  params: { city?: string; country?: string; keyword?: string; minPrice?: number; maxPrice?: number; minRating?: number; roomType?: string; amenities?: string[]; sort?: string; guests?: string; page?: number; pageSize?: number; checkIn?: string; checkOut?: string }
 ) => {
   const query = new URLSearchParams();
   if (params.city) query.set('city', params.city);
+  if (params.country) query.set('country', params.country);
   if (params.keyword) query.set('keyword', params.keyword);
   if (params.minPrice != null) query.set('minPrice', String(params.minPrice));
   if (params.maxPrice != null) query.set('maxPrice', String(params.maxPrice));
@@ -57,6 +58,21 @@ export const useHotelDetail = (token: string | null | undefined, hotelId: string
     ),
     staleTime: 2 * 60 * 1000,
     enabled: !!hotelId,
+  });
+};
+
+export const useHotelRooms = (token: string | null | undefined, hotelId: string, checkIn?: string, checkOut?: string) => {
+  return useQuery({
+    queryKey: ['hotels', hotelId, 'rooms', { checkIn, checkOut }],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (checkIn) params.set('checkIn', checkIn);
+      if (checkOut) params.set('checkOut', checkOut);
+      const qs = params.toString();
+      return authorizedFetch<any>(`/catalog/hotels/${hotelId}/rooms${qs ? `?${qs}` : ''}`, token);
+    },
+    enabled: !!hotelId,
+    staleTime: 60 * 1000,
   });
 };
 
@@ -361,7 +377,7 @@ export const useDisputes = (token: string, params?: { page?: number; pageSize?: 
 export const useCreateDispute = (token: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { bookingId?: string; hotelId?: string; type: string; subject: string; description: string; evidenceIds?: string[] }) =>
+    mutationFn: (body: { bookingId: string; reason: string }) =>
       authorizedFetch('/disputes', token, { method: 'POST', body }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['disputes'] }),
   });
@@ -384,7 +400,7 @@ export const useContactThreads = (token: string, params?: { page?: number; pageS
   if (params?.status) query.set('status', params.status);
   return useQuery({
     queryKey: ['contactThreads', params],
-    queryFn: () => authorizedFetch<{ data: any[]; meta?: any }>(`/contact/threads?${query.toString()}`, token),
+    queryFn: () => authorizedFetch<any[]>(`/contact/threads?${query.toString() || 'page=1&pageSize=50'}`, token),
     staleTime: 1 * 60 * 1000,
     enabled: !!token,
   });
@@ -409,7 +425,10 @@ export const useCreateContactThread = (token: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: { hotelId: string; subject: string; message: string }) =>
-      authorizedFetch('/contact/threads', token, { method: 'POST', body }),
+      authorizedFetch(`/hotels/${body.hotelId}/contact`, token, {
+        method: 'POST',
+        body: { subject: body.subject, message: body.message },
+      }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['contactThreads'] }),
   });
 };
@@ -430,7 +449,10 @@ export const useCloseContactThread = (token: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (threadId: string) =>
-      authorizedFetch(`/contact/threads/${threadId}/close`, token, { method: 'PATCH' }),
+      authorizedFetch(`/contact/threads/${threadId}/status`, token, {
+        method: 'PATCH',
+        body: { status: 'CLOSED' },
+      }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['contactThreads'] }),
   });
 };
@@ -469,8 +491,8 @@ export const useConfirmPriceLock = (token: string) => {
 export const useAssignStaffHotel = (token: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { userId: string; hotelId: string }) =>
-      authorizedFetch('/admin/staff-hotels', token, { method: 'POST', body }),
+    mutationFn: (body: { staffId: string; hotelId: string }) =>
+      authorizedFetch(`/admin/hotels/${body.hotelId}/staff`, token, { method: 'POST', body: { staffId: body.staffId } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['staffHotels'] }),
   });
 };
@@ -478,8 +500,8 @@ export const useAssignStaffHotel = (token: string) => {
 export const useRemoveStaffHotel = (token: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { userId: string; hotelId: string }) =>
-      authorizedFetch('/admin/staff-hotels', token, { method: 'DELETE', body }),
+    mutationFn: (body: { staffId: string; hotelId: string }) =>
+      authorizedFetch(`/admin/hotels/${body.hotelId}/staff/${body.staffId}`, token, { method: 'DELETE' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['staffHotels'] }),
   });
 };
@@ -488,8 +510,8 @@ export const useRemoveStaffHotel = (token: string) => {
 export const useEmergencySuspend = (token: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ hotelId, status, reason, confirmText, approvedBy }: { hotelId: string; status: string; reason: string; confirmText: string; approvedBy: string }) =>
-      authorizedFetch(`/admin/hotels/${hotelId}/emergency`, token, { method: 'PATCH', body: { status, reason, confirmText, approvedBy } }),
+    mutationFn: ({ hotelId, reason }: { hotelId: string; reason: string }) =>
+      authorizedFetch('/admin/suspensions', token, { method: 'POST', body: { targetType: 'HOTEL', targetId: hotelId, reason } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hotels'] }),
   });
 };

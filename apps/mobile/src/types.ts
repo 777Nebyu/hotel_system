@@ -23,6 +23,7 @@ export type {
 export interface User {
   id: string; email: string; fullName: string; phone?: string | null;
   role: UserRole; profilePhotoUrl?: string | null; isActive?: boolean;
+  emailVerifiedAt?: string | null;
   /** Primary managed/assigned hotel ID (MANAGER / STAFF) */
   hotelId?: string;
   /** Primary managed/assigned hotel name (MANAGER / STAFF) */

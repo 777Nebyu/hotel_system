@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { HttpException, UnauthorizedException } from '@nestjs/common';
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { ConfigService } from '@nestjs/config';
 import type { PrismaService } from '../../../prisma/prisma.service';
@@ -18,7 +18,7 @@ describe('PaymentService lifecycle protections', () => {
     booking: {
       id: 'booking-1',
       userId: 'user-1',
-      status: 'CANCELLED',
+      status: 'PENDING',
       checkIn: futureCheckIn,
       hotel: { managerId: null },
     },
@@ -48,10 +48,19 @@ describe('PaymentService lifecycle protections', () => {
       bookingStatusHistory: {
         create: jest.fn().mockResolvedValue({}),
       },
+      booking: {
+        update: jest.fn().mockResolvedValue({}),
+      },
     };
     emitter = { emit: jest.fn() };
     registry = {
       get: jest.fn().mockReturnValue({
+        initiate: jest.fn().mockResolvedValue({ providerRef: 'provider-1' }),
+        confirm: jest.fn().mockResolvedValue({
+          approved: true,
+          status: 'COMPLETED',
+        }),
+        refund: jest.fn().mockResolvedValue({ success: true }),
         charge: jest.fn().mockResolvedValue({
           approved: true,
           providerRef: 'provider-1',
@@ -77,11 +86,11 @@ describe('PaymentService lifecycle protections', () => {
   });
 
   it('emits completion only when the conditional payment update wins', async () => {
-    await service.mockCallback('booking-1', { reference: '4242' }, 'test-webhook-secret');
+    await service.mockCallback('booking-1', { status: 'SUCCEEDED', reference: '4242' }, 'test-webhook-secret');
     expect(db.payment.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          status: { in: ['PENDING', 'FAILED'] },
+          status: { in: ['PENDING', 'PENDING_AT_HOTEL', 'FAILED'] },
         }),
       }),
     );
@@ -99,7 +108,7 @@ describe('PaymentService lifecycle protections', () => {
     });
     const replay = await service.mockCallback(
       'booking-1',
-      { reference: '4242' },
+      { status: 'SUCCEEDED', reference: '4242' },
       'test-webhook-secret',
     );
     expect(replay.idempotent).toBe(true);
@@ -110,6 +119,11 @@ describe('PaymentService lifecycle protections', () => {
     db.payment.findUnique.mockResolvedValue({
       ...payment,
       status: 'SUCCEEDED',
+      providerRef: 'provider-1',
+      booking: {
+        ...payment.booking,
+        status: 'CANCELLED',
+      },
     });
 
     const result = await service.refund('booking-1', {
@@ -132,26 +146,20 @@ describe('PaymentService lifecycle protections', () => {
     });
   });
 
-  it('records failed attempt and triggers fraud check when charge is not approved', async () => {
+  it('records failed attempt and throws HTTP 402 when status is FAILED', async () => {
     const mockFraud = {
       checkPaymentFailureVelocity: jest.fn().mockResolvedValue(false),
     };
     (service as any).fraud = mockFraud;
 
-    registry.get.mockReturnValue({
-      charge: jest.fn().mockResolvedValue({
-        approved: false,
-        providerRef: null,
-      }),
-    });
+    await expect(
+      service.mockCallback(
+        'booking-1',
+        { status: 'FAILED', reference: 'fail' },
+        'test-webhook-secret',
+      ),
+    ).rejects.toThrow(HttpException);
 
-    const res = await service.mockCallback(
-      'booking-1',
-      { reference: 'fail' },
-      'test-webhook-secret',
-    );
-
-    expect(res.status).toBe('FAILED');
     expect(db.paymentAttempt.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ outcome: 'FAILED' }),

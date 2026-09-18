@@ -45,6 +45,7 @@ type Props = {
   checkIn?: string;
   checkOut?: string;
   hotelImages?: { id: string; url: string; isPrimary: boolean }[];
+  guests?: { adults: number; children: number };
   onBack: () => void;
   onBook: (roomId: string, checkIn?: string, checkOut?: string, promoCode?: string) => void;
 };
@@ -72,6 +73,7 @@ export default function RoomDetailScreen({
   checkIn,
   checkOut,
   hotelImages,
+  guests,
   onBack,
   onBook,
 }: Props) {
@@ -157,7 +159,7 @@ export default function RoomDetailScreen({
           checkIn: selectedCheckIn,
           checkOut: selectedCheckOut,
           roomIds: [room.id],
-          guests: { adults: 1, children: 0 },
+          guests: { adults: guests?.adults ?? 2, children: guests?.children ?? 0 },
           promoCode: code,
         },
         token,
@@ -182,7 +184,20 @@ export default function RoomDetailScreen({
 
   const nights = calcNights(selectedCheckIn, selectedCheckOut);
   const basePrice = Number(room.basePrice);
-  const subtotal = basePrice * (nights > 0 ? nights : 1);
+  // Availability returns the server-calculated nightly price, including
+  // seasonal overrides. Use it for the selected stay and only fall back to
+  // basePrice when the calendar has not loaded that date yet.
+  const nightlyPrices = (nights > 0 && selectedCheckIn)
+    ? Array.from({ length: nights }, (_, index) => {
+        const date = new Date(`${selectedCheckIn}T00:00:00`);
+        date.setDate(date.getDate() + index);
+        const key = date.toISOString().slice(0, 10);
+        const day = availData.find((entry: any) => String(entry.date).slice(0, 10) === key);
+        return typeof day?.price === 'number' ? day.price : Number(day?.price ?? basePrice);
+      })
+    : [basePrice];
+  const subtotal = nightlyPrices.reduce((sum, price) => sum + price, 0);
+  const displayedNightlyPrice = nights > 0 ? subtotal / nights : basePrice;
   const total = promoDiscount !== null ? Math.max(0, subtotal - promoDiscount) : subtotal;
   const isAvailable = room.status === 'AVAILABLE';
 
@@ -207,6 +222,12 @@ export default function RoomDetailScreen({
     if (!selectedCheckIn || !selectedCheckOut) {
       Alert.alert('Select Dates', 'Please select check-in and check-out dates before booking.');
       setShowDatePicker(true);
+      return;
+    }
+    // GUEST-001: Validate guest count against room capacity
+    const totalGuests = (guests?.adults ?? 2) + (guests?.children ?? 0);
+    if (room.capacity && totalGuests > room.capacity) {
+      Alert.alert('Capacity Exceeded', `This room can accommodate up to ${room.capacity} guests. Please reduce the guest count or select a larger room.`);
       return;
     }
     hapticSuccess();
@@ -276,7 +297,7 @@ export default function RoomDetailScreen({
               <Text style={[s.hotelSub, { color: textSec }]}>{hotelName} · Room #{room.roomNumber}</Text>
             </View>
             <View style={s.priceTag}>
-              <Text style={[s.priceMain, { color: BK.navy }]}>ETB {basePrice.toLocaleString()}</Text>
+              <Text style={[s.priceMain, { color: BK.navy }]}>ETB {displayedNightlyPrice.toLocaleString()}</Text>
               <Text style={[s.priceSub, { color: textSec }]}>/ night</Text>
             </View>
           </View>

@@ -32,7 +32,7 @@ const STATUS_TABS = [
   { key: 'OPEN', label: 'Open' },
   { key: 'UNDER_REVIEW', label: 'Review' },
   { key: 'RESOLVED', label: 'Resolved' },
-  { key: 'DISMISSED', label: 'Dismissed' },
+  { key: 'CLOSED', label: 'Closed' },
 ] as const;
 
 export default function AdminDisputesScreen({ onBack }: Props) {
@@ -44,7 +44,6 @@ export default function AdminDisputesScreen({ onBack }: Props) {
     OPEN:         { color: c.warning, bg: 'rgba(245,158,11,0.15)', icon: 'warning', label: 'OPEN' },
     UNDER_REVIEW: { color: c.info, bg: 'rgba(59,130,246,0.15)', icon: 'search', label: 'UNDER REVIEW' },
     RESOLVED:     { color: c.success, bg: 'rgba(16,185,129,0.15)',  icon: 'checkmark-circle', label: 'RESOLVED' },
-    DISMISSED:    { color: c.inkMuted, bg: 'rgba(107,114,128,0.15)', icon: 'close-circle', label: 'DISMISSED' },
     CLOSED:       { color: c.inkMuted, bg: 'rgba(107,114,128,0.15)', icon: 'lock-closed', label: 'CLOSED' },
   };
 
@@ -79,7 +78,16 @@ export default function AdminDisputesScreen({ onBack }: Props) {
     try {
       const qs = tab !== 'ALL' ? `?status=${tab}` : '';
       const res = await request<any>(`/disputes${qs}`, { method: 'GET', token });
-      setDisputes(Array.isArray(res) ? res : res?.data ?? []);
+      const rows = Array.isArray(res) ? res : res?.data ?? [];
+      // The API returns the canonical dispute shape (reason/openedBy). Keep
+      // the view model compatible with the card fields used by this screen.
+      setDisputes(rows.map((d: any) => ({
+        ...d,
+        subject: d.subject ?? d.reason?.split('\n')[0] ?? 'Customer dispute',
+        description: d.description ?? d.reason,
+        type: d.type ?? 'OTHER',
+        opener: d.opener ?? d.openedBy,
+      })));
     } catch (err: any) {
       setError(err.message || 'Failed to load disputes');
     } finally {
@@ -92,8 +100,8 @@ export default function AdminDisputesScreen({ onBack }: Props) {
 
   const handleAssignSelf = async (disputeId: string) => {
     try {
-      await request(`/disputes/${disputeId}/assign`, {
-        method: 'PATCH',
+      await request(`/disputes/${disputeId}/review`, {
+        method: 'POST',
         body: { assigneeId: adminId },
         token,
       });
@@ -120,11 +128,12 @@ export default function AdminDisputesScreen({ onBack }: Props) {
       return;
     }
     setSaving(true);
-    const statusMap = { resolve: 'RESOLVED', dismiss: 'DISMISSED', close: 'CLOSED' };
+    const endpoint = action === 'resolve' ? `/disputes/${selected.id}/resolve` : `/disputes/${selected.id}/close`;
+    const statusMap = { resolve: 'RESOLVED', dismiss: 'CLOSED', close: 'CLOSED' };
     try {
-      await request(`/disputes/${selected.id}/resolve`, {
-        method: 'PATCH',
-        body: { status: statusMap[action], resolution: resolution.trim() || action },
+      await request(endpoint, {
+        method: 'POST',
+        body: { resolution: resolution.trim() || action },
         token,
       });
       setDisputes((prev) => prev.filter((d) => d.id !== selected.id));
@@ -150,7 +159,7 @@ export default function AdminDisputesScreen({ onBack }: Props) {
   const renderDisputeCard = (d: any) => {
     const statusCfg = STATUS_CONFIG[d.status] ?? STATUS_CONFIG.CLOSED;
     const categoryCfg = CATEGORY_CONFIG[d.type] ?? CATEGORY_CONFIG.OTHER;
-    const isOpen = !['RESOLVED', 'DISMISSED', 'CLOSED'].includes(d.status);
+    const isOpen = !['RESOLVED', 'CLOSED'].includes(d.status);
     const isAssignedToMe = d.assigneeId === adminId;
 
     return (

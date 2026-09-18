@@ -47,7 +47,7 @@ export const ERROR_MESSAGES: Record<ErrorCategory, Record<string, { title: strin
     unverified: { title: 'Please verify your email first.' },
   },
   permission: {
-    default: { title: "You don't have permission to do this." },
+    default: { title: 'This account is not active.' },
     adminOnly: { title: 'This action requires admin access.' },
     hotelScope: { title: "You don't have permission to access this hotel's data." },
   },
@@ -78,6 +78,7 @@ export const ERROR_MESSAGES: Record<ErrorCategory, Record<string, { title: strin
   server: {
     default: { title: 'Something went wrong. Please try again.', action: 'Try Again' },
     unavailable: { title: 'The service is temporarily unavailable. Please try again shortly.', action: 'Try Again' },
+    rateLimited: { title: 'Too many attempts. Please try again later.' },
   },
   maintenance: {
     default: { title: 'The platform is temporarily unavailable for maintenance. Please check back later.' },
@@ -167,6 +168,16 @@ export function classifyError(err: unknown): ClassifiedError {
         code: body?.code ?? 'default',
         title: body?.message ?? getErrorMessage('validation').title,
         retryable: false,
+        raw: err,
+      };
+    }
+
+    if (status === 429) {
+      return {
+        category: 'server',
+        code: 'rateLimited',
+        ...getErrorMessage('server', 'rateLimited'),
+        retryable: true,
         raw: err,
       };
     }

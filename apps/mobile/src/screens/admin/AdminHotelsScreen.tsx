@@ -62,6 +62,11 @@ export default function AdminHotelsScreen({ onNavigate, onBack }: Props) { // es
   const [confirmOpen,   setConfirmOpen]   = useState(false);
   const [pendingAction, setPendingAction] = useState<{ id: string; status: string; label: string } | null>(null);
 
+  // Reason modal (replaces Alert.prompt for Android compat)
+  const [reasonOpen,    setReasonOpen]    = useState(false);
+  const [reasonValue,   setReasonValue]   = useState('');
+  const [reasonBusy,    setReasonBusy]    = useState(false);
+
   // Manager assign modal
   const [assignOpen,    setAssignOpen]    = useState(false);
   const [assignHotelId, setAssignHotelId] = useState('');
@@ -72,6 +77,7 @@ export default function AdminHotelsScreen({ onNavigate, onBack }: Props) { // es
   const [importHotelId, setImportHotelId] = useState('');
   const [roomCsv,       setRoomCsv]       = useState('');
   const [importing,     setImporting]     = useState(false);
+  const [importResult,  setImportResult]  = useState<any>(null);
 
   const fetchHotels = useCallback(async () => {
     setError(null);
@@ -91,7 +97,38 @@ export default function AdminHotelsScreen({ onNavigate, onBack }: Props) { // es
   // Status transition
   const triggerAction = (hotelId: string, nextStatus: string, label: string) => {
     setPendingAction({ id: hotelId, status: nextStatus, label });
-    setConfirmOpen(true);
+    const requiresReason = nextStatus === 'REJECTED' || nextStatus === 'SUSPENDED';
+    if (requiresReason) {
+      setReasonValue('');
+      setReasonOpen(true);
+    } else {
+      setConfirmOpen(true);
+    }
+  };
+
+  const submitWithReason = async () => {
+    if (!pendingAction) return;
+    const trimmed = reasonValue.trim();
+    if (!trimmed) { toast('error', 'Reason is required'); return; }
+    if (trimmed.length < 10) { toast('error', 'Reason must be at least 10 characters'); return; }
+    setReasonBusy(true);
+    try {
+      await request(`/admin/hotels/${pendingAction.id}/status`, {
+        method: 'PATCH',
+        body: { status: pendingAction.status, rejectionReason: reasonValue.trim() },
+        token,
+      });
+      setHotels((prev) =>
+        prev.map((h) => h.id === pendingAction.id ? { ...h, status: pendingAction.status } : h),
+      );
+      toast('success', `Hotel ${pendingAction.label.toLowerCase()}d`);
+      setReasonOpen(false);
+      setPendingAction(null);
+    } catch (err: any) {
+      toast('error', err.message || 'Failed');
+    } finally {
+      setReasonBusy(false);
+    }
   };
 
   const confirmStatus = async () => {
@@ -119,9 +156,9 @@ export default function AdminHotelsScreen({ onNavigate, onBack }: Props) { // es
     setAssignHotelId(hotelId);
     setSelManager('');
     try {
-      const res = await request<any>('/admin/users/staff', { method: 'GET', token });
+      const res = await request<any>('/admin/users?role=MANAGER', { method: 'GET', token });
       const all = Array.isArray(res) ? res : res?.data ?? [];
-      setManagers(all.filter((u: any) => u.role === 'MANAGER'));
+      setManagers(all);
       setAssignOpen(true);
     } catch (err: any) {
       toast('error', err.message || 'Failed to load managers');
@@ -152,18 +189,46 @@ export default function AdminHotelsScreen({ onNavigate, onBack }: Props) { // es
   const openImport = (hotelId: string) => {
     setImportHotelId(hotelId);
     setRoomCsv('');
+    setImportResult(null);
     setImportOpen(true);
   };
 
-  const importRooms = async () => {
+  // IMPexp-005: Dry-run first, then confirm to import
+  const validateImport = async () => {
     if (!roomCsv.trim()) { toast('error', 'Paste CSV room data first'); return; }
     setImporting(true);
     try {
+      const { File, Paths } = await import('expo-file-system');
+      const file = new File(Paths.document, 'rooms_import.csv');
+      file.write(roomCsv);
       const form = new FormData();
-      form.append('file', new Blob([roomCsv], { type: 'text/csv' }) as any, 'rooms.csv');
-      await requestFormData(`/admin/hotels/${importHotelId}/rooms/import`, form, token);
-      toast('success', 'Rooms imported successfully');
+      form.append('file', { uri: file.uri, name: 'rooms.csv', type: 'text/csv' } as any);
+      const result = await requestFormData<any>(`/admin/import/hotels/${importHotelId}/rooms?dryRun=true`, form, token);
+      setImportResult(result);
+      if (result.errors?.length > 0) {
+        toast('error', `${result.failedCount} row(s) have errors. Review below.`);
+      } else {
+        toast('success', `Validation passed: ${result.importedCount} room(s) ready to import`);
+      }
+    } catch (err: any) {
+      toast('error', err.message || 'Validation failed');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const confirmImport = async () => {
+    setImporting(true);
+    try {
+      const { File, Paths } = await import('expo-file-system');
+      const file = new File(Paths.document, 'rooms_import.csv');
+      file.write(roomCsv);
+      const form = new FormData();
+      form.append('file', { uri: file.uri, name: 'rooms.csv', type: 'text/csv' } as any);
+      const result = await requestFormData<any>(`/admin/import/hotels/${importHotelId}/rooms`, form, token);
+      toast('success', `Imported ${result.importedCount} room(s)`);
       setImportOpen(false);
+      setImportResult(null);
       await fetchHotels();
     } catch (err: any) {
       toast('error', err.message || 'Failed to import rooms');
@@ -177,7 +242,7 @@ export default function AdminHotelsScreen({ onNavigate, onBack }: Props) { // es
     h.city?.name?.toLowerCase().includes(search.toLowerCase()),
   ), [hotels, search]);
 
-  const pending = useMemo(() => filtered.filter((h) => h.status === 'PENDING').length, [filtered]);
+  const pending = useMemo(() => filtered.filter((h) => h.status === 'PENDING_APPROVAL').length, [filtered]);
 
   return (
     <View style={s.root}>
@@ -290,7 +355,7 @@ export default function AdminHotelsScreen({ onNavigate, onBack }: Props) { // es
         body={`Are you sure you want to ${pendingAction?.label?.toLowerCase()} this hotel? This will be logged in the audit trail.`}
       />
 
-      {/* Manager assign modal */}
+      {/* Import rooms modal */}
       <Modal visible={importOpen} transparent animationType="slide" onRequestClose={() => setImportOpen(false)}>
         <Pressable style={s.overlay} onPress={() => setImportOpen(false)}>
           <View style={s.sheet} onStartShouldSetResponder={() => true}>
@@ -299,7 +364,7 @@ export default function AdminHotelsScreen({ onNavigate, onBack }: Props) { // es
             <Text style={s.sheetSub}>Paste CSV data with columns such as room number, type, capacity, and price.</Text>
             <TextInput
               value={roomCsv}
-              onChangeText={setRoomCsv}
+              onChangeText={(t) => { setRoomCsv(t); setImportResult(null); }}
               multiline
               numberOfLines={8}
               textAlignVertical="top"
@@ -307,9 +372,41 @@ export default function AdminHotelsScreen({ onNavigate, onBack }: Props) { // es
               placeholderTextColor={c.inkMuted}
               style={[s.csvInput, { color: c.ink }]}
             />
+            {/* IMPexp-005: Show dry-run validation results */}
+            {importResult && (
+              <View style={{ marginTop: 8, gap: 4 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: c.ink }}>
+                  Validation Results
+                </Text>
+                <Text style={{ fontSize: 12, color: c.inkMuted }}>
+                  Total: {importResult.totalRows} | Valid: {importResult.importedCount} | Errors: {importResult.failedCount}
+                </Text>
+                {importResult.errors?.map((e: any, i: number) => (
+                  <Text key={i} style={{ fontSize: 11, color: c.danger }}>
+                    Row {e.row}: {e.error}{e.roomNumber ? ` (${e.roomNumber})` : ''}
+                  </Text>
+                ))}
+              </View>
+            )}
             <View style={s.sheetActions}>
               <Button title="Cancel" variant="secondary" onPress={() => setImportOpen(false)} />
-              <Button title={importing ? 'Importing…' : 'Import'} onPress={importRooms} loading={importing} disabled={importing || !roomCsv.trim()} />
+              {!importResult ? (
+                <Button
+                  title={importing ? 'Validating…' : 'Validate'}
+                  onPress={validateImport}
+                  loading={importing}
+                  disabled={importing || !roomCsv.trim()}
+                />
+              ) : importResult.failedCount === 0 ? (
+                <Button
+                  title={importing ? 'Importing…' : 'Confirm Import'}
+                  onPress={confirmImport}
+                  loading={importing}
+                  disabled={importing}
+                />
+              ) : (
+                <Button title="Fix Errors" variant="secondary" onPress={() => setImportResult(null)} />
+              )}
             </View>
           </View>
         </Pressable>
@@ -340,6 +437,37 @@ export default function AdminHotelsScreen({ onNavigate, onBack }: Props) { // es
             <View style={s.sheetActions}>
               <Button title="Cancel" variant="secondary" onPress={() => setAssignOpen(false)} />
               <Button title={assigning ? 'Assigning…' : 'Assign'} onPress={confirmAssign} disabled={assigning || !selManager} />
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Reason input modal (for Reject / Suspend — replaces Alert.prompt for Android) */}
+      <Modal visible={reasonOpen} transparent animationType="slide" onRequestClose={() => setReasonOpen(false)}>
+        <Pressable style={s.overlay} onPress={() => setReasonOpen(false)}>
+          <View style={s.sheet}>
+            <View style={s.sheetHandle} />
+            <Text style={s.sheetTitle}>{pendingAction?.label} Hotel</Text>
+            <Text style={s.sheetSub}>Provide a reason (required for audit trail).</Text>
+            <TextInput
+              style={s.csvInput}
+              value={reasonValue}
+              onChangeText={setReasonValue}
+              placeholder="Enter reason…"
+              placeholderTextColor={c.inkMuted}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+            <View style={s.sheetActions}>
+              <Button title="Cancel" variant="secondary" onPress={() => { setReasonOpen(false); setPendingAction(null); }} />
+              <Button
+                title={reasonBusy ? 'Working…' : pendingAction?.label ?? 'Confirm'}
+                variant={pendingAction?.status === 'REJECTED' ? 'danger' : 'danger'}
+                onPress={submitWithReason}
+                disabled={reasonBusy || !reasonValue.trim()}
+                loading={reasonBusy}
+              />
             </View>
           </View>
         </Pressable>

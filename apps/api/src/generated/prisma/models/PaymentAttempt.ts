@@ -20,70 +20,118 @@ export type PaymentAttemptModel = runtime.Types.Result.DefaultSelection<Prisma.$
 
 export type AggregatePaymentAttempt = {
   _count: PaymentAttemptCountAggregateOutputType | null
+  _avg: PaymentAttemptAvgAggregateOutputType | null
+  _sum: PaymentAttemptSumAggregateOutputType | null
   _min: PaymentAttemptMinAggregateOutputType | null
   _max: PaymentAttemptMaxAggregateOutputType | null
 }
 
+export type PaymentAttemptAvgAggregateOutputType = {
+  amount: runtime.Decimal | null
+}
+
+export type PaymentAttemptSumAggregateOutputType = {
+  amount: runtime.Decimal | null
+}
+
 export type PaymentAttemptMinAggregateOutputType = {
   id: string | null
+  bookingId: string | null
   paymentId: string | null
   method: string | null
   outcome: string | null
+  status: string | null
+  amount: runtime.Decimal | null
   providerRef: string | null
   errorMessage: string | null
+  error: string | null
   attemptedAt: Date | null
+  createdAt: Date | null
 }
 
 export type PaymentAttemptMaxAggregateOutputType = {
   id: string | null
+  bookingId: string | null
   paymentId: string | null
   method: string | null
   outcome: string | null
+  status: string | null
+  amount: runtime.Decimal | null
   providerRef: string | null
   errorMessage: string | null
+  error: string | null
   attemptedAt: Date | null
+  createdAt: Date | null
 }
 
 export type PaymentAttemptCountAggregateOutputType = {
   id: number
+  bookingId: number
   paymentId: number
   method: number
   outcome: number
+  status: number
+  amount: number
   providerRef: number
   errorMessage: number
+  error: number
   attemptedAt: number
+  createdAt: number
   _all: number
 }
 
 
+export type PaymentAttemptAvgAggregateInputType = {
+  amount?: true
+}
+
+export type PaymentAttemptSumAggregateInputType = {
+  amount?: true
+}
+
 export type PaymentAttemptMinAggregateInputType = {
   id?: true
+  bookingId?: true
   paymentId?: true
   method?: true
   outcome?: true
+  status?: true
+  amount?: true
   providerRef?: true
   errorMessage?: true
+  error?: true
   attemptedAt?: true
+  createdAt?: true
 }
 
 export type PaymentAttemptMaxAggregateInputType = {
   id?: true
+  bookingId?: true
   paymentId?: true
   method?: true
   outcome?: true
+  status?: true
+  amount?: true
   providerRef?: true
   errorMessage?: true
+  error?: true
   attemptedAt?: true
+  createdAt?: true
 }
 
 export type PaymentAttemptCountAggregateInputType = {
   id?: true
+  bookingId?: true
   paymentId?: true
   method?: true
   outcome?: true
+  status?: true
+  amount?: true
   providerRef?: true
   errorMessage?: true
+  error?: true
   attemptedAt?: true
+  createdAt?: true
   _all?: true
 }
 
@@ -125,6 +173,18 @@ export type PaymentAttemptAggregateArgs<ExtArgs extends runtime.Types.Extensions
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: PaymentAttemptAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: PaymentAttemptSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: PaymentAttemptMinAggregateInputType
@@ -155,19 +215,28 @@ export type PaymentAttemptGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   _count?: PaymentAttemptCountAggregateInputType | true
+  _avg?: PaymentAttemptAvgAggregateInputType
+  _sum?: PaymentAttemptSumAggregateInputType
   _min?: PaymentAttemptMinAggregateInputType
   _max?: PaymentAttemptMaxAggregateInputType
 }
 
 export type PaymentAttemptGroupByOutputType = {
   id: string
-  paymentId: string
+  bookingId: string
+  paymentId: string | null
   method: string
   outcome: string
+  status: string
+  amount: runtime.Decimal
   providerRef: string | null
   errorMessage: string | null
+  error: string | null
   attemptedAt: Date
+  createdAt: Date
   _count: PaymentAttemptCountAggregateOutputType | null
+  _avg: PaymentAttemptAvgAggregateOutputType | null
+  _sum: PaymentAttemptSumAggregateOutputType | null
   _min: PaymentAttemptMinAggregateOutputType | null
   _max: PaymentAttemptMaxAggregateOutputType | null
 }
@@ -192,23 +261,35 @@ export type PaymentAttemptWhereInput = {
   OR?: Prisma.PaymentAttemptWhereInput[]
   NOT?: Prisma.PaymentAttemptWhereInput | Prisma.PaymentAttemptWhereInput[]
   id?: Prisma.StringFilter<"PaymentAttempt"> | string
-  paymentId?: Prisma.StringFilter<"PaymentAttempt"> | string
+  bookingId?: Prisma.StringFilter<"PaymentAttempt"> | string
+  paymentId?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
   method?: Prisma.StringFilter<"PaymentAttempt"> | string
   outcome?: Prisma.StringFilter<"PaymentAttempt"> | string
+  status?: Prisma.StringFilter<"PaymentAttempt"> | string
+  amount?: Prisma.DecimalFilter<"PaymentAttempt"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
   errorMessage?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
+  error?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
   attemptedAt?: Prisma.DateTimeFilter<"PaymentAttempt"> | Date | string
-  payment?: Prisma.XOR<Prisma.PaymentScalarRelationFilter, Prisma.PaymentWhereInput>
+  createdAt?: Prisma.DateTimeFilter<"PaymentAttempt"> | Date | string
+  booking?: Prisma.XOR<Prisma.BookingScalarRelationFilter, Prisma.BookingWhereInput>
+  payment?: Prisma.XOR<Prisma.PaymentNullableScalarRelationFilter, Prisma.PaymentWhereInput> | null
 }
 
 export type PaymentAttemptOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  paymentId?: Prisma.SortOrder
+  bookingId?: Prisma.SortOrder
+  paymentId?: Prisma.SortOrderInput | Prisma.SortOrder
   method?: Prisma.SortOrder
   outcome?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  amount?: Prisma.SortOrder
   providerRef?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  error?: Prisma.SortOrderInput | Prisma.SortOrder
   attemptedAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  booking?: Prisma.BookingOrderByWithRelationInput
   payment?: Prisma.PaymentOrderByWithRelationInput
 }
 
@@ -217,26 +298,39 @@ export type PaymentAttemptWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.PaymentAttemptWhereInput | Prisma.PaymentAttemptWhereInput[]
   OR?: Prisma.PaymentAttemptWhereInput[]
   NOT?: Prisma.PaymentAttemptWhereInput | Prisma.PaymentAttemptWhereInput[]
-  paymentId?: Prisma.StringFilter<"PaymentAttempt"> | string
+  bookingId?: Prisma.StringFilter<"PaymentAttempt"> | string
+  paymentId?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
   method?: Prisma.StringFilter<"PaymentAttempt"> | string
   outcome?: Prisma.StringFilter<"PaymentAttempt"> | string
+  status?: Prisma.StringFilter<"PaymentAttempt"> | string
+  amount?: Prisma.DecimalFilter<"PaymentAttempt"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
   errorMessage?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
+  error?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
   attemptedAt?: Prisma.DateTimeFilter<"PaymentAttempt"> | Date | string
-  payment?: Prisma.XOR<Prisma.PaymentScalarRelationFilter, Prisma.PaymentWhereInput>
+  createdAt?: Prisma.DateTimeFilter<"PaymentAttempt"> | Date | string
+  booking?: Prisma.XOR<Prisma.BookingScalarRelationFilter, Prisma.BookingWhereInput>
+  payment?: Prisma.XOR<Prisma.PaymentNullableScalarRelationFilter, Prisma.PaymentWhereInput> | null
 }, "id">
 
 export type PaymentAttemptOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  paymentId?: Prisma.SortOrder
+  bookingId?: Prisma.SortOrder
+  paymentId?: Prisma.SortOrderInput | Prisma.SortOrder
   method?: Prisma.SortOrder
   outcome?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  amount?: Prisma.SortOrder
   providerRef?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  error?: Prisma.SortOrderInput | Prisma.SortOrder
   attemptedAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   _count?: Prisma.PaymentAttemptCountOrderByAggregateInput
+  _avg?: Prisma.PaymentAttemptAvgOrderByAggregateInput
   _max?: Prisma.PaymentAttemptMaxOrderByAggregateInput
   _min?: Prisma.PaymentAttemptMinOrderByAggregateInput
+  _sum?: Prisma.PaymentAttemptSumOrderByAggregateInput
 }
 
 export type PaymentAttemptScalarWhereWithAggregatesInput = {
@@ -244,81 +338,120 @@ export type PaymentAttemptScalarWhereWithAggregatesInput = {
   OR?: Prisma.PaymentAttemptScalarWhereWithAggregatesInput[]
   NOT?: Prisma.PaymentAttemptScalarWhereWithAggregatesInput | Prisma.PaymentAttemptScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"PaymentAttempt"> | string
-  paymentId?: Prisma.StringWithAggregatesFilter<"PaymentAttempt"> | string
+  bookingId?: Prisma.StringWithAggregatesFilter<"PaymentAttempt"> | string
+  paymentId?: Prisma.StringNullableWithAggregatesFilter<"PaymentAttempt"> | string | null
   method?: Prisma.StringWithAggregatesFilter<"PaymentAttempt"> | string
   outcome?: Prisma.StringWithAggregatesFilter<"PaymentAttempt"> | string
+  status?: Prisma.StringWithAggregatesFilter<"PaymentAttempt"> | string
+  amount?: Prisma.DecimalWithAggregatesFilter<"PaymentAttempt"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: Prisma.StringNullableWithAggregatesFilter<"PaymentAttempt"> | string | null
   errorMessage?: Prisma.StringNullableWithAggregatesFilter<"PaymentAttempt"> | string | null
+  error?: Prisma.StringNullableWithAggregatesFilter<"PaymentAttempt"> | string | null
   attemptedAt?: Prisma.DateTimeWithAggregatesFilter<"PaymentAttempt"> | Date | string
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"PaymentAttempt"> | Date | string
 }
 
 export type PaymentAttemptCreateInput = {
   id?: string
   method: string
-  outcome: string
+  outcome?: string
+  status?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: string | null
   errorMessage?: string | null
+  error?: string | null
   attemptedAt?: Date | string
-  payment: Prisma.PaymentCreateNestedOneWithoutAttemptsInput
+  createdAt?: Date | string
+  booking: Prisma.BookingCreateNestedOneWithoutPaymentAttemptsInput
+  payment?: Prisma.PaymentCreateNestedOneWithoutAttemptsInput
 }
 
 export type PaymentAttemptUncheckedCreateInput = {
   id?: string
-  paymentId: string
+  bookingId: string
+  paymentId?: string | null
   method: string
-  outcome: string
+  outcome?: string
+  status?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: string | null
   errorMessage?: string | null
+  error?: string | null
   attemptedAt?: Date | string
+  createdAt?: Date | string
 }
 
 export type PaymentAttemptUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   method?: Prisma.StringFieldUpdateOperationsInput | string
   outcome?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payment?: Prisma.PaymentUpdateOneRequiredWithoutAttemptsNestedInput
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  booking?: Prisma.BookingUpdateOneRequiredWithoutPaymentAttemptsNestedInput
+  payment?: Prisma.PaymentUpdateOneWithoutAttemptsNestedInput
 }
 
 export type PaymentAttemptUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  paymentId?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   method?: Prisma.StringFieldUpdateOperationsInput | string
   outcome?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PaymentAttemptCreateManyInput = {
   id?: string
-  paymentId: string
+  bookingId: string
+  paymentId?: string | null
   method: string
-  outcome: string
+  outcome?: string
+  status?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: string | null
   errorMessage?: string | null
+  error?: string | null
   attemptedAt?: Date | string
+  createdAt?: Date | string
 }
 
 export type PaymentAttemptUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   method?: Prisma.StringFieldUpdateOperationsInput | string
   outcome?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PaymentAttemptUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  paymentId?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
+  paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   method?: Prisma.StringFieldUpdateOperationsInput | string
   outcome?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PaymentAttemptListRelationFilter = {
@@ -333,32 +466,97 @@ export type PaymentAttemptOrderByRelationAggregateInput = {
 
 export type PaymentAttemptCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  bookingId?: Prisma.SortOrder
   paymentId?: Prisma.SortOrder
   method?: Prisma.SortOrder
   outcome?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  amount?: Prisma.SortOrder
   providerRef?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
+  error?: Prisma.SortOrder
   attemptedAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+}
+
+export type PaymentAttemptAvgOrderByAggregateInput = {
+  amount?: Prisma.SortOrder
 }
 
 export type PaymentAttemptMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  bookingId?: Prisma.SortOrder
   paymentId?: Prisma.SortOrder
   method?: Prisma.SortOrder
   outcome?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  amount?: Prisma.SortOrder
   providerRef?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
+  error?: Prisma.SortOrder
   attemptedAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
 }
 
 export type PaymentAttemptMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  bookingId?: Prisma.SortOrder
   paymentId?: Prisma.SortOrder
   method?: Prisma.SortOrder
   outcome?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  amount?: Prisma.SortOrder
   providerRef?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
+  error?: Prisma.SortOrder
   attemptedAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+}
+
+export type PaymentAttemptSumOrderByAggregateInput = {
+  amount?: Prisma.SortOrder
+}
+
+export type PaymentAttemptCreateNestedManyWithoutBookingInput = {
+  create?: Prisma.XOR<Prisma.PaymentAttemptCreateWithoutBookingInput, Prisma.PaymentAttemptUncheckedCreateWithoutBookingInput> | Prisma.PaymentAttemptCreateWithoutBookingInput[] | Prisma.PaymentAttemptUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.PaymentAttemptCreateOrConnectWithoutBookingInput | Prisma.PaymentAttemptCreateOrConnectWithoutBookingInput[]
+  createMany?: Prisma.PaymentAttemptCreateManyBookingInputEnvelope
+  connect?: Prisma.PaymentAttemptWhereUniqueInput | Prisma.PaymentAttemptWhereUniqueInput[]
+}
+
+export type PaymentAttemptUncheckedCreateNestedManyWithoutBookingInput = {
+  create?: Prisma.XOR<Prisma.PaymentAttemptCreateWithoutBookingInput, Prisma.PaymentAttemptUncheckedCreateWithoutBookingInput> | Prisma.PaymentAttemptCreateWithoutBookingInput[] | Prisma.PaymentAttemptUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.PaymentAttemptCreateOrConnectWithoutBookingInput | Prisma.PaymentAttemptCreateOrConnectWithoutBookingInput[]
+  createMany?: Prisma.PaymentAttemptCreateManyBookingInputEnvelope
+  connect?: Prisma.PaymentAttemptWhereUniqueInput | Prisma.PaymentAttemptWhereUniqueInput[]
+}
+
+export type PaymentAttemptUpdateManyWithoutBookingNestedInput = {
+  create?: Prisma.XOR<Prisma.PaymentAttemptCreateWithoutBookingInput, Prisma.PaymentAttemptUncheckedCreateWithoutBookingInput> | Prisma.PaymentAttemptCreateWithoutBookingInput[] | Prisma.PaymentAttemptUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.PaymentAttemptCreateOrConnectWithoutBookingInput | Prisma.PaymentAttemptCreateOrConnectWithoutBookingInput[]
+  upsert?: Prisma.PaymentAttemptUpsertWithWhereUniqueWithoutBookingInput | Prisma.PaymentAttemptUpsertWithWhereUniqueWithoutBookingInput[]
+  createMany?: Prisma.PaymentAttemptCreateManyBookingInputEnvelope
+  set?: Prisma.PaymentAttemptWhereUniqueInput | Prisma.PaymentAttemptWhereUniqueInput[]
+  disconnect?: Prisma.PaymentAttemptWhereUniqueInput | Prisma.PaymentAttemptWhereUniqueInput[]
+  delete?: Prisma.PaymentAttemptWhereUniqueInput | Prisma.PaymentAttemptWhereUniqueInput[]
+  connect?: Prisma.PaymentAttemptWhereUniqueInput | Prisma.PaymentAttemptWhereUniqueInput[]
+  update?: Prisma.PaymentAttemptUpdateWithWhereUniqueWithoutBookingInput | Prisma.PaymentAttemptUpdateWithWhereUniqueWithoutBookingInput[]
+  updateMany?: Prisma.PaymentAttemptUpdateManyWithWhereWithoutBookingInput | Prisma.PaymentAttemptUpdateManyWithWhereWithoutBookingInput[]
+  deleteMany?: Prisma.PaymentAttemptScalarWhereInput | Prisma.PaymentAttemptScalarWhereInput[]
+}
+
+export type PaymentAttemptUncheckedUpdateManyWithoutBookingNestedInput = {
+  create?: Prisma.XOR<Prisma.PaymentAttemptCreateWithoutBookingInput, Prisma.PaymentAttemptUncheckedCreateWithoutBookingInput> | Prisma.PaymentAttemptCreateWithoutBookingInput[] | Prisma.PaymentAttemptUncheckedCreateWithoutBookingInput[]
+  connectOrCreate?: Prisma.PaymentAttemptCreateOrConnectWithoutBookingInput | Prisma.PaymentAttemptCreateOrConnectWithoutBookingInput[]
+  upsert?: Prisma.PaymentAttemptUpsertWithWhereUniqueWithoutBookingInput | Prisma.PaymentAttemptUpsertWithWhereUniqueWithoutBookingInput[]
+  createMany?: Prisma.PaymentAttemptCreateManyBookingInputEnvelope
+  set?: Prisma.PaymentAttemptWhereUniqueInput | Prisma.PaymentAttemptWhereUniqueInput[]
+  disconnect?: Prisma.PaymentAttemptWhereUniqueInput | Prisma.PaymentAttemptWhereUniqueInput[]
+  delete?: Prisma.PaymentAttemptWhereUniqueInput | Prisma.PaymentAttemptWhereUniqueInput[]
+  connect?: Prisma.PaymentAttemptWhereUniqueInput | Prisma.PaymentAttemptWhereUniqueInput[]
+  update?: Prisma.PaymentAttemptUpdateWithWhereUniqueWithoutBookingInput | Prisma.PaymentAttemptUpdateWithWhereUniqueWithoutBookingInput[]
+  updateMany?: Prisma.PaymentAttemptUpdateManyWithWhereWithoutBookingInput | Prisma.PaymentAttemptUpdateManyWithWhereWithoutBookingInput[]
+  deleteMany?: Prisma.PaymentAttemptScalarWhereInput | Prisma.PaymentAttemptScalarWhereInput[]
 }
 
 export type PaymentAttemptCreateNestedManyWithoutPaymentInput = {
@@ -403,22 +601,104 @@ export type PaymentAttemptUncheckedUpdateManyWithoutPaymentNestedInput = {
   deleteMany?: Prisma.PaymentAttemptScalarWhereInput | Prisma.PaymentAttemptScalarWhereInput[]
 }
 
+export type PaymentAttemptCreateWithoutBookingInput = {
+  id?: string
+  method: string
+  outcome?: string
+  status?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  providerRef?: string | null
+  errorMessage?: string | null
+  error?: string | null
+  attemptedAt?: Date | string
+  createdAt?: Date | string
+  payment?: Prisma.PaymentCreateNestedOneWithoutAttemptsInput
+}
+
+export type PaymentAttemptUncheckedCreateWithoutBookingInput = {
+  id?: string
+  paymentId?: string | null
+  method: string
+  outcome?: string
+  status?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  providerRef?: string | null
+  errorMessage?: string | null
+  error?: string | null
+  attemptedAt?: Date | string
+  createdAt?: Date | string
+}
+
+export type PaymentAttemptCreateOrConnectWithoutBookingInput = {
+  where: Prisma.PaymentAttemptWhereUniqueInput
+  create: Prisma.XOR<Prisma.PaymentAttemptCreateWithoutBookingInput, Prisma.PaymentAttemptUncheckedCreateWithoutBookingInput>
+}
+
+export type PaymentAttemptCreateManyBookingInputEnvelope = {
+  data: Prisma.PaymentAttemptCreateManyBookingInput | Prisma.PaymentAttemptCreateManyBookingInput[]
+  skipDuplicates?: boolean
+}
+
+export type PaymentAttemptUpsertWithWhereUniqueWithoutBookingInput = {
+  where: Prisma.PaymentAttemptWhereUniqueInput
+  update: Prisma.XOR<Prisma.PaymentAttemptUpdateWithoutBookingInput, Prisma.PaymentAttemptUncheckedUpdateWithoutBookingInput>
+  create: Prisma.XOR<Prisma.PaymentAttemptCreateWithoutBookingInput, Prisma.PaymentAttemptUncheckedCreateWithoutBookingInput>
+}
+
+export type PaymentAttemptUpdateWithWhereUniqueWithoutBookingInput = {
+  where: Prisma.PaymentAttemptWhereUniqueInput
+  data: Prisma.XOR<Prisma.PaymentAttemptUpdateWithoutBookingInput, Prisma.PaymentAttemptUncheckedUpdateWithoutBookingInput>
+}
+
+export type PaymentAttemptUpdateManyWithWhereWithoutBookingInput = {
+  where: Prisma.PaymentAttemptScalarWhereInput
+  data: Prisma.XOR<Prisma.PaymentAttemptUpdateManyMutationInput, Prisma.PaymentAttemptUncheckedUpdateManyWithoutBookingInput>
+}
+
+export type PaymentAttemptScalarWhereInput = {
+  AND?: Prisma.PaymentAttemptScalarWhereInput | Prisma.PaymentAttemptScalarWhereInput[]
+  OR?: Prisma.PaymentAttemptScalarWhereInput[]
+  NOT?: Prisma.PaymentAttemptScalarWhereInput | Prisma.PaymentAttemptScalarWhereInput[]
+  id?: Prisma.StringFilter<"PaymentAttempt"> | string
+  bookingId?: Prisma.StringFilter<"PaymentAttempt"> | string
+  paymentId?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
+  method?: Prisma.StringFilter<"PaymentAttempt"> | string
+  outcome?: Prisma.StringFilter<"PaymentAttempt"> | string
+  status?: Prisma.StringFilter<"PaymentAttempt"> | string
+  amount?: Prisma.DecimalFilter<"PaymentAttempt"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  providerRef?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
+  errorMessage?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
+  error?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
+  attemptedAt?: Prisma.DateTimeFilter<"PaymentAttempt"> | Date | string
+  createdAt?: Prisma.DateTimeFilter<"PaymentAttempt"> | Date | string
+}
+
 export type PaymentAttemptCreateWithoutPaymentInput = {
   id?: string
   method: string
-  outcome: string
+  outcome?: string
+  status?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: string | null
   errorMessage?: string | null
+  error?: string | null
   attemptedAt?: Date | string
+  createdAt?: Date | string
+  booking: Prisma.BookingCreateNestedOneWithoutPaymentAttemptsInput
 }
 
 export type PaymentAttemptUncheckedCreateWithoutPaymentInput = {
   id?: string
+  bookingId: string
   method: string
-  outcome: string
+  outcome?: string
+  status?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: string | null
   errorMessage?: string | null
+  error?: string | null
   attemptedAt?: Date | string
+  createdAt?: Date | string
 }
 
 export type PaymentAttemptCreateOrConnectWithoutPaymentInput = {
@@ -447,124 +727,219 @@ export type PaymentAttemptUpdateManyWithWhereWithoutPaymentInput = {
   data: Prisma.XOR<Prisma.PaymentAttemptUpdateManyMutationInput, Prisma.PaymentAttemptUncheckedUpdateManyWithoutPaymentInput>
 }
 
-export type PaymentAttemptScalarWhereInput = {
-  AND?: Prisma.PaymentAttemptScalarWhereInput | Prisma.PaymentAttemptScalarWhereInput[]
-  OR?: Prisma.PaymentAttemptScalarWhereInput[]
-  NOT?: Prisma.PaymentAttemptScalarWhereInput | Prisma.PaymentAttemptScalarWhereInput[]
-  id?: Prisma.StringFilter<"PaymentAttempt"> | string
-  paymentId?: Prisma.StringFilter<"PaymentAttempt"> | string
-  method?: Prisma.StringFilter<"PaymentAttempt"> | string
-  outcome?: Prisma.StringFilter<"PaymentAttempt"> | string
-  providerRef?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
-  errorMessage?: Prisma.StringNullableFilter<"PaymentAttempt"> | string | null
-  attemptedAt?: Prisma.DateTimeFilter<"PaymentAttempt"> | Date | string
+export type PaymentAttemptCreateManyBookingInput = {
+  id?: string
+  paymentId?: string | null
+  method: string
+  outcome?: string
+  status?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  providerRef?: string | null
+  errorMessage?: string | null
+  error?: string | null
+  attemptedAt?: Date | string
+  createdAt?: Date | string
+}
+
+export type PaymentAttemptUpdateWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  method?: Prisma.StringFieldUpdateOperationsInput | string
+  outcome?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attemptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payment?: Prisma.PaymentUpdateOneWithoutAttemptsNestedInput
+}
+
+export type PaymentAttemptUncheckedUpdateWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  method?: Prisma.StringFieldUpdateOperationsInput | string
+  outcome?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attemptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type PaymentAttemptUncheckedUpdateManyWithoutBookingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  paymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  method?: Prisma.StringFieldUpdateOperationsInput | string
+  outcome?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attemptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PaymentAttemptCreateManyPaymentInput = {
   id?: string
+  bookingId: string
   method: string
-  outcome: string
+  outcome?: string
+  status?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: string | null
   errorMessage?: string | null
+  error?: string | null
   attemptedAt?: Date | string
+  createdAt?: Date | string
 }
 
 export type PaymentAttemptUpdateWithoutPaymentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   method?: Prisma.StringFieldUpdateOperationsInput | string
   outcome?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  booking?: Prisma.BookingUpdateOneRequiredWithoutPaymentAttemptsNestedInput
 }
 
 export type PaymentAttemptUncheckedUpdateWithoutPaymentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
   method?: Prisma.StringFieldUpdateOperationsInput | string
   outcome?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PaymentAttemptUncheckedUpdateManyWithoutPaymentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingId?: Prisma.StringFieldUpdateOperationsInput | string
   method?: Prisma.StringFieldUpdateOperationsInput | string
   outcome?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attemptedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
 
 export type PaymentAttemptSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  bookingId?: boolean
   paymentId?: boolean
   method?: boolean
   outcome?: boolean
+  status?: boolean
+  amount?: boolean
   providerRef?: boolean
   errorMessage?: boolean
+  error?: boolean
   attemptedAt?: boolean
-  payment?: boolean | Prisma.PaymentDefaultArgs<ExtArgs>
+  createdAt?: boolean
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  payment?: boolean | Prisma.PaymentAttempt$paymentArgs<ExtArgs>
 }, ExtArgs["result"]["paymentAttempt"]>
 
 export type PaymentAttemptSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  bookingId?: boolean
   paymentId?: boolean
   method?: boolean
   outcome?: boolean
+  status?: boolean
+  amount?: boolean
   providerRef?: boolean
   errorMessage?: boolean
+  error?: boolean
   attemptedAt?: boolean
-  payment?: boolean | Prisma.PaymentDefaultArgs<ExtArgs>
+  createdAt?: boolean
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  payment?: boolean | Prisma.PaymentAttempt$paymentArgs<ExtArgs>
 }, ExtArgs["result"]["paymentAttempt"]>
 
 export type PaymentAttemptSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  bookingId?: boolean
   paymentId?: boolean
   method?: boolean
   outcome?: boolean
+  status?: boolean
+  amount?: boolean
   providerRef?: boolean
   errorMessage?: boolean
+  error?: boolean
   attemptedAt?: boolean
-  payment?: boolean | Prisma.PaymentDefaultArgs<ExtArgs>
+  createdAt?: boolean
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  payment?: boolean | Prisma.PaymentAttempt$paymentArgs<ExtArgs>
 }, ExtArgs["result"]["paymentAttempt"]>
 
 export type PaymentAttemptSelectScalar = {
   id?: boolean
+  bookingId?: boolean
   paymentId?: boolean
   method?: boolean
   outcome?: boolean
+  status?: boolean
+  amount?: boolean
   providerRef?: boolean
   errorMessage?: boolean
+  error?: boolean
   attemptedAt?: boolean
+  createdAt?: boolean
 }
 
-export type PaymentAttemptOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "paymentId" | "method" | "outcome" | "providerRef" | "errorMessage" | "attemptedAt", ExtArgs["result"]["paymentAttempt"]>
+export type PaymentAttemptOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "bookingId" | "paymentId" | "method" | "outcome" | "status" | "amount" | "providerRef" | "errorMessage" | "error" | "attemptedAt" | "createdAt", ExtArgs["result"]["paymentAttempt"]>
 export type PaymentAttemptInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  payment?: boolean | Prisma.PaymentDefaultArgs<ExtArgs>
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  payment?: boolean | Prisma.PaymentAttempt$paymentArgs<ExtArgs>
 }
 export type PaymentAttemptIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  payment?: boolean | Prisma.PaymentDefaultArgs<ExtArgs>
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  payment?: boolean | Prisma.PaymentAttempt$paymentArgs<ExtArgs>
 }
 export type PaymentAttemptIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  payment?: boolean | Prisma.PaymentDefaultArgs<ExtArgs>
+  booking?: boolean | Prisma.BookingDefaultArgs<ExtArgs>
+  payment?: boolean | Prisma.PaymentAttempt$paymentArgs<ExtArgs>
 }
 
 export type $PaymentAttemptPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PaymentAttempt"
   objects: {
-    payment: Prisma.$PaymentPayload<ExtArgs>
+    booking: Prisma.$BookingPayload<ExtArgs>
+    payment: Prisma.$PaymentPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    paymentId: string
+    bookingId: string
+    paymentId: string | null
     method: string
     outcome: string
+    status: string
+    amount: runtime.Decimal
     providerRef: string | null
     errorMessage: string | null
+    error: string | null
     attemptedAt: Date
+    createdAt: Date
   }, ExtArgs["result"]["paymentAttempt"]>
   composites: {}
 }
@@ -959,7 +1334,8 @@ readonly fields: PaymentAttemptFieldRefs;
  */
 export interface Prisma__PaymentAttemptClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  payment<T extends Prisma.PaymentDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PaymentDefaultArgs<ExtArgs>>): Prisma.Prisma__PaymentClient<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  booking<T extends Prisma.BookingDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BookingDefaultArgs<ExtArgs>>): Prisma.Prisma__BookingClient<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  payment<T extends Prisma.PaymentAttempt$paymentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PaymentAttempt$paymentArgs<ExtArgs>>): Prisma.Prisma__PaymentClient<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -990,12 +1366,17 @@ export interface Prisma__PaymentAttemptClient<T, Null = never, ExtArgs extends r
  */
 export interface PaymentAttemptFieldRefs {
   readonly id: Prisma.FieldRef<"PaymentAttempt", 'String'>
+  readonly bookingId: Prisma.FieldRef<"PaymentAttempt", 'String'>
   readonly paymentId: Prisma.FieldRef<"PaymentAttempt", 'String'>
   readonly method: Prisma.FieldRef<"PaymentAttempt", 'String'>
   readonly outcome: Prisma.FieldRef<"PaymentAttempt", 'String'>
+  readonly status: Prisma.FieldRef<"PaymentAttempt", 'String'>
+  readonly amount: Prisma.FieldRef<"PaymentAttempt", 'Decimal'>
   readonly providerRef: Prisma.FieldRef<"PaymentAttempt", 'String'>
   readonly errorMessage: Prisma.FieldRef<"PaymentAttempt", 'String'>
+  readonly error: Prisma.FieldRef<"PaymentAttempt", 'String'>
   readonly attemptedAt: Prisma.FieldRef<"PaymentAttempt", 'DateTime'>
+  readonly createdAt: Prisma.FieldRef<"PaymentAttempt", 'DateTime'>
 }
     
 
@@ -1394,6 +1775,25 @@ export type PaymentAttemptDeleteManyArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many PaymentAttempts to delete.
    */
   limit?: number
+}
+
+/**
+ * PaymentAttempt.payment
+ */
+export type PaymentAttempt$paymentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Payment
+   */
+  select?: Prisma.PaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Payment
+   */
+  omit?: Prisma.PaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentInclude<ExtArgs> | null
+  where?: Prisma.PaymentWhereInput
 }
 
 /**

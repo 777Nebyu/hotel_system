@@ -3,6 +3,7 @@ import {
   Controller,
   Param,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseInterceptors,
@@ -52,15 +53,17 @@ export class AdminImportController {
       required: ['file'],
     },
   })
-  @ApiOperation({ summary: 'Bulk import hotel rooms from CSV' })
+  @ApiOperation({ summary: 'Bulk import hotel rooms from CSV (supports dry-run)' })
   async importRooms(
     @Param() params: HotelIdParamsDto,
     @UploadedFile() file: Express.Multer.File,
     @Req() req: AuthedRequest,
+    @Query('dryRun') dryRun?: string,
   ) {
     if (!file || !file.buffer) {
       throw new BadRequestException('CSV file is required');
     }
-    return this.imports.importRoomsFromCsv(params.id, file.buffer, req.user);
+    const isDryRun = dryRun === 'true';
+    return this.imports.importRoomsFromCsv(params.id, file.buffer, req.user, isDryRun);
   }
 }

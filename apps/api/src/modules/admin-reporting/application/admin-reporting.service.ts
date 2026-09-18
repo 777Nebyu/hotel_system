@@ -32,25 +32,139 @@ export class AdminReportingService {
   }
 
   private async computeOverview() {
-    const [userCount, hotelCount, bookingCount, revenueAgg, bookingsByStatus] =
-      await Promise.all([
-        this.db.user.count(),
-        this.db.hotel.count(),
-        this.db.booking.count(),
-        this.db.payment.aggregate({
-          where: { status: 'SUCCEEDED' },
-          _sum: { amount: true },
-        }),
-        this.db.booking.groupBy({
-          by: ['status'],
-          _count: { _all: true },
-        }),
-      ]);
-    return {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [
       userCount,
+      customerCount,
+      staffCount,
       hotelCount,
+      activeHotels,
+      pendingHotels,
       bookingCount,
+      activeBookings,
+      pendingBookings,
+      revenueAgg,
+      monthRevenueAgg,
+      pendingPayments,
+      pendingDisputes,
+      flaggedReviewCount,
+      bookingsByStatus,
+      topHotels,
+      recentActivity,
+    ] = await Promise.all([
+      // User counts
+      this.db.user.count(),
+      this.db.user.count({ where: { role: 'CUSTOMER' } }),
+      this.db.user.count({ where: { role: { in: ['STAFF', 'MANAGER'] } } }),
+
+      // Hotel counts
+      this.db.hotel.count(),
+      this.db.hotel.count({ where: { status: 'ACTIVE' } }),
+      this.db.hotel.count({ where: { status: 'PENDING_APPROVAL' } }),
+
+      // Booking counts
+      this.db.booking.count(),
+      this.db.booking.count({
+        where: { status: { in: ['CONFIRMED', 'CHECKED_IN'] } },
+      }),
+      this.db.booking.count({ where: { status: 'PENDING' } }),
+
+      // Revenue
+      this.db.payment.aggregate({
+        where: { status: 'SUCCEEDED' },
+        _sum: { amount: true },
+      }),
+      this.db.payment.aggregate({
+        where: { status: 'SUCCEEDED', createdAt: { gte: monthStart } },
+        _sum: { amount: true },
+      }),
+
+      // Pending payments
+      this.db.payment.count({ where: { status: 'PENDING' } }),
+
+      // Open disputes
+      this.db.dispute.count({
+        where: { status: { in: ['OPEN', 'UNDER_REVIEW'] } },
+      }),
+
+      // Flagged reviews (reviews by flagged users)
+      this.db.review.count({
+        where: { user: { isFlagged: true } },
+      }),
+
+      // Bookings by status
+      this.db.booking.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+      }),
+
+      // Top hotels by revenue
+      this.db.payment.findMany({
+        where: { status: 'SUCCEEDED' },
+        select: {
+          amount: true,
+          booking: {
+            select: {
+              hotel: { select: { id: true, name: true, starRating: true } },
+            },
+          },
+        },
+      }),
+
+      // Recent activity
+      this.db.auditLog.findMany({
+        take: 10,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          action: true,
+          entity: true,
+          entityId: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    // Build top hotels from payment data
+    const hotelRevenueMap = new Map<string, { id: string; name: string; revenue: number; starRating: number }>();
+    for (const p of topHotels) {
+      const hotel = p.booking.hotel;
+      const existing = hotelRevenueMap.get(hotel.id);
+      if (existing) {
+        existing.revenue += p.amount.toNumber();
+      } else {
+        hotelRevenueMap.set(hotel.id, {
+          id: hotel.id,
+          name: hotel.name,
+          revenue: p.amount.toNumber(),
+          starRating: hotel.starRating ?? 4,
+        });
+      }
+    }
+    const topHotelsList = Array.from(hotelRevenueMap.values())
+      .map((h) => ({ ...h, revenue: Math.round(h.revenue * 100) / 100 }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    return {
+      hotelCount,
+      activeHotels,
+      pendingHotels,
+      userCount,
+      customerCount,
+      staffCount,
+      bookingCount,
+      activeBookings,
+      pendingBookings,
       totalRevenue: revenueAgg._sum.amount?.toNumber() ?? 0,
+      monthRevenue: monthRevenueAgg._sum.amount?.toNumber() ?? 0,
+      pendingPayments,
+      pendingDisputes,
+      flaggedReviews: flaggedReviewCount,
+      topHotels: topHotelsList,
+      recentActivity,
       bookingsByStatus: Object.fromEntries(
         bookingsByStatus.map((row) => [row.status, row._count._all]),
       ),

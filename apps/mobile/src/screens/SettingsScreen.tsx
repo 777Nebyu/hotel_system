@@ -174,6 +174,23 @@ export default function SettingsScreen() {
         </Card>
       )}
 
+      {/* Payments & Billing */}
+      <Card style={[styles.sectionCard, { backgroundColor: themeColors.surface, borderColor: themeColors.line }]}>
+        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>Payments</Text>
+        <Pressable
+          onPress={() => navigation.navigate('PaymentHistory')}
+          style={styles.actionRow}
+          accessibilityRole="button"
+          accessibilityLabel="View payment history"
+        >
+          <View>
+            <Text style={[styles.settingLabel, { color: themeColors.ink }]}>Payment History</Text>
+            <Text style={[styles.settingSub, { color: themeColors.inkMuted }]}>View all past transactions, receipts & statuses</Text>
+          </View>
+          <Text style={[styles.chevron, { color: themeColors.inkMuted }]}>›</Text>
+        </Pressable>
+      </Card>
+
       {/* Storage & Data */}
       <Card style={[styles.sectionCard, { backgroundColor: themeColors.surface, borderColor: themeColors.line }]}>
         <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>Storage & Cache</Text>

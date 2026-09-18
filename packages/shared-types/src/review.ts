@@ -6,7 +6,7 @@ export const reviewSchema = z.object({
   hotelId: id,
   bookingId: id.optional(),
   rating: z.coerce.number().int().min(1).max(5),
-  comment: z.string().min(2).max(2000),
+  comment: z.string().max(2000).optional().default(''),
   photos: z.array(z.string().url()).max(10).optional(),
 });
 export type ReviewInput = z.infer<typeof reviewSchema>;

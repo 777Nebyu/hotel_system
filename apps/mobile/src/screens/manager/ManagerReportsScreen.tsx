@@ -7,7 +7,6 @@ import { Button, Card, EmptyState } from '../../components/Shared';
 import ScreenHeader from '../../components/ScreenHeader';
 import { useToast } from '../../components/Toast';
 import { colors, font, radius, shadowCard } from '../../theme';
-import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 type Props = { onBack: () => void; onNavigate?: (page: { screen: string } & Record<string, any>) => void };
@@ -20,13 +19,23 @@ interface ReportType {
   format: 'pdf' | 'excel';
 }
 
-const ALL_REPORTS: ReportType[] = [
-  { key: 'occupancy', title: 'Occupancy Report', description: 'Room occupancy rates over a selected period', endpoint: '/admin/reports/occupancy', format: 'pdf' },
-  { key: 'revenue', title: 'Revenue Report', description: 'Detailed revenue breakdown by room type and period', endpoint: '/admin/reports/revenue', format: 'pdf' },
-  { key: 'booking', title: 'Booking Report', description: 'Booking analytics and trends', endpoint: '/admin/reports/booking', format: 'pdf' },
-  { key: 'customer', title: 'Guest Analytics', description: 'Guest demographics, repeat visits, and satisfaction', endpoint: '/admin/reports/customer', format: 'pdf' },
-  { key: 'cancellation', title: 'Cancellation Report', description: 'Cancellation analytics and patterns', endpoint: '/admin/reports/cancellation', format: 'excel' },
-];
+function decodeJwtPayload(token: string): Record<string, unknown> {
+  try {
+    const base64 = token.split('.')[1];
+    const json = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(json);
+  } catch { return {}; }
+}
+
+function getReportEndpoints(hotelId: string): ReportType[] {
+  const prefix = `/manager/hotels/${hotelId}/reports`;
+  return [
+    { key: 'occupancy', title: 'Occupancy Report', description: 'Room occupancy rates over a selected period', endpoint: `${prefix}/occupancy`, format: 'pdf' },
+    { key: 'revenue', title: 'Revenue Report', description: 'Detailed revenue breakdown by room type and period', endpoint: `${prefix}/monthly-revenue`, format: 'pdf' },
+    { key: 'booking', title: 'Booking Report', description: 'Booking analytics and trends', endpoint: `${prefix}/booking-trends`, format: 'pdf' },
+    { key: 'customer', title: 'Guest Analytics', description: 'Guest demographics, repeat visits, and satisfaction', endpoint: `${prefix}/overview`, format: 'pdf' },
+  ];
+}
 
 // Staff only gets operational reports — no financial (Revenue) per STAFF-005
 const STAFF_EXCLUDED = new Set(['revenue']);
@@ -37,6 +46,9 @@ export default function ManagerReportsScreen({ onBack, onNavigate }: Props) {
   const userRole = useAppSelector((s) => s.auth.session?.user?.role ?? 'MANAGER');
   const toast = useToast();
   const [generating, setGenerating] = useState<string | null>(null);
+
+  const hotelId = (decodeJwtPayload(token).hotelId as string) ?? '';
+  const ALL_REPORTS = getReportEndpoints(hotelId);
 
   const reports = userRole === 'STAFF'
     ? ALL_REPORTS.filter((r) => !STAFF_EXCLUDED.has(r.key))
@@ -50,6 +62,7 @@ export default function ManagerReportsScreen({ onBack, onNavigate }: Props) {
       reader.onload = async () => {
         const base64 = (reader.result as string).split(',')[1];
         const ext = report.format === 'pdf' ? 'pdf' : 'xlsx';
+        const { File, Paths } = await import('expo-file-system');
         const file = new File(Paths.document, `report-${report.key}.${ext}`);
         file.write(base64);
         if (await Sharing.isAvailableAsync()) {

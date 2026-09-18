@@ -4,6 +4,7 @@ import {
   Alert,
   AppState,
   AppStateStatus,
+  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -13,9 +14,8 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
 import type { RootStackParamList } from '../navigation/types';
@@ -46,6 +46,7 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from '../components/BookingComponents';
+import BookingReviewCard from '../components/BookingReviewCard';
 import type { BookingQuote } from '../types';
 import { font, radius } from '../theme';
 import { useTheme } from '../hooks/useTheme';
@@ -59,6 +60,8 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'BookingFlow'>;
 
 const FLOW_STEPS = ['Dates', 'Guests', 'Payment', 'Review', 'Confirmed'] as const;
+
+const CHAPA_METHODS = new Set(['TELEBIRR', 'CBE_BIRR', 'AWASH_BANK', 'ENAT_BANK', 'AMHARA_BANK', 'COOP_BANK']);
 
 export default function BookingFlowScreen() {
   const { t } = useTranslation();
@@ -127,6 +130,51 @@ export default function BookingFlowScreen() {
 
   const appState = useRef(AppState.currentState);
   const initializedRoomRef = useRef<string | null>(null);
+  const pendingMockAuthBookingId = useRef<string | null>(null);
+
+  // Detect return from MockAuthorizationScreen: check server-side payment status
+  useFocusEffect(
+    useCallback(() => {
+      const pendingId = pendingMockAuthBookingId.current;
+      if (!pendingId || !token) return;
+
+      // Clear the ref immediately so we don't re-trigger
+      pendingMockAuthBookingId.current = null;
+
+      (async () => {
+        try {
+          const serverBooking = await request<{ status: string; payment?: { status: string } }>(
+            `/bookings/${pendingId}`, { token },
+          );
+          if (serverBooking.status === 'CONFIRMED' || serverBooking.payment?.status === 'SUCCEEDED') {
+            dispatch(setBookingId(pendingId));
+            fetchAndStoreBookingRef(pendingId);
+            hapticSuccess();
+            dispatch(setStep('done'));
+          } else {
+            // Payment was rejected or still pending
+            setPaymentFailed(true);
+            setPaymentError('Payment was not approved.');
+            dispatch(setBookingId(pendingId));
+            fetchAndStoreBookingRef(pendingId);
+            hapticError();
+            Alert.alert(t('bookingFlow.paymentFailed'), 'Payment was not approved.', [
+              { text: t('bookingFlow.retryPayment'), onPress: () => retryPayment(pendingId) },
+              { text: t('bookingFlow.changeMethod'), onPress: () => { setPaymentFailed(false); dispatch(setStep('payment')); } },
+              { text: t('bookingFlow.cancel'), style: 'cancel' },
+            ]);
+          }
+        } catch {
+          // Couldn't reach server — show generic failure
+          setPaymentFailed(true);
+          setPaymentError('Could not verify payment status.');
+        } finally {
+          setLoading(false);
+          setPaymentProcessing(false);
+        }
+      })();
+    }, [token, dispatch, fetchAndStoreBookingRef, t]), // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   // Initialize booking flow on mount or route params change
   useEffect(() => {
@@ -328,6 +376,12 @@ export default function BookingFlowScreen() {
 
   // Advance from Guest Info to Payment & Start Room Hold
   const continueToPayment = () => {
+    if (session?.user && !session.user.emailVerifiedAt) {
+      return Alert.alert(
+        'Verify your email first',
+        'Please verify your email address before making a booking.',
+      );
+    }
     try {
       guestInfoSchema.parse({
         guestFullName: guestFullName.trim(),
@@ -423,21 +477,34 @@ export default function BookingFlowScreen() {
         return;
       }
 
-      // Online payment processing (§14)
+      // Online payment processing (§14) — navigate to Chapa checkout or mock auth
       setPaymentProcessing(true);
       try {
         await request(`/payments/${createdBookingId}/intent`, { method: 'POST', body: { method: paymentMethod }, token });
-        const mockSecret = process.env.EXPO_PUBLIC_MOCK_PAYMENT_SECRET;
-        await request(`/payments/mock/${createdBookingId}`, {
-          method: 'POST',
-          body: { status: 'SUCCEEDED' },
-          token,
-          headers: mockSecret ? { 'x-mock-payment-secret': mockSecret } : {},
-        });
-        dispatch(setBookingId(createdBookingId));
-        fetchAndStoreBookingRef(createdBookingId);
-        hapticSuccess();
-        dispatch(setStep('done'));
+
+        // Store the booking ID so the focus listener detects the result on return
+        pendingMockAuthBookingId.current = createdBookingId;
+
+        // Navigate to the appropriate payment screen
+        if (CHAPA_METHODS.has(paymentMethod)) {
+          navigation.navigate('ChapaCheckout', {
+            bookingId: createdBookingId,
+            method: paymentMethod,
+            amount: quoteTotal ?? (quoteData?.total ?? 0),
+            currency: 'ETB',
+            hotelName,
+            roomType: roomType || undefined,
+            phone: guestPhone || undefined,
+          });
+        } else {
+          navigation.navigate('MockAuth', {
+            bookingId: createdBookingId,
+            method: paymentMethod,
+            amount: quoteTotal ?? (quoteData?.total ?? 0),
+            hotelName,
+            reference: bookingRef || createdBookingId.slice(0, 8),
+          });
+        }
       } catch (payErr) {
         // Mobile.md §4 edge case: connectivity was lost exactly between payment submission
         // and response. Before showing a failure UI, verify the actual server-side status —
@@ -513,15 +580,30 @@ export default function BookingFlowScreen() {
       } catch { /* non-critical */ }
 
       await request(`/payments/${targetBookingId}/intent`, { method: 'POST', body: { method: paymentMethod }, token });
-      const mockSecret = process.env.EXPO_PUBLIC_MOCK_PAYMENT_SECRET;
-      await request(`/payments/mock/${targetBookingId}`, {
-        method: 'POST', body: { status: 'SUCCEEDED' }, token,
-        headers: mockSecret ? { 'x-mock-payment-secret': mockSecret } : {},
-      });
-      dispatch(setBookingId(targetBookingId));
-      fetchAndStoreBookingRef(targetBookingId);
-      hapticSuccess();
-      dispatch(setStep('done'));
+
+      // Store the booking ID so the focus listener detects the result on return
+      pendingMockAuthBookingId.current = targetBookingId;
+
+      // Navigate to the appropriate payment screen
+      if (CHAPA_METHODS.has(paymentMethod)) {
+        navigation.navigate('ChapaCheckout', {
+          bookingId: targetBookingId,
+          method: paymentMethod,
+          amount: quoteTotal ?? (quoteData?.total ?? 0),
+          currency: 'ETB',
+          hotelName,
+          roomType: roomType || undefined,
+          phone: guestPhone || undefined,
+        });
+      } else {
+        navigation.navigate('MockAuth', {
+          bookingId: targetBookingId,
+          method: paymentMethod,
+          amount: quoteTotal ?? (quoteData?.total ?? 0),
+          hotelName,
+          reference: bookingRef || targetBookingId.slice(0, 8),
+        });
+      }
     } catch (payErr) {
       const reason = payErr instanceof ApiError ? payErr.message : t('bookingFlow.paymentFailedReason');
       setPaymentFailed(true);
@@ -546,6 +628,7 @@ export default function BookingFlowScreen() {
       const reader = new FileReader();
       reader.onload = async () => {
         const base64 = (reader.result as string).split(',')[1];
+        const { File, Paths } = await import('expo-file-system');
         const file = new File(Paths.document, `invoice-${bookingId.slice(0, 8)}.pdf`);
         file.write(base64);
         if (await Sharing.isAvailableAsync()) {
@@ -612,8 +695,9 @@ export default function BookingFlowScreen() {
   const isOverCapacity = roomCapacity > 0 && totalGuests > roomCapacity;
 
   return (
+    <View style={[styles.container, { backgroundColor: c.paper }]}> 
     <ScrollView
-      style={[styles.container, { backgroundColor: c.paper }]}
+      style={{ flex: 1 }}
       contentContainerStyle={[styles.content, { paddingHorizontal: pad }]}
     >
       <StatusBar barStyle={dark ? 'light-content' : 'dark-content'} />
@@ -828,7 +912,12 @@ export default function BookingFlowScreen() {
           ) : null}
 
           <Card style={[styles.card, { backgroundColor: c.surface }]}>
-            <Text style={[styles.sectionTitle, { color: c.ink }]}>Select Payment Method</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <Text style={[styles.sectionTitle, { color: c.ink, marginBottom: 0 }]}>Select Payment Method</Text>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: c.teal }}>
+                Total: ETB {Number(quoteTotal ?? quoteData.total).toLocaleString()}
+              </Text>
+            </View>
             <PaymentMethodSelector
               value={paymentMethod as PaymentMethod}
               onChange={(v) => dispatch(setPaymentMethod(v))}
@@ -882,51 +971,24 @@ export default function BookingFlowScreen() {
             </Card>
           )}
 
-          <Text style={[styles.sectionTitle, { color: c.ink, marginTop: 4 }]}>Review Your Reservation</Text>
-          <Text style={[styles.reviewSubtitle, { color: c.inkMuted }]}>
-            Please verify your stay and payment details before finalizing.
-          </Text>
-
-          <BookingSummary
-            roomImage={undefined}
-            roomName={roomType ?? 'Selected Room'}
+          <BookingReviewCard
             hotelName={hotelName}
+            roomName={roomType ?? 'Selected Room'}
+            roomType={roomType ?? 'Selected Room'}
+            roomImage={undefined}
+            guests={parseInt(adults) || 1 + (parseInt(childrenCount) || 0)}
             checkIn={checkIn ?? ''}
             checkOut={checkOut ?? ''}
             nights={quoteData.nights || (checkIn && checkOut ? Math.max(1, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000)) : 1)}
-            adults={parseInt(adults) || 1}
-            children={parseInt(childrenCount) || 0} // eslint-disable-line react/no-children-prop
-            leadGuestName={guestFullName}
-            leadGuestEmail={guestEmail}
-            leadGuestPhone={guestPhone}
             subtotal={quoteData.subtotal}
             discount={quoteData.discount}
             promoCode={appliedPromo}
             total={quoteData.total}
             paymentMethod={paymentMethod}
+            leadGuestName={guestFullName}
+            leadGuestEmail={guestEmail}
+            leadGuestPhone={guestPhone}
           />
-
-          <View style={styles.ctaGroup}>
-            <PrimaryButton
-              label={
-                paymentProcessing
-                  ? 'Processing payment…'
-                  : loading
-                  ? 'Confirming…'
-                  : paymentMethod === 'CASH_AT_HOTEL'
-                  ? 'Confirm Booking'
-                  : 'Confirm & Pay'
-              }
-              onPress={createBooking}
-              loading={loading || paymentProcessing}
-              disabled={loading || paymentProcessing || isOffline}
-            />
-            <SecondaryButton
-              label="Change Payment Method"
-              onPress={() => dispatch(setStep('payment'))}
-              disabled={loading || paymentProcessing}
-            />
-          </View>
         </View>
       )}
 
@@ -1064,12 +1126,49 @@ export default function BookingFlowScreen() {
         onClose={() => setShowQRModal(false)}
       />
     </ScrollView>
+
+      {/* ── STICKY BOTTOM BAR (Review step only) ─────────────────── */}
+      {currentStep === 'review' && quoteData && (
+        <View style={stickyStyles.bar}>
+          <View style={stickyStyles.inner}>
+            <View style={stickyStyles.priceInfo}>
+              <Text style={stickyStyles.totalLabel}>Total</Text>
+              <Text style={stickyStyles.totalValue}>
+                ETB {quoteTotal != null ? Number(quoteTotal).toLocaleString() : '0'}
+              </Text>
+            </View>
+            <PrimaryButton
+              label={
+                paymentProcessing
+                  ? 'Processing…'
+                  : loading
+                  ? 'Confirming…'
+                  : paymentMethod === 'CASH_AT_HOTEL'
+                  ? 'Confirm Booking'
+                  : `Confirm & Pay ETB ${quoteTotal != null ? Number(quoteTotal).toLocaleString() : '0'}`
+              }
+              onPress={createBooking}
+              loading={loading || paymentProcessing}
+              disabled={loading || paymentProcessing || isOffline}
+              style={stickyStyles.payBtn}
+            />
+          </View>
+          <Pressable
+            onPress={() => dispatch(setStep('payment'))}
+            disabled={loading || paymentProcessing}
+            style={stickyStyles.changeMethod}
+          >
+            <Text style={stickyStyles.changeMethodText}>Change Payment Method</Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { paddingVertical: 20, paddingBottom: 60 },
+  content: { paddingVertical: 20, paddingBottom: 160 },
   backTouch: { alignSelf: 'flex-start' },
   backText: { fontSize: 15, fontWeight: '600', marginBottom: 12 },
   title: { fontFamily: font.display, fontSize: 26, fontWeight: '700', letterSpacing: -0.3 },
@@ -1120,4 +1219,58 @@ const styles = StyleSheet.create({
   securingContent: { flex: 1, gap: 2 },
   securingTitle: { fontSize: 14, fontWeight: '700' },
   securingSub: { fontSize: 12, lineHeight: 17 },
+});
+
+const stickyStyles = StyleSheet.create({
+  bar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E2E8F0',
+    paddingTop: 12,
+    paddingBottom: 34,
+    paddingHorizontal: 20,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: -4 } },
+      android: { elevation: 16 },
+      default: {},
+    }),
+  },
+  inner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  priceInfo: {
+    flex: 1,
+  },
+  totalLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  totalValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.3,
+  },
+  payBtn: {
+    flex: 1,
+  },
+  changeMethod: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginTop: 4,
+  },
+  changeMethodText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
 });

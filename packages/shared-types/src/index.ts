@@ -3,12 +3,18 @@ import { z } from 'zod';
 export const userRoleSchema = z.enum(['CUSTOMER', 'STAFF', 'MANAGER', 'ADMIN']);
 export type UserRole = z.infer<typeof userRoleSchema>;
 
-export const passwordSchema = z.string().min(8).max(72);
+// Passwords must be long enough and contain a number.  Keep this shared so
+// registration, login/reset validation, and the API enforce the same rule.
+export const passwordSchema = z
+  .string()
+  .min(8)
+  .max(72)
+  .regex(/\d/, 'Password must contain at least one number');
 
 export const registerSchema = z.object({
   email: z.string().email(),
   password: passwordSchema,
-  fullName: z.string().min(2).max(120),
+  fullName: z.string().min(2).max(100),
   phone: z.string().min(6).max(32).optional(),
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -37,7 +43,7 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 export const updateProfileSchema = z
   .object({
-    fullName: z.string().min(2).max(120).optional(),
+    fullName: z.string().min(2).max(100).optional(),
     phone: z.string().min(6).max(32).nullable().optional(),
     currentPassword: passwordSchema.optional(),
     newPassword: passwordSchema.optional(),
@@ -100,4 +106,3 @@ export * from './coupon';
 export * from './admin';
 export * from './staff';
 export * from './contact';
-

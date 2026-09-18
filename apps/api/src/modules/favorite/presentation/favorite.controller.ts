@@ -11,7 +11,7 @@ interface AuthedRequest {
 
 @ApiTags('favorites')
 @ApiBearerAuth()
-@Roles(Role.CUSTOMER)
+@Roles(Role.CUSTOMER, Role.MANAGER, Role.ADMIN)
 @Controller('favorites')
 export class FavoriteController {
   constructor(private readonly favorites: FavoriteService) {}

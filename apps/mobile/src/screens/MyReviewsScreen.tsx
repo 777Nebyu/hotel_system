@@ -11,21 +11,31 @@ import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 import { useAppSelector } from '../store/hooks';
 import { useMyReviews } from '../hooks/useQueries';
 import { request } from '../api';
 import { Button, EmptyState, ErrorBox, Stars } from '../components/Shared';
 import { SkeletonList } from '../components/Skeleton';
-import { colors, font, radius, shadowCard } from '../theme';
+import { useTheme } from '../hooks/useTheme';
 import { hapticMedium } from '../hooks/useHaptics';
+import { Ionicons } from '@expo/vector-icons';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+function ratingColor(c: ReturnType<typeof useTheme>['colors'], rating: number): string {
+  if (rating >= 4) return c.success;
+  if (rating === 3) return c.warning;
+  return c.danger;
+}
 
 export default function MyReviewsScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const session = useAppSelector((s) => s.auth.session);
+  const { colors: c } = useTheme();
+  const insets = useSafeAreaInsets();
   const token = session?.accessToken ?? '';
 
   const { data, isLoading, error, refetch, isRefetching } = useMyReviews(token);
@@ -59,16 +69,17 @@ export default function MyReviewsScreen() {
     );
   };
 
+  const s = makeStyles(c);
+
   return (
-    <View style={styles.container}>
-      {/* ─── Header ─── */}
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back">
-          <Text style={styles.back}>← Back</Text>
+    <View style={s.container}>
+      <View style={[s.header, { paddingTop: insets.top + 12 }]}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={s.backBtn}>
+          <Ionicons name="arrow-back" size={20} color={c.teal} />
         </Pressable>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>{t('myReviews.title', 'My Reviews')}</Text>
-          <Text style={styles.subtitle}>
+        <View style={s.headerText}>
+          <Text style={s.title}>{t('myReviews.title', 'My Reviews')}</Text>
+          <Text style={s.subtitle}>
             {reviews.length > 0
               ? `${reviews.length} review${reviews.length !== 1 ? 's' : ''}`
               : 'Your hotel reviews'}
@@ -86,8 +97,8 @@ export default function MyReviewsScreen() {
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={refetch}
-            tintColor={colors.teal}
-            colors={[colors.teal]}
+            tintColor={c.teal}
+            colors={[c.teal]}
           />
         }
         ListEmptyComponent={
@@ -103,8 +114,9 @@ export default function MyReviewsScreen() {
           )
         }
         renderItem={({ item }) => (
-          <ReviewCard
+          <MyReviewCard
             review={item}
+            colors={c}
             onEdit={() =>
               navigation.navigate('Review', {
                 hotelId: item.hotelId,
@@ -122,13 +134,15 @@ export default function MyReviewsScreen() {
   );
 }
 
-function ReviewCard({
+function MyReviewCard({
   review,
+  colors: c,
   onEdit,
   onDelete,
   isDeleting,
 }: {
   review: any;
+  colors: ReturnType<typeof useTheme>['colors'];
   onEdit: () => void;
   onDelete: () => void;
   isDeleting: boolean;
@@ -141,53 +155,44 @@ function ReviewCard({
     });
 
   const hotelTitle = review.hotel?.name ?? 'Hotel';
+  const rc = ratingColor(c, review.rating);
 
   return (
-    <View
-      style={[styles.card, shadowCard]}
-      accessible={true}
-      accessibilityLabel={`Review for ${hotelTitle}, rated ${review.rating} out of 5 stars`}
-    >
-      {/* Hotel name + date */}
-      <View style={styles.cardTop}>
-        <View style={styles.flex}>
-          <Text style={styles.hotelName} numberOfLines={1}>
+    <View style={[cardStyles.card, { backgroundColor: c.surface, borderColor: c.line }]}>
+      <View style={cardStyles.cardTop}>
+        <View style={cardStyles.flex}>
+          <Text style={[cardStyles.hotelName, { color: c.ink }]} numberOfLines={1}>
             {hotelTitle}
           </Text>
           {review.hotel?.city?.name && (
-            <Text style={styles.hotelLocation}>📍 {review.hotel.city.name}</Text>
+            <Text style={[cardStyles.hotelLocation, { color: c.inkMuted }]}>{"\uD83D\uDCCD"} {review.hotel.city.name}</Text>
           )}
         </View>
-        <Text style={styles.dateText}>{formatDate(review.createdAt)}</Text>
+        <Text style={[cardStyles.dateText, { color: c.inkMuted }]}>{formatDate(review.createdAt)}</Text>
       </View>
 
-      {/* Rating stars */}
-      <View style={styles.ratingRow} accessibilityLabel={`Rated ${review.rating} out of 5 stars`}>
+      <View style={cardStyles.ratingRow} accessibilityLabel={`Rated ${review.rating} out of 5 stars`}>
         <Stars value={review.rating} size={16} />
-        <View style={[styles.ratingBadge, { backgroundColor: ratingColor(review.rating) + '18' }]}>
-          <Text style={[styles.ratingBadgeText, { color: ratingColor(review.rating) }]}>
+        <View style={[cardStyles.ratingBadge, { backgroundColor: rc + '18' }]}>
+          <Text style={[cardStyles.ratingBadgeText, { color: rc }]}>
             {review.rating}/5
           </Text>
         </View>
       </View>
 
-      {/* Review text */}
-      <View style={styles.commentWrap}>
-        <Text style={styles.commentText}>{`"${review.comment}"`}</Text>
+      <View style={[cardStyles.commentWrap, { backgroundColor: c.paperDeep, borderLeftColor: c.teal }]}>
+        <Text style={[cardStyles.commentText, { color: c.inkSoft }]}>{`\u201C${review.comment}\u201D`}</Text>
       </View>
 
-      {/* Review photos */}
       {review.photos?.length > 0 && (
-        <View style={styles.photosRow}>
-          <Text style={styles.photosLabel}>{review.photos.length} photo{review.photos.length !== 1 ? 's' : ''} attached</Text>
+        <View style={cardStyles.photosRow}>
+          <Text style={[cardStyles.photosLabel, { color: c.inkMuted }]}>{review.photos.length} photo{review.photos.length !== 1 ? 's' : ''} attached</Text>
         </View>
       )}
 
-      {/* Divider */}
-      <View style={styles.divider} />
+      <View style={[cardStyles.divider, { backgroundColor: c.line }]} />
 
-      {/* Actions */}
-      <View style={styles.actions}>
+      <View style={cardStyles.actions}>
         <Button
           title="Edit Review"
           variant="secondary"
@@ -196,7 +201,7 @@ function ReviewCard({
           accessibilityLabel={`Edit review for ${hotelTitle}`}
         />
         <Button
-          title={isDeleting ? 'Deleting…' : 'Delete'}
+          title={isDeleting ? 'Deleting\u2026' : 'Delete'}
           variant="danger"
           size="sm"
           onPress={onDelete}
@@ -208,46 +213,33 @@ function ReviewCard({
   );
 }
 
-function ratingColor(rating: number): string {
-  if (rating >= 4) return '#16A34A';
-  if (rating === 3) return '#F59E0B';
-  return '#EF4444';
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.paper },
-  flex: { flex: 1 },
-
-  /* ─── Header ─── */
+const makeStyles = (c: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.paper },
   header: {
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
+    backgroundColor: c.surface,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: c.line,
     paddingHorizontal: 20,
-    paddingTop: 18,
     paddingBottom: 16,
     gap: 10,
   },
-  back: { color: colors.teal, fontSize: 15, fontWeight: '600' },
+  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: c.paperDeep, alignItems: 'center', justifyContent: 'center' },
   headerText: { gap: 3 },
   title: {
-    fontFamily: font.display,
-    color: colors.ink,
+    fontFamily: 'Georgia',
+    color: c.ink,
     fontSize: 28,
     fontWeight: '600',
     letterSpacing: -0.4,
   },
-  subtitle: { color: colors.inkMuted, fontSize: 13 },
+  subtitle: { color: c.inkMuted, fontSize: 13 },
+});
 
-  /* ─── List ─── */
-  list: { padding: 20, gap: 16 },
-
-  /* ─── Review card ─── */
+const cardStyles = StyleSheet.create({
+  flex: { flex: 1 },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: radius.card,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: colors.line,
     padding: 16,
     gap: 12,
   },
@@ -258,43 +250,35 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   hotelName: {
-    fontFamily: font.display,
-    color: colors.ink,
+    fontFamily: 'Georgia',
     fontSize: 17,
     fontWeight: '600',
   },
-  hotelLocation: { color: colors.inkMuted, fontSize: 12, marginTop: 2 },
-  dateText: { color: colors.inkMuted, fontSize: 12, flexShrink: 0 },
-
-  /* ─── Rating ─── */
+  hotelLocation: { fontSize: 12, marginTop: 2 },
+  dateText: { fontSize: 12, flexShrink: 0 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   ratingBadge: {
-    borderRadius: radius.pill,
+    borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
   ratingBadgeText: { fontSize: 12, fontWeight: '800' },
-
-  /* ─── Comment ─── */
   commentWrap: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: radius.card - 4,
+    borderRadius: 10,
     padding: 12,
     borderLeftWidth: 3,
-    borderLeftColor: colors.teal,
   },
   commentText: {
-    color: colors.inkSoft,
     fontSize: 14,
     lineHeight: 21,
     fontStyle: 'italic',
   },
-
-  /* ─── Photos ─── */
   photosRow: { flexDirection: 'row', alignItems: 'center' },
-  photosLabel: { color: colors.inkMuted, fontSize: 12 },
-
-  /* ─── Actions ─── */
-  divider: { height: 1, backgroundColor: colors.line },
+  photosLabel: { fontSize: 12 },
+  divider: { height: 1 },
   actions: { flexDirection: 'row', gap: 10 },
+});
+
+const styles = StyleSheet.create({
+  list: { padding: 20, gap: 16 },
 });

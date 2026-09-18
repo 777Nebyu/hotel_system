@@ -44,8 +44,14 @@ export type RoomStatus = (typeof RoomStatus)[keyof typeof RoomStatus]
 
 export const PaymentStatus = {
   PENDING: 'PENDING',
+  PENDING_AT_HOTEL: 'PENDING_AT_HOTEL',
+  PROCESSING: 'PROCESSING',
+  OTP_SENT: 'OTP_SENT',
   SUCCEEDED: 'SUCCEEDED',
   FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED',
+  TIMEOUT: 'TIMEOUT',
   REFUNDED: 'REFUNDED'
 } as const
 

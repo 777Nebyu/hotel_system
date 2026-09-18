@@ -113,7 +113,7 @@ export class ContactService {
     return thread;
   }
 
-  async listThreads(actor: ContactActor, hotelId?: string) {
+  async listThreads(actor: ContactActor, hotelId?: string, page = 1, pageSize = 50) {
     const where: Prisma.ContactThreadWhereInput = {};
 
     if (actor.role === 'CUSTOMER') {
@@ -140,6 +140,8 @@ export class ContactService {
     return this.db.contactThread.findMany({
       where,
       orderBy: { updatedAt: 'desc' },
+      skip: (Math.max(1, page) - 1) * Math.min(100, Math.max(1, pageSize)),
+      take: Math.min(100, Math.max(1, pageSize)),
       include: {
         customer: {
           select: { id: true, fullName: true, email: true },

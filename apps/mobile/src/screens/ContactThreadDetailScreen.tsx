@@ -3,6 +3,7 @@ import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View, Keyboard
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
 import { useAppSelector } from '../store/hooks';
 import { classifyAndAnnounce } from '../errors';
@@ -10,7 +11,8 @@ import { Button, EmptyState, ErrorBox } from '../components/Shared';
 import { SkeletonDetail } from '../components/Skeleton';
 import { useToast } from '../components/Toast';
 import { useContactThread, useSendMessage, useCloseContactThread } from '../hooks/useQueries';
-import { colors, font } from '../theme';
+import { useTheme } from '../hooks/useTheme';
+import { useResponsivePadding } from '../hooks/useResponsivePadding';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,7 +24,7 @@ interface OptimisticMessage {
   id: string;
   threadId: string;
   senderId: string;
-  senderName?: string;
+  sender?: { id: string; fullName: string };
   content: string;
   createdAt: string;
   isPending?: boolean;
@@ -33,6 +35,9 @@ export default function ContactThreadDetailScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const threadId = route.params.threadId;
+  const insets = useSafeAreaInsets();
+  const pad = useResponsivePadding();
+  const { colors: c } = useTheme();
   const session = useAppSelector((s) => s.auth.session);
   const token = session?.accessToken ?? '';
   const toast = useToast();
@@ -43,7 +48,6 @@ export default function ContactThreadDetailScreen() {
   const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
-  // Real-time polling every 5 seconds while thread is open
   const { data: thread, isLoading, error, refetch } = useContactThread(token, threadId, {
     refetchInterval: 5000,
   });
@@ -54,7 +58,6 @@ export default function ContactThreadDetailScreen() {
   const isClosed = thread?.status === 'CLOSED';
   const prevMsgCount = useRef(serverMessages.length);
 
-  // Trigger haptic when hotel replies in real-time
   useEffect(() => {
     if (serverMessages.length > prevMsgCount.current) {
       const lastMsg = serverMessages[serverMessages.length - 1];
@@ -71,7 +74,6 @@ export default function ContactThreadDetailScreen() {
     prevMsgCount.current = serverMessages.length;
   }, [serverMessages, session?.user.id]);
 
-  // Combine server messages with pending optimistic messages
   const allMessages = useMemo(() => {
     const combined = [...serverMessages];
     for (const opt of optimisticMessages) {
@@ -95,18 +97,17 @@ export default function ContactThreadDetailScreen() {
     const content = inputText.trim();
     if (!content) return;
 
-    // Instant haptic feedback & immediate input reset
     try {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch { /* ignore */ }
     setInputText('');
 
-    // Instant optimistic message preview
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg: OptimisticMessage = {
       id: tempId,
       threadId,
       senderId: session?.user.id ?? '',
+      sender: { id: session?.user.id ?? '', fullName: session?.user.fullName ?? 'You' },
       content,
       createdAt: new Date().toISOString(),
       isPending: true,
@@ -146,14 +147,16 @@ export default function ContactThreadDetailScreen() {
     ]);
   };
 
+  const s = makeStyles(c);
+
   const renderMessage = ({ item }: { item: any }) => {
     const isMe = item.senderId === session?.user.id;
     return (
-      <View style={[styles.messageBubble, isMe ? styles.messageMe : styles.messageThem]}>
-        {!isMe && <Text style={styles.senderName}>{item.senderName ?? 'Hotel Concierge'}</Text>}
-        <Text style={[styles.messageText, isMe && { color: '#fff' }]}>{item.content}</Text>
-        <View style={styles.messageFooter}>
-          <Text style={[styles.messageTime, isMe && { color: 'rgba(255,255,255,0.7)' }]}>
+      <View style={[s.messageBubble, isMe ? s.messageMe : s.messageThem]}>
+        {!isMe && <Text style={s.senderName}>{item.sender?.fullName ?? 'Hotel Concierge'}</Text>}
+        <Text style={[s.messageText, isMe && s.messageTextMe]}>{item.content}</Text>
+        <View style={s.messageFooter}>
+          <Text style={[s.messageTime, isMe && s.messageTimeMe]}>
             {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Text>
           {isMe && (
@@ -169,19 +172,21 @@ export default function ContactThreadDetailScreen() {
     );
   };
 
-  if (isLoading && !thread) return <View style={styles.center}><SkeletonDetail /></View>;
-  if (error && !thread) return <View style={styles.center}><ErrorBox message="Failed to load messages" onRetry={() => refetch()} /></View>;
+  if (isLoading && !thread) return <View style={s.center}><SkeletonDetail /></View>;
+  if (error && !thread) return <View style={s.center}><ErrorBox message="Failed to load messages" onRetry={() => refetch()} /></View>;
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={8}><Text style={styles.backText}>{'< Back'}</Text></Pressable>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle} numberOfLines={1}>{thread?.subject ?? 'Hotel Concierge'}</Text>
-          <View style={styles.statusRow}>
-            {!isClosed && <View style={styles.liveDot} />}
-            <Text style={[styles.headerStatus, isClosed ? { color: colors.inkMuted } : { color: colors.teal }]}>
-              {isClosed ? 'Closed' : 'Active • Real-time'}
+    <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
+      <View style={[s.header, { paddingTop: insets.top + 8 }]}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={s.backBtn}>
+          <Ionicons name="arrow-back" size={20} color={c.teal} />
+        </Pressable>
+        <View style={s.headerCenter}>
+          <Text style={s.headerTitle} numberOfLines={1}>{thread?.subject ?? 'Hotel Concierge'}</Text>
+          <View style={s.statusRow}>
+            {!isClosed && <View style={s.liveDot} />}
+            <Text style={[s.headerStatus, isClosed ? { color: c.inkMuted } : { color: c.teal }]}>
+              {isClosed ? 'Closed' : 'Active \u2022 Real-time'}
             </Text>
           </View>
         </View>
@@ -196,14 +201,14 @@ export default function ContactThreadDetailScreen() {
           data={allMessages}
           keyExtractor={(item: any) => item.id}
           renderItem={renderMessage}
-          contentContainerStyle={styles.messagesList}
+          contentContainerStyle={[s.messagesList, { paddingHorizontal: pad }]}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           ListFooterComponent={
             isTyping ? (
-              <View style={styles.typingIndicator}>
-                <View style={styles.typingDot} />
-                <Text style={styles.typingText}>Hotel Concierge is typing…</Text>
-                <ActivityIndicator size="small" color={colors.teal} style={{ marginLeft: 6 }} />
+              <View style={s.typingIndicator}>
+                <View style={s.typingDot} />
+                <Text style={s.typingText}>Hotel Concierge is typing\u2026</Text>
+                <ActivityIndicator size="small" color={c.teal} style={{ marginLeft: 6 }} />
               </View>
             ) : null
           }
@@ -211,23 +216,23 @@ export default function ContactThreadDetailScreen() {
       )}
 
       {isClosed ? (
-        <View style={styles.closedBanner}>
-          <Text style={styles.closedText}>{t('contact.threadClosed')}</Text>
+        <View style={s.closedBanner}>
+          <Text style={s.closedText}>{t('contact.threadClosed')}</Text>
         </View>
       ) : (
-        <View style={styles.inputRow}>
+        <View style={s.inputRow}>
           <TextInput
             value={inputText}
             onChangeText={setInputText}
             placeholder={t('contact.typeReply')}
-            placeholderTextColor={colors.inkMuted}
-            style={styles.input}
+            placeholderTextColor={c.inkMuted}
+            style={s.input}
             multiline
             returnKeyType="send"
             onSubmitEditing={handleSend}
           />
           <Pressable
-            style={[styles.sendBtn, !inputText.trim() && styles.sendBtnDisabled]}
+            style={[s.sendBtn, !inputText.trim() && s.sendBtnDisabled]}
             onPress={handleSend}
             disabled={!inputText.trim()}
           >
@@ -239,31 +244,33 @@ export default function ContactThreadDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.paper },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.lineStrong, gap: 8 },
-  backText: { color: colors.teal, fontSize: 15, fontWeight: '600' },
+const makeStyles = (c: ReturnType<typeof useTheme>['colors']) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.paper },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.paper },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.line, gap: 8 },
+  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: c.paperDeep, alignItems: 'center', justifyContent: 'center' },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontFamily: font.display, fontSize: 16, fontWeight: '600', color: colors.ink },
+  headerTitle: { fontFamily: 'Georgia', fontSize: 16, fontWeight: '600', color: c.ink },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   headerStatus: { fontSize: 11, fontWeight: '600' },
-  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.teal },
+  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: c.teal },
   messagesList: { padding: 16, gap: 12 },
   messageBubble: { maxWidth: '78%', padding: 12, borderRadius: 16 },
-  messageMe: { alignSelf: 'flex-end', backgroundColor: colors.teal, borderBottomRightRadius: 4 },
-  messageThem: { alignSelf: 'flex-start', backgroundColor: colors.paperDeep, borderBottomLeftRadius: 4 },
-  senderName: { fontSize: 11, fontWeight: '700', color: colors.inkSoft, marginBottom: 4 },
-  messageText: { fontSize: 14, color: colors.ink, lineHeight: 20 },
+  messageMe: { alignSelf: 'flex-end', backgroundColor: c.teal, borderBottomRightRadius: 4 },
+  messageThem: { alignSelf: 'flex-start', backgroundColor: c.paperDeep, borderBottomLeftRadius: 4 },
+  senderName: { fontSize: 11, fontWeight: '700', color: c.inkSoft, marginBottom: 4 },
+  messageText: { fontSize: 14, color: c.ink, lineHeight: 20 },
+  messageTextMe: { color: '#FFFFFF' },
   messageFooter: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', marginTop: 4 },
-  messageTime: { fontSize: 10, color: colors.inkMuted },
-  typingIndicator: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: colors.paperDeep, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, marginTop: 4 },
-  typingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.teal, marginRight: 6 },
-  typingText: { fontSize: 12, fontStyle: 'italic', color: colors.inkSoft },
-  inputRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderTopWidth: 1, borderTopColor: colors.lineStrong, gap: 8 },
-  input: { flex: 1, backgroundColor: colors.surface, borderRadius: 20, borderWidth: 1, borderColor: colors.lineStrong, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: colors.ink, maxHeight: 100 },
-  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.teal, alignItems: 'center', justifyContent: 'center' },
+  messageTime: { fontSize: 10, color: c.inkMuted },
+  messageTimeMe: { color: 'rgba(255,255,255,0.7)' },
+  typingIndicator: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: c.paperDeep, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, marginTop: 4 },
+  typingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: c.teal, marginRight: 6 },
+  typingText: { fontSize: 12, fontStyle: 'italic', color: c.inkSoft },
+  inputRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.line, gap: 8 },
+  input: { flex: 1, backgroundColor: c.surface, borderRadius: 20, borderWidth: 1, borderColor: c.lineStrong, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: c.ink, maxHeight: 100 },
+  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.teal, alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { opacity: 0.4 },
-  closedBanner: { padding: 12, borderTopWidth: 1, borderTopColor: colors.lineStrong, backgroundColor: colors.paperDeep },
-  closedText: { fontSize: 13, color: colors.inkMuted, textAlign: 'center', fontWeight: '600' },
+  closedBanner: { padding: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.line, backgroundColor: c.paperDeep },
+  closedText: { fontSize: 13, color: c.inkMuted, textAlign: 'center', fontWeight: '600' },
 });

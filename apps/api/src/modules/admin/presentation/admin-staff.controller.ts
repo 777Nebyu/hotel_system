@@ -33,7 +33,7 @@ interface AuthedRequest {
 @ApiTags('admin')
 @ApiBearerAuth()
 @Roles(Role.ADMIN)
-@Controller('admin/hotels/:hotelId/staff')
+@Controller('admin/hotels/:id/staff')
 export class AdminStaffController {
   constructor(private readonly staff: AdminStaffService) {}
 
@@ -57,7 +57,11 @@ export class AdminStaffController {
   @Delete(':staffId')
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Remove a staff member from a hotel' })
-  remove(@Param() params: StaffHotelParamsDto, @Req() req: AuthedRequest) {
-    return this.staff.removeStaff(params.hotelId, params.staffId, req.user.sub);
+  remove(
+    @Param('id') hotelId: string,
+    @Param('staffId') staffId: string,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.staff.removeStaff(hotelId, staffId, req.user.sub);
   }
 }

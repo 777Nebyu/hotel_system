@@ -414,6 +414,7 @@ export const ModelName = {
   BookingStatusHistory: 'BookingStatusHistory',
   HotelStatusHistory: 'HotelStatusHistory',
   Payment: 'Payment',
+  PaymentEvent: 'PaymentEvent',
   PaymentAttempt: 'PaymentAttempt',
   Review: 'Review',
   Favorite: 'Favorite',
@@ -448,7 +449,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "country" | "city" | "hotel" | "hotelImage" | "amenity" | "hotelAmenity" | "room" | "roomImage" | "roomAmenity" | "roomAvailability" | "seasonalPricing" | "booking" | "bookingDetail" | "bookingStatusHistory" | "hotelStatusHistory" | "payment" | "paymentAttempt" | "review" | "favorite" | "coupon" | "notification" | "auditLog" | "platformSetting" | "hotelPolicy" | "notificationPreference" | "staffHotel" | "dispute" | "suspensionRequest" | "roomHold" | "stayRequest" | "userSession" | "bookingModification" | "roomRelocation" | "contactThread" | "contactMessage"
+    modelProps: "user" | "country" | "city" | "hotel" | "hotelImage" | "amenity" | "hotelAmenity" | "room" | "roomImage" | "roomAmenity" | "roomAvailability" | "seasonalPricing" | "booking" | "bookingDetail" | "bookingStatusHistory" | "hotelStatusHistory" | "payment" | "paymentEvent" | "paymentAttempt" | "review" | "favorite" | "coupon" | "notification" | "auditLog" | "platformSetting" | "hotelPolicy" | "notificationPreference" | "staffHotel" | "dispute" | "suspensionRequest" | "roomHold" | "stayRequest" | "userSession" | "bookingModification" | "roomRelocation" | "contactThread" | "contactMessage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1707,6 +1708,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PaymentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PaymentCountAggregateOutputType> | number
+        }
+      }
+    }
+    PaymentEvent: {
+      payload: Prisma.$PaymentEventPayload<ExtArgs>
+      fields: Prisma.PaymentEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PaymentEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PaymentEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload>
+        }
+        findFirst: {
+          args: Prisma.PaymentEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PaymentEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload>
+        }
+        findMany: {
+          args: Prisma.PaymentEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload>[]
+        }
+        create: {
+          args: Prisma.PaymentEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload>
+        }
+        createMany: {
+          args: Prisma.PaymentEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PaymentEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload>[]
+        }
+        delete: {
+          args: Prisma.PaymentEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload>
+        }
+        update: {
+          args: Prisma.PaymentEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.PaymentEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PaymentEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PaymentEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.PaymentEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentEventPayload>
+        }
+        aggregate: {
+          args: Prisma.PaymentEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePaymentEvent>
+        }
+        groupBy: {
+          args: Prisma.PaymentEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PaymentEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentEventCountAggregateOutputType> | number
         }
       }
     }
@@ -3343,6 +3418,8 @@ export const BookingDetailScalarFieldEnum = {
   guestCount: 'guestCount',
   guestInfo: 'guestInfo',
   roomSnapshot: 'roomSnapshot',
+  checkIn: 'checkIn',
+  checkOut: 'checkOut',
   relocatedFrom: 'relocatedFrom',
   relocationReason: 'relocationReason',
   relocatedAt: 'relocatedAt',
@@ -3355,9 +3432,12 @@ export type BookingDetailScalarFieldEnum = (typeof BookingDetailScalarFieldEnum)
 export const BookingStatusHistoryScalarFieldEnum = {
   id: 'id',
   bookingId: 'bookingId',
+  fromStatus: 'fromStatus',
+  toStatus: 'toStatus',
   status: 'status',
-  changedBy: 'changedBy',
   reason: 'reason',
+  changedBy: 'changedBy',
+  actorId: 'actorId',
   createdAt: 'createdAt'
 } as const
 
@@ -3379,28 +3459,60 @@ export type HotelStatusHistoryScalarFieldEnum = (typeof HotelStatusHistoryScalar
 export const PaymentScalarFieldEnum = {
   id: 'id',
   bookingId: 'bookingId',
+  userId: 'userId',
+  provider: 'provider',
   method: 'method',
   amount: 'amount',
+  currency: 'currency',
   status: 'status',
+  txRef: 'txRef',
   providerRef: 'providerRef',
+  checkoutSessionId: 'checkoutSessionId',
+  bankCode: 'bankCode',
+  transactionId: 'transactionId',
+  verificationCodeHash: 'verificationCodeHash',
+  verificationExpiresAt: 'verificationExpiresAt',
+  verificationAttempts: 'verificationAttempts',
+  idempotencyKey: 'idempotencyKey',
+  failureReason: 'failureReason',
+  metadata: 'metadata',
   invoiceUrl: 'invoiceUrl',
   refundAmount: 'refundAmount',
   refundedAt: 'refundedAt',
+  completedAt: 'completedAt',
   deletedAt: 'deletedAt',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
 
 
+export const PaymentEventScalarFieldEnum = {
+  id: 'id',
+  paymentId: 'paymentId',
+  eventType: 'eventType',
+  status: 'status',
+  payload: 'payload',
+  createdAt: 'createdAt'
+} as const
+
+export type PaymentEventScalarFieldEnum = (typeof PaymentEventScalarFieldEnum)[keyof typeof PaymentEventScalarFieldEnum]
+
+
 export const PaymentAttemptScalarFieldEnum = {
   id: 'id',
+  bookingId: 'bookingId',
   paymentId: 'paymentId',
   method: 'method',
   outcome: 'outcome',
+  status: 'status',
+  amount: 'amount',
   providerRef: 'providerRef',
   errorMessage: 'errorMessage',
-  attemptedAt: 'attemptedAt'
+  error: 'error',
+  attemptedAt: 'attemptedAt',
+  createdAt: 'createdAt'
 } as const
 
 export type PaymentAttemptScalarFieldEnum = (typeof PaymentAttemptScalarFieldEnum)[keyof typeof PaymentAttemptScalarFieldEnum]
@@ -4157,6 +4269,7 @@ export type GlobalOmitConfig = {
   bookingStatusHistory?: Prisma.BookingStatusHistoryOmit
   hotelStatusHistory?: Prisma.HotelStatusHistoryOmit
   payment?: Prisma.PaymentOmit
+  paymentEvent?: Prisma.PaymentEventOmit
   paymentAttempt?: Prisma.PaymentAttemptOmit
   review?: Prisma.ReviewOmit
   favorite?: Prisma.FavoriteOmit

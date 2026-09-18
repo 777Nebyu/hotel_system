@@ -249,6 +249,8 @@ export class BookingService {
               return {
                 roomId: line.roomId,
                 guestCount,
+                checkIn,
+                checkOut,
                 guestInfo: {
                   adults: input.guests.adults,
                   children: input.guests.children,
@@ -291,7 +293,8 @@ export class BookingService {
       await tx.bookingStatusHistory.create({
         data: {
           bookingId: created.id,
-          status: 'PENDING',
+          fromStatus: 'PENDING',
+          toStatus: 'PENDING',
           changedBy: userId,
           reason: 'Booking created',
         },
@@ -404,7 +407,8 @@ export class BookingService {
       await tx.bookingStatusHistory.create({
         data: {
           bookingId: booking.id,
-          status: 'CANCELLED',
+          fromStatus: booking.status,
+          toStatus: 'CANCELLED',
           changedBy: userId,
           reason: `Cancelled by customer. ${refundNote}`,
         },
@@ -500,7 +504,8 @@ export class BookingService {
         await tx.bookingStatusHistory.create({
           data: {
             bookingId,
-            status: 'CANCELLED',
+            fromStatus: booking.status,
+            toStatus: 'CANCELLED',
             changedBy: userId,
             reason: 'All rooms cancelled',
           },
@@ -580,7 +585,8 @@ export class BookingService {
       await tx.bookingStatusHistory.create({
         data: {
           bookingId,
-          status: b.status,
+          fromStatus: booking.status,
+          toStatus: booking.status,
           changedBy: userId,
           reason: reason ?? 'Booking soft deleted',
         },
@@ -1021,6 +1027,8 @@ export class BookingService {
           bookingId,
           roomId,
           guestCount,
+          checkIn,
+          checkOut,
           guestInfo: dto.guestInfos ? (dto.guestInfos as unknown as Prisma.InputJsonValue) : firstGuestInfo,
         })),
       });
@@ -1042,7 +1050,8 @@ export class BookingService {
       await tx.bookingStatusHistory.create({
         data: {
           bookingId,
-          status: 'CONFIRMED',
+          fromStatus: booking.status,
+          toStatus: 'CONFIRMED',
           changedBy: userId,
           reason: dto.reason ?? 'Dates/rooms modified by customer',
         },

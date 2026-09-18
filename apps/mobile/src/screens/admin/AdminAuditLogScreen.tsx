@@ -161,9 +161,37 @@ export default function AdminAuditLogScreen({ onBack }: Props) {
           renderItem={({ item: log }) => {
             const icon = getIcon(log.action);
             const isOpen = expanded.has(log.id);
-            const diffText = log.diff
-              ? (typeof log.diff === 'string' ? log.diff : JSON.stringify(log.diff, null, 2))
-              : null;
+            const diffEntries: [string, unknown][] =
+              log.diff
+                ? typeof log.diff === 'string'
+                  ? [['value', log.diff] as [string, unknown]]
+                  : Object.entries(log.diff)
+                : [];
+
+            function formatValue(val: unknown): string {
+              if (val === null || val === undefined) return '—';
+              if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+              if (typeof val === 'number') return val.toLocaleString();
+              if (typeof val === 'string') {
+                if (/^\d{4}-\d{2}-\d{2}/.test(val)) {
+                  try {
+                    return new Date(val).toLocaleDateString();
+                  } catch {
+                    return val;
+                  }
+                }
+                return val;
+              }
+              return JSON.stringify(val);
+            }
+
+            function labelForKey(key: string): string {
+              return key
+                .replace(/([A-Z])/g, ' $1')
+                .replace(/_/g, ' ')
+                .replace(/^\w/, (c) => c.toUpperCase())
+                .trim();
+            }
 
             return (
               <Card style={s.logCard}>
@@ -200,10 +228,17 @@ export default function AdminAuditLogScreen({ onBack }: Props) {
                   <View style={s.logDetail}>
                     <Text style={s.detailLabel}>Entity ID</Text>
                     <Text style={s.detailValue} selectable>{log.entityId ?? '—'}</Text>
-                    {diffText && (
+                    {diffEntries.length > 0 && (
                       <>
                         <Text style={s.detailLabel}>Changes</Text>
-                        <Text style={s.detailCode} selectable>{diffText}</Text>
+                        <View style={s.diffContainer}>
+                          {diffEntries.map(([key, val]) => (
+                            <View key={key} style={s.diffRow}>
+                              <Text style={s.diffKey}>{labelForKey(key)}</Text>
+                              <Text style={s.diffVal} selectable>{formatValue(val)}</Text>
+                            </View>
+                          ))}
+                        </View>
                       </>
                     )}
                     {log.ipAddress && (
@@ -264,4 +299,8 @@ const makeStyles = (c: ReturnType<typeof useThemeColors>) => StyleSheet.create({
   detailLabel:   { fontSize: 10, fontWeight: '700', color: c.inkMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 6 },
   detailValue:   { fontSize: 13, color: c.ink, lineHeight: 18 },
   detailCode:    { fontSize: 11, color: c.ink, fontFamily: 'monospace', backgroundColor: c.paperDeep, borderRadius: 6, padding: 8, lineHeight: 17 },
+  diffContainer: { backgroundColor: c.paperDeep, borderRadius: 8, padding: 10, gap: 0 },
+  diffRow:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 5, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.line },
+  diffKey:       { fontSize: 12, fontWeight: '600', color: c.inkMuted, flex: 1, marginRight: 8 },
+  diffVal:       { fontSize: 12, color: c.ink, fontWeight: '500', flex: 1.5, textAlign: 'right' },
 });

@@ -68,7 +68,8 @@ export class BookingExpirationProcessor extends WorkerHost {
         await tx.bookingStatusHistory.create({
           data: {
             bookingId: booking.id,
-            status: 'CANCELLED',
+            fromStatus: 'PENDING',
+            toStatus: 'CANCELLED',
             changedBy: 'system',
             reason: 'Payment timeout (30 minutes)',
           },

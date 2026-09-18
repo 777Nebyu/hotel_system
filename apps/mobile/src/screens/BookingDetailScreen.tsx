@@ -29,11 +29,10 @@ import {
   Text,
   View,
 } from 'react-native';
-import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useAppSelector } from '../store/hooks';
@@ -54,6 +53,7 @@ import {
   CancellationPolicy,
   CancellationDialog,
   DateStrip,
+  HoldTimer,
   PaymentStatusRow,
   PriceBreakdown,
   QRCodeCard,
@@ -103,6 +103,11 @@ function getActions(status: string, canCancel: boolean): {
     case 'CANCELLED':
       return [
         { key: 'search', label: 'Find Another Room', icon: 'search-outline', variant: 'primary' },
+      ];
+    case 'NO_SHOW':
+      return [
+        { key: 'dispute', label: 'Dispute No-Show', icon: 'alert-circle-outline', variant: 'secondary' },
+        { key: 'contact', label: 'Contact Support', icon: 'chatbubble-outline', variant: 'secondary' },
       ];
     default:
       return [];
@@ -168,7 +173,11 @@ export default function BookingDetailScreen() {
     }
   }, [bookingId, token, session]);
 
-  useEffect(() => { void load(); }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load]),
+  );
 
   // ── Derived values ────────────────────────────────────────────────────────
   const nights = booking
@@ -181,7 +190,7 @@ export default function BookingDetailScreen() {
   const firstRoom   = details[0]?.room;
   const guestCount  = details.reduce((s, d) => s + (d.guestCount ?? 1), 0);
   const guestInfo   = details[0]?.guestInfo;
-  const isCash      = booking?.payment?.method === 'CASH_AT_HOTEL';
+  const isCash      = String(booking?.payment?.method ?? '') === 'CASH_AT_HOTEL';
   const canCancel   = booking?.status === 'CONFIRMED' || booking?.status === 'PENDING';
   const bookingRef  = booking?.reference
     ?? `YTH-${booking?.id.slice(0, 8).toUpperCase() ?? ''}`;
@@ -276,6 +285,7 @@ export default function BookingDetailScreen() {
         const reader = new FileReader();
         reader.onload = async () => {
           const base64 = (reader.result as string).split(',')[1];
+          const { File, Paths } = await import('expo-file-system');
           const file   = new File(Paths.document, `receipt-${bookingId.slice(0, 8)}.pdf`);
           file.write(base64);
           if (await Sharing.isAvailableAsync()) {
@@ -313,6 +323,7 @@ export default function BookingDetailScreen() {
         const reader = new FileReader();
         reader.onload = async () => {
           const base64 = (reader.result as string).split(',')[1];
+          const { File, Paths } = await import('expo-file-system');
           const file   = new File(Paths.document, `invoice-${bookingId.slice(0, 8)}.pdf`);
           file.write(base64);
           if (await Sharing.isAvailableAsync()) {
@@ -334,25 +345,38 @@ export default function BookingDetailScreen() {
     Alert.alert('Coming Soon', 'This feature is coming in a future update.');
   };
 
-  const completePayment = async () => {
+  const completePayment = async (overrideMethod?: string) => {
     if (!booking) return;
+    const method = overrideMethod ?? booking.payment?.method ?? 'CREDIT_CARD';
     setBusy('payment');
     try {
       await request(`/payments/${bookingId}/intent`, {
         method: 'POST',
-        body: { method: booking.payment?.method ?? 'CREDIT_CARD' },
+        body: { method },
         token,
       });
-      await request(`/payments/mock/${bookingId}`, {
-        method: 'POST', body: { status: 'SUCCEEDED' }, token,
+      navigation.navigate('MockAuth', {
+        bookingId,
+        method,
+        amount: Number(booking.totalPrice) || 0,
+        currency: 'ETB',
+        hotelName: booking.hotel?.name || 'Hotel',
+        reference: booking.reference || bookingId.slice(0, 8),
       });
-      hapticSuccess();
-      Alert.alert('Payment Completed', 'Your booking has been confirmed.');
-      void load();
     } catch (err) {
       hapticError();
       Alert.alert('Payment Failed', classifyAndAnnounce(err).title);
     } finally { setBusy(null); }
+  };
+
+  const handleRetryWithMethodChange = () => {
+    Alert.alert('Select Payment Method', 'Choose a payment method to complete this booking:', [
+      { text: 'Credit / Debit Card', onPress: () => void completePayment('CREDIT_CARD') },
+      { text: 'Telebirr', onPress: () => void completePayment('TELEBIRR') },
+      { text: 'CBE Birr', onPress: () => void completePayment('CBE_BIRR') },
+      { text: 'PayPal', onPress: () => void completePayment('PAYPAL') },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   // ── Loading ───────────────────────────────────────────────────────────────
@@ -454,6 +478,12 @@ export default function BookingDetailScreen() {
               <Text style={[s.bannerSub, { color: textSec }]}>
                 Complete your payment to confirm this booking. Your room is being held temporarily.
               </Text>
+              {booking.createdAt && (
+                <HoldTimer
+                  expiresAt={new Date(booking.createdAt).getTime() + 30 * 60 * 1000}
+                  style={{ marginTop: 8 }}
+                />
+              )}
             </View>
           </View>
         )}
@@ -567,6 +597,21 @@ export default function BookingDetailScreen() {
               status={booking.payment.status}
               amount={booking.payment.amount}
             />
+            {/* Payment date & transaction ref */}
+            {booking.payment.createdAt && (
+              <View style={[s.paymentMeta, { borderBottomColor: borderC }]}>
+                <Text style={[s.paymentMetaLabel, { color: textSec }]}>Paid on</Text>
+                <Text style={[s.paymentMetaValue, { color: textPri }]}>
+                  {new Date(booking.payment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </View>
+            )}
+            {booking.payment.providerRef && (
+              <View style={[s.paymentMeta, { borderBottomColor: borderC }]}>
+                <Text style={[s.paymentMetaLabel, { color: textSec }]}>Transaction Ref</Text>
+                <Text style={[s.paymentMetaValue, { color: textPri, fontFamily: 'Menlo' }]}>{booking.payment.providerRef}</Text>
+              </View>
+            )}
             {booking.payment.status === 'REFUNDED' && (
               <View style={[s.refundNote, { backgroundColor: BK.checkedInBg }]}>
                 <Ionicons name="information-circle-outline" size={15} color={BK.checkedIn} />
@@ -580,10 +625,29 @@ export default function BookingDetailScreen() {
                 label={busy === 'payment' ? 'Processing' : 'Complete Payment'}
                 icon="card-outline"
                 variant="primary"
-                onPress={completePayment}
+                onPress={() => void completePayment()}
                 loading={busy === 'payment'}
                 disabled={!!busy || isOffline}
               />
+            )}
+            {booking.payment.status === 'FAILED' && !isCash && (
+              <View style={{ gap: 8 }}>
+                <ActionButton
+                  label={busy === 'payment' ? 'Retrying...' : 'Retry Payment'}
+                  icon="refresh-outline"
+                  variant="primary"
+                  onPress={() => void completePayment()}
+                  loading={busy === 'payment'}
+                  disabled={!!busy || isOffline}
+                />
+                <ActionButton
+                  label="Change Payment Method"
+                  icon="swap-horizontal-outline"
+                  variant="secondary"
+                  onPress={handleRetryWithMethodChange}
+                  disabled={!!busy || isOffline}
+                />
+              </View>
             )}
           </SectionCard>
         )}
@@ -751,7 +815,7 @@ export default function BookingDetailScreen() {
         checkIn={booking.checkIn ? booking.checkIn.slice(0, 10) : ''}
         checkOut={booking.checkOut ? booking.checkOut.slice(0, 10) : ''}
         totalPrice={booking.totalPrice}
-        cancellationHours={booking.cancellationHours ?? 24}
+        cancellationHours={booking.cancellationHours ?? 48}
         isCashAtHotel={isCash}
         loading={busy === 'cancel'}
         onConfirmCancel={handleConfirmCancel}
@@ -831,6 +895,11 @@ const s = StyleSheet.create({
   // ── QR
   qrWrap:  { alignItems: 'center' },
   qrHint:  { fontSize: 13, textAlign: 'center', lineHeight: 18, marginTop: 4 },
+
+  // ── Payment meta
+  paymentMeta:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth },
+  paymentMetaLabel: { fontSize: 13 },
+  paymentMetaValue: { fontSize: 13, fontWeight: '600' },
 
   // ── Refund note
   refundNote:     { flexDirection: 'row', alignItems: 'flex-start', gap: 8, borderRadius: 10, padding: 10 },

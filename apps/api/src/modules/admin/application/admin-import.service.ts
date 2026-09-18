@@ -38,6 +38,7 @@ export class AdminImportService {
     hotelId: string,
     fileBuffer: Buffer,
     actor: { sub: string; role: string },
+    dryRun = false,
   ): Promise<ImportResult> {
     const hotel = await this.db.hotel.findUnique({
       where: { id: hotelId },
@@ -166,7 +167,8 @@ export class AdminImportService {
       });
     }
 
-    if (validRooms.length > 0) {
+    // IMPexp-005: Skip DB writes in dry-run mode
+    if (!dryRun && validRooms.length > 0) {
       await this.db.room.createMany({
         data: validRooms.map((r) => ({
           hotelId,
@@ -181,11 +183,13 @@ export class AdminImportService {
       });
     }
 
-    await this.audit.record(actor.sub, 'DATA_IMPORTED', 'Hotel', hotelId, {
-      type: 'rooms',
-      importedCount: validRooms.length,
-      failedCount: errors.length,
-    });
+    if (!dryRun) {
+      await this.audit.record(actor.sub, 'DATA_IMPORTED', 'Hotel', hotelId, {
+        type: 'rooms',
+        importedCount: validRooms.length,
+        failedCount: errors.length,
+      });
+    }
 
     return {
       hotelId,

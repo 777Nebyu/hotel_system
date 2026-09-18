@@ -15,6 +15,7 @@ import { colors, darkColors, font, radius, shadowCard } from '../theme';
 import { hapticLight } from '../hooks/useHaptics';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
 import { useTheme } from '../hooks/useTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -28,6 +29,7 @@ export default function FavoritesScreen() {
   const session = useAppSelector((s) => s.auth.session);
   const queryClient = useQueryClient();
   const { colorScheme } = useTheme();
+  const insets = useSafeAreaInsets();
   const dark = colorScheme === 'dark';
   const c = dark ? darkColors : colors;
 
@@ -60,7 +62,7 @@ export default function FavoritesScreen() {
       return arr.filter((f: any) => f.id !== id);
     });
     try {
-      await toggleFavorite.mutateAsync({ hotelId: id, isFavorite: true });
+      await toggleFavorite.mutateAsync({ hotelId: id, isFavorite: false });
     } catch (err) {
       // Rollback on error
       queryClient.setQueryData(['favorites'], previous);
@@ -74,7 +76,7 @@ export default function FavoritesScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.paper }}>
       {/* ─── Header ─── */}
-      <View style={[s.header, { backgroundColor: c.surface, borderBottomColor: c.line }]}>
+      <View style={[s.header, { backgroundColor: c.surface, borderBottomColor: c.line, paddingTop: insets.top + 12 }]}>
         <Text style={[s.title, { color: c.ink }]}>{t('favorites.title', 'Saved Hotels')}</Text>
         <Text style={[s.subtitle, { color: c.inkMuted }]}>
           {favorites.length > 0
@@ -107,52 +109,59 @@ export default function FavoritesScreen() {
             />
           )
         }
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => navigation.navigate('HotelDetail', { hotelId: item.id })}
-            style={({ pressed }) => [s.cardWrap, pressed && s.cardPressed]}
-          >
-            <View style={[s.card, { backgroundColor: c.surface, borderColor: c.line }, shadowCard]}>
-              {/* Image */}
-              <View style={s.imageWrap}>
-                {item.primaryImageUrl ? (
-                  <Image
-                    source={{ uri: item.primaryImageUrl }}
-                    style={s.image}
-                    contentFit="cover"
-                    placeholder={{ blurhash: 'LKO2?U42NwRn4jEYJMROM[~q?xRP' }}
-                    transition={300}
-                  />
-                ) : (
-                  <Image
-                    source={{ uri: PLACEHOLDER }}
-                    style={s.image}
-                    contentFit="cover"
-                    transition={300}
-                  />
-                )}
+        renderItem={({ item }) => {
+          const isInactive = item.isActive === false || item.status === 'SUSPENDED' || item.status === 'REJECTED';
+          return (
+            <Pressable
+              onPress={() => navigation.navigate('HotelDetail', { hotelId: item.id })}
+              style={({ pressed }) => [s.cardWrap, pressed && s.cardPressed, isInactive && { opacity: 0.6 }]}
+            >
+              <View style={[s.card, { backgroundColor: c.surface, borderColor: c.line }, shadowCard]}>
+                {/* Image */}
+                <View style={s.imageWrap}>
+                  {item.primaryImageUrl ? (
+                    <Image
+                      source={{ uri: item.primaryImageUrl }}
+                      style={s.image}
+                      contentFit="cover"
+                      placeholder={{ blurhash: 'LKO2?U42NwRn4jEYJMROM[~q?xRP' }}
+                      transition={300}
+                    />
+                  ) : (
+                    <Image
+                      source={{ uri: PLACEHOLDER }}
+                      style={s.image}
+                      contentFit="cover"
+                      transition={300}
+                    />
+                  )}
 
-                {/* Star pill */}
-                <View style={s.starPill}>
-                  <Text style={s.starPillText}>
-                    {'★'.repeat(Math.max(0, Math.min(5, item.starRating)))}
-                  </Text>
+                  {/* Star pill */}
+                  <View style={s.starPill}>
+                    <Text style={s.starPillText}>
+                      {'★'.repeat(Math.max(0, Math.min(5, item.starRating)))}
+                    </Text>
+                  </View>
+
+                  {/* Remove heart */}
+                  <Pressable
+                    onPress={() => removeFavorite(item.id)}
+                    style={s.heartBtn}
+                    hitSlop={8}
+                  >
+                    <Text style={s.heart}>♥</Text>
+                  </Pressable>
                 </View>
 
-                {/* Remove heart */}
-                <Pressable
-                  onPress={() => removeFavorite(item.id)}
-                  style={s.heartBtn}
-                  hitSlop={8}
-                >
-                  <Text style={s.heart}>♥</Text>
-                </Pressable>
-              </View>
-
-              {/* Body */}
-              <View style={s.body}>
-                <Text style={[s.name, { color: c.ink }]} numberOfLines={1}>{item.name}</Text>
-                <Text style={[s.location, { color: c.inkMuted }]} numberOfLines={1}>
+                {/* Body */}
+                <View style={s.body}>
+                  <Text style={[s.name, { color: c.ink }]} numberOfLines={1}>{item.name}</Text>
+                  {isInactive && (
+                    <Text style={{ color: '#EF4444', fontSize: 11, fontWeight: '600', marginBottom: 2 }}>
+                      Hotel currently unavailable
+                    </Text>
+                  )}
+                  <Text style={[s.location, { color: c.inkMuted }]} numberOfLines={1}>
                   📍 {item.city?.name}
                   {item.city?.country?.name ? `, ${item.city.country.name}` : ''}
                 </Text>
@@ -184,7 +193,8 @@ export default function FavoritesScreen() {
               </View>
             </View>
           </Pressable>
-        )}
+          );
+        }}
       />
     </View>
   );

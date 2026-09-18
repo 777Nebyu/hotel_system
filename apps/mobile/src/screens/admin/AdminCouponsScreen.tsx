@@ -139,9 +139,9 @@ export default function AdminCouponsScreen({ onBack }: Props) {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await request(`/admin/coupons/${deleteId}`, { method: 'DELETE', token });
-      setCoupons((prev) => prev.filter((c) => c.id !== deleteId));
-      toast('success', 'Coupon deleted');
+      await request(`/admin/coupons/${deleteId}`, { method: 'PATCH', body: { isActive: false }, token });
+      setCoupons((prev) => prev.map((c) => c.id === deleteId ? { ...c, isActive: false } : c));
+      toast('success', 'Coupon deactivated');
     } catch (err: any) {
       toast('error', err.message || 'Failed to delete');
     } finally {
@@ -304,7 +304,7 @@ export default function AdminCouponsScreen({ onBack }: Props) {
                 accessibilityLabel={`Delete coupon ${c.code}`}
               >
                 <Ionicons name="trash-outline" size={18} color={tc.brick} />
-                <Text style={s.deleteBtnText}>Delete</Text>
+                <Text style={s.deleteBtnText}>Deactivate</Text>
               </Pressable>
             </Card>
           )}
@@ -319,8 +319,8 @@ export default function AdminCouponsScreen({ onBack }: Props) {
         open={deleteConfirm}
         onClose={() => { setDeleteConfirm(false); setDeleteId(null); }}
         onConfirm={handleDelete}
-        title="Delete Coupon"
-        body="Permanently delete this coupon? Any existing bookings using this code will not be affected."
+        title="Deactivate Coupon"
+        body="Deactivate this coupon? Historical bookings will retain their coupon reference."
       />
     </View>
   );

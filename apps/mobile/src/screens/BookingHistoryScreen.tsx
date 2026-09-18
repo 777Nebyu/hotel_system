@@ -165,14 +165,24 @@ export default function BookingHistoryScreen() {
               {bookings.length > 0 ? `${bookings.length} ${activeTab.label.toLowerCase()}` : 'Manage your stays'}
             </Text>
           </View>
-          <Pressable
-            onPress={() => navigation.navigate('Search')}
-            style={[s.searchBtn, { backgroundColor: dark ? '#1F3448' : BK.bg, borderColor: borderC }]}
-            accessibilityRole="button"
-            accessibilityLabel="Find hotels"
-          >
-            <Ionicons name="search-outline" size={20} color={textPri} />
-          </Pressable>
+          <View style={s.headerActions}>
+            <Pressable
+              onPress={() => navigation.navigate('PaymentHistory')}
+              style={[s.headerBtn, { backgroundColor: dark ? '#1F3448' : BK.bg, borderColor: borderC }]}
+              accessibilityRole="button"
+              accessibilityLabel="Payment History"
+            >
+              <Ionicons name="wallet-outline" size={20} color={textPri} />
+            </Pressable>
+            <Pressable
+              onPress={() => navigation.navigate('Search')}
+              style={[s.headerBtn, { backgroundColor: dark ? '#1F3448' : BK.bg, borderColor: borderC }]}
+              accessibilityRole="button"
+              accessibilityLabel="Find hotels"
+            >
+              <Ionicons name="search-outline" size={20} color={textPri} />
+            </Pressable>
+          </View>
         </View>
 
         {/* Tab pills */}
@@ -295,7 +305,12 @@ const s = StyleSheet.create({
   },
   title:    { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, lineHeight: 34 },
   subtitle: { fontSize: 13, fontWeight: '500', marginTop: 2 },
-  searchBtn:{
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerBtn: {
     width: 40, height: 40, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center', borderWidth: 1,
   },

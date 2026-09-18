@@ -31,6 +31,7 @@ export type UpdateUserRole = z.infer<typeof updateUserRoleSchema>;
 
 export const setUserActiveSchema = z.object({
   isActive: z.boolean(),
+  reason: z.string().min(1).max(500).optional(),
 });
 export type SetUserActive = z.infer<typeof setUserActiveSchema>;
 
@@ -47,7 +48,7 @@ export type AdminHotelsQuery = z.infer<typeof adminHotelsQuerySchema>;
 
 export const updateHotelStatusSchema = z.object({
   status: adminHotelStatusSchema,
-  rejectionReason: z.string().max(500).optional(),
+  rejectionReason: z.string().min(10).max(500).optional(),
 });
 export type UpdateHotelStatus = z.infer<typeof updateHotelStatusSchema>;
 

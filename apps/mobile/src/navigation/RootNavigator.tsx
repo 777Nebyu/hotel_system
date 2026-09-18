@@ -41,7 +41,7 @@ const DisputeScreen = lazy(() => import('../screens/DisputeScreen'));
 const ContactInboxScreen = lazy(() => import('../screens/ContactInboxScreen'));
 const ContactThreadDetailScreen = lazy(() => import('../screens/ContactThreadDetailScreen'));
 const ContactNewScreen = lazy(() => import('../screens/ContactNewScreen'));
-const AdminStaffHotelScreen = lazy(() => import('../screens/admin/AdminStaffHotelScreen'));
+const AdminStaffHotelsScreen = lazy(() => import('../screens/admin/AdminStaffHotelsScreen'));
 const AdminDisputesScreen = lazy(() => import('../screens/admin/AdminDisputesScreen'));
 const AdminEmergencyScreen = lazy(() => import('../screens/admin/AdminEmergencyScreen'));
 const AdminFeatureFlagsScreen = lazy(() => import('../screens/admin/AdminFeatureFlagsScreen'));
@@ -54,6 +54,13 @@ const HelpScreen = lazy(() => import('../screens/HelpScreen'));
 const OnboardingScreen = lazy(() => import('../screens/OnboardingScreen'));
 const DisputeDetailScreen = lazy(() => import('../screens/DisputeDetailScreen'));
 const AccountSecurityScreen = lazy(() => import('../screens/AccountSecurityScreen'));
+const MockAuthorizationScreen = lazy(() => import('../screens/MockAuthorizationScreen'));
+const PaymentHistoryScreen = lazy(() => import('../screens/PaymentHistoryScreen'));
+const ChapaCheckoutScreen = lazy(() => import('../screens/ChapaCheckoutScreen'));
+const TelebirrOtpScreen = lazy(() => import('../screens/TelebirrOtpScreen'));
+const BankAuthScreen = lazy(() => import('../screens/BankAuthScreen'));
+const PaymentResultScreen = lazy(() => import('../screens/PaymentResultScreen'));
+const MockSmsInboxScreen = lazy(() => import('../screens/MockSmsInboxScreen'));
 
 const ScreenLoader = () => <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" /></View>;
 
@@ -76,161 +83,192 @@ function RoleGuard({ allowedRoles, children }: { allowedRoles: string[]; childre
   return <>{children}</>;
 }
 
+function withSuspense<P extends object>(Component: React.ComponentType<P>) {
+  return function SuspendedComponent(props: P) {
+    return (
+      <WithSuspense>
+        <Component {...props} />
+      </WithSuspense>
+    );
+  };
+}
+
+function withProtected<P extends object>(Component: React.ComponentType<P>, allowedRoles?: string[]) {
+  return function ProtectedComponent(props: P) {
+    const inner = (
+      <WithSuspense>
+        <Component {...props} />
+      </WithSuspense>
+    );
+    if (allowedRoles && allowedRoles.length > 0) {
+      return (
+        <AuthGuard>
+          <RoleGuard allowedRoles={allowedRoles}>{inner}</RoleGuard>
+        </AuthGuard>
+      );
+    }
+    return <AuthGuard>{inner}</AuthGuard>;
+  };
+}
+
+// Imperative helpers are used by the static wrapped screen definitions below.
+// Keep them tied to the app-level navigation ref so callbacks remain valid
+// when a screen is rendered outside a component that owns useNavigation().
+function goTo(name: keyof RootStackParamList, params?: unknown) {
+  if (!navigationRef.current) return;
+  const nav = navigationRef.current as any;
+  if (params === undefined) nav.navigate(name);
+  else nav.navigate(name, params);
+}
+
+function goBack() {
+  if (navigationRef.current?.canGoBack()) navigationRef.current.goBack();
+}
+
+// Static wrapped components for optimal React Navigation rendering
+const HotelDetailWrapped = withSuspense(HotelDetailScreen);
+const SearchWrapped = withSuspense(SearchScreen);
+const BookingDetailWrapped = withProtected(BookingDetailScreen);
+const BookingFlowWrapped = withProtected(BookingFlowScreen, ['CUSTOMER']);
+const ReviewWrapped = withProtected(ReviewScreen, ['CUSTOMER']);
+const NotificationsWrapped = withProtected(NotificationsScreen);
+const MyReviewsWrapped = withProtected(MyReviewsScreen, ['CUSTOMER']);
+const BookingModifyWrapped = withProtected(BookingModifyScreen, ['CUSTOMER']);
+const DisputesWrapped = withProtected(DisputeScreen, ['CUSTOMER']);
+const DisputeDetailWrapped = withProtected(DisputeDetailScreen, ['CUSTOMER', 'ADMIN']);
+const ContactInboxWrapped = withProtected(ContactInboxScreen);
+const ContactThreadWrapped = withProtected(ContactThreadDetailScreen);
+const ContactNewWrapped = withProtected(ContactNewScreen);
+const WalkInBookingWrapped = withProtected(WalkInBookingScreen, ['MANAGER', 'STAFF', 'ADMIN']);
+const EarlyCheckinLateCheckoutWrapped = withProtected(EarlyCheckinLateCheckoutScreen, ['MANAGER', 'STAFF', 'ADMIN']);
+const AccountSecurityWrapped = withProtected(AccountSecurityScreen);
+const MockAuthWrapped = withProtected(MockAuthorizationScreen, ['CUSTOMER']);
+const PaymentHistoryWrapped = withProtected(PaymentHistoryScreen, ['CUSTOMER']);
+const ChapaCheckoutWrapped = withProtected(ChapaCheckoutScreen, ['CUSTOMER']);
+const TelebirrOtpWrapped = withProtected(TelebirrOtpScreen, ['CUSTOMER']);
+const BankAuthWrapped = withProtected(BankAuthScreen, ['CUSTOMER']);
+const PaymentResultWrapped = withProtected(PaymentResultScreen, ['CUSTOMER']);
+const MockSmsInboxWrapped = withProtected(MockSmsInboxScreen, ['CUSTOMER']);
+
+const SplashWrapped = withSuspense(SplashScreen);
+const SettingsWrapped = withSuspense(SettingsScreen);
+const HelpWrapped = withSuspense(HelpScreen);
+const OnboardingWrapped = withSuspense(OnboardingScreen);
+
+// Admin screens
+const AdminOverviewWrapped = withProtected(() => <AdminOverviewScreen onBack={goBack} onNavigate={(p: any) => goTo(p.screen, p)} />, ['ADMIN']);
+const AdminUsersWrapped = withProtected(() => <AdminUsersScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminHotelsWrapped = withProtected(() => <AdminHotelsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminBookingsWrapped = withProtected(() => <AdminBookingsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminPaymentsWrapped = withProtected(() => <AdminPaymentsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminCouponsWrapped = withProtected(() => <AdminCouponsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminReviewsWrapped = withProtected(() => <AdminReviewsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminReportsWrapped = withProtected(() => <AdminReportsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminSettingsWrapped = withProtected(() => <AdminSettingsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminAuditLogWrapped = withProtected(() => <AdminAuditLogScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminStaffHotelsWrapped = withProtected(() => <AdminStaffHotelsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminDisputesWrapped = withProtected(() => <AdminDisputesScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminEmergencyWrapped = withProtected(() => <AdminEmergencyScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+const AdminFeatureFlagsWrapped = withProtected(() => <AdminFeatureFlagsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
+
+// Manager screens
+const ManagerOverviewWrapped = withProtected(() => <ManagerOverviewScreen onBack={goBack} onNavigate={(p: any) => goTo(p.screen, p)} />, ['MANAGER', 'STAFF']);
+const ManagerBookingsWrapped = withProtected(() => <ManagerBookingsScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'STAFF']);
+const ManagerBillingScreen = lazy(() => import('../screens/manager/ManagerBillingScreen'));
+const ManagerBillingWrapped = withProtected(() => <ManagerBillingScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'STAFF']);
+const ManagerHotelWrapped = withProtected(() => <ManagerHotelScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'ADMIN']);
+const ManagerRoomsWrapped = withProtected(() => <ManagerRoomsScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'ADMIN']);
+const ManagerReportsWrapped = withProtected(() => <ManagerReportsScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'STAFF']);
+const ManagerMoreWrapped = withProtected(() => <ManagerMoreScreen onBack={() => goTo('ManagerOverview')} onNavigate={(p: any) => goTo(p.screen, p)} />, ['MANAGER', 'STAFF']);
+
+const VerifyEmailWrapped = ({ route }: any) => <VerifyEmailScreen token={route.params.token} onVerified={goBack} onError={goBack} />;
+const ResetPasswordWrapped = ({ route }: any) => <ResetPasswordScreen token={route.params.token} onReset={goBack} onError={goBack} />;
+const RoomDetailWrapped = ({ route }: any) => (
+  <WithSuspense>
+    <RoomDetailScreen
+      room={route.params.room}
+      hotelName={route.params.hotelName}
+      hotelId={route.params.hotelId}
+      checkIn={route.params.checkIn}
+      checkOut={route.params.checkOut}
+      hotelImages={route.params.hotelImages}
+      guests={route.params.guests}
+      onBack={goBack}
+      onBook={(roomId: string, cIn?: string, cOut?: string, promo?: string) =>
+        goTo('BookingFlow', {
+          hotelId: route.params.hotelId,
+          roomId,
+          hotelName: route.params.hotelName,
+          roomType: route.params.room?.type,
+          roomCapacity: route.params.room?.capacity,
+          checkIn: cIn ?? route.params.checkIn,
+          checkOut: cOut ?? route.params.checkOut,
+          promoCode: promo,
+        })
+      }
+    />
+  </WithSuspense>
+);
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// Imperative navigation helpers using the module-level ref — safe to call
-// at the root navigator level where no parent navigator exists for useNavigation().
-const goBack = () => {
-  if (navigationRef.current?.isReady() && navigationRef.current.canGoBack()) {
-    navigationRef.current.goBack();
-  }
-};
-const goTo = (screen: string, params?: any) =>
-  navigationRef.current?.navigate(screen as any, params);
-
 export default function RootNavigator() {
-
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen name="Auth" component={AuthScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="VerifyEmail">
-        {({ route }) => <VerifyEmailScreen token={route.params.token} onVerified={goBack} onError={goBack} />}
-      </Stack.Screen>
-      <Stack.Screen name="ResetPassword">
-        {({ route }) => <ResetPasswordScreen token={route.params.token} onReset={goBack} onError={goBack} />}
-      </Stack.Screen>
-      <Stack.Screen name="HotelDetail">
-        {() => <WithSuspense><HotelDetailScreen /></WithSuspense>}
-      </Stack.Screen>
-      <Stack.Screen name="Search">
-        {() => <WithSuspense><SearchScreen /></WithSuspense>}
-      </Stack.Screen>
-      <Stack.Screen name="RoomDetail">
-        {({ route }) => <WithSuspense><RoomDetailScreen room={route.params.room} hotelName={route.params.hotelName} hotelId={route.params.hotelId} checkIn={route.params.checkIn} checkOut={route.params.checkOut} hotelImages={route.params.hotelImages} onBack={goBack} onBook={(roomId: string, cIn?: string, cOut?: string, promo?: string) => goTo('BookingFlow', { hotelId: route.params.hotelId, roomId, hotelName: route.params.hotelName, roomType: route.params.room?.type, roomCapacity: route.params.room?.capacity, checkIn: cIn ?? route.params.checkIn, checkOut: cOut ?? route.params.checkOut, promoCode: promo })} /></WithSuspense>}
-      </Stack.Screen>
-      <Stack.Screen name="BookingFlow">
-        {() => <AuthGuard><RoleGuard allowedRoles={['CUSTOMER']}><WithSuspense><BookingFlowScreen /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="BookingDetail">
-        {() => <AuthGuard><WithSuspense><BookingDetailScreen /></WithSuspense></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="Review">
-        {() => <AuthGuard><RoleGuard allowedRoles={['CUSTOMER']}><WithSuspense><ReviewScreen /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="Notifications">
-        {() => <AuthGuard><WithSuspense><NotificationsScreen /></WithSuspense></AuthGuard>}
-      </Stack.Screen>
-      {/* RBAC-002: Only Customer has "My Reviews" (own reviews for own stays) */}
-      <Stack.Screen name="MyReviews" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['CUSTOMER']}><WithSuspense><MyReviewsScreen /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminOverview" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminOverviewScreen onBack={goBack} onNavigate={(p: any) => goTo(p.screen, p)} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminUsers" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminUsersScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminHotels" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminHotelsScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminBookings" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminBookingsScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminPayments" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminPaymentsScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminCoupons" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminCouponsScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminReviews" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminReviewsScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminReports" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminReportsScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminSettings" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminSettingsScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminAuditLog" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminAuditLogScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="ManagerOverview" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['MANAGER', 'STAFF']}><WithSuspense><ManagerOverviewScreen onBack={goBack} onNavigate={(p: any) => goTo(p.screen, p)} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="ManagerBookings" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['MANAGER', 'STAFF']}><WithSuspense><ManagerBookingsScreen onBack={() => goTo('ManagerOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      {/* STAFF-003: Staff CANNOT create/edit hotel — Manager + Admin only */}
-      <Stack.Screen name="ManagerHotel" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['MANAGER', 'ADMIN']}><WithSuspense><ManagerHotelScreen onBack={() => goTo('ManagerOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      {/* STAFF-003: Staff CANNOT create/edit rooms or set pricing — Manager + Admin only */}
-      <Stack.Screen name="ManagerRooms" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['MANAGER', 'ADMIN']}><WithSuspense><ManagerRoomsScreen onBack={() => goTo('ManagerOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      {/* Staff gets operational reports only; Manager gets full hotel-level reports (enforced server-side) */}
-      <Stack.Screen name="ManagerReports" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['MANAGER', 'STAFF']}><WithSuspense><ManagerReportsScreen onBack={() => goTo('ManagerOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="ManagerMore" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['MANAGER', 'STAFF']}><WithSuspense><ManagerMoreScreen onBack={() => goTo('ManagerOverview')} onNavigate={(p: any) => goTo(p.screen, p)} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      {/* GAP-1 fixed: BOOKMOD-001 — only Customer can modify own bookings */}
-      <Stack.Screen name="BookingModify" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['CUSTOMER']}><WithSuspense><BookingModifyScreen /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      {/* GAP-2 fixed: DISPUTE-001 — only Customer can open disputes */}
-      <Stack.Screen name="Disputes" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['CUSTOMER']}><WithSuspense><DisputeScreen /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="ContactInbox" >
-        {() => <AuthGuard><WithSuspense><ContactInboxScreen /></WithSuspense></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="ContactThread" >
-        {() => <AuthGuard><WithSuspense><ContactThreadDetailScreen /></WithSuspense></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="ContactNew" >
-        {() => <AuthGuard><WithSuspense><ContactNewScreen /></WithSuspense></AuthGuard>}
-      </Stack.Screen>
-      {/* GAP-3 fixed: DISPUTE-001/003 — Customer views own disputes, Admin resolves */}
-      <Stack.Screen name="DisputeDetail" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['CUSTOMER', 'ADMIN']}><WithSuspense><DisputeDetailScreen /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminStaffHotels" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminStaffHotelScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminDisputes" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminDisputesScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminEmergency" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminEmergencyScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="AdminFeatureFlags" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['ADMIN']}><WithSuspense><AdminFeatureFlagsScreen onBack={() => goTo('AdminOverview')} /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="WalkInBooking" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['MANAGER', 'STAFF', 'ADMIN']}><WithSuspense><WalkInBookingScreen /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="EarlyCheckinLateCheckout" >
-        {() => <AuthGuard><RoleGuard allowedRoles={['MANAGER', 'STAFF', 'ADMIN']}><WithSuspense><EarlyCheckinLateCheckoutScreen /></WithSuspense></RoleGuard></AuthGuard>}
-      </Stack.Screen>
-      <Stack.Screen name="Splash">
-        {() => <WithSuspense><SplashScreen /></WithSuspense>}
-      </Stack.Screen>
-      <Stack.Screen name="Settings">
-        {() => <WithSuspense><SettingsScreen /></WithSuspense>}
-      </Stack.Screen>
-      <Stack.Screen name="Help">
-        {() => <WithSuspense><HelpScreen /></WithSuspense>}
-      </Stack.Screen>
-      <Stack.Screen name="Onboarding">
-        {() => <WithSuspense><OnboardingScreen /></WithSuspense>}
-      </Stack.Screen>
-      <Stack.Screen name="AccountSecurity">
-        {() => <AuthGuard><WithSuspense><AccountSecurityScreen /></WithSuspense></AuthGuard>}
-      </Stack.Screen>
+      <Stack.Screen name="VerifyEmail" component={VerifyEmailWrapped} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordWrapped} />
+      <Stack.Screen name="HotelDetail" component={HotelDetailWrapped} />
+      <Stack.Screen name="Search" component={SearchWrapped} />
+      <Stack.Screen name="RoomDetail" component={RoomDetailWrapped} />
+      <Stack.Screen name="MockAuth" component={MockAuthWrapped} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="PaymentHistory" component={PaymentHistoryWrapped} />
+      <Stack.Screen name="ChapaCheckout" component={ChapaCheckoutWrapped} />
+      <Stack.Screen name="TelebirrOtp" component={TelebirrOtpWrapped} />
+      <Stack.Screen name="BankAuth" component={BankAuthWrapped} />
+      <Stack.Screen name="PaymentResult" component={PaymentResultWrapped} />
+      <Stack.Screen name="MockSmsInbox" component={MockSmsInboxWrapped} />
+      <Stack.Screen name="BookingFlow" component={BookingFlowWrapped} />
+      <Stack.Screen name="BookingDetail" component={BookingDetailWrapped} />
+      <Stack.Screen name="Review" component={ReviewWrapped} />
+      <Stack.Screen name="Notifications" component={NotificationsWrapped} />
+      <Stack.Screen name="MyReviews" component={MyReviewsWrapped} />
+      <Stack.Screen name="AdminOverview" component={AdminOverviewWrapped} />
+      <Stack.Screen name="AdminUsers" component={AdminUsersWrapped} />
+      <Stack.Screen name="AdminHotels" component={AdminHotelsWrapped} />
+      <Stack.Screen name="AdminBookings" component={AdminBookingsWrapped} />
+      <Stack.Screen name="AdminPayments" component={AdminPaymentsWrapped} />
+      <Stack.Screen name="AdminCoupons" component={AdminCouponsWrapped} />
+      <Stack.Screen name="AdminReviews" component={AdminReviewsWrapped} />
+      <Stack.Screen name="AdminReports" component={AdminReportsWrapped} />
+      <Stack.Screen name="AdminSettings" component={AdminSettingsWrapped} />
+      <Stack.Screen name="AdminAuditLog" component={AdminAuditLogWrapped} />
+      <Stack.Screen name="ManagerOverview" component={ManagerOverviewWrapped} />
+      <Stack.Screen name="ManagerBookings" component={ManagerBookingsWrapped} />
+      <Stack.Screen name="ManagerBilling" component={ManagerBillingWrapped} />
+      <Stack.Screen name="ManagerHotel" component={ManagerHotelWrapped} />
+      <Stack.Screen name="ManagerRooms" component={ManagerRoomsWrapped} />
+      <Stack.Screen name="ManagerReports" component={ManagerReportsWrapped} />
+      <Stack.Screen name="ManagerMore" component={ManagerMoreWrapped} />
+      <Stack.Screen name="BookingModify" component={BookingModifyWrapped} />
+      <Stack.Screen name="Disputes" component={DisputesWrapped} />
+      <Stack.Screen name="ContactInbox" component={ContactInboxWrapped} />
+      <Stack.Screen name="ContactThread" component={ContactThreadWrapped} />
+      <Stack.Screen name="ContactNew" component={ContactNewWrapped} />
+      <Stack.Screen name="DisputeDetail" component={DisputeDetailWrapped} />
+      <Stack.Screen name="AdminStaffHotels" component={AdminStaffHotelsWrapped} />
+      <Stack.Screen name="AdminDisputes" component={AdminDisputesWrapped} />
+      <Stack.Screen name="AdminEmergency" component={AdminEmergencyWrapped} />
+      <Stack.Screen name="AdminFeatureFlags" component={AdminFeatureFlagsWrapped} />
+      <Stack.Screen name="WalkInBooking" component={WalkInBookingWrapped} />
+      <Stack.Screen name="EarlyCheckinLateCheckout" component={EarlyCheckinLateCheckoutWrapped} />
+      <Stack.Screen name="Splash" component={SplashWrapped} />
+      <Stack.Screen name="Settings" component={SettingsWrapped} />
+      <Stack.Screen name="Help" component={HelpWrapped} />
+      <Stack.Screen name="Onboarding" component={OnboardingWrapped} />
+      <Stack.Screen name="AccountSecurity" component={AccountSecurityWrapped} />
     </Stack.Navigator>
   );
 }

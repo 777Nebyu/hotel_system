@@ -52,7 +52,7 @@ export default function AdminStaffHotelScreen({ onBack }: AdminStaffHotelScreenP
   useEffect(() => { fetchData(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (selectedHotel) {
-      request<any>(`/admin/staff-hotels/hotel/${selectedHotel}`, { method: 'GET', token })
+      request<any>(`/admin/hotels/${selectedHotel}/staff`, { method: 'GET', token })
         .then((res) => setAssignedStaff(Array.isArray(res) ? res : res?.data ?? []))
         .catch(() => setAssignedStaff([]));
     }
@@ -63,10 +63,10 @@ export default function AdminStaffHotelScreen({ onBack }: AdminStaffHotelScreenP
   const handleAssign = async () => {
     if (!selectedStaff || !selectedHotel) return;
     try {
-      await request('/admin/staff-hotels', { method: 'POST', body: { userId: selectedStaff, hotelId: selectedHotel }, token });
+      await request(`/admin/hotels/${selectedHotel}/staff`, { method: 'POST', body: { staffId: selectedStaff }, token });
       toast('success', 'Staff assigned');
       setSelectedStaff('');
-      const res = await request<any>(`/admin/staff-hotels/hotel/${selectedHotel}`, { method: 'GET', token });
+      const res = await request<any>(`/admin/hotels/${selectedHotel}/staff`, { method: 'GET', token });
       setAssignedStaff(Array.isArray(res) ? res : res?.data ?? []);
     } catch (err: any) {
       toast('error', err.message || 'Failed to assign');
@@ -81,9 +81,9 @@ export default function AdminStaffHotelScreen({ onBack }: AdminStaffHotelScreenP
   const doConfirm = async () => {
     if (!confirmAction) return;
     try {
-      await request('/admin/staff-hotels', { method: 'DELETE', body: { userId: confirmAction.userId, hotelId: confirmAction.hotelId }, token });
+      await request(`/admin/hotels/${confirmAction.hotelId}/staff/${confirmAction.userId}`, { method: 'DELETE', token });
       toast('success', 'Staff removed');
-      setAssignedStaff((prev) => prev.filter((s: any) => s.id !== confirmAction.userId));
+      setAssignedStaff((prev) => prev.filter((s: any) => (s.staff?.id ?? s.id) !== confirmAction.userId));
     } catch (err: any) {
       toast('error', err.message || 'Failed to remove');
     } finally {

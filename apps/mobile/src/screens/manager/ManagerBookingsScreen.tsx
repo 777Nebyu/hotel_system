@@ -38,6 +38,13 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'CLOSED', label: 'Closed' },
 ];
 
+const TAB_TO_API_STATUS: Record<Tab, string | undefined> = {
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  ON_PROPERTY: 'CHECKED_IN',
+  CLOSED: 'CHECKED_OUT',
+};
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
   const token = useAppSelector((s) => s.auth.session?.accessToken ?? '');
@@ -56,6 +63,7 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
   const [relocateBooking, setRelocateBooking] = useState<ManagedBooking | null>(null);
   const [relocateDetailId, setRelocateDetailId] = useState('');
   const [rooms, setRooms] = useState<Array<{ id: string; roomNumber: string; type?: string; status?: string }>>([]);
+  const [relocateCurrentRoomType, setRelocateCurrentRoomType] = useState<string | undefined>('');
   const [selectedRoomId, setSelectedRoomId] = useState('');
   const [relocateReason, setRelocateReason] = useState('');
   const [relocateLoading, setRelocateLoading] = useState(false);
@@ -64,7 +72,9 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await request<{ data: ManagedBooking[] }>(`/bookings/manage?status=${tab}`, { token });
+      const apiStatus = TAB_TO_API_STATUS[tab];
+      const qs = apiStatus ? `?status=${apiStatus}` : '';
+      const res = await request<{ data: ManagedBooking[] }>(`/bookings/manage${qs}`, { token });
       setBookings(res.data ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load bookings');
@@ -79,10 +89,12 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
   const performAction = async (id: string, action: string) => {
     setActionLoading(id);
     try {
-      await request(`/bookings/manage/${id}/${action}`, {
+      const endpoint = action === 'mark-paid' ? `/payments/${id}/cash-paid` : `/bookings/${id}/${action}`;
+      await request(endpoint, {
         method: 'POST',
         token,
         ...(action === 'cancel' ? { body: { reason: 'Cancelled by hotel staff' } } : {}),
+        ...(action === 'mark-paid' ? { body: {} } : {}),
       });
       toast('success', `${action.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())} successful`);
       void load();
@@ -98,6 +110,8 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
     setConfirmDialog({ open: true, bookingId: id, action, title, body });
   };
 
+  const ROOM_TYPE_ORDER = ['STANDARD', 'DELUXE', 'SUITE', 'FAMILY', 'EXECUTIVE'];
+
   const openRelocate = async (booking: ManagedBooking) => {
     setRelocateBooking(booking);
     setSelectedRoomId('');
@@ -107,14 +121,22 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
       const detail = await request<any>(`/bookings/${booking.id}`, { token });
       const detailId = detail?.details?.[0]?.id;
       const hotelId = detail?.hotelId ?? detail?.hotel?.id;
+      const currentRoomType = detail?.details?.[0]?.room?.type;
       if (!detailId || !hotelId) throw new Error('Booking room details are unavailable.');
       setRelocateDetailId(detailId);
+      setRelocateCurrentRoomType(currentRoomType);
       const roomsResponse = await request<any[]>(
         `/catalog/hotels/${hotelId}/rooms?checkIn=${encodeURIComponent(booking.checkIn)}&checkOut=${encodeURIComponent(booking.checkOut)}`,
         { token },
       );
       const available = (Array.isArray(roomsResponse) ? roomsResponse : (roomsResponse as any)?.data ?? [])
-        .filter((room: any) => room.status === 'AVAILABLE');
+        .filter((room: any) => {
+          if (room.status !== 'AVAILABLE') return false;
+          if (!currentRoomType || !room.type) return true;
+          const roomIdx = ROOM_TYPE_ORDER.indexOf(room.type);
+          const currentIdx = ROOM_TYPE_ORDER.indexOf(currentRoomType);
+          return roomIdx >= currentIdx;
+        });
       setRooms(available);
     } catch (err) {
       setRelocateError(err instanceof Error ? err.message : 'Unable to load available rooms.');
@@ -128,7 +150,7 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
     }
     setRelocateLoading(true);
     try {
-      await request(`/bookings/manage/${relocateBooking.id}/relocate`, {
+      await request(`/bookings/${relocateBooking.id}/relocate-room`, {
         method: 'POST',
         body: { bookingDetailId: relocateDetailId, newRoomId: selectedRoomId, reason: relocateReason.trim() },
         token,
@@ -243,7 +265,7 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
         <Pressable style={styles.modalOverlay} onPress={() => setRelocateBooking(null)}>
           <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
             <Text style={styles.modalTitle}>Relocate Guest</Text>
-            <Text style={styles.modalSub}>Choose an available room and record the operational reason.</Text>
+            <Text style={styles.modalSub}>Choose an available room and record the operational reason.{relocateCurrentRoomType ? ` Must be ${relocateCurrentRoomType} or higher.` : ''}</Text>
             {relocateError && <Text style={styles.modalError}>{relocateError}</Text>}
             <Text style={styles.modalLabel}>Available rooms</Text>
             <ScrollView style={styles.roomPicker} nestedScrollEnabled>
