@@ -88,6 +88,7 @@ export default function ChapaCheckoutScreen() {
       if (selectedMethod === 'TELEBIRR') {
         navigation.navigate('TelebirrOtp', {
           bookingId,
+          paymentId: (response as any)?.paymentId,
           amount,
           currency,
           hotelName,

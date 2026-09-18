@@ -72,6 +72,7 @@ export type RootStackParamList = {
   };
   TelebirrOtp: {
     bookingId: string;
+    paymentId: string;
     amount: number;
     currency?: string;
     hotelName: string;

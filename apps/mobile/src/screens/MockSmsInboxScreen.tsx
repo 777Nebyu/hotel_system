@@ -22,6 +22,8 @@ type SmsMessage = {
   createdAt: string;
 };
 
+type SmsInboxResponse = SmsMessage[] | { data?: SmsMessage[] };
+
 export default function MockSmsInboxScreen() {
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
@@ -35,8 +37,10 @@ export default function MockSmsInboxScreen() {
 
   const fetchMessages = useCallback(async () => {
     try {
-      const result = await request<SmsMessage[]>('/dev/sms', { token });
-      setMessages(result);
+      const result = await request<SmsInboxResponse>('/dev/sms', { token });
+      // The API returns { data, count }; accept a bare array as well for
+      // compatibility with older mock servers.
+      setMessages(Array.isArray(result) ? result : result.data ?? []);
     } catch (err) {
       // Silent fail
     } finally {

@@ -52,25 +52,9 @@ interface RoomOption {
 export default function WalkInBookingScreen() {
   const navigation = useNavigation<Nav>();
   const token = useAppSelector((s) => s.auth.session?.accessToken ?? '');
+  const hotelId = useAppSelector((s) => s.auth.session?.user?.hotelId ?? '');
+  const hotelName = useAppSelector((s) => s.auth.session?.user?.hotelName ?? 'My Hotel');
   const { colors: c } = useTheme();
-
-  // Fetch managed hotels from API
-  const [managedHotels, setManagedHotels] = useState<{ id: string; name: string }[]>([]);
-  const [managedHotelId, setManagedHotelId] = useState('');
-  const [loadingHotels, setLoadingHotels] = useState(true);
-  useEffect(() => {
-    if (!token) return;
-    setLoadingHotels(true);
-    request<{ id: string; name: string }[]>('/catalog/manager/hotels', { token })
-      .then((res) => {
-        const list = Array.isArray(res) ? res : [];
-        setManagedHotels(list);
-        if (list.length === 1) setManagedHotelId(list[0].id);
-        else if (list.length > 1 && !managedHotelId) setManagedHotelId(list[0].id);
-      })
-      .catch(() => {})
-      .finally(() => setLoadingHotels(false));
-  }, [token, managedHotelId]);
 
   // Guest info
   const [fullName, setFullName] = useState('');
@@ -109,27 +93,27 @@ export default function WalkInBookingScreen() {
 
   // Fetch hotel policies
   useEffect(() => {
-    if (!managedHotelId) return;
+    if (!hotelId) return;
     setPolicies(null);
     setAvailableRooms([]);
     setAvailableRoomTypes([]);
     setSelectedRoomId('');
     setRoomType('');
     setTotalPrice(null);
-    request<HotelPolicy>(`/catalog/hotels/${managedHotelId}/policy`, { token })
+    request<HotelPolicy>(`/catalog/hotels/${hotelId}/policy`, { token })
       .then((res) => setPolicies(res))
       .catch(() => {});
-  }, [managedHotelId, token]);
+  }, [hotelId, token]);
 
   // Fetch available rooms for chosen dates (all types)
   const fetchRooms = useCallback(async () => {
-    if (!managedHotelId || !checkIn || !checkOut || checkIn >= checkOut) return;
+    if (!hotelId || !checkIn || !checkOut || checkIn >= checkOut) return;
     setLoadingRooms(true);
     setSelectedRoomId('');
     setTotalPrice(null);
     try {
       const res = await request<any[]>(
-        `/catalog/hotels/${managedHotelId}/rooms?checkIn=${checkIn}&checkOut=${checkOut}`,
+        `/catalog/hotels/${hotelId}/rooms?checkIn=${checkIn}&checkOut=${checkOut}`,
         { token },
       );
       const list = Array.isArray(res) ? res : [];
@@ -156,7 +140,7 @@ export default function WalkInBookingScreen() {
     } finally {
       setLoadingRooms(false);
     }
-  }, [managedHotelId, checkIn, checkOut, token]);
+  }, [hotelId, checkIn, checkOut, token]);
 
   useEffect(() => { void fetchRooms(); }, [fetchRooms]);
 
@@ -222,7 +206,7 @@ export default function WalkInBookingScreen() {
           method: 'POST',
           token,
           body: {
-            hotelId: managedHotelId,
+            hotelId: hotelId,
             roomIds: [selectedRoomId],
             checkIn,
             checkOut,
@@ -268,34 +252,16 @@ export default function WalkInBookingScreen() {
         subtitle={paymentMethod === 'CASH' ? 'Cash payment · immediately confirmed' : 'Card payment · immediately confirmed'}
       />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {/* Hotel selection */}
+        {/* Hotel info */}
         <Text style={[styles.sectionLabel, { color: c.ink }]}>Hotel</Text>
         <Card style={styles.card}>
-          {loadingHotels ? (
-            <Text style={styles.noRooms}>Loading hotels…</Text>
-          ) : managedHotels.length === 0 ? (
-            <Text style={styles.noRooms}>No hotels assigned to your account.</Text>
-          ) : managedHotels.length === 1 ? (
+          {!hotelId ? (
+            <Text style={styles.noRooms}>No hotel assigned to your account.</Text>
+          ) : (
             <View style={styles.hotelInfo}>
               <Ionicons name="business-outline" size={16} color={c.teal} />
-              <Text style={[styles.hotelName, { color: c.ink }]}>{managedHotels[0].name}</Text>
+              <Text style={[styles.hotelName, { color: c.ink }]}>{hotelName}</Text>
             </View>
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-              {managedHotels.map((h) => (
-                <Pressable
-                  key={h.id}
-                  onPress={() => setManagedHotelId(h.id)}
-                  style={[styles.typeChip, managedHotelId === h.id && styles.typeChipActive]}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: managedHotelId === h.id }}
-                >
-                  <Text style={[styles.typeChipText, managedHotelId === h.id && styles.typeChipTextActive]}>
-                    {h.name}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
           )}
         </Card>
 

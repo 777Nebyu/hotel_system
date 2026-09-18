@@ -8,7 +8,7 @@ import { Badge, Button, Card, EmptyState, ErrorBox } from '../../components/Shar
 import ScreenHeader from '../../components/ScreenHeader';
 import { SkeletonList } from '../../components/Skeleton';
 import { useToast } from '../../components/Toast';
-import { useManagerHotels, useManagerRooms } from '../../hooks/useQueries';
+import { useManagerRooms } from '../../hooks/useQueries';
 import { colors, font, radius, shadowCard } from '../../theme';
 
 type Props = { onBack: () => void; onNavigate?: (page: { screen: string } & Record<string, any>) => void };
@@ -113,15 +113,10 @@ const RoomCard = React.memo(function RoomCard({
 
 export default function ManagerRoomsScreen({ onBack, onNavigate: _ }: Props) { // eslint-disable-line @typescript-eslint/no-unused-vars
   const token = useAppSelector((s) => s.auth.session?.accessToken ?? '');
+  const hotelId = useAppSelector((s) => s.auth.session?.user?.hotelId ?? '');
   const toast = useToast();
 
-  const { data: hotelsData, isLoading: hotelsLoading } = useManagerHotels(token);
-  const hotels = (Array.isArray(hotelsData) ? hotelsData : []) as Array<{ id: string; name: string }>;
-
-  const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
-  const autoSelectedId = selectedHotelId ?? (hotels.length > 0 ? hotels[0].id : null);
-
-  const { data: roomsData, isLoading: roomsLoading, error: roomsError, refetch, isRefetching } = useManagerRooms(token, autoSelectedId);
+  const { data: roomsData, isLoading: roomsLoading, error: roomsError, refetch, isRefetching } = useManagerRooms(token, hotelId);
   const rooms: Room[] = (Array.isArray(roomsData) ? roomsData : []) as Room[];
 
   const [editingPrice, setEditingPrice] = useState<string | null>(null);
@@ -210,13 +205,13 @@ export default function ManagerRoomsScreen({ onBack, onNavigate: _ }: Props) { /
   }, [token, toast, refetch]);
 
   const addRoom = useCallback(async () => {
-    if (!autoSelectedId) return;
+    if (!hotelId) return;
     if (!newRoom.roomNumber.trim() || !newRoom.basePrice) {
       return Alert.alert('Required', 'Room number and base price are required');
     }
     setSavingRoom(true);
     try {
-      await request(`/catalog/hotels/${autoSelectedId}/rooms`, {
+      await request(`/catalog/hotels/${hotelId}/rooms`, {
         method: 'POST',
         body: {
           roomNumber: newRoom.roomNumber.trim(),
@@ -236,7 +231,7 @@ export default function ManagerRoomsScreen({ onBack, onNavigate: _ }: Props) { /
     } finally {
       setSavingRoom(false);
     }
-  }, [autoSelectedId, newRoom, token, toast, refetch]);
+  }, [hotelId, newRoom, token, toast, refetch]);
 
   const addSeasonal = useCallback(async (roomId: string) => {
     if (!seasonalForm.priceOverride || !seasonalForm.startDate || !seasonalForm.endDate) {
@@ -309,7 +304,7 @@ export default function ManagerRoomsScreen({ onBack, onNavigate: _ }: Props) { /
     />
   ), [editingPrice, priceValue, savingPrice, onStartEdit, onCancelEdit, onPriceChange, updatePrice, toggleStatus, onShowSeasonal, deleteRoom]);
 
-  const isLoading = hotelsLoading || roomsLoading;
+  const isLoading = roomsLoading;
   const error = roomsError?.message ?? null;
 
   return (
@@ -319,28 +314,11 @@ export default function ManagerRoomsScreen({ onBack, onNavigate: _ }: Props) { /
         onBack={onBack}
         subtitle="Manage inventory, prices & maintenance"
         rightElement={
-          autoSelectedId ? (
+          hotelId ? (
             <Button title="+ Add" size="sm" onPress={() => setShowAddRoom(true)} />
           ) : undefined
         }
       />
-
-      {hotels.length > 1 && (
-        <View style={styles.hotelTabs}>
-          {hotels.map((h) => (
-            <Pressable
-              key={h.id}
-              onPress={() => setSelectedHotelId(h.id)}
-              style={[styles.hotelTab, autoSelectedId === h.id && styles.hotelTabActive]}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: autoSelectedId === h.id }}
-              accessibilityLabel={h.name}
-            >
-              <Text style={[styles.hotelTabText, autoSelectedId === h.id && styles.hotelTabTextActive]}>{h.name}</Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
 
       {error && !isLoading && <ErrorBox message={error} onRetry={() => void refetch()} />}
 
@@ -429,11 +407,6 @@ export default function ManagerRoomsScreen({ onBack, onNavigate: _ }: Props) { /
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.paper },
   content: { padding: 16, paddingBottom: 40 },
-  hotelTabs: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 8 },
-  hotelTab: { borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 16, paddingVertical: 8, ...shadowCard },
-  hotelTabActive: { borderColor: colors.teal, backgroundColor: colors.tealTint },
-  hotelTabText: { fontSize: 13, fontWeight: '600', color: colors.inkMuted },
-  hotelTabTextActive: { color: colors.tealDeep, fontWeight: '700' },
   card: { marginBottom: 14, gap: 10, padding: 16, borderRadius: radius.card, ...shadowCard },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
   flex: { flex: 1 },

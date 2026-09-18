@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -96,6 +97,18 @@ export class ManagerCatalogService {
     await this.assertCityExists(dto.cityId);
     const managerId =
       actor.role === 'ADMIN' ? (dto.managerId ?? null) : actor.sub;
+
+    if (actor.role === 'MANAGER') {
+      const existingCount = await this.db.hotel.count({
+        where: { managerId: actor.sub },
+      });
+      if (existingCount > 0) {
+        throw new ForbiddenException(
+          'You already manage a hotel. Each manager can only manage one hotel.',
+        );
+      }
+    }
+
     const initialStatus =
       actor.role === 'ADMIN' && dto.status
         ? (dto.status as HotelStatus)

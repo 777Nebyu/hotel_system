@@ -29,7 +29,7 @@ export default function TelebirrOtpScreen() {
   const session = useAppSelector((s) => s.auth.session);
   const token = session?.accessToken ?? '';
 
-  const { bookingId, amount, currency = 'ETB', hotelName, phone } = route.params;
+  const { bookingId, paymentId, amount, currency = 'ETB', hotelName, phone } = route.params;
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [processing, setProcessing] = useState(false);
@@ -81,7 +81,7 @@ export default function TelebirrOtpScreen() {
     setProcessing(true);
 
     try {
-      const result = await request<{ status: string }>(`/payments/${bookingId}/verify-otp`, {
+      await request<{ status: string }>(`/payments/${paymentId}/verify-otp`, {
         method: 'POST',
         body: { code: otpCode },
         token,
@@ -108,14 +108,14 @@ export default function TelebirrOtpScreen() {
     } finally {
       setProcessing(false);
     }
-  }, [otpCode, processing, bookingId, token, amount, currency, hotelName, navigation]);
+  }, [otpCode, processing, paymentId, bookingId, token, amount, currency, hotelName, navigation]);
 
   const handleResend = async () => {
     if (resendCooldown > 0) return;
     try {
       await request(`/payments/${bookingId}/chapa-intent`, {
         method: 'POST',
-        body: { method: 'TELEBIRR', details: { phone } },
+        body: { method: 'TELEBIRR', phone },
         token,
       });
       setExpirySeconds(OTP_EXPIRY_SECONDS);
