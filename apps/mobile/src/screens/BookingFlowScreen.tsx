@@ -40,11 +40,9 @@ import {
   HoldTimer,
   AvailabilityAlert,
   PriceChangeAlert,
-  BookingSummary,
   QRCodeCard,
   QRCodeModal,
   PrimaryButton,
-  SecondaryButton,
 } from '../components/BookingComponents';
 import BookingReviewCard from '../components/BookingReviewCard';
 import type { BookingQuote } from '../types';

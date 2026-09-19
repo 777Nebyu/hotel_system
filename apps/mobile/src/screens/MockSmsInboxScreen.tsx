@@ -6,7 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import type { RootStackParamList } from '../navigation/types';
 import { useAppSelector } from '../store/hooks';
-import { request, ApiError } from '../api';
+import { request } from '../api';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
 import MockModeBanner from '../components/MockModeBanner';
@@ -41,7 +41,7 @@ export default function MockSmsInboxScreen() {
       // The API returns { data, count }; accept a bare array as well for
       // compatibility with older mock servers.
       setMessages(Array.isArray(result) ? result : result.data ?? []);
-    } catch (err) {
+    } catch {
       // Silent fail
     } finally {
       setLoading(false);

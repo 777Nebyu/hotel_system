@@ -14,7 +14,7 @@ export function useMockMode(): boolean {
 }
 
 export default function MockModeBanner() {
-  const { colors: c } = useTheme();
+  useTheme();
   const isDev = useMockMode();
   const [dismissed, setDismissed] = useState(false);
 

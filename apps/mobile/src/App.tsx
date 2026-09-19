@@ -11,7 +11,7 @@ import { Provider } from 'react-redux';
 import { store } from './store';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { restoreSession, loadSessionFromStorage, saveSessionToStorage, signOut } from './store/authSlice';
-import { request, setAuthExpiredCallback, refreshAccessToken } from './api';
+import { setAuthExpiredCallback, refreshAccessToken } from './api';
 import { getStoredPushToken, deregisterPushToken, registerPushToken } from './lib/notifications';
 import { ToastProvider } from './components/Toast';
 import OfflineBanner from './components/OfflineBanner';

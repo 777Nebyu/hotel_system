@@ -122,7 +122,7 @@ export default function TelebirrOtpScreen() {
       setResendCooldown(RESEND_COOLDOWN);
       setOtp(Array(OTP_LENGTH).fill(''));
       inputRefs.current[0]?.focus();
-    } catch (err) {
+    } catch {
       Alert.alert('Resend Failed', 'Could not resend OTP code.');
     }
   };

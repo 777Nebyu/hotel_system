@@ -1,6 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import { Platform } from 'react-native';
 import { API_URL } from '../api';
 
 const PUSH_TOKEN_KEY = 'yayetech.push.token';
