@@ -12,6 +12,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { signOut as signOutAction, saveSessionToStorage } from '../store/authSlice';
+import { request } from '../api';
+import { getStoredPushToken, deregisterPushToken } from '../lib/notifications';
 import { useTheme, type ColorScheme } from '../hooks/useTheme';
 import { useBiometricAuth } from '../hooks/useBiometricAuth';
 import { clearOfflineCache } from '../store/offlineCache';
@@ -24,11 +28,14 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<Nav>();
+  const dispatch = useAppDispatch();
+  const session = useAppSelector((s) => s.auth.session);
   const { preference, setPreference, colors: themeColors } = useTheme();
   const { isAvailable, isEnabled, enable, disable } = useBiometricAuth();
 
   const [currentLang, setCurrentLang] = useState(i18n.language.startsWith('am') ? 'am' : 'en');
   const [biometricsLoading, setBiometricsLoading] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const handleLanguageChange = async (lang: 'en' | 'am') => {
     hapticSelection();
@@ -74,6 +81,28 @@ export default function SettingsScreen() {
         },
       ],
     );
+  };
+
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          setSigningOut(true);
+          try {
+            const pushToken = await getStoredPushToken();
+            if (pushToken) await deregisterPushToken(pushToken);
+            await request('/auth/logout', { method: 'POST', token: session?.accessToken }).catch(() => {});
+          } finally {
+            await saveSessionToStorage(null);
+            dispatch(signOutAction());
+            setSigningOut(false);
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -232,6 +261,15 @@ export default function SettingsScreen() {
         </Pressable>
       </Card>
 
+      {/* Sign Out */}
+      <Pressable
+        onPress={handleSignOut}
+        disabled={signingOut}
+        style={({ pressed }) => [styles.signOutBtn, { borderColor: themeColors.brick + '40' }, pressed && { opacity: 0.7 }]}
+      >
+        <Text style={[styles.signOutText, { color: themeColors.brick }]}>{signingOut ? 'Signing out…' : 'Sign Out'}</Text>
+      </Pressable>
+
       {/* App Version */}
       <View style={styles.footer}>
         <Text style={[styles.versionText, { color: themeColors.inkMuted }]}>YayeTech Hotel Mobile v0.1.0 (Production Build)</Text>
@@ -277,4 +315,12 @@ const styles = StyleSheet.create({
   divider: { height: 1 },
   footer: { alignItems: 'center', marginTop: 16 },
   versionText: { fontSize: 12 },
+  signOutBtn: {
+    borderRadius: radius.card,
+    borderWidth: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  signOutText: { fontSize: 15, fontWeight: '700' },
 });

@@ -33,6 +33,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { signOut, saveSessionToStorage } from '../../store/authSlice';
 import { request } from '../../api';
+import { getStoredPushToken, deregisterPushToken } from '../../lib/notifications';
 import { ErrorBox } from '../../components/Shared';
 import { SkeletonCard } from '../../components/Skeleton';
 import { useThemeColors, shadowCard } from '../../theme';
@@ -335,14 +336,13 @@ export default function AdminOverviewScreen({ onNavigate, onBack }: Props) {
           onPress: async () => {
             setSigningOut(true);
             try {
-              // Tell the server to revoke the refresh token
+              const pushToken = await getStoredPushToken();
+              if (pushToken) await deregisterPushToken(pushToken);
               await request('/auth/logout', { method: 'POST', token });
             } catch {
               // Server logout failing is non-fatal — clear locally regardless
             } finally {
-              // Clear persisted session from secure storage
               await saveSessionToStorage(null as any);
-              // Clear Redux state — RootNavigator will redirect to Auth
               dispatch(signOut());
               setSigningOut(false);
             }
