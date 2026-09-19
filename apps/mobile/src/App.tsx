@@ -12,7 +12,7 @@ import { store } from './store';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { restoreSession, loadSessionFromStorage, saveSessionToStorage, signOut } from './store/authSlice';
 import { request, setAuthExpiredCallback, refreshAccessToken } from './api';
-import { getStoredPushToken, deregisterPushToken } from './lib/notifications';
+import { getStoredPushToken, deregisterPushToken, registerPushToken } from './lib/notifications';
 import { ToastProvider } from './components/Toast';
 import OfflineBanner from './components/OfflineBanner';
 import RootNavigator from './navigation/RootNavigator';
@@ -111,14 +111,41 @@ function SessionRestorer({ children }: { children: React.ReactNode }) {
 
 function NotificationHandler() {
   const session = useAppSelector((s) => s.auth.session);
+  const handledResponseRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (isExpoGoClient()) return;
 
     let isMounted = true;
+    let responseSubscription: { remove: () => void } | null = null;
     (async () => {
       try {
         const Notifications = await import('expo-notifications');
+        const routeNotificationResponse = (response: any) => {
+          const notification = response?.notification;
+          const data = (notification?.request?.content?.data ?? {}) as Record<string, unknown>;
+          const responseId = notification?.request?.identifier;
+          if (responseId && handledResponseRef.current === responseId) return;
+          if (responseId) handledResponseRef.current = responseId;
+
+          const type = String(data.type ?? data.notificationType ?? '').toLowerCase();
+          const bookingId = typeof data.bookingId === 'string' ? data.bookingId : undefined;
+          const role = session?.user?.role;
+          const isHotelRole = role === 'MANAGER' || role === 'STAFF' || role === 'ADMIN';
+          const isBookingNotification = type.startsWith('booking_') || type === 'new_booking';
+
+          setTimeout(() => {
+            if (!navigationRef.current?.isReady()) return;
+            if (!bookingId) {
+              navigationRef.current.navigate('Notifications');
+            } else if (isHotelRole && isBookingNotification) {
+              navigationRef.current.navigate('ManagerBookings');
+            } else {
+              navigationRef.current.navigate('BookingDetail', { bookingId });
+            }
+          }, 300);
+        };
+
         Notifications.setNotificationHandler({
           handleNotification: async () => ({
             shouldShowAlert: true,
@@ -146,32 +173,17 @@ function NotificationHandler() {
           });
         }
         const token = await Notifications.getExpoPushTokenAsync();
-        if (isMounted) {
-          await request('/notifications/register', {
-            method: 'POST',
-            body: { token: token.data, platform: Platform.OS },
-            token: session.accessToken,
-          });
-        }
-      } catch { /* ignore */ }
-    })();
+        if (isMounted) await registerPushToken(token.data, session.accessToken);
 
-    // Handle cold-start push notification tap
-    (async () => {
-      try {
-        const Notifications = await import('expo-notifications');
+        responseSubscription = Notifications.addNotificationResponseReceivedListener(routeNotificationResponse);
         const response = await Notifications.getLastNotificationResponseAsync();
-        if (response?.notification.request.content.data?.bookingId) {
-          const bookingId = response.notification.request.content.data.bookingId as string;
-          setTimeout(() => {
-            navigationRef.current?.navigate('BookingDetail', { bookingId });
-          }, 1000);
-        }
+        if (response) routeNotificationResponse(response);
       } catch { /* ignore */ }
     })();
 
     return () => {
       isMounted = false;
+      responseSubscription?.remove();
     };
   }, [session]);
 

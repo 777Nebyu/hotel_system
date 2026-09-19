@@ -28,7 +28,19 @@ export class NotificationsListener {
   async onBookingCreated(event: BookingCreatedEvent) {
     const booking = await this.db.booking.findUnique({
       where: { id: event.bookingId },
-      include: { user: true, hotel: { select: { name: true } } },
+      include: {
+        user: true,
+        hotel: {
+          select: {
+            name: true,
+            managerId: true,
+            manager: { select: { email: true } },
+            staffAssignments: {
+              select: { staffId: true, staff: { select: { email: true } } },
+            },
+          },
+        },
+      },
     });
     if (!booking) return;
     const total = booking.totalPrice.toNumber();
@@ -45,6 +57,55 @@ export class NotificationsListener {
       booking.userId,
       NOTIFICATION_TYPES.BOOKING_CREATED,
       payload,
+    );
+
+    // Notify the people responsible for the hotel so the booking appears in
+    // their inbox immediately, instead of relying on them to refresh the
+    // bookings screen. A user may be both manager and assigned staff; send
+    // only one notification per recipient.
+    const recipients = new Set<string>([
+      ...(booking.hotel.managerId ? [booking.hotel.managerId] : []),
+      ...booking.hotel.staffAssignments.map((assignment) => assignment.staffId),
+    ]);
+    const recipientEmails = new Map<string, string>();
+    if (booking.hotel.managerId && booking.hotel.manager?.email) {
+      recipientEmails.set(booking.hotel.managerId, booking.hotel.manager.email);
+    }
+    for (const assignment of booking.hotel.staffAssignments) {
+      recipientEmails.set(assignment.staffId, assignment.staff.email);
+    }
+    const staffPayload = {
+      ...payload,
+      title: 'New booking received',
+      message: `New booking ${booking.bookingRef} received for ${booking.hotel.name}. Review and confirm it from your bookings dashboard.`,
+    };
+    await Promise.all(
+      [...recipients]
+        .filter((recipientId) => recipientId !== booking.userId)
+        .map((recipientId) =>
+          this.dispatchInAppAndPush(
+            recipientId,
+            NOTIFICATION_TYPES.NEW_BOOKING,
+            staffPayload,
+          ),
+        ),
+    );
+
+    await Promise.all(
+      [...recipients]
+        .filter((recipientId) => recipientId !== booking.userId)
+        .map((recipientId) => {
+          const email = recipientEmails.get(recipientId);
+          return email
+            ? this.mail.enqueueNewBookingAlert(email, {
+                bookingRef: booking.bookingRef,
+                hotelName: booking.hotel.name,
+                checkIn: payload.checkIn,
+                checkOut: payload.checkOut,
+                total,
+              })
+            : Promise.resolve();
+        }),
     );
 
     await this.mail.enqueueBookingConfirmation(booking.user.email, {
@@ -157,6 +218,27 @@ export class NotificationsListener {
         userId,
         type,
         channel: NOTIFICATION_CHANNELS.EMAIL,
+        payload,
+      }),
+      this.notifications.notify({
+        userId,
+        type,
+        channel: NOTIFICATION_CHANNELS.PUSH,
+        payload,
+      }),
+    ]);
+  }
+
+  private async dispatchInAppAndPush(
+    userId: string,
+    type: string,
+    payload: Prisma.InputJsonValue,
+  ) {
+    await Promise.all([
+      this.notifications.notify({
+        userId,
+        type,
+        channel: NOTIFICATION_CHANNELS.IN_APP,
         payload,
       }),
       this.notifications.notify({

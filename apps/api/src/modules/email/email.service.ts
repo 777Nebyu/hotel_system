@@ -29,8 +29,13 @@ export class EmailService {
 
   async send(input: MailJob) {
     try {
-      const fromAddress = this.config.get<string>('email.from', 'noreply@yayetech.com');
-      const from = fromAddress.includes('<') ? fromAddress : `"StayHub" <${fromAddress}>`;
+      const fromAddress = this.config.get<string>(
+        'email.from',
+        'noreply@yayetech.com',
+      );
+      const from = fromAddress.includes('<')
+        ? fromAddress
+        : `"StayHub" <${fromAddress}>`;
       const res = await this.transporter.sendMail({
         from,
         ...input,
@@ -90,7 +95,9 @@ export class EmailService {
       'http://localhost:4000',
     );
     const exploreUrl = `${webUrl}/search`;
-    const name = fullName?.trim() ? fullName.trim().split(' ')[0] : 'Valued Guest';
+    const name = fullName?.trim()
+      ? fullName.trim().split(' ')[0]
+      : 'Valued Guest';
 
     return {
       to,
@@ -161,7 +168,6 @@ export class EmailService {
     };
   }
 
-
   passwordResetMail(to: string, token: string): MailJob {
     const webUrl = this.config.get<string>(
       'webOrigin',
@@ -224,6 +230,35 @@ export class EmailService {
             <p style="margin: 4px 0;"><strong>Total Price:</strong> $${details.total.toFixed(2)}</p>
           </div>
           <p>We look forward to hosting you!</p>
+        </div>
+      `,
+    };
+  }
+
+  newBookingMail(
+    to: string,
+    details: {
+      bookingRef: string;
+      hotelName: string;
+      checkIn: string;
+      checkOut: string;
+      total: number;
+    },
+  ): MailJob {
+    return {
+      to,
+      subject: `New booking requires review - ${details.bookingRef}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; line-height: 1.5;">
+          <h2 style="color: #0F2942;">New Booking Received</h2>
+          <p>A new reservation has been submitted for <strong>${details.hotelName}</strong> and requires your review.</p>
+          <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <p style="margin: 4px 0;"><strong>Booking Reference:</strong> ${details.bookingRef}</p>
+            <p style="margin: 4px 0;"><strong>Check-in:</strong> ${details.checkIn}</p>
+            <p style="margin: 4px 0;"><strong>Check-out:</strong> ${details.checkOut}</p>
+            <p style="margin: 4px 0;"><strong>Total:</strong> ETB ${details.total.toFixed(2)}</p>
+          </div>
+          <p>Open the manager bookings dashboard to confirm or reject this reservation.</p>
         </div>
       `,
     };

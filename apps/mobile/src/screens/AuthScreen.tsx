@@ -24,7 +24,7 @@ import { font } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import { hapticSuccess, hapticError } from '../hooks/useHaptics';
 import { loginSchema, registerSchema } from '../lib/schemas';
-import { getExpoPushToken } from '../lib/notifications';
+import { getExpoPushToken, registerPushToken } from '../lib/notifications';
 import { isBiometricEnabled, getStoredRefreshToken, enableBiometric, disableBiometric } from '../lib/biometrics';
 
 type Nav   = NativeStackNavigationProp<RootStackParamList, 'Auth'>;
@@ -453,11 +453,7 @@ export default function AuthScreen() {
       // push token registration — use authenticated request() so the auth header is included
       const pushToken = await getExpoPushToken();
       if (pushToken) {
-        request('/notifications/register', {
-          method: 'POST',
-          body: { token: pushToken, platform: Platform.OS },
-          token: session.accessToken,
-        }).catch(() => { /* non-critical — silent fail */ });
+        registerPushToken(pushToken, session.accessToken).catch(() => { /* non-critical — silent fail */ });
       }
 
       // offer biometric on first login
@@ -760,5 +756,4 @@ export default function AuthScreen() {
     </KeyboardAvoidingView>
   );
 }
-
 

@@ -1,7 +1,10 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { signOut as signOutAction, saveSessionToStorage } from '../../store/authSlice';
+import { request } from '../../api';
+import { getStoredPushToken, deregisterPushToken } from '../../lib/notifications';
 import ScreenHeader from '../../components/ScreenHeader';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -19,9 +22,33 @@ const MENU_ITEMS = [
 ] as const;
 
 export default function ManagerMoreScreen({ onBack, onNavigate }: Props) {
+  const dispatch = useAppDispatch();
   const session = useAppSelector((s) => s.auth.session);
   const user = session?.user;
   const { colors: c } = useTheme();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          setSigningOut(true);
+          try {
+            const pushToken = await getStoredPushToken();
+            if (pushToken) await deregisterPushToken(pushToken);
+            await request('/auth/logout', { method: 'POST', token: session?.accessToken }).catch(() => {});
+          } finally {
+            await saveSessionToStorage(null);
+            dispatch(signOutAction());
+            setSigningOut(false);
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={[styles.root, { backgroundColor: c.paper }]}>
@@ -67,6 +94,16 @@ export default function ManagerMoreScreen({ onBack, onNavigate }: Props) {
 
         {/* Version */}
         <Text style={[styles.version, { color: c.inkMuted }]}>YayeTech Hotel System v1.0</Text>
+
+        {/* Sign Out */}
+        <Pressable
+          onPress={handleSignOut}
+          disabled={signingOut}
+          style={({ pressed }) => [styles.signOutBtn, { borderColor: c.brick + '40' }, pressed && { opacity: 0.7 }]}
+        >
+          <Ionicons name="log-out-outline" size={20} color={c.brick} />
+          <Text style={[styles.signOutText, { color: c.brick }]}>{signingOut ? 'Signing out…' : 'Sign Out'}</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
@@ -135,5 +172,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     marginTop: 8,
+  },
+
+  signOutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 14,
+    marginTop: 4,
+  },
+  signOutText: {
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -20,6 +20,16 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const TYPE_META: Record<string, { icon: string; color: string }> = {
   BOOKING_CREATED:    { icon: '🏨', color: colors.teal },
+  booking_created:    { icon: '🏨', color: colors.teal },
+  new_booking:        { icon: '📥', color: colors.teal },
+  NEW_BOOKING:        { icon: '📥', color: colors.teal },
+  booking_confirmation: { icon: '✅', color: '#16A34A' },
+  booking_cancellation: { icon: '❌', color: '#EF4444' },
+  payment_received:   { icon: '💳', color: '#16A34A' },
+  payment_refunded:   { icon: '↩️', color: '#F59E0B' },
+  check_in_reminder:  { icon: '⏰', color: colors.teal },
+  manager_assigned:   { icon: '👤', color: colors.teal },
+  manager_removed:    { icon: '👤', color: '#EF4444' },
   BOOKING_CONFIRMED:  { icon: '✅', color: '#16A34A' },
   BOOKING_CANCELLED:  { icon: '❌', color: '#EF4444' },
   BOOKING_MODIFIED:   { icon: '✏️', color: '#F59E0B' },
@@ -45,7 +55,10 @@ function formatMessage(type: string, payload: Record<string, any> = {}) {
   const hotel = payload.hotelName || payload.hotel || '';
   const amount = payload.amount ? `ETB ${payload.amount}` : '';
   switch (type) {
-    case 'BOOKING_CREATED':    return { title: 'Booking Created', body: hotel ? `Your booking at ${hotel} is confirmed.` : 'Your booking has been created.' };
+    case 'BOOKING_CREATED':
+    case 'booking_created':    return { title: 'Booking Created', body: hotel ? `Your booking at ${hotel} has been received.` : 'Your booking has been created.' };
+    case 'new_booking':
+    case 'NEW_BOOKING':         return { title: 'New Booking', body: payload.message ?? `A new booking was received for ${hotel || 'your hotel'}.` };
     case 'BOOKING_CONFIRMED':  return { title: 'Booking Confirmed', body: hotel ? `Booking at ${hotel} confirmed.` : 'Your booking is confirmed.' };
     case 'BOOKING_CANCELLED':  return { title: 'Booking Cancelled', body: hotel ? `Your booking at ${hotel} was cancelled.` : 'Booking cancelled.' };
     case 'BOOKING_MODIFIED':   return { title: 'Booking Modified', body: 'Your booking has been updated.' };
@@ -170,10 +183,19 @@ export default function NotificationsScreen() {
     try {
       if (!item.readAt) await markRead.mutateAsync(item.id);
       if (item.payload?.bookingId) {
-        navigation.navigate('BookingDetail', { bookingId: item.payload.bookingId as string });
+        const isHotelBookingAlert = item.type === 'new_booking' || item.type === 'NEW_BOOKING';
+        const role = session?.user?.role;
+        if (isHotelBookingAlert && (role === 'MANAGER' || role === 'STAFF' || role === 'ADMIN')) {
+          navigation.navigate('ManagerBookings');
+        } else {
+          navigation.navigate('BookingDetail', { bookingId: item.payload.bookingId as string });
+        }
+      } else {
+        const message = item.payload?.message ?? 'There are no additional details for this notification.';
+        Alert.alert('Notification', message);
       }
     } catch { /* ignore */ }
-  }, [markRead, navigation]);
+  }, [markRead, navigation, session?.user?.role]);
 
   return (
     <View style={styles.container}>

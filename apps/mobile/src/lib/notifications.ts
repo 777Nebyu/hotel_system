@@ -52,19 +52,16 @@ export async function getExpoPushToken(): Promise<string | null> {
   }
 }
 
-export async function registerPushToken(userId: string, token: string): Promise<void> {
+export async function registerPushToken(token: string, accessToken: string): Promise<void> {
   try {
-    await fetch(`${API_URL}/notifications/register`, {
+    await fetch(`${API_URL}/notifications/push-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({
-        userId,
-        token,
-        platform: Platform.OS,
-      }),
+      body: JSON.stringify({ token }),
     });
     await SecureStore.setItemAsync(PUSH_TOKEN_KEY, token);
   } catch {

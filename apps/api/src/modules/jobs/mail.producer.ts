@@ -54,6 +54,19 @@ export class MailProducer {
     return this.enqueue(this.email.bookingConfirmationMail(to, details));
   }
 
+  enqueueNewBookingAlert(
+    to: string,
+    details: {
+      bookingRef: string;
+      hotelName: string;
+      checkIn: string;
+      checkOut: string;
+      total: number;
+    },
+  ): Promise<void> {
+    return this.enqueue(this.email.newBookingMail(to, details));
+  }
+
   enqueuePaymentReceipt(
     to: string,
     details: {
