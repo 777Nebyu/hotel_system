@@ -1,134 +1,41 @@
 # API Layer
 
-## File
+All mobile HTTP requests use `src/api.ts`.
 
-`src/api.ts` — The single HTTP client for all backend communication.
+## `request<T>()` behavior
 
-## How It Works
+- Builds the URL from `EXPO_PUBLIC_API_URL`.
+- Adds `Authorization: Bearer <access token>` when provided.
+- Sends JSON and parses JSON responses.
+- Applies a request timeout and maps network failures to `NetworkError`.
+- Attempts access-token refresh on `401`, then retries once.
+- Throws `ApiError` with the server status/message for non-success responses.
 
-Every API call goes through `request<T>()`:
+## Current endpoint groups
 
-```typescript
-import { request } from '../../api';
+| Area | Examples |
+|---|---|
+| Auth | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/verify-email` |
+| Catalog | `/hotels`, `/hotels/:id`, `/hotels/:id/rooms`, availability/amenities |
+| Customer bookings | `POST /bookings`, `GET /bookings/my`, `GET /bookings/:id`, `POST /bookings/:bookingId/cancel` |
+| Booking actions | `/bookings/:id/status-history`, modifications, disputes, reviews |
+| Chapa payments | `/payments/:bookingId/chapa-intent`, `/payments/:paymentId/verify-otp`, `/payments/:paymentId/bank-callback`, `/payments/:paymentId/status` |
+| Notifications | `GET /notifications`, `POST /notifications/push-token`, `/notifications/:id/read` |
+| Manager/staff | manager bookings, check-in/out, reports, walk-in bookings, hotel/room management |
+| Admin | `/admin/hotels`, `/admin/users`, `/admin/bookings`, `/admin/payments`, reports, settings, audit logs |
 
-// GET request
-const hotels = await request<Hotel[]>('/hotels', { method: 'GET', token });
+Always verify the controller before adding a mobile endpoint. For example, customer bookings are listed with `/bookings/my`, and cancellation uses `POST`, not `PATCH`.
 
-// POST request
-const booking = await request<Booking>('/bookings', {
-  method: 'POST',
-  body: { hotelId, roomId, checkIn, checkOut },
-  token,
-});
+## Response shapes
 
-// PUT request
-await request(`/admin/settings/commissionRate`, {
-  method: 'PUT',
-  body: { value: { rate: 10 } },
-  token,
-});
-```
+Many list endpoints return `{ data, meta }`; detail and action endpoints may return the resource directly. Screens type the expected shape at the call site and must not assume every endpoint uses the same envelope.
 
-## Features
+## Push registration
 
-### 1. Automatic Auth Headers
-```typescript
-// Token is automatically added as Authorization: Bearer <token>
-request('/hotels', { token: 'eyJ...' });
-// Sends: Authorization: Bearer eyJ...
-```
+After authentication, the app obtains an Expo token and calls:
 
-### 2. Token Refresh on 401
-```
-Request → 401 Unauthorized
-  → Refresh token sent to /auth/refresh
-  → New access token received
-  → Original request retried with new token
-  → If refresh fails → User logged out
-```
-
-### 3. Error Handling
-```typescript
-try {
-  await request('/hotels');
-} catch (err) {
-  if (err instanceof ApiError) {
-    console.log(err.status);   // 400, 401, 404, 500...
-    console.log(err.message);  // "Hotel not found"
-  }
-  if (err instanceof NetworkError) {
-    console.log(err.message);  // "Cannot reach server..."
-  }
-}
-```
-
-### 4. Timeout
-- Default: 15 seconds
-- Aborts request if server doesn't respond
-
-### 5. Offline Detection
-- Checks network status before request
-- Shows `NetworkError` with friendly message if offline
-
-## API Base URL
-
-Read from environment variable:
-```typescript
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
-```
-
-## Available Endpoints
-
-### Auth
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/auth/register` | Register new user |
-| POST | `/auth/login` | Login |
-| POST | `/auth/logout` | Logout |
-| POST | `/auth/refresh` | Refresh access token |
-| POST | `/auth/forgot-password` | Request password reset |
-| POST | `/auth/reset-password` | Reset password |
-| POST | `/auth/verify-email` | Verify email |
-
-### Hotels
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/hotels` | List hotels |
-| GET | `/hotels/:id` | Get hotel details |
-| GET | `/hotels/:id/rooms` | Get hotel rooms |
-
-### Bookings
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/bookings` | Create booking |
-| GET | `/bookings` | List my bookings |
-| GET | `/bookings/:id` | Get booking details |
-| PATCH | `/bookings/:id/cancel` | Cancel booking |
-
-### Admin
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/admin/hotels` | List all hotels |
-| GET | `/admin/users` | List all users |
-| GET | `/admin/bookings` | List all bookings |
-| GET | `/admin/payments` | List all payments |
-| GET | `/admin/settings` | Get platform settings |
-| PUT | `/admin/settings/:key` | Update setting |
-| GET | `/admin/reports/overview` | Dashboard data |
-| GET | `/admin/audit-logs` | Audit trail |
-
-### Disputes
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/disputes` | List disputes |
-| POST | `/disputes` | Create dispute |
-| PATCH | `/disputes/:id/resolve` | Resolve dispute |
-| PATCH | `/disputes/:id/assign` | Assign dispute |
-
-## Request/Response Types
-
-All shared types are in `@repo/shared-types` (monorepo package):
-
-```typescript
-import type { Hotel, Booking, User, UpsertSetting } from '@repo/shared-types';
+```text
+POST /notifications/push-token
+Authorization: Bearer <access token>
+{ "token": "ExponentPushToken[...]" }
 ```

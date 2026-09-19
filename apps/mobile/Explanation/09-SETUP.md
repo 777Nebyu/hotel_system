@@ -171,16 +171,16 @@ npx tsc --noEmit --project tsconfig.json
 
 The app uses PostgreSQL with Prisma ORM. Key models:
 
-- `User` — Guests, managers, admins
+- `User` — Customers, staff, managers, and admins
 - `Hotel` — Hotel listings
 - `Room` — Individual rooms
-- `Booking` — Guest reservations
+- `Booking` — Customer reservations and operational walk-ins
 - `Payment` — Transaction records
-- `Review` — Guest reviews
+- `Review` — Customer reviews
 - `Dispute` — Customer complaints
 - `PlatformSetting` — System configuration
 - `AuditLog` — System audit trail
-- `FeatureFlag` — Feature toggles
+- `PlatformSetting` — Platform settings and feature-flag values
 
 ## Monorepo Structure
 

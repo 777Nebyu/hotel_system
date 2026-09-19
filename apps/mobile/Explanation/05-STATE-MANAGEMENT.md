@@ -1,134 +1,33 @@
 # State Management
 
-## Redux Toolkit (Global State)
+## Redux Toolkit
 
-### Store Setup
+Redux stores client state that must survive screen changes:
 
-```typescript
-// store/index.ts
-import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './authSlice';
-import bookingFlowReducer from './bookingFlowSlice';
-import searchFiltersReducer from './searchFiltersSlice';
+- `authSlice` — session, user, access/refresh tokens, restore state.
+- `bookingFlowSlice` — customer booking wizard dates, guests, room, payment method, quote, and current step.
+- `searchFiltersSlice` — catalog search and filter selections.
 
-export const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    bookingFlow: bookingFlowReducer,
-    searchFilters: searchFiltersReducer,
-  },
-});
+The role type is `CUSTOMER | STAFF | MANAGER | ADMIN`; `GUEST` is not a runtime role.
+
+## React Query
+
+`src/hooks/useQueries.ts` provides cached server queries such as notifications, unread counts, hotels, and bookings. Screens that need specialized data may still use `request()` with `useState`/`useCallback`.
+
+## Local component state
+
+Loading, error, modal, form, and screen-only UI state stays in the screen component. Server data should not be copied into Redux unless it is part of an active client workflow.
+
+## Booking flow
+
+The current booking steps are:
+
+```text
+dates → guests → payment → review → done
 ```
 
-### Slices
+Payment-specific navigation then continues through Chapa Checkout, Telebirr OTP or Bank Auth, and Payment Result screens as needed.
 
-#### `authSlice.ts` — Authentication State
-```typescript
-interface AuthState {
-  session: {
-    accessToken: string;
-    refreshToken: string;
-    user: {
-      id: string;
-      email: string;
-      fullName: string;
-      role: 'GUEST' | 'MANAGER' | 'ADMIN';
-    };
-  } | null;
-}
+## Persistence
 
-// Actions
-saveSession(session)   // Store login data
-clearSession()         // Logout
-signOut()              // Full logout (clear storage + Redux)
-```
-
-**Usage in screens:**
-```typescript
-import { useAppSelector, useAppDispatch } from '../../store/hooks';
-
-function MyScreen() {
-  const token = useAppSelector((s) => s.auth.session?.accessToken ?? '');
-  const user = useAppSelector((s) => s.auth.session?.user);
-  const dispatch = useAppDispatch();
-
-  // Use token for API calls
-  const data = await request('/hotels', { token });
-
-  // Logout
-  dispatch(signOut());
-}
-```
-
-#### `bookingFlowSlice.ts` — Multi-Step Booking Wizard
-```typescript
-interface BookingFlowState {
-  hotelId: string | null;
-  roomId: string | null;
-  checkIn: string | null;
-  checkOut: string | null;
-  guests: number;
-  step: 'dates' | 'room' | 'payment' | 'confirm';
-}
-
-// Actions
-setHotel(hotelId)
-setRoom(roomId, price)
-setDates(checkIn, checkOut)
-setGuests(count)
-setStep(step)
-resetFlow()
-```
-
-#### `searchFiltersSlice.ts` — Hotel Search
-```typescript
-interface SearchFiltersState {
-  query: string;
-  checkIn: string | null;
-  checkOut: string | null;
-  minPrice: number;
-  maxPrice: number;
-  starRating: number;
-  amenities: string[];
-}
-
-// Actions
-setFilters(filters)
-clearFilters()
-```
-
-### Hooks
-
-```typescript
-// store/hooks.ts
-import { useSelector, useDispatch } from 'react-redux';
-import type { RootState, AppDispatch } from './index';
-
-export const useAppSelector = useSelector.withTypes<RootState>();
-export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
-```
-
-## React Query (Server State)
-
-Used in some screens for data fetching with automatic caching:
-
-```typescript
-import { useQueries } from '../../hooks/useQueries';
-
-// Parallel queries
-const [hotels, bookings] = useQueries([
-  { key: ['hotels'], fn: () => request('/hotels', { token }) },
-  { key: ['bookings'], fn: () => request('/bookings', { token }) },
-]);
-```
-
-## When to Use What
-
-| Use Case | Solution |
-|----------|----------|
-| User session / auth | Redux (`authSlice`) |
-| Multi-step booking wizard | Redux (`bookingFlowSlice`) |
-| Search filters | Redux (`searchFiltersSlice`) |
-| API data (hotels, bookings, etc.) | Direct `request()` + `useState`/`useCallback` |
-| Complex data dependencies | React Query |
-| Offline cache | `offlineCache.ts` |
+Sessions and the registered push token use Expo SecureStore. Redux is restored on startup by `SessionRestorer`; logout clears the stored session and deregisters the local token where supported.

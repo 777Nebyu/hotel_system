@@ -12,16 +12,21 @@
       "resizeMode": "contain",
       "backgroundColor": "#1f6f64"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yayetech.hotel",
-      "config": { "usesNonExemptEncryption": false },
-      "associatedDomains": ["applinks:yayetech.com"]
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "associatedDomains": [
+        "applinks:yayetech.com"
+      ]
     },
     "android": {
       "package": "com.yayetech.hotel",
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1f6f64"
@@ -29,9 +34,20 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "data": [{ "scheme": "yayetechhotel" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "yayetechhotel"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
+      ],
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ]
     },
     "web": {
@@ -39,7 +55,20 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      ["expo-secure-store", { "configureAndroidBackup": true }],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
+        }
+      ],
       [
         "expo-notifications",
         {
@@ -52,12 +81,14 @@
         {
           "faceIDPermission": "Allow YayeTech Hotel to use Face ID for quick unlock."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "7142f727-be73-4dc8-ac43-99a415a10557"
       }
-    }
+    },
+    "owner": "kibruyisfa"
   }
 }

@@ -1,92 +1,46 @@
 # Navigation System
 
-## Files
+## Navigation files
 
-| File | Purpose |
-|------|---------|
-| `navigation/RootNavigator.tsx` | Top-level navigator — checks auth state and routes to correct tab navigator |
-| `navigation/MainTabs.tsx` | Bottom tab bar (different tabs per role) |
-| `navigation/types.ts` | TypeScript types for all route params |
+| File | Responsibility |
+|---|---|
+| `src/navigation/RootNavigator.tsx` | Native stack, protected screens, role guards |
+| `src/navigation/MainTabs.tsx` | Customer bottom tabs |
+| `src/navigation/types.ts` | `RootStackParamList` and `TabParamList` |
+| `src/lib/navigationRef.ts` | Imperative navigation for push/deep-link handlers |
 
-## Navigation Structure
+## Actual structure
 
-```
-RootNavigator (Stack)
-├─ SplashScreen (splash)
-├─ OnboardingScreen (onboarding)
-├─ AuthScreen (auth)
-├─ ForgotPasswordScreen (forgotPassword)
-├─ ResetPasswordScreen (resetPassword)
-├─ VerifyEmailScreen (verifyEmail)
-│
-
-├─ GuestTabs (BottomTabs)        ← role: GUEST
-│  ├─ HomeTab (home)
-│  ├─ SearchTab (search)
-│  ├─ BookingsTab (bookings)
-│  ├─ FavoritesTab (favorites)
-│  └─ ProfileTab (profile)
-│
-├─ ManagerTabs (BottomTabs)      ← role: MANAGER
-│  ├─ OverviewTab (overview)
-│  ├─ BookingsTab (bookings)
-
-│  ├─ RoomsTab (rooms)
-│  ├─ ReportsTab (reports)
-│  └─ MoreTab (more)
-
-├─ AdminTabs (BottomTabs)        ← role: ADMIN
-│  ├─ OverviewTab (overview)
-│  ├─ BookingsTab (bookings)
-│  ├─ HotelsTab (hotels)
-│  ├─ UsersTab (users)
-  
-
-│  └─ SettingsTab (settings)
-│
-└─ Modal Screens (push on top of tabs)
-   ├─ HotelDetailScreen
-   ├─ RoomDetailScreen
-   ├─ BookingDetailScreen
-
-   ├─ BookingFlowScreen
-   ├─ BookingModifyScreen
-   ├─ BookingHistoryScreen
-   ├─ ReviewScreen
-   ├─ DisputeScreen / DisputeDetailScreen
-   ├─ ContactInboxScreen / ContactThreadDetailScreen
-   ├─ NotificationsScreen
-   ├─ ProfileEditScreen
-   ├─ SettingsScreen
-   ├─ HelpScreen
-   └─ Admin-specific screens (15 total)
+```text
+RootNavigator (native stack)
+├── MainTabs (customer)
+│   ├── HomeTab
+│   ├── BookingsTab
+│   ├── FavoritesTab
+│   └── ProfileTab
+├── Auth / ForgotPassword / VerifyEmail / ResetPassword
+├── HotelDetail / Search / RoomDetail
+├── BookingFlow / BookingDetail / BookingModify
+├── PaymentHistory / ChapaCheckout / TelebirrOtp / BankAuth / PaymentResult
+├── Notifications / Reviews / Disputes / Support
+├── ManagerOverview / ManagerBookings / ManagerHotel / ManagerRooms
+├── ManagerReports / ManagerMore / ManagerBilling / WalkInBooking
+└── AdminOverview / AdminUsers / AdminHotels / AdminBookings / ...
 ```
 
-## How Navigation Works
+There is no separate Guest, Manager, or Admin tab navigator in the current source.
 
-1. **App starts** → `RootNavigator` checks Redux auth state
-2. **No session** → Shows `AuthScreen`
-3. **Has session** → Reads `user.role` and shows the correct tab navigator
-4. **Screen push** → `onNavigate({ screen: 'HotelDetail', hotelId: '...' })` pattern
-5. **Go back** → `onBack()` prop passed to every screen
+## Protection
 
-## Screen Props Pattern
+- Public browsing screens can be opened without a session.
+- `withProtected()` adds `AuthGuard` to authenticated screens.
+- `RoleGuard` enforces allowed roles on customer, staff, manager, and admin screens.
+- Backend authorization remains authoritative; hiding a screen is not a security boundary.
 
-Every screen receives these props:
+## Navigation patterns
 
-```typescript
-interface Props {
-  onBack: () => void;                    // Navigate back
-  onNavigate?: (page: {                  // Navigate forward
-    screen: string;
-    [key: string]: any;                   // Extra params
-  }) => void;
-}
-```
+Most screens use `useNavigation()` and `useRoute()` from React Navigation. Some manager/admin wrappers receive `onBack` and `onNavigate` callbacks from `RootNavigator`; this is not a universal prop contract.
 
+## Deep links and notification taps
 
-## Deep Linking
-
-The app supports deep links via Expo:
-- `yayetech://hotel/:id` → Opens hotel detail
-- `yayetech://booking/:id` → Opens booking detail
+Configured links include `yayetech://hotel/:hotelId` and `yayetech://booking/:bookingId`. Push taps are handled in `App.tsx`: customer booking alerts open `BookingDetail`, while booking alerts for staff, managers, and admins open `ManagerBookings`.

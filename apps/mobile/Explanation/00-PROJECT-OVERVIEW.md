@@ -1,83 +1,67 @@
-# YayeTech Hotel - Mobile App Overview
+# YayeTech Hotel Mobile App — Current Overview
 
-## What is this?
+This document describes the implementation currently in `apps/mobile`.
 
-A **React Native / Expo** mobile application for the YayeTech Hotel Booking System. It serves three user roles:
+## Roles
 
-- **Guest** — Browse hotels, book rooms, manage bookings, leave reviews, raise disputes
-- **Hotel Manager** — Manage rooms, view bookings, handle walk-ins, generate reports
-- **Platform Admin** — Oversee all hotels, users, payments, disputes, settings
+The API and mobile app use four roles:
 
-## Tech Stack
+- `CUSTOMER` — browse hotels, book rooms, pay, manage personal bookings, reviews, disputes, and support.
+- `STAFF` — operate assigned hotels: bookings, check-in/out, reports, and walk-in bookings.
+- `MANAGER` — manage assigned hotels, rooms, pricing, bookings, reports, and walk-ins.
+- `ADMIN` — platform-wide users, hotels, bookings, payments, reports, settings, moderation, and audit tools.
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | React Native 0.81 + Expo SDK 54 |
+There is no `GUEST` role in the code. Unauthenticated visitors can browse public content, but booking and account actions require `CUSTOMER` authentication.
+
+## Technology
+
+| Layer | Current implementation |
+|---|---|
+| Framework | React Native 0.81.5 + Expo SDK 54 |
 | Language | TypeScript 5.9 |
-| State | Redux Toolkit + React Query |
-| Navigation | React Navigation 7 (native-stack + bottom-tabs) |
-| Styling | React Native StyleSheet + custom theme system |
-| API | REST (fetch wrapper) |
-| Storage | Expo SecureStore (tokens), AsyncStorage (cache) |
-| Testing | Jest + React Native Testing Library |
+| Navigation | React Navigation 7 native stack + customer bottom tabs |
+| Client state | Redux Toolkit |
+| Server state | TanStack React Query |
+| Styling | React Native `StyleSheet` + `useTheme` tokens |
+| API | Typed `fetch` wrapper in `src/api.ts` |
+| Storage | SecureStore for sessions and push tokens |
+| Tests | Jest + React Native Testing Library |
 
-## Project Structure
+## Source layout
 
-```
-mobile/
-├── index.ts              # Expo entrypoint
+```text
+apps/mobile/
+├── index.ts
 ├── src/
-│   ├── App.tsx           # Root component (providers wrap here)
-│   ├── api.ts            # HTTP client (fetch wrapper + auth retry)
-│   ├── theme.ts          # Light/dark theme tokens
-│   ├── types.ts          # Shared TypeScript types
-│   ├── errors.ts         # Error classes (ApiError, NetworkError)
-│   ├── i18n.ts           # Internationalization (English + Amharic)
-│   │
-│   ├── navigation/       # React Navigation setup
-│   ├── screens/          # 50 screen components
-│   │   ├── (27 guest screens)
-│   │   ├── admin/        # (15 admin screens)
-│   │   └── manager/      # (8 manager screens)
-│   ├── components/       # 19 reusable UI components
-│   ├── hooks/            # 9 custom React hooks
-│   ├── store/            # Redux store (auth, booking flow, search)
-│   ├── lib/              # Utility libraries
-│   └── locales/          # Translation files (en, am)
+│   ├── App.tsx
+│   ├── api.ts
+│   ├── navigation/       # RootNavigator, MainTabs, route types
+│   ├── screens/          # 58 TSX screen files
+│   │   ├── admin/         # 15 admin screens
+│   │   └── manager/       # 9 manager/staff screens
+│   ├── components/
+│   ├── hooks/
+│   ├── store/             # auth, booking flow, search filters
+│   ├── lib/               # push, biometrics, calendar, navigation
+│   └── locales/           # English and Amharic
+└── Explanation/
 ```
 
-## How to Run
+## Main flows
+
+- Authentication: login/register → session restore → role guard.
+- Customer booking: dates → guests → payment method → review → confirmation.
+- Payments: Chapa mock flow with Telebirr OTP and bank authorization screens.
+- Hotel operations: booking list → confirm/reject → check-in → check-out.
+- Notifications: in-app list, push registration, and role-aware booking deep links.
+
+## Run
+
+From the monorepo root:
 
 ```bash
-# Install dependencies
 pnpm install
-
-# Start Expo dev server
-cd apps/mobile
-pnpm start
-
-# Run on Android emulator
-pnpm android
-
-# Run on iOS simulator
-pnpm ios
+pnpm --filter mobile start
 ```
 
-## Environment Variables
-
-Set in `.env`:
-```
-EXPO_PUBLIC_API_URL=http://192.168.1.12:3001
-EXPO_PUBLIC_MOCK_PAYMENT_SECRET=your-secret-here
-```
-
-## Key Features
-
-1. **Authentication** — Email/password login, JWT tokens, biometric auth
-2. **Hotel Search** — Filters, date picker, availability calendar
-3. **Booking Flow** — Multi-step wizard with payment
-4. **Real-time Updates** — Pull-to-refresh on all data screens
-5. **Offline Support** — Network detection, offline banner
-6. **Dark Mode** — Full light/dark theme with system preference detection
-7. **Internationalization** — English and Amharic languages
-8. **Role-based Access** — Different navigation and screens per role
+Set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` to an API address reachable by the device.
