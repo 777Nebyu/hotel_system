@@ -140,7 +140,7 @@ export default function ChapaCheckoutScreen() {
 
         {/* Payment Summary */}
         <View style={[styles.summaryCard, { backgroundColor: c.surface, borderColor: c.line }]}>
-          <Text style={[styles.merchantName, { color: c.ink }]}>{hotelName || 'YayeTech Hotel'}</Text>
+          <Text style={[styles.merchantName, { color: c.ink }]}>{hotelName || 'LuxSty Hotel'}</Text>
           {roomType && <Text style={[styles.roomType, { color: c.inkMuted }]}>{roomType}</Text>}
           <Text style={[styles.amount, { color: c.teal }]}>{currency} {Number(amount).toLocaleString()}</Text>
         </View>

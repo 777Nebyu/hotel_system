@@ -20,14 +20,14 @@ function generateICS(event: CalendarEvent): string {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//YayeTech Hotel//Booking//EN',
+    'PRODID:-//LuxSty Hotel//Booking//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
     `DTSTART:${dtStart}`,
     `DTEND:${dtEnd}`,
     `DTSTAMP:${now}`,
-    `UID:${now}-${Math.random().toString(36).slice(2)}@yayetechhotel`,
+    `UID:${now}-${Math.random().toString(36).slice(2)}@luxstyhotel`,
     `SUMMARY:${event.title}`,
     event.location ? `LOCATION:${event.location}` : '',
     event.notes ? `DESCRIPTION:${event.notes.replace(/\n/g, '\\n')}` : '',
@@ -41,7 +41,7 @@ export async function addBookingToCalendar(event: CalendarEvent): Promise<boolea
   try {
     const { File, Paths } = await import('expo-file-system');
     const icsContent = generateICS(event);
-    const filename = `yayetech-booking-${Date.now()}.ics`;
+    const filename = `luxsty-booking-${Date.now()}.ics`;
     const file = new File(Paths.document, filename);
     file.write(icsContent);
 

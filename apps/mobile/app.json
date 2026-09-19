@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "YayeTech Hotel",
-    "slug": "yayetech-hotel",
+    "name": "LuxSty Hotel",
+    "slug": "luxsty-hotel",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "scheme": "yayetechhotel",
+    "scheme": "luxstyhotel",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -17,16 +17,16 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yayetech.hotel",
+      "bundleIdentifier": "com.luxsty.hotel",
       "config": {
         "usesNonExemptEncryption": false
       },
       "associatedDomains": [
-        "applinks:yayetech.com"
+        "applinks:luxsty.com"
       ]
     },
     "android": {
-      "package": "com.yayetech.hotel",
+      "package": "com.luxsty.hotel",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1f6f64"
@@ -36,7 +36,7 @@
           "action": "VIEW",
           "data": [
             {
-              "scheme": "yayetechhotel"
+              "scheme": "luxstyhotel"
             }
           ],
           "category": [
@@ -79,7 +79,7 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow YayeTech Hotel to use Face ID for quick unlock."
+          "faceIDPermission": "Allow LuxSty Hotel to use Face ID for quick unlock."
         }
       ],
       "expo-font"

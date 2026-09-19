@@ -354,7 +354,7 @@ export function Logo({ size = 30, showWordmark = true }: { size?: number; showWo
       <View style={[styles.logoMark, { width: size, height: size, borderRadius: size * 0.22 }]}>
         <Text style={[styles.logoGlyph, { fontSize: size * 0.5 }]}>Y</Text>
       </View>
-      {showWordmark && <Text style={styles.logoWord}>YayeTech</Text>}
+      {showWordmark && <Text style={styles.logoWord}>LuxSty</Text>}
     </View>
   );
 }

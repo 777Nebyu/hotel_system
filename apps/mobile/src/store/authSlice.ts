@@ -9,7 +9,7 @@ interface AuthState {
   isRestoring: boolean;
 }
 
-const SESSION_KEY = 'yayetech.hotel.session';
+const SESSION_KEY = 'luxsty.hotel.session';
 
 const initialState: AuthState = { session: null, isRestoring: true };
 

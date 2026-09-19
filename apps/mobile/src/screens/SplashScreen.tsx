@@ -29,7 +29,7 @@ export default function SplashScreen() {
     <View style={styles.container}>
       <View style={styles.content}>
         <Logo size={56} showWordmark={false} />
-        <Text style={styles.title}>YayeTech</Text>
+        <Text style={styles.title}>LuxSty</Text>
         <Text style={styles.subtitle}>HOTEL & RESORT COLLECTION</Text>
       </View>
       <View style={styles.footer}>

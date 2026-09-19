@@ -93,7 +93,7 @@ export default function ManagerMoreScreen({ onBack, onNavigate }: Props) {
         </View>
 
         {/* Version */}
-        <Text style={[styles.version, { color: c.inkMuted }]}>YayeTech Hotel System v1.0</Text>
+        <Text style={[styles.version, { color: c.inkMuted }]}>LuxSty Hotel System v1.0</Text>
 
         {/* Sign Out */}
         <Pressable

@@ -533,7 +533,7 @@ export default function AuthScreen() {
           <View style={styles.logoMark}>
             <Ionicons name="bed" size={20} color="#FFFFFF" />
           </View>
-          <Text style={styles.logoWord}>YayeTech</Text>
+          <Text style={styles.logoWord}>LuxSty</Text>
         </View>
 
         <Text style={styles.heading}>
@@ -542,7 +542,7 @@ export default function AuthScreen() {
         <Text style={styles.subheading}>
           {mode === 'login'
             ? 'Sign in to manage your stays'
-            : 'Join thousands of travellers on YayeTech'}
+            : 'Join thousands of travellers on LuxSty'}
         </Text>
 
         {/* ── Mode toggle pills ─────────────────────────────────────────── */}

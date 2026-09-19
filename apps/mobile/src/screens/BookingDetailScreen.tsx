@@ -257,7 +257,7 @@ export default function BookingDetailScreen() {
       const end = new Date(booking.checkOut);
       end.setDate(end.getDate() + 1);
       const ok = await addBookingToCalendar({
-        title: `YayeTech: ${booking.hotel?.name ?? 'Hotel'}`,
+        title: `LuxSty: ${booking.hotel?.name ?? 'Hotel'}`,
         startDate: start,
         endDate: end,
         location: booking.hotel?.name,

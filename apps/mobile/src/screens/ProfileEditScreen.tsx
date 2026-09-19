@@ -32,7 +32,7 @@ import { useResponsivePadding } from '../hooks/useResponsivePadding';
 import { hapticLight, hapticMedium } from '../hooks/useHaptics';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
-const PREFS_KEY = 'yayetech.notification.prefs';
+const PREFS_KEY = 'luxsty.notification.prefs';
 
 export default function ProfileEditScreen() {
   const insets = useSafeAreaInsets();

@@ -656,7 +656,7 @@ export default function AdminOverviewScreen({ onNavigate }: Props) {
               {session?.user?.fullName ?? 'Administrator'}
             </Text>
             <Text style={[s.adminFooterRole, { color: c.inkSoft }]}>
-              {session?.user?.email ?? 'admin@yayetech.com'}
+              {session?.user?.email ?? 'admin@luxsty.com'}
             </Text>
           </View>
           <View style={[s.adminRolePill, { backgroundColor: c.umber }]}>

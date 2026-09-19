@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { API_URL } from '../api';
 
-const PUSH_TOKEN_KEY = 'yayetech.push.token';
+const PUSH_TOKEN_KEY = 'luxsty.push.token';
 
 function isExpoGo(): boolean {
   return (

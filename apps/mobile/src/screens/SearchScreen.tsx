@@ -90,7 +90,7 @@ const FALLBACK =
   'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&h=600&fit=crop&auto=format';
 
 const { width: SW } = Dimensions.get('window');
-const RECENT_KEY = 'yayetech.recent_v3';
+const RECENT_KEY = 'luxsty.recent_v3';
 
 type Nav     = NativeStackNavigationProp<RootStackParamList>;
 type SortKey = '' | 'popularity' | 'rating_desc' | 'price_asc' | 'price_desc';

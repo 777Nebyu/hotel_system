@@ -33,7 +33,7 @@ type RequestOptions = Omit<RequestInit, 'body'> & { body?: unknown; token?: stri
 let isRefreshing = false;
 let refreshPromise: Promise<string> | null = null;
 
-const SESSION_KEY = 'yayetech.hotel.session';
+const SESSION_KEY = 'luxsty.hotel.session';
 
 async function getRefreshToken(): Promise<string | null> {
   try {

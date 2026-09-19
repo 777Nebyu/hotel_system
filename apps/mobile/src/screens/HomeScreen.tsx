@@ -217,7 +217,7 @@ export default function HomeScreen() {
     >
       <View style={styles.topBar}>
         <View>
-          <Text style={[styles.brandHeader, { color: palette.teal }]}>YayeTech</Text>
+          <Text style={[styles.brandHeader, { color: palette.teal }]}>LuxSty</Text>
           <Text style={[styles.greeting, { color: dark ? '#B6C3D9' : colors.inkMuted }]}>{greeting},</Text>
           <Text style={[styles.greetingName, { color: dark ? '#F8FAFC' : colors.ink }]}>{firstName} 👋</Text>
         </View>

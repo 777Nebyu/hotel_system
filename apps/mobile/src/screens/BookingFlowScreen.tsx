@@ -652,7 +652,7 @@ export default function BookingFlowScreen() {
     const end = new Date(checkOut ?? Date.now());
     end.setDate(end.getDate() + 1);
     const ok = await addBookingToCalendar({
-      title: `YayeTech: ${hotelName}`,
+      title: `LuxSty: ${hotelName}`,
       startDate: start,
       endDate: end,
       location: hotelName,

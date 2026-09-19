@@ -28,7 +28,7 @@ import { crashReporter } from './lib/crashReporting';
 void crashReporter.init();
 
 const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: ['yayetechhotel://', 'https://yayetech.com'],
+  prefixes: ['luxstyhotel://', 'https://luxsty.com'],
   config: {
     screens: {
       VerifyEmail: 'verify/:token',

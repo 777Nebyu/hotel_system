@@ -1783,7 +1783,7 @@ export function QRCodeModal({
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `YayeTech Booking: ${bookingRef}\nHotel: ${hotelName ?? 'Hotel'}\nRoom: ${roomType ?? ''}${roomNumber ? ` #${roomNumber}` : ''}\nDates: ${checkIn ?? ''} - ${checkOut ?? ''}\nGuest: ${guestName ?? ''}`,
+        message: `LuxSty Booking: ${bookingRef}\nHotel: ${hotelName ?? 'Hotel'}\nRoom: ${roomType ?? ''}${roomNumber ? ` #${roomNumber}` : ''}\nDates: ${checkIn ?? ''} - ${checkOut ?? ''}\nGuest: ${guestName ?? ''}`,
       });
     } catch { /* share cancelled */ }
   };
