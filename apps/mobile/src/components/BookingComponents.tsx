@@ -431,32 +431,32 @@ export function DateStrip({
     <View style={ds.strip} accessibilityLabel={`Check in ${fmtLong(checkIn)}, check out ${fmtLong(checkOut)}, ${nights} nights`}>
       <View style={ds.block}>
         <Text style={ds.label}>CHECK-IN</Text>
-        <Text style={[ds.date, compact && ds.dateSmall]}>{fmt(checkIn)}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={[ds.date, compact && ds.dateSmall]}>{fmt(checkIn)}</Text>
       </View>
-      <View style={ds.mid}>
+      <View style={ds.mid} accessibilityLabel={`${nights} ${nights === 1 ? 'night' : 'nights'}`}>
         <View style={[ds.line, { backgroundColor: BK.border }]} />
         <View style={ds.pill}>
-          <Text style={ds.nights}>{nights} {nights === 1 ? 'night' : 'nights'}</Text>
+          <Text numberOfLines={1} style={ds.nights}>{nights} {nights === 1 ? 'night' : 'nights'}</Text>
         </View>
         <View style={[ds.line, { backgroundColor: BK.border }]} />
       </View>
       <View style={[ds.block, { alignItems: 'flex-end' }]}>
         <Text style={ds.label}>CHECK-OUT</Text>
-        <Text style={[ds.date, compact && ds.dateSmall]}>{fmt(checkOut)}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={[ds.date, compact && ds.dateSmall]}>{fmt(checkOut)}</Text>
       </View>
     </View>
   );
 }
 const ds = StyleSheet.create({
-  strip:     { flexDirection: 'row', alignItems: 'center', backgroundColor: BK.bg, borderRadius: 12, padding: 14 },
-  block:     { flex: 1 },
+  strip:     { flexDirection: 'row', alignItems: 'center', backgroundColor: BK.bg, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, minHeight: 66 },
+  block:     { flex: 1, minWidth: 0 },
   label:     { fontSize: 11, fontWeight: '700', color: BK.checkedIn, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 4 },
   date:      { fontSize: 14, fontWeight: '700', color: BK.text },
   dateSmall: { fontSize: 13 },
-  mid:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 },
-  line:      { flex: 1, height: 1, width: 16 },
-  pill:      { backgroundColor: BK.white, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: BK.border },
-  nights:    { fontSize: 11, fontWeight: '700', color: BK.navyMuted, letterSpacing: 0.2 },
+  mid:       { flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, minWidth: 76 },
+  line:      { flex: 1, height: 1, minWidth: 6 },
+  pill:      { backgroundColor: BK.white, borderRadius: 20, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: BK.border },
+  nights:    { fontSize: 10, fontWeight: '700', color: BK.navyMuted, letterSpacing: 0.1 },
 });
 
 // ─── PriceBreakdown ──────────────────────────────────────────────────────────
