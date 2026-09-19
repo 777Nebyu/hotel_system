@@ -55,7 +55,7 @@ export default function BankAuthScreen() {
     setProcessing(true);
 
     try {
-      await request(`/payments/${paymentId}/bank-callback`, {
+      const res = await request<{ status: string; reason?: string; paymentId: string }>(`/payments/${paymentId}/bank-callback`, {
         method: 'POST',
         body: {
           status: 'AUTHORIZED',
@@ -69,7 +69,7 @@ export default function BankAuthScreen() {
 
       navigation.navigate('PaymentResult', {
         bookingId,
-        status: 'PROCESSING',
+        status: res.status === 'SUCCEEDED' ? 'SUCCEEDED' : 'FAILED',
         amount,
         currency,
         hotelName,
