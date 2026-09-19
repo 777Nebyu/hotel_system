@@ -7,13 +7,16 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://localhost:3001"
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.19:3001"
       }
     },
     "preview": {
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api-staging.yayetech.com"
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.19:3001"
       }
     },
     "production": {
@@ -23,17 +26,6 @@
     }
   },
   "submit": {
-    "production": {
-      "ios": {
-        "appleId": "developer@yayetech.com",
-        "ascAppId": "6478901234",
-        "appleTeamId": "YAYETECH01",
-        "bundleIdentifier": "com.yayetech.hotel"
-      },
-      "android": {
-        "serviceAccountKeyPath": "./google-services.json",
-        "package": "com.yayetech.hotel"
-      }
-    }
+    "production": {}
   }
 }
