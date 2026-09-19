@@ -156,7 +156,7 @@ const HelpWrapped = withSuspense(HelpScreen);
 const OnboardingWrapped = withSuspense(OnboardingScreen);
 
 // Admin screens
-const AdminOverviewWrapped = withProtected(() => <AdminOverviewScreen onBack={goBack} onNavigate={(p: any) => goTo(p.screen, p)} />, ['ADMIN']);
+const AdminOverviewWrapped = withProtected(() => <AdminOverviewScreen onBack={() => {}} onNavigate={(p: any) => goTo(p.screen, p)} />, ['ADMIN']);
 const AdminUsersWrapped = withProtected(() => <AdminUsersScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
 const AdminHotelsWrapped = withProtected(() => <AdminHotelsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);
 const AdminBookingsWrapped = withProtected(() => <AdminBookingsScreen onBack={() => goTo('AdminOverview')} />, ['ADMIN']);

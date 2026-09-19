@@ -394,9 +394,7 @@ export default function AdminOverviewScreen({ onNavigate, onBack }: Props) {
     <View style={[s.root, { backgroundColor: c.paper }]}>
       <StatusBar barStyle={statusBarStyle} backgroundColor={c.paper} />
       <View style={[s.headerShell, { paddingTop: insets.top + 8, backgroundColor: c.paper }]}>
-        <Pressable onPress={onBack} hitSlop={10} style={[s.headerBtn, { backgroundColor: c.surface, borderColor: c.line }]}>
-          <Ionicons name="arrow-back" size={20} color={c.ink} />
-        </Pressable>
+        <View style={s.headerBtn} />
       </View>
       <View style={s.center}><ErrorBox message={error} onRetry={load} /></View>
     </View>
@@ -417,19 +415,8 @@ export default function AdminOverviewScreen({ onNavigate, onBack }: Props) {
         },
       ]}>
         <View style={s.headerRow}>
-          {/* Back */}
-          <Pressable
-            onPress={onBack}
-            hitSlop={8}
-            style={({ pressed }) => [
-              s.headerBtn,
-              { backgroundColor: pressed ? c.clay : c.surface, borderColor: c.line },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <Ionicons name="arrow-back" size={20} color={c.ink} />
-          </Pressable>
+          {/* Spacer (AdminOverview is root — no back button) */}
+          <View style={s.headerBtn} />
 
           {/* Center */}
           <View style={s.headerCenter}>
