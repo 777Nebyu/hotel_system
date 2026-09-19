@@ -1,0 +1,18 @@
+-- AlterEnum
+ALTER TYPE "RoomStatus" ADD VALUE IF NOT EXISTS 'CLEANING';
+
+-- AlterTable
+ALTER TABLE "Review" ADD COLUMN IF NOT EXISTS "respondedAt" TIMESTAMP(3);
+ALTER TABLE "Review" ADD COLUMN IF NOT EXISTS "respondedById" TEXT;
+ALTER TABLE "Review" ADD COLUMN IF NOT EXISTS "response" TEXT;
+ALTER TABLE "Review" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- AddForeignKey
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'Review_respondedById_fkey'
+  ) THEN
+    ALTER TABLE "Review" ADD CONSTRAINT "Review_respondedById_fkey" FOREIGN KEY ("respondedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END $$;

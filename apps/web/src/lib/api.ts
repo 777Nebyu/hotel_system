@@ -165,12 +165,28 @@ async function request<T>(path: string, opts: ApiOptions = {}): Promise<T> {
       details = errObj.details || (data as any).details
     }
 
-    throw new ApiError(
-      message || (typeof data === 'string' && data ? data : `Request failed (${res.status})`),
-      res.status,
-      code,
-      details,
-    )
+    let cleanMessage =
+      message || (typeof data === 'string' && data ? data : `Request failed (${res.status})`)
+
+    if (
+      typeof cleanMessage === 'string' &&
+      (cleanMessage.includes('invocation in') || cleanMessage.includes('→'))
+    ) {
+      const parts = cleanMessage
+        .split('\n')
+        .map((p) => p.trim())
+        .filter(
+          (p) =>
+            Boolean(p) &&
+            !p.startsWith('Invalid `') &&
+            !p.includes('invocation in') &&
+            !p.startsWith('→') &&
+            !/^\d+\s/.test(p),
+        )
+      cleanMessage = parts[parts.length - 1] || 'An unexpected error occurred. Please try again.'
+    }
+
+    throw new ApiError(cleanMessage, res.status, code, details)
   }
 
   return data as T

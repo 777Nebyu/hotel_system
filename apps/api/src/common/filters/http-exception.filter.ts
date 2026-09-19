@@ -93,13 +93,67 @@ export class HttpExceptionFilter implements ExceptionFilter {
       code = 'VALIDATION_ERROR';
       message = 'Validation failed';
       details = (exception as any).issues || (exception as any).errors || null;
+    } else if (
+      (exception as any)?.code?.startsWith?.('P') ||
+      (exception as any)?.name?.startsWith?.('Prisma')
+    ) {
+      const prismaCode = (exception as any).code;
+      if (prismaCode === 'P2002') {
+        statusCode = HttpStatus.CONFLICT;
+        code = 'DUPLICATE_RECORD';
+        message = 'A record with these details already exists.';
+      } else if (prismaCode === 'P2025') {
+        statusCode = HttpStatus.NOT_FOUND;
+        code = 'RECORD_NOT_FOUND';
+        message = (exception as any)?.meta?.cause || 'The requested record was not found.';
+      } else if (prismaCode === 'P2003') {
+        statusCode = HttpStatus.BAD_REQUEST;
+        code = 'DEPENDENCY_CONSTRAINT';
+        message = 'Operation cannot be completed because of related record dependencies.';
+      } else {
+        statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+        code = prismaCode || 'DATABASE_ERROR';
+        // Extract clean human-readable error text, discarding internal code blocks & paths
+        const raw = (exception as Error).message || '';
+        const cleanLines = raw
+          .split('\n')
+          .map((l) => l.trim())
+          .filter(
+            (l) =>
+              Boolean(l) &&
+              !l.startsWith('Invalid `') &&
+              !l.includes('invocation in') &&
+              !l.startsWith('→') &&
+              !/^\d+\s/.test(l) &&
+              !l.startsWith('at ') &&
+              !l.includes('client-engine-runtime'),
+          );
+        message = cleanLines[cleanLines.length - 1] || 'Database operation failed.';
+      }
+      details = (exception as any)?.meta || null;
     } else if (exception instanceof Error) {
       statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
       code = 'INTERNAL_SERVER_ERROR';
-      message =
-        process.env.NODE_ENV === 'production'
-          ? 'Internal server error'
-          : exception.message || 'Internal server error';
+      const raw = exception.message || '';
+      if (raw.includes('invocation in') || raw.includes('→')) {
+        const cleanLines = raw
+          .split('\n')
+          .map((l) => l.trim())
+          .filter(
+            (l) =>
+              Boolean(l) &&
+              !l.startsWith('Invalid `') &&
+              !l.includes('invocation in') &&
+              !l.startsWith('→') &&
+              !/^\d+\s/.test(l),
+          );
+        message = cleanLines[cleanLines.length - 1] || 'Internal server error';
+      } else {
+        message =
+          process.env.NODE_ENV === 'production'
+            ? 'Internal server error'
+            : raw || 'Internal server error';
+      }
       details = null;
     }
 
