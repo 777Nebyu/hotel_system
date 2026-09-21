@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import HeroSearchBar from './HeroSearchBar'
 import CountUp from '@/components/CountUp'
 import { motion, type Variants } from 'framer-motion'
+import { Check } from 'lucide-react'
 
 // Aurora uses WebGL — load client-only
 const Aurora = dynamic(() => import('@/components/Aurora'), { ssr: false })
@@ -138,13 +139,13 @@ export default function HeroAnimated() {
           className="flex flex-wrap items-center gap-6 mt-6 text-white/70 text-sm"
         >
           <span className="flex items-center gap-1.5">
-            <span className="text-[#A16207]">✓</span> Free cancellation
+            <Check className="w-4 h-4 text-[#D4AF37] shrink-0" /> Free cancellation
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="text-[#A16207]">✓</span> Best price guarantee
+            <Check className="w-4 h-4 text-[#D4AF37] shrink-0" /> Best price guarantee
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="text-[#A16207]">✓</span> No booking fees
+            <Check className="w-4 h-4 text-[#D4AF37] shrink-0" /> No booking fees
           </span>
         </motion.div>
 

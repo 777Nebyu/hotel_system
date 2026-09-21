@@ -58,10 +58,10 @@ function VerifyEmailContent() {
       <div className="max-w-md w-full bg-white rounded-2xl p-8 border border-[#E2E8F0] shadow-sm text-center">
         <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
           <div className="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-[#996515] rounded-xl flex items-center justify-center shadow-md">
-            <span className="text-white text-base font-serif font-bold">Y</span>
+            <span className="text-white text-base font-serif font-bold">L</span>
           </div>
           <span className="font-serif text-2xl font-bold text-[#0F2942]">
-            YayeTech <span className="text-[#D4AF37] text-sm font-sans font-normal">Luxury</span>
+            LuxStay <span className="text-[#D4AF37] text-sm font-sans font-normal">Luxury</span>
           </span>
         </Link>
 
@@ -71,7 +71,7 @@ function VerifyEmailContent() {
               <Loader2 className="w-7 h-7 animate-spin" />
             </div>
             <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">Verifying Your Email</h1>
-            <p className="text-sm text-[#64748B]">Please wait while we verify your YayeTech account...</p>
+            <p className="text-sm text-[#64748B]">Please wait while we verify your LuxStay account...</p>
           </div>
         ) : success ? (
           <div className="py-2">

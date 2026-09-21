@@ -15,6 +15,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { AdminUsersService } from '../application/admin-users.service';
 import {
   AdminUsersQueryDto,
+  CreateAdminUserDto,
   FlagUserDto,
   SetUserActiveDto,
   UnflagUserDto,
@@ -32,6 +33,13 @@ interface AuthedRequest {
 @Controller('admin/users')
 export class AdminUsersController {
   constructor(private readonly users: AdminUsersService) {}
+
+  @Post()
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Create a new user account (Manager, Staff, Admin)' })
+  create(@Body() dto: CreateAdminUserDto, @Req() req: AuthedRequest) {
+    return this.users.create(dto, req.user.sub);
+  }
 
   @Get()
   @ApiOperation({ summary: 'List users with filters and pagination' })

@@ -35,6 +35,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Tag,
+  X,
 } from 'lucide-react'
 
 const STEPS = [
@@ -107,6 +108,19 @@ function BookingWizardContent() {
   // General error state
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [conflictMessage, setConflictMessage] = useState<string | null>(null)
+
+  // Auto-dismiss conflict and error banners
+  useEffect(() => {
+    if (!conflictMessage) return
+    const timer = setTimeout(() => setConflictMessage(null), 7000)
+    return () => clearTimeout(timer)
+  }, [conflictMessage])
+
+  useEffect(() => {
+    if (!errorMessage) return
+    const timer = setTimeout(() => setErrorMessage(null), 7000)
+    return () => clearTimeout(timer)
+  }, [errorMessage])
 
   // Query: Hotel Details
   const { data: hotel, isLoading: isHotelLoading } = useHotelQuery(hotelId)
@@ -456,20 +470,40 @@ function BookingWizardContent() {
 
         {/* 409 Conflict Banner (Contract 2.A) */}
         {conflictMessage && (
-          <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 text-sm flex items-start gap-3 shadow-sm animate-in fade-in">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <div className="font-bold">Inventory Conflict Detected</div>
-              <p className="mt-0.5 text-xs text-amber-800">{conflictMessage}</p>
+          <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 text-sm flex items-start justify-between gap-3 shadow-sm animate-in fade-in">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-bold">Inventory Conflict Detected</div>
+                <p className="mt-0.5 text-xs text-amber-800">{conflictMessage}</p>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setConflictMessage(null)}
+              className="text-amber-700 hover:text-amber-950 p-1 rounded-lg hover:bg-amber-100/60 transition-colors shrink-0"
+              aria-label="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
 
         {/* General Error Alert */}
         {errorMessage && !conflictMessage && (
-          <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
-            <span>{errorMessage}</span>
+          <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between gap-3 shadow-sm animate-in fade-in">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="text-rose-700 hover:text-rose-900 p-1 rounded-lg hover:bg-rose-100/60 transition-colors shrink-0"
+              aria-label="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
 

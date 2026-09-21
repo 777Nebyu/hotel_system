@@ -93,7 +93,7 @@ export class BookingController {
     @Req() req: AuthedRequest,
     @Res() res: Response,
   ) {
-    const pdf = await this.bookings.getInvoice(params.bookingId, req.user.sub);
+    const pdf = await this.bookings.getInvoice(params.bookingId, req.user);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',

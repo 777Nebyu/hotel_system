@@ -90,7 +90,13 @@ export const settingParamsSchema = z.object({ key: z.string().min(1).max(64) });
 export type SettingParams = z.infer<typeof settingParamsSchema>;
 
 export const upsertSettingSchema = z.object({
-  value: z.record(z.string(), z.unknown()),
+  value: z.union([
+    z.record(z.string(), z.unknown()),
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.array(z.unknown()),
+  ]),
 });
 export type UpsertSetting = z.infer<typeof upsertSettingSchema>;
 
@@ -104,11 +110,15 @@ export const auditLogsQuerySchema = z.object({
 export type AuditLogsQuery = z.infer<typeof auditLogsQuerySchema>;
 
 export const reportParamsSchema = z.object({
-  type: z.enum(['booking', 'revenue', 'occupancy', 'customer', 'cancellation']),
+  type: z.enum(['overview', 'booking', 'revenue', 'occupancy', 'customer', 'cancellation']),
 });
 export type ReportParams = z.infer<typeof reportParamsSchema>;
 
 export const reportQuerySchema = z.object({
-  format: z.enum(['pdf', 'excel']).default('pdf'),
+  format: z.enum(['pdf', 'excel']).optional(),
+  period: z.enum(['daily', 'weekly', 'monthly', 'yearly']).default('monthly'),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
 });
 export type ReportQuery = z.infer<typeof reportQuerySchema>;
+

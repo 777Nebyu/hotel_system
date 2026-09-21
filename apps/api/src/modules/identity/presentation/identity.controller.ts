@@ -46,7 +46,7 @@ export class IdentityController {
 
   @Post('register')
   @Public()
-  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  @Throttle({ default: { ttl: 60000, limit: process.env.NODE_ENV === 'production' ? 10 : 100 } })
   register(
     @Body(new ZodValidationPipe(registerSchema)) dto: RegisterInput,
     @Req() req: Request,
@@ -59,7 +59,7 @@ export class IdentityController {
 
   @Post('login')
   @Public()
-  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  @Throttle({ default: { ttl: 60000, limit: process.env.NODE_ENV === 'production' ? 10 : 100 } })
   login(
     @Body(new ZodValidationPipe(loginSchema)) dto: LoginInput,
     @Req() req: Request,

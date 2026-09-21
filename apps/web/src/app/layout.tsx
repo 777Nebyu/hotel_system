@@ -5,30 +5,30 @@ import { AppProviders } from '@/providers/AppProviders'
 
 export const metadata: Metadata = {
   title: {
-    default: 'YayeTech Luxury Stays — Curated Stays & Grand Resorts',
-    template: '%s | YayeTech Luxury Stays',
+    default: 'LuxStay — Curated Stays & Grand Resorts',
+    template: '%s | LuxStay',
   },
   description:
-    'Experience extraordinary luxury hospitality, curated boutique suites, and five-star grand resorts with YayeTech Luxury Stays. Instant confirmation and transparent pricing.',
+    'Experience extraordinary luxury hospitality, curated boutique suites, and five-star grand resorts with LuxStay. Instant confirmation and transparent pricing.',
   keywords: [
     'luxury hotels',
     'five star hotel booking',
     'boutique resorts',
-    'YayeTech hospitality',
+    'LuxStay hospitality',
     'executive suites',
   ],
-  authors: [{ name: 'YayeTech Global' }],
-  creator: 'YayeTech',
+  authors: [{ name: 'LuxStay Global' }],
+  creator: 'LuxStay',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    siteName: 'YayeTech Luxury Stays',
-    title: 'YayeTech Luxury Stays — Curated Stays & Grand Resorts',
+    siteName: 'LuxStay',
+    title: 'LuxStay — Curated Stays & Grand Resorts',
     description: 'Experience extraordinary luxury hospitality, boutique suites, and grand resorts.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'YayeTech Luxury Stays — Curated Stays & Grand Resorts',
+    title: 'LuxStay — Curated Stays & Grand Resorts',
     description: 'Experience extraordinary luxury hospitality, boutique suites, and grand resorts.',
   },
   robots: { index: true, follow: true },

@@ -17,6 +17,7 @@ import {
   CreditCard,
   User,
   ArrowRight,
+  Loader2,
 } from 'lucide-react'
 
 interface ConfirmationPanelProps {
@@ -54,7 +55,19 @@ export function ConfirmationPanel({
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const invoiceUrl = bookingService.getInvoiceDownloadUrl(booking.id)
+  const [downloading, setDownloading] = useState(false)
+
+  const handleDownloadInvoice = async () => {
+    if (!booking?.id) return
+    try {
+      setDownloading(true)
+      await bookingService.downloadInvoice(booking.id)
+    } catch {
+      window.open(bookingService.getInvoiceDownloadUrl(booking.id), '_blank')
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto text-center py-6 animate-in fade-in duration-500">
@@ -71,7 +84,7 @@ export function ConfirmationPanel({
         Reservation Confirmed
       </h1>
       <p className="text-slate-600 text-sm max-w-md mx-auto mb-8">
-        Your booking at {hotel?.name || 'YayeTech Luxury Stays'} has been successfully registered. A confirmation summary has been saved to your account.
+        Your booking at {hotel?.name || 'LuxStay'} has been successfully registered. A confirmation summary has been saved to your account.
       </p>
 
       {/* Booking Reference Hero Card */}
@@ -157,14 +170,19 @@ export function ConfirmationPanel({
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a
-          href={invoiceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-colors shadow-sm"
+        <button
+          type="button"
+          onClick={handleDownloadInvoice}
+          disabled={downloading}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
         >
-          <FileDown className="w-4 h-4 text-[#D4AF37]" /> Download PDF Invoice
-        </a>
+          {downloading ? (
+            <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
+          ) : (
+            <FileDown className="w-4 h-4 text-[#D4AF37]" />
+          )}
+          <span>Download PDF Invoice</span>
+        </button>
 
         <Link
           href="/dashboard"

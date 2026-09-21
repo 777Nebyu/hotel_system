@@ -23,19 +23,37 @@ export class AdminReportingController {
 
   @Get('overview')
   @ApiOperation({ summary: 'Platform overview counts and revenue' })
-  overview() {
+  async overview(
+    @Query() query: ReportQueryDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (query?.format === 'pdf' || query?.format === 'excel') {
+      return this.executeExport('overview', query, res);
+    }
     return this.reporting.overview();
   }
 
   @Get('revenue')
   @ApiOperation({ summary: 'Total succeeded revenue grouped by hotel' })
-  revenue() {
+  async revenue(
+    @Query() query: ReportQueryDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (query?.format === 'pdf' || query?.format === 'excel') {
+      return this.executeExport('revenue', query, res);
+    }
     return this.reporting.revenueByHotel();
   }
 
   @Get('occupancy')
   @ApiOperation({ summary: 'Current occupancy rate across rooms' })
-  occupancy() {
+  async occupancy(
+    @Query() query: ReportQueryDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (query?.format === 'pdf' || query?.format === 'excel') {
+      return this.executeExport('occupancy', query, res);
+    }
     return this.reporting.occupancyRate();
   }
 
@@ -57,6 +75,16 @@ export class AdminReportingController {
     return this.reporting.mostBookedHotels(query.limit);
   }
 
+  @Get('export/:type')
+  @ApiOperation({ summary: 'Export a report as PDF or Excel' })
+  async exportReportExplicit(
+    @Param() params: ReportParamsDto,
+    @Query() query: ReportQueryDto,
+    @Res() res: Response,
+  ) {
+    await this.executeExport(params.type, query, res);
+  }
+
   @Get(':type')
   @ApiOperation({ summary: 'Export a report as PDF or Excel' })
   async exportReport(
@@ -64,12 +92,24 @@ export class AdminReportingController {
     @Query() query: ReportQueryDto,
     @Res() res: Response,
   ) {
+    await this.executeExport(params.type, query, res);
+  }
+
+  private async executeExport(
+    type: string,
+    query: ReportQueryDto,
+    res: Response,
+  ) {
+    const format = query.format === 'excel' ? 'excel' : 'pdf';
     const { buffer, fileName } = await this.reporting.exportReport(
-      params.type,
-      query.format,
+      type as any,
+      format,
+      query.period,
+      query.startDate,
+      query.endDate,
     );
     const contentType =
-      query.format === 'excel'
+      format === 'excel'
         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         : 'application/pdf';
     res.setHeader('Content-Type', contentType);

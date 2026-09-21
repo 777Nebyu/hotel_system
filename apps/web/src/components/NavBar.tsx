@@ -98,7 +98,7 @@ export default function NavBar() {
             <span
               className={`font-serif text-xl sm:text-2xl font-bold tracking-tight transition-colors ${brandTextColor}`}
             >
-              YayeTech
+              LuxStay
             </span>
             <span className="text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] -mt-1">
               Luxury Stays

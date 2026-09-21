@@ -45,6 +45,35 @@ function query(params?: Record<string, string | number | boolean | undefined>) {
   return values.length ? `?${new URLSearchParams(values).toString()}` : ''
 }
 
+export async function downloadReportFile(
+  url: string,
+  fallbackFileName: string,
+): Promise<void> {
+  const token = getAuthToken()
+  const res = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => 'Failed to download report')
+    throw new Error(`Report export failed: ${errorText}`)
+  }
+  const blob = await res.blob()
+  let fileName = fallbackFileName
+  const disposition = res.headers.get('content-disposition')
+  if (disposition && disposition.includes('filename=')) {
+    const match = disposition.match(/filename=["']?([^"';]+)["']?/)
+    if (match?.[1]) fileName = match[1]
+  }
+  const blobUrl = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = blobUrl
+  a.download = fileName
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  window.URL.revokeObjectURL(blobUrl)
+}
+
 export const authApi = {
   register: (data: { email: string; password: string; fullName: string; phone?: string }) =>
     api.post<{ user: User; accessToken: string; refreshToken: string }>('/auth/register', data),
@@ -236,8 +265,23 @@ export const managerApi = {
     api.post(`/bookings/${bookingId}/relocate-room`, data, getAuthToken()),
   listStaff: (hotelId: string) =>
     api.get<{ data: HotelStaffMember[] }>(`/manager/hotels/${hotelId}/staff`, getAuthToken()),
-  assignStaff: (hotelId: string, data: { userId: string }) =>
-    api.post(`/manager/hotels/${hotelId}/staff`, data, getAuthToken()),
+  createStaff: (
+    hotelId: string,
+    data: { fullName: string; email: string; password: string; phone?: string; role?: string },
+  ) => api.post(`/manager/hotels/${hotelId}/staff`, data, getAuthToken()),
+  assignStaff: (
+    hotelId: string,
+    data: { email?: string; staffId?: string; userId?: string; role?: string },
+  ) =>
+    api.post(
+      `/manager/hotels/${hotelId}/staff`,
+      { staffId: data.staffId || data.userId, email: data.email, role: data.role },
+      getAuthToken(),
+    ),
+  updateStaffRole: (hotelId: string, staffId: string, role: string) =>
+    api.patch(`/manager/hotels/${hotelId}/staff/${staffId}/role`, { role }, getAuthToken()),
+  updateStaffStatus: (hotelId: string, staffId: string, isActive: boolean) =>
+    api.patch(`/manager/hotels/${hotelId}/staff/${staffId}/status`, { isActive }, getAuthToken()),
   removeStaff: (hotelId: string, staffId: string) =>
     api.delete(`/manager/hotels/${hotelId}/staff/${staffId}`, getAuthToken()),
   reportOverview: (hotelId: string) =>
@@ -248,8 +292,23 @@ export const managerApi = {
     api.get<MonthlyRevenueItem[]>(`/manager/hotels/${hotelId}/reports/monthly-revenue?months=${months}`, getAuthToken()),
   reportTrends: (hotelId: string, days = 30) =>
     api.get<DailyBookingTrendItem[]>(`/manager/hotels/${hotelId}/reports/booking-trends?days=${days}`, getAuthToken()),
-  exportReportUrl: (hotelId: string, type: string, format: 'pdf' | 'excel') =>
-    `${API_BASE_URL}/manager/hotels/${hotelId}/reports/${type}?format=${format}`,
+  exportReportUrl: (hotelId: string, type: string, format: 'pdf' | 'excel', period = 'monthly') =>
+    `${API_BASE_URL}/manager/hotels/${hotelId}/reports/${type}?format=${format}&period=${period}`,
+  downloadReport: (
+    hotelId: string,
+    type: string,
+    format: 'pdf' | 'excel',
+    period = 'monthly',
+    startDate?: string,
+    endDate?: string,
+  ) => {
+    const params = new URLSearchParams({ format, period });
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+    const url = `${API_BASE_URL}/manager/hotels/${hotelId}/reports/${type}?${params.toString()}`;
+    const ext = format === 'excel' ? 'xlsx' : 'pdf';
+    return downloadReportFile(url, `hotel-${hotelId}-${type}-${period}.${ext}`);
+  },
   getOperationalRooms: (hotelId: string) =>
     api.get<OperationalRoom[]>(`/catalog/hotels/${hotelId}/rooms/operational`, getAuthToken()),
   updateRoomStatus: (roomId: string, status: 'AVAILABLE' | 'CLEANING' | 'MAINTENANCE') =>
@@ -273,17 +332,56 @@ export const staffApi = {
 
 export const adminApi = {
   overview: () =>
-    api.get<{ userCount: number; hotelCount: number; bookingCount: number; totalRevenue: number }>(
-      '/admin/reports/overview',
-      getAuthToken(),
-    ),
+    api.get<{
+      userCount: number
+      hotelCount: number
+      bookingCount: number
+      totalRevenue: number
+      users?: { total: number; customers: number; staff: number }
+      hotels?: { total: number; active: number; pending: number }
+      bookings?: { total: number; active: number; pending: number }
+      revenue?: { total: number; thisMonth: number; pendingPayments: number }
+      topHotels?: Array<{ id: string; name: string; starRating: number; revenue: number }>
+    }>('/admin/reports/overview', getAuthToken()),
   occupancy: () =>
-    api.get<{ rooms: number; occupiedRoomsToday: number; occupancyRate: number }>(
-      '/admin/reports/occupancy',
-      getAuthToken(),
-    ),
+    api.get<{
+      rooms: number
+      occupiedRoomsToday: number
+      totalRooms?: number
+      occupiedToday?: number
+      occupancyRate: number
+      breakdown?: Array<{
+        hotelId: string
+        name: string
+        totalRooms: number
+        occupiedToday: number
+        occupancyRate: number
+      }>
+    }>('/admin/reports/occupancy', getAuthToken()),
+  monthlyRevenue: (months = 12) =>
+    api.get<Array<{ month: string; revenue: number }>>(`/admin/reports/monthly-revenue?months=${months}`, getAuthToken()),
+  bookingTrends: (days = 30) =>
+    api.get<Array<{ date: string; bookings: number }>>(`/admin/reports/booking-trends?days=${days}`, getAuthToken()),
+  mostBookedHotels: (limit = 10) =>
+    api.get<Array<{ hotelId: string; name: string; bookings: number }>>(`/admin/reports/most-booked-hotels?limit=${limit}`, getAuthToken()),
   revenue: () =>
     api.get<Array<{ hotelId: string; name: string; revenue: number }>>('/admin/reports/revenue', getAuthToken()),
+  exportReportUrl: (type: string, format: 'pdf' | 'excel', period = 'monthly') =>
+    `${API_BASE_URL}/admin/reports/${type}?format=${format}&period=${period}`,
+  downloadReport: (
+    type: string,
+    format: 'pdf' | 'excel',
+    period = 'monthly',
+    startDate?: string,
+    endDate?: string,
+  ) => {
+    const params = new URLSearchParams({ format, period });
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+    const url = `${API_BASE_URL}/admin/reports/${type}?${params.toString()}`;
+    const ext = format === 'excel' ? 'xlsx' : 'pdf';
+    return downloadReportFile(url, `admin-report-${type}-${period}.${ext}`);
+  },
   users: (params?: Record<string, string>) => {
     const qs = params ? `?${new URLSearchParams(params).toString()}` : ''
     return api.get<{
@@ -293,6 +391,14 @@ export const adminApi = {
       pageSize: number
     }>(`/admin/users${qs}`, getAuthToken())
   },
+  createUser: (data: {
+    fullName: string
+    email: string
+    password: string
+    phone?: string
+    role?: 'CUSTOMER' | 'MANAGER' | 'STAFF' | 'ADMIN'
+    hotelId?: string | null
+  }) => api.post<User>('/admin/users', data, getAuthToken()),
   bookings: (params?: Record<string, string>) => {
     const qs = params ? `?${new URLSearchParams(params).toString()}` : ''
     return api.get<{ data: Booking[]; total: number; page: number; pageSize: number }>(

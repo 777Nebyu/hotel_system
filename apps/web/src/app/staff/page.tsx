@@ -20,11 +20,24 @@ import {
   Phone,
   DoorOpen,
   Filter,
+  AlertTriangle,
+  AlertCircle,
+  Loader2,
+  X,
+  Users,
+  Calendar,
+  Banknote,
+  Clock,
+  ArrowDownLeft,
+  ArrowUpRight,
 } from 'lucide-react'
+
+
 
 type Tab = 'Dashboard' | 'Housekeeping & Rooms' | 'Bookings' | 'Stay Requests'
 
 type StaffBooking = Booking & {
+  bookingRef?: string | null
   user?: { fullName: string; email: string; phone?: string | null }
   details?: Array<{ id: string; roomId: string; room?: { id: string; roomNumber: string; type: string } }>
 }
@@ -43,8 +56,33 @@ const formatMoney = (value: number | string | null | undefined) =>
   value === null || value === undefined ? '—' : formatEthiopianBirr(value)
 
 export default function StaffDashboardPage() {
+  const router = useRouter()
+  const { user, isInitialized } = useAuth()
+
+  useEffect(() => {
+    if (isInitialized && user?.role === 'MANAGER') {
+      router.replace('/manager')
+    }
+  }, [user, isInitialized, router])
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-[#64748B]">
+        <div className="w-8 h-8 rounded-full border-2 border-[#2563EB] border-t-transparent animate-spin" />
+      </div>
+    )
+  }
+
+  if (user?.role === 'MANAGER') {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-[#64748B]">
+        Redirecting to Manager Console…
+      </div>
+    )
+  }
+
   return (
-    <AuthGate roles={['STAFF', 'ADMIN', 'MANAGER']}>
+    <AuthGate roles={['STAFF', 'ADMIN']}>
       <StaffDashboard />
     </AuthGate>
   )
@@ -67,6 +105,20 @@ function StaffDashboard() {
   const [error, setError] = useState('')
   const [successBanner, setSuccessBanner] = useState('')
   const [acting, setActing] = useState<string | null>(null)
+
+  // Auto-dismiss notification banners
+  useEffect(() => {
+    if (!successBanner) return
+    const timer = setTimeout(() => setSuccessBanner(''), 5000)
+    return () => clearTimeout(timer)
+  }, [successBanner])
+
+  useEffect(() => {
+    if (!error) return
+    const timer = setTimeout(() => setError(''), 7000)
+    return () => clearTimeout(timer)
+  }, [error])
+
 
   // Modals state
   const [walkInModalOpen, setWalkInModalOpen] = useState(false)
@@ -95,6 +147,11 @@ function StaffDashboard() {
   const [decidingRequest, setDecidingRequest] = useState<StayRequest | null>(null)
   const [decisionNote, setDecisionNote] = useState('')
   const [decidingSubmitting, setDecidingSubmitting] = useState(false)
+
+  // No-Show Confirmation Modal
+  const [noShowModalBooking, setNoShowModalBooking] = useState<StaffBooking | null>(null)
+  const [noShowSubmitting, setNoShowSubmitting] = useState(false)
+
 
   // Available Rooms for Walk-in / Relocation
   const [availableRooms, setAvailableRooms] = useState<Room[]>([])
@@ -222,17 +279,26 @@ function StaffDashboard() {
     }
   }
 
-  const markNoShow = async (bookingId: string) => {
-    if (!confirm('Mark guest as No-Show and release room availability?')) return
+  const confirmNoShow = async () => {
+    if (!noShowModalBooking) return
+    setNoShowSubmitting(true)
     setError('')
     try {
-      await managerApi.noShow(bookingId)
-      setSuccessBanner('Guest marked as No-Show.')
+      await managerApi.noShow(noShowModalBooking.id)
+      setSuccessBanner(`Booking ${noShowModalBooking.bookingRef} successfully marked as No-Show. Room availability has been restored.`)
+      setNoShowModalBooking(null)
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to mark No-Show.')
+    } finally {
+      setNoShowSubmitting(false)
     }
   }
+
+  const openNoShowModal = (booking: StaffBooking) => {
+    setNoShowModalBooking(booking)
+  }
+
 
   const handleWalkInSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -377,22 +443,37 @@ function StaffDashboard() {
       {/* Main Content */}
       <main className="flex-1 p-6 lg:p-8 max-w-6xl overflow-auto">
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-3.5 flex items-center justify-between">
-            <span>{error}</span>
-            <button onClick={() => setError('')} className="font-bold text-red-500">
-              ✕
+          <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+              <span>{error}</span>
+            </div>
+            <button
+              onClick={() => setError('')}
+              className="text-rose-600 hover:text-rose-900 p-1.5 rounded-lg hover:bg-rose-100/60 transition-colors cursor-pointer"
+              aria-label="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
         {successBanner && (
-          <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl p-3.5 flex items-center justify-between">
-            <span>{successBanner}</span>
-            <button onClick={() => setSuccessBanner('')} className="font-bold text-emerald-500">
-              ✕
+          <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>{successBanner}</span>
+            </div>
+            <button
+              onClick={() => setSuccessBanner('')}
+              className="text-emerald-600 hover:text-emerald-900 p-1.5 rounded-lg hover:bg-emerald-100/60 transition-colors cursor-pointer"
+              aria-label="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
+
 
         {/* Dashboard Tab */}
         {tab === 'Dashboard' && (
@@ -420,31 +501,42 @@ function StaffDashboard() {
 
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
               {[
-                ['Pending approvals', stats.pendingApprovals, '⏳'],
-                ["Today's check-ins", stats.todaysCheckIns, '↪'],
-                ["Today's check-outs", stats.todaysCheckOuts, '↩'],
-                ['Active guests', stats.activeGuests, '👥'],
-              ].map(([label, value, icon]) => (
-                <div key={String(label)} className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm">
-                  <div className="text-2xl mb-3">{icon}</div>
-                  <div className="font-bold text-[#0F172A] text-2xl">{value}</div>
-                  <div className="text-[#64748B] text-xs">{label}</div>
-                </div>
-              ))}
+                { label: 'Pending approvals', value: stats.pendingApprovals, icon: Clock, color: 'text-amber-600 bg-amber-50 border-amber-100' },
+                { label: "Today's check-ins", value: stats.todaysCheckIns, icon: ArrowDownLeft, color: 'text-blue-600 bg-blue-50 border-blue-100' },
+                { label: "Today's check-outs", value: stats.todaysCheckOuts, icon: ArrowUpRight, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
+                { label: 'Active guests', value: stats.activeGuests, icon: Users, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+              ].map((item) => {
+                const IconComp = item.icon
+                return (
+                  <div key={item.label} className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm flex flex-col justify-between">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 border ${item.color}`}>
+                      <IconComp className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-[#0F172A] text-2xl">{item.value}</div>
+                      <div className="text-[#64748B] text-xs">{item.label}</div>
+                    </div>
+                  </div>
+                )
+              })}
               <div
                 onClick={() => setTab('Housekeeping & Rooms')}
-                className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm hover:border-amber-300 cursor-pointer transition-all group"
+                className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm hover:border-amber-300 cursor-pointer transition-all group flex flex-col justify-between"
               >
-                <div className="flex items-center justify-between text-2xl mb-3">
-                  <span>🧹</span>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-amber-100 bg-amber-50 text-amber-600">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
                   <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full group-hover:bg-amber-100">
                     Board →
                   </span>
                 </div>
-                <div className="font-bold text-[#0F172A] text-2xl">
-                  {operationalRooms.filter((r) => r.status === 'CLEANING' || r.status === 'MAINTENANCE').length}
+                <div>
+                  <div className="font-bold text-[#0F172A] text-2xl">
+                    {operationalRooms.filter((r) => r.status === 'CLEANING' || r.status === 'MAINTENANCE').length}
+                  </div>
+                  <div className="text-[#64748B] text-xs">Housekeeping & Repairs</div>
                 </div>
-                <div className="text-[#64748B] text-xs">Housekeeping & Repairs</div>
               </div>
             </div>
 
@@ -464,10 +556,19 @@ function StaffDashboard() {
                       {booking.user?.fullName || 'Walk-in Guest'}{' '}
                       <span className="font-mono font-normal text-xs text-[#94A3B8]">#{booking.id.slice(-8)}</span>
                     </div>
-                    <div className="text-xs text-[#64748B] mt-1 space-x-3">
-                      <span>📅 {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}</span>
-                      <span>💰 {formatMoney(booking.totalPrice)}</span>
-                      <span>📞 {booking.user?.phone || 'No phone'}</span>
+                    <div className="text-xs text-[#64748B] mt-1 flex flex-wrap items-center gap-3">
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Banknote className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{formatMoney(booking.totalPrice)}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{booking.user?.phone || 'No phone'}</span>
+                      </span>
                     </div>
                   </div>
 
@@ -476,9 +577,9 @@ function StaffDashboard() {
 
                     <button
                       onClick={() => markCashPaid(booking.id)}
-                      className="px-3 py-1.5 border border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg text-xs font-semibold"
+                      className="px-3 py-1.5 border border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5"
                     >
-                      💵 Cash Paid
+                      <Banknote className="w-3.5 h-3.5" /> Cash Paid
                     </button>
 
                     {booking.status === 'PENDING' && (
@@ -510,9 +611,10 @@ function StaffDashboard() {
                           Check In
                         </button>
                         <button
-                          onClick={() => markNoShow(booking.id)}
+                          onClick={() => openNoShowModal(booking)}
                           className="px-3 py-1.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-semibold"
                         >
+
                           No-Show
                         </button>
                       </>
@@ -807,9 +909,13 @@ function StaffDashboard() {
                                 </span>
                               </div>
                               <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
-                                <span>👥 {room.capacity} Guests</span>
+                                <span className="inline-flex items-center gap-1">
+                                  <Users className="w-3.5 h-3.5 text-slate-400" /> {room.capacity} Guests
+                                </span>
                                 <span>·</span>
-                                <span>🛏️ {room.beds} Beds</span>
+                                <span className="inline-flex items-center gap-1">
+                                  <BedDouble className="w-3.5 h-3.5 text-slate-400" /> {room.beds} Beds
+                                </span>
                                 <span>·</span>
                                 <span className="font-medium text-[#0F172A]">{formatMoney(room.basePrice)}/night</span>
                               </div>
@@ -955,10 +1061,19 @@ function StaffDashboard() {
                       {booking.user?.fullName || 'Walk-in Guest'}{' '}
                       <span className="font-mono font-normal text-xs text-[#94A3B8]">#{booking.id.slice(-8)}</span>
                     </div>
-                    <div className="text-xs text-[#64748B] mt-1 space-x-3">
-                      <span>📅 {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}</span>
-                      <span>💰 {formatMoney(booking.totalPrice)}</span>
-                      <span>📞 {booking.user?.phone || 'Direct Walk-in'}</span>
+                    <div className="text-xs text-[#64748B] mt-1 flex flex-wrap items-center gap-3">
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Banknote className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{formatMoney(booking.totalPrice)}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{booking.user?.phone || 'Direct Walk-in'}</span>
+                      </span>
                     </div>
                   </div>
 
@@ -967,9 +1082,9 @@ function StaffDashboard() {
 
                     <button
                       onClick={() => markCashPaid(booking.id)}
-                      className="px-3 py-1.5 border border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg text-xs font-semibold"
+                      className="px-3 py-1.5 border border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5"
                     >
-                      💵 Mark Cash Paid
+                      <Banknote className="w-3.5 h-3.5" /> Mark Cash Paid
                     </button>
 
                     {booking.status === 'CONFIRMED' && (
@@ -1060,9 +1175,10 @@ function StaffDashboard() {
                 <h3 className="font-bold text-lg text-[#0F172A]">Front Desk Walk-In Check-In</h3>
                 <button
                   onClick={() => setWalkInModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -1211,9 +1327,10 @@ function StaffDashboard() {
                 <h3 className="font-bold text-lg text-[#0F172A]">Room Relocation</h3>
                 <button
                   onClick={() => setRelocateBooking(null)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -1277,9 +1394,10 @@ function StaffDashboard() {
                 <h3 className="font-bold text-lg text-[#0F172A]">Decide Stay Request</h3>
                 <button
                   onClick={() => setDecidingRequest(null)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -1325,7 +1443,82 @@ function StaffDashboard() {
             </div>
           </div>
         )}
+
+        {/* Confirm Guest No-Show Modal */}
+        {noShowModalBooking && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-start gap-3.5 mb-4">
+                <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0 text-amber-600">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-[#0F172A]">
+                    Confirm Guest No-Show
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Reservation Ref: <span className="font-mono font-semibold text-slate-700">{noShowModalBooking.bookingRef}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 mb-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Guest</span>
+                  <span className="font-semibold text-slate-800">
+                    {noShowModalBooking.user?.fullName || noShowModalBooking.details?.[0]?.guestInfo?.name || 'Registered Guest'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Scheduled Stay</span>
+                  <span className="font-semibold text-slate-800">
+                    {noShowModalBooking.checkIn?.slice?.(0, 10)} &rarr; {noShowModalBooking.checkOut?.slice?.(0, 10)}
+                  </span>
+                </div>
+                {noShowModalBooking.details?.[0]?.room && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Assigned Room</span>
+                    <span className="font-semibold text-slate-800">
+                      Room {noShowModalBooking.details[0].room.roomNumber} ({noShowModalBooking.details[0].room.type})
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-slate-600 mb-6 leading-relaxed">
+                Marking this reservation as a <strong>No-Show</strong> records that the guest did not arrive. The assigned room will be immediately released back into available inventory for new bookings.
+              </p>
+
+              <div className="flex justify-end gap-2.5">
+                <button
+                  type="button"
+                  disabled={noShowSubmitting}
+                  onClick={() => setNoShowModalBooking(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={noShowSubmitting}
+                  onClick={confirmNoShow}
+                  className="px-4 py-2 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {noShowSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    'Confirm No-Show'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
+
     </div>
   )
 }

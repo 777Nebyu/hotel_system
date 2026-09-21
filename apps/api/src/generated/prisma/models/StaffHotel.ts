@@ -27,18 +27,21 @@ export type AggregateStaffHotel = {
 export type StaffHotelMinAggregateOutputType = {
   staffId: string | null
   hotelId: string | null
+  role: string | null
   assignedAt: Date | null
 }
 
 export type StaffHotelMaxAggregateOutputType = {
   staffId: string | null
   hotelId: string | null
+  role: string | null
   assignedAt: Date | null
 }
 
 export type StaffHotelCountAggregateOutputType = {
   staffId: number
   hotelId: number
+  role: number
   assignedAt: number
   _all: number
 }
@@ -47,18 +50,21 @@ export type StaffHotelCountAggregateOutputType = {
 export type StaffHotelMinAggregateInputType = {
   staffId?: true
   hotelId?: true
+  role?: true
   assignedAt?: true
 }
 
 export type StaffHotelMaxAggregateInputType = {
   staffId?: true
   hotelId?: true
+  role?: true
   assignedAt?: true
 }
 
 export type StaffHotelCountAggregateInputType = {
   staffId?: true
   hotelId?: true
+  role?: true
   assignedAt?: true
   _all?: true
 }
@@ -138,6 +144,7 @@ export type StaffHotelGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 export type StaffHotelGroupByOutputType = {
   staffId: string
   hotelId: string
+  role: string
   assignedAt: Date
   _count: StaffHotelCountAggregateOutputType | null
   _min: StaffHotelMinAggregateOutputType | null
@@ -165,6 +172,7 @@ export type StaffHotelWhereInput = {
   NOT?: Prisma.StaffHotelWhereInput | Prisma.StaffHotelWhereInput[]
   staffId?: Prisma.StringFilter<"StaffHotel"> | string
   hotelId?: Prisma.StringFilter<"StaffHotel"> | string
+  role?: Prisma.StringFilter<"StaffHotel"> | string
   assignedAt?: Prisma.DateTimeFilter<"StaffHotel"> | Date | string
   staff?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   hotel?: Prisma.XOR<Prisma.HotelScalarRelationFilter, Prisma.HotelWhereInput>
@@ -173,6 +181,7 @@ export type StaffHotelWhereInput = {
 export type StaffHotelOrderByWithRelationInput = {
   staffId?: Prisma.SortOrder
   hotelId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
   staff?: Prisma.UserOrderByWithRelationInput
   hotel?: Prisma.HotelOrderByWithRelationInput
@@ -185,6 +194,7 @@ export type StaffHotelWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.StaffHotelWhereInput | Prisma.StaffHotelWhereInput[]
   staffId?: Prisma.StringFilter<"StaffHotel"> | string
   hotelId?: Prisma.StringFilter<"StaffHotel"> | string
+  role?: Prisma.StringFilter<"StaffHotel"> | string
   assignedAt?: Prisma.DateTimeFilter<"StaffHotel"> | Date | string
   staff?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   hotel?: Prisma.XOR<Prisma.HotelScalarRelationFilter, Prisma.HotelWhereInput>
@@ -193,6 +203,7 @@ export type StaffHotelWhereUniqueInput = Prisma.AtLeast<{
 export type StaffHotelOrderByWithAggregationInput = {
   staffId?: Prisma.SortOrder
   hotelId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
   _count?: Prisma.StaffHotelCountOrderByAggregateInput
   _max?: Prisma.StaffHotelMaxOrderByAggregateInput
@@ -205,10 +216,12 @@ export type StaffHotelScalarWhereWithAggregatesInput = {
   NOT?: Prisma.StaffHotelScalarWhereWithAggregatesInput | Prisma.StaffHotelScalarWhereWithAggregatesInput[]
   staffId?: Prisma.StringWithAggregatesFilter<"StaffHotel"> | string
   hotelId?: Prisma.StringWithAggregatesFilter<"StaffHotel"> | string
+  role?: Prisma.StringWithAggregatesFilter<"StaffHotel"> | string
   assignedAt?: Prisma.DateTimeWithAggregatesFilter<"StaffHotel"> | Date | string
 }
 
 export type StaffHotelCreateInput = {
+  role?: string
   assignedAt?: Date | string
   staff: Prisma.UserCreateNestedOneWithoutStaffHotelsInput
   hotel: Prisma.HotelCreateNestedOneWithoutStaffAssignmentsInput
@@ -217,10 +230,12 @@ export type StaffHotelCreateInput = {
 export type StaffHotelUncheckedCreateInput = {
   staffId: string
   hotelId: string
+  role?: string
   assignedAt?: Date | string
 }
 
 export type StaffHotelUpdateInput = {
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   staff?: Prisma.UserUpdateOneRequiredWithoutStaffHotelsNestedInput
   hotel?: Prisma.HotelUpdateOneRequiredWithoutStaffAssignmentsNestedInput
@@ -229,22 +244,26 @@ export type StaffHotelUpdateInput = {
 export type StaffHotelUncheckedUpdateInput = {
   staffId?: Prisma.StringFieldUpdateOperationsInput | string
   hotelId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type StaffHotelCreateManyInput = {
   staffId: string
   hotelId: string
+  role?: string
   assignedAt?: Date | string
 }
 
 export type StaffHotelUpdateManyMutationInput = {
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type StaffHotelUncheckedUpdateManyInput = {
   staffId?: Prisma.StringFieldUpdateOperationsInput | string
   hotelId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -266,18 +285,21 @@ export type StaffHotelStaffIdHotelIdCompoundUniqueInput = {
 export type StaffHotelCountOrderByAggregateInput = {
   staffId?: Prisma.SortOrder
   hotelId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
 }
 
 export type StaffHotelMaxOrderByAggregateInput = {
   staffId?: Prisma.SortOrder
   hotelId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
 }
 
 export type StaffHotelMinOrderByAggregateInput = {
   staffId?: Prisma.SortOrder
   hotelId?: Prisma.SortOrder
+  role?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
 }
 
@@ -366,12 +388,14 @@ export type StaffHotelUncheckedUpdateManyWithoutHotelNestedInput = {
 }
 
 export type StaffHotelCreateWithoutStaffInput = {
+  role?: string
   assignedAt?: Date | string
   hotel: Prisma.HotelCreateNestedOneWithoutStaffAssignmentsInput
 }
 
 export type StaffHotelUncheckedCreateWithoutStaffInput = {
   hotelId: string
+  role?: string
   assignedAt?: Date | string
 }
 
@@ -407,16 +431,19 @@ export type StaffHotelScalarWhereInput = {
   NOT?: Prisma.StaffHotelScalarWhereInput | Prisma.StaffHotelScalarWhereInput[]
   staffId?: Prisma.StringFilter<"StaffHotel"> | string
   hotelId?: Prisma.StringFilter<"StaffHotel"> | string
+  role?: Prisma.StringFilter<"StaffHotel"> | string
   assignedAt?: Prisma.DateTimeFilter<"StaffHotel"> | Date | string
 }
 
 export type StaffHotelCreateWithoutHotelInput = {
+  role?: string
   assignedAt?: Date | string
   staff: Prisma.UserCreateNestedOneWithoutStaffHotelsInput
 }
 
 export type StaffHotelUncheckedCreateWithoutHotelInput = {
   staffId: string
+  role?: string
   assignedAt?: Date | string
 }
 
@@ -448,41 +475,49 @@ export type StaffHotelUpdateManyWithWhereWithoutHotelInput = {
 
 export type StaffHotelCreateManyStaffInput = {
   hotelId: string
+  role?: string
   assignedAt?: Date | string
 }
 
 export type StaffHotelUpdateWithoutStaffInput = {
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hotel?: Prisma.HotelUpdateOneRequiredWithoutStaffAssignmentsNestedInput
 }
 
 export type StaffHotelUncheckedUpdateWithoutStaffInput = {
   hotelId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type StaffHotelUncheckedUpdateManyWithoutStaffInput = {
   hotelId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type StaffHotelCreateManyHotelInput = {
   staffId: string
+  role?: string
   assignedAt?: Date | string
 }
 
 export type StaffHotelUpdateWithoutHotelInput = {
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   staff?: Prisma.UserUpdateOneRequiredWithoutStaffHotelsNestedInput
 }
 
 export type StaffHotelUncheckedUpdateWithoutHotelInput = {
   staffId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type StaffHotelUncheckedUpdateManyWithoutHotelInput = {
   staffId?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -491,6 +526,7 @@ export type StaffHotelUncheckedUpdateManyWithoutHotelInput = {
 export type StaffHotelSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   staffId?: boolean
   hotelId?: boolean
+  role?: boolean
   assignedAt?: boolean
   staff?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   hotel?: boolean | Prisma.HotelDefaultArgs<ExtArgs>
@@ -499,6 +535,7 @@ export type StaffHotelSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type StaffHotelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   staffId?: boolean
   hotelId?: boolean
+  role?: boolean
   assignedAt?: boolean
   staff?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   hotel?: boolean | Prisma.HotelDefaultArgs<ExtArgs>
@@ -507,6 +544,7 @@ export type StaffHotelSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
 export type StaffHotelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   staffId?: boolean
   hotelId?: boolean
+  role?: boolean
   assignedAt?: boolean
   staff?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   hotel?: boolean | Prisma.HotelDefaultArgs<ExtArgs>
@@ -515,10 +553,11 @@ export type StaffHotelSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
 export type StaffHotelSelectScalar = {
   staffId?: boolean
   hotelId?: boolean
+  role?: boolean
   assignedAt?: boolean
 }
 
-export type StaffHotelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"staffId" | "hotelId" | "assignedAt", ExtArgs["result"]["staffHotel"]>
+export type StaffHotelOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"staffId" | "hotelId" | "role" | "assignedAt", ExtArgs["result"]["staffHotel"]>
 export type StaffHotelInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   hotel?: boolean | Prisma.HotelDefaultArgs<ExtArgs>
@@ -541,6 +580,7 @@ export type $StaffHotelPayload<ExtArgs extends runtime.Types.Extensions.Internal
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     staffId: string
     hotelId: string
+    role: string
     assignedAt: Date
   }, ExtArgs["result"]["staffHotel"]>
   composites: {}
@@ -969,6 +1009,7 @@ export interface Prisma__StaffHotelClient<T, Null = never, ExtArgs extends runti
 export interface StaffHotelFieldRefs {
   readonly staffId: Prisma.FieldRef<"StaffHotel", 'String'>
   readonly hotelId: Prisma.FieldRef<"StaffHotel", 'String'>
+  readonly role: Prisma.FieldRef<"StaffHotel", 'String'>
   readonly assignedAt: Prisma.FieldRef<"StaffHotel", 'DateTime'>
 }
     

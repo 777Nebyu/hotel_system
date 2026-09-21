@@ -113,6 +113,19 @@ function CustomerDashboardContent() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  // Auto-dismiss notification banners
+  useEffect(() => {
+    if (!successMessage) return
+    const timer = setTimeout(() => setSuccessMessage(null), 5000)
+    return () => clearTimeout(timer)
+  }, [successMessage])
+
+  useEffect(() => {
+    if (!errorMessage) return
+    const timer = setTimeout(() => setErrorMessage(null), 7000)
+    return () => clearTimeout(timer)
+  }, [errorMessage])
+
   // Cancellation Modal State
   const [cancellingBooking, setCancellingBooking] = useState<Booking | null>(null)
 
@@ -131,6 +144,21 @@ function CustomerDashboardContent() {
   const [reviewBooking, setReviewBooking] = useState<Booking | null>(null)
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewComment, setReviewComment] = useState('')
+
+  // Invoice Download State
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null)
+
+  const handleDownloadInvoice = async (bookingId: string) => {
+    try {
+      setDownloadingInvoiceId(bookingId)
+      await bookingService.downloadInvoice(bookingId)
+    } catch {
+      // Fallback to tokenized URL if blob trigger fails
+      window.open(bookingService.getInvoiceDownloadUrl(bookingId), '_blank')
+    } finally {
+      setDownloadingInvoiceId(null)
+    }
+  }
 
   // Queries
   const { data: bookingsData, isLoading: isBookingsLoading } = useMyBookingsQuery()
@@ -483,7 +511,12 @@ function CustomerDashboardContent() {
               <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
               <span>{successMessage}</span>
             </div>
-            <button onClick={() => setSuccessMessage(null)} className="text-emerald-700 hover:text-emerald-900">
+            <button
+              type="button"
+              onClick={() => setSuccessMessage(null)}
+              className="text-emerald-700 hover:text-emerald-900 p-1 rounded-lg hover:bg-emerald-100/60 transition-colors"
+              aria-label="Dismiss notification"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -496,7 +529,12 @@ function CustomerDashboardContent() {
               <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
               <span>{errorMessage}</span>
             </div>
-            <button onClick={() => setErrorMessage(null)} className="text-rose-700 hover:text-rose-900">
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="text-rose-700 hover:text-rose-900 p-1 rounded-lg hover:bg-rose-100/60 transition-colors"
+              aria-label="Dismiss notification"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -567,14 +605,19 @@ function CustomerDashboardContent() {
                     </div>
 
                     <div className="flex flex-wrap gap-2.5 mt-6 pt-4 border-t border-slate-100">
-                      <a
-                        href={bookingService.getInvoiceDownloadUrl(upcomingBookings[0].id)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors"
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadInvoice(upcomingBookings[0].id)}
+                        disabled={downloadingInvoiceId === upcomingBookings[0].id}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
                       >
-                        <FileDown className="w-3.5 h-3.5 text-[#D4AF37]" /> PDF Invoice
-                      </a>
+                        {downloadingInvoiceId === upcomingBookings[0].id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+                        ) : (
+                          <FileDown className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        )}
+                        <span>PDF Invoice</span>
+                      </button>
                       <button
                         onClick={() => {
                           setStayRequestBooking(upcomingBookings[0])
@@ -779,14 +822,19 @@ function CustomerDashboardContent() {
 
                         {/* Action Buttons */}
                         <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-slate-100">
-                          <a
-                            href={bookingService.getInvoiceDownloadUrl(b.id)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors"
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadInvoice(b.id)}
+                            disabled={downloadingInvoiceId === b.id}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
                           >
-                            <FileDown className="w-3.5 h-3.5 text-[#D4AF37]" /> PDF Invoice
-                          </a>
+                            {downloadingInvoiceId === b.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+                            ) : (
+                              <FileDown className="w-3.5 h-3.5 text-[#D4AF37]" />
+                            )}
+                            <span>PDF Invoice</span>
+                          </button>
 
                           {isUpcoming && (
                             <>
@@ -1771,7 +1819,8 @@ function CustomerDashboardContent() {
 
 export default function CustomerDashboardPage() {
   return (
-    <AuthGate roles={['CUSTOMER']}>
+    <AuthGate roles={['CUSTOMER', 'ADMIN']}>
+
       <Suspense
         fallback={
           <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">

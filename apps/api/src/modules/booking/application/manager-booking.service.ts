@@ -255,6 +255,7 @@ export class ManagerBookingService {
       pendingQueue: pendingApprovals,
       monthlyRevenue: monthPayments._sum.amount?.toNumber() ?? 0,
       todayRevenue: todayRevenueAgg._sum.amount?.toNumber() ?? 0,
+      totalRevenue: todayRevenueAgg._sum.amount?.toNumber() ?? 0,
       availableRooms,
       totalRooms,
       cleaningRooms: 0,
@@ -263,6 +264,12 @@ export class ManagerBookingService {
       weeklyRevenue,
       arrivals,
       departures,
+
+      // Frontend compatibility aliases
+      pendingApprovals,
+      todaysCheckIns,
+      todaysCheckOuts,
+      activeGuests,
     };
   }
 

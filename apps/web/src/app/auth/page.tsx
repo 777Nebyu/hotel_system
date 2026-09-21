@@ -73,6 +73,13 @@ function AuthForm() {
   const [registeredEmail, setRegisteredEmail] = React.useState('')
   const [googleLoading, setGoogleLoading] = React.useState(false)
 
+  // Auto-dismiss apiError banner after 7 seconds
+  React.useEffect(() => {
+    if (!apiError) return
+    const timer = setTimeout(() => setApiError(null), 7000)
+    return () => clearTimeout(timer)
+  }, [apiError])
+
   // Google account dialog state for seamless fallback / testing
   const [showGoogleModal, setShowGoogleModal] = React.useState(false)
   const [customGoogleEmail, setCustomGoogleEmail] = React.useState('nebusami20@gmail.com')
@@ -97,13 +104,17 @@ function AuthForm() {
         const isForbidden =
           (decoded.startsWith('/admin') && user.role !== 'ADMIN') ||
           (decoded.startsWith('/manager') && user.role !== 'MANAGER' && user.role !== 'ADMIN') ||
-          (decoded.startsWith('/staff') && user.role !== 'STAFF' && user.role !== 'MANAGER' && user.role !== 'ADMIN')
+          (decoded.startsWith('/staff') && user.role !== 'STAFF' && user.role !== 'ADMIN')
 
-        if (!isForbidden) {
+        const isGenericCustomerRedirect = decoded === '/dashboard' || decoded === '/dashboard/'
+        const isStaffRedirectForManager = decoded.startsWith('/staff') && user.role === 'MANAGER'
+
+        if (!isForbidden && !isStaffRedirectForManager && (!isGenericCustomerRedirect || user.role === 'CUSTOMER')) {
           router.replace(decoded)
           return
         }
       }
+
 
       if (user.role === 'ADMIN') {
         router.replace('/admin')
@@ -164,7 +175,7 @@ function AuthForm() {
               setApiError(null)
               try {
                 await googleMutation.mutateAsync({ credential: response.credential })
-                toast.success('Signed in with Google', 'Welcome to YayeTech Luxury Stays.')
+                toast.success('Signed in with Google', 'Welcome to LuxStay.')
               } catch (err: any) {
                 setApiError(err?.message || 'Google sign-in could not be completed.')
               } finally {
@@ -258,7 +269,7 @@ function AuthForm() {
           </div>
           <h1 className="font-serif text-3xl font-bold text-[#0F2942]">
             {mode === 'login' && 'Welcome Back'}
-            {mode === 'register' && 'Join YayeTech'}
+            {mode === 'register' && 'Join LuxStay'}
             {mode === 'forgot' && 'Reset Password'}
           </h1>
           <p className="text-sm text-slate-500 mt-2">
@@ -274,10 +285,20 @@ function AuthForm() {
           {apiError && (
             <div
               role="alert"
-              className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm flex items-start gap-2.5"
+              className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm flex items-start justify-between gap-3 animate-in fade-in"
             >
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-600" />
-              <div className="leading-relaxed">{apiError}</div>
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-600" />
+                <div className="leading-relaxed">{apiError}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setApiError(null)}
+                className="text-red-500 hover:text-red-800 p-1 -mr-1 rounded-lg hover:bg-red-100/60 transition-colors shrink-0"
+                aria-label="Dismiss notification"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
@@ -585,7 +606,7 @@ function AuthForm() {
             </div>
 
             <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-              Choose an account to continue to <strong>StayHub & YayeTech</strong>. Your email is automatically verified.
+              Choose an account to continue to <strong>LuxStay</strong>. Your email is automatically verified.
             </p>
 
             {/* Quick 1-click configured Google account */}

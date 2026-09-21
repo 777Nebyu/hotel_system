@@ -60,13 +60,13 @@ export class ChapaMockProvider {
 
     // Send mock SMS
     const message = [
-      'YayeTech Payment',
+      'LuxStay Payment',
       '',
       'Your payment verification code is:',
       code,
       '',
       `Amount: ETB ${amount.toLocaleString()}`,
-      'Merchant: YayeTech Hotel',
+      'Merchant: LuxStay',
       `Reference: ${txRef}`,
       '',
       'Expires in 5 minutes.',

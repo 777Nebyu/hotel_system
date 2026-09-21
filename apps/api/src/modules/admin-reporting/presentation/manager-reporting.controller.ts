@@ -47,13 +47,18 @@ export class ManagerReportingController {
   @ApiOperation({ summary: 'Hotel overview counts and revenue (manager/admin)' })
   async overview(
     @Param() params: ManagerHotelParamsDto,
+    @Query() query: ReportQueryDto,
     @Req() req: AuthedRequest,
+    @Res({ passthrough: true }) res: Response,
   ) {
     await this.scope.assertManagerOwnsHotel(
       req.user.sub,
       req.user.role,
       params.hotelId,
     );
+    if (query?.format === 'pdf' || query?.format === 'excel') {
+      return this.executeExport(params.hotelId, 'overview', query, res);
+    }
     return this.reporting.hotelOverview(params.hotelId);
   }
 
@@ -61,13 +66,18 @@ export class ManagerReportingController {
   @ApiOperation({ summary: 'Hotel occupancy rate (manager/admin)' })
   async occupancy(
     @Param() params: ManagerHotelParamsDto,
+    @Query() query: ReportQueryDto,
     @Req() req: AuthedRequest,
+    @Res({ passthrough: true }) res: Response,
   ) {
     await this.scope.assertManagerOwnsHotel(
       req.user.sub,
       req.user.role,
       params.hotelId,
     );
+    if (query?.format === 'pdf' || query?.format === 'excel') {
+      return this.executeExport(params.hotelId, 'occupancy', query, res);
+    }
     return this.reporting.hotelOccupancyRate(params.hotelId);
   }
 
@@ -101,6 +111,23 @@ export class ManagerReportingController {
     return this.reporting.hotelBookingTrends(params.hotelId, query.days);
   }
 
+  @Get('export/:type')
+  @ApiOperation({ summary: 'Export hotel report as PDF or Excel (manager/admin)' })
+  async exportReportExplicit(
+    @Param() params: ManagerHotelParamsDto,
+    @Param() reportParams: ReportParamsDto,
+    @Query() query: ReportQueryDto,
+    @Req() req: AuthedRequest,
+    @Res() res: Response,
+  ) {
+    await this.scope.assertManagerOwnsHotel(
+      req.user.sub,
+      req.user.role,
+      params.hotelId,
+    );
+    await this.executeExport(params.hotelId, reportParams.type, query, res);
+  }
+
   @Get(':type')
   @ApiOperation({ summary: 'Export hotel report as PDF or Excel (manager/admin)' })
   async exportReport(
@@ -115,13 +142,26 @@ export class ManagerReportingController {
       req.user.role,
       params.hotelId,
     );
+    await this.executeExport(params.hotelId, reportParams.type, query, res);
+  }
+
+  private async executeExport(
+    hotelId: string,
+    type: string,
+    query: ReportQueryDto,
+    res: Response,
+  ) {
+    const format = query.format === 'excel' ? 'excel' : 'pdf';
     const { buffer, fileName } = await this.reporting.exportHotelReport(
-      params.hotelId,
-      reportParams.type,
-      query.format,
+      hotelId,
+      type as any,
+      format,
+      query.period,
+      query.startDate,
+      query.endDate,
     );
     const contentType =
-      query.format === 'excel'
+      format === 'excel'
         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         : 'application/pdf';
     res.setHeader('Content-Type', contentType);

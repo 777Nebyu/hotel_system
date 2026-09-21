@@ -31,11 +31,11 @@ export class EmailService {
     try {
       const fromAddress = this.config.get<string>(
         'email.from',
-        'noreply@yayetech.com',
+        'noreply@luxstay.com',
       );
       const from = fromAddress.includes('<')
         ? fromAddress
-        : `"StayHub" <${fromAddress}>`;
+        : `"LuxStay" <${fromAddress}>`;
       const res = await this.transporter.sendMail({
         from,
         ...input,
@@ -59,17 +59,17 @@ export class EmailService {
     const verifyUrl = `${webUrl}/auth/verify-email?token=${token}`;
     return {
       to,
-      subject: 'Verify Your Email Address — YayeTech Luxury Stays',
+      subject: 'Verify Your Email Address — LuxStay',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <div style="display: inline-block; width: 44px; height: 44px; line-height: 44px; background: linear-gradient(135deg, #D4AF37, #996515); border-radius: 12px; color: #ffffff; font-weight: bold; font-size: 20px; font-family: serif;">Y</div>
-            <h1 style="color: #0F2942; font-size: 24px; font-weight: bold; margin: 12px 0 4px 0;">YayeTech Luxury Stays</h1>
+            <div style="display: inline-block; width: 44px; height: 44px; line-height: 44px; background: linear-gradient(135deg, #D4AF37, #996515); border-radius: 12px; color: #ffffff; font-weight: bold; font-size: 20px; font-family: serif;">L</div>
+            <h1 style="color: #0F2942; font-size: 24px; font-weight: bold; margin: 12px 0 4px 0;">LuxStay</h1>
             <p style="color: #64748B; font-size: 14px; margin: 0;">Account Email Verification</p>
           </div>
           <div style="color: #334155; font-size: 15px; line-height: 1.6; margin-bottom: 28px;">
             <p>Hello,</p>
-            <p>Thank you for registering with <strong>YayeTech Luxury Stays</strong>. Before you can sign in and begin booking luxury suites across Ethiopia, please verify your email address by clicking the button below:</p>
+            <p>Thank you for registering with <strong>LuxStay</strong>. Before you can sign in and begin booking luxury suites across Ethiopia, please verify your email address by clicking the button below:</p>
           </div>
           <div style="text-align: center; margin: 32px 0;">
             <a href="${verifyUrl}" style="background-color: #0F2942; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(15, 41, 66, 0.2);">
@@ -82,7 +82,7 @@ export class EmailService {
           </p>
           <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0;" />
           <p style="color: #94A3B8; font-size: 12px; margin: 0; text-align: center;">
-            If you did not create an account with YayeTech Luxury Stays, you can safely ignore this message.
+            If you did not create an account with LuxStay, you can safely ignore this message.
           </p>
         </div>
       `,
@@ -101,13 +101,13 @@ export class EmailService {
 
     return {
       to,
-      subject: `Welcome to YayeTech Luxury Stays — Enjoy Your Journey!`,
+      subject: `Welcome to LuxStay — Enjoy Your Journey!`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 36px 28px; border: 1px solid #e2e8f0; border-radius: 20px; background-color: #ffffff; box-shadow: 0 4px 24px rgba(0,0,0,0.04);">
           <!-- Brand Header -->
           <div style="text-align: center; margin-bottom: 28px;">
-            <div style="display: inline-block; width: 48px; height: 48px; line-height: 48px; background: linear-gradient(135deg, #D4AF37, #996515); border-radius: 14px; color: #ffffff; font-weight: bold; font-size: 22px; font-family: Georgia, serif; box-shadow: 0 4px 12px rgba(212,175,55,0.3);">Y</div>
-            <h1 style="color: #0F2942; font-size: 26px; font-weight: bold; margin: 14px 0 4px 0; font-family: Georgia, serif;">YayeTech Luxury Stays</h1>
+            <div style="display: inline-block; width: 48px; height: 48px; line-height: 48px; background: linear-gradient(135deg, #D4AF37, #996515); border-radius: 14px; color: #ffffff; font-weight: bold; font-size: 22px; font-family: Georgia, serif; box-shadow: 0 4px 12px rgba(212,175,55,0.3);">L</div>
+            <h1 style="color: #0F2942; font-size: 26px; font-weight: bold; margin: 14px 0 4px 0; font-family: Georgia, serif;">LuxStay</h1>
             <p style="color: #D4AF37; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">Authentic Ethiopian Hospitality & Elegance</p>
           </div>
 
@@ -117,7 +117,7 @@ export class EmailService {
               Warmest Welcome, ${name}! ✨
             </p>
             <p>
-              We are delighted to welcome you to <strong>YayeTech Luxury Stays</strong>. Whether you are traveling for a refined weekend getaway, cultural discovery, or business, our handpicked collection of luxury suites and boutique resorts across Ethiopia is ready to make every moment unforgettable.
+              We are delighted to welcome you to <strong>LuxStay</strong>. Whether you are traveling for a refined weekend getaway, cultural discovery, or business, our handpicked collection of luxury suites and boutique resorts across Ethiopia is ready to make every moment unforgettable.
             </p>
             <p>
               Your account is fully set up and ready to unlock curated member rates and personalized stay experiences.
@@ -161,7 +161,7 @@ export class EmailService {
           <!-- Footer Signoff -->
           <div style="color: #64748B; font-size: 14px; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 24px; margin-top: 28px;">
             <p style="margin-bottom: 4px;">Wishing you extraordinary journeys and pleasant stays,</p>
-            <p style="color: #0F2942; font-weight: bold; margin: 0;">The YayeTech Luxury Stays Team</p>
+            <p style="color: #0F2942; font-weight: bold; margin: 0;">The LuxStay Team</p>
           </div>
         </div>
       `,
@@ -176,17 +176,17 @@ export class EmailService {
     const resetUrl = `${webUrl}/auth/reset-password?token=${token}`;
     return {
       to,
-      subject: 'Verify Email to Reset Password — YayeTech Luxury Stays',
+      subject: 'Verify Email to Reset Password — LuxStay',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <div style="display: inline-block; width: 44px; height: 44px; line-height: 44px; background: linear-gradient(135deg, #D4AF37, #996515); border-radius: 12px; color: #ffffff; font-weight: bold; font-size: 20px; font-family: serif;">Y</div>
-            <h1 style="color: #0F2942; font-size: 24px; font-weight: bold; margin: 12px 0 4px 0;">YayeTech Luxury Stays</h1>
+            <div style="display: inline-block; width: 44px; height: 44px; line-height: 44px; background: linear-gradient(135deg, #D4AF37, #996515); border-radius: 12px; color: #ffffff; font-weight: bold; font-size: 20px; font-family: serif;">L</div>
+            <h1 style="color: #0F2942; font-size: 24px; font-weight: bold; margin: 12px 0 4px 0;">LuxStay</h1>
             <p style="color: #64748B; font-size: 14px; margin: 0;">Password Reset Verification</p>
           </div>
           <div style="color: #334155; font-size: 15px; line-height: 1.6; margin-bottom: 28px;">
             <p>Hello,</p>
-            <p>We received a request to reset the password for your YayeTech account. To verify your identity and proceed with changing your password, please click the button below:</p>
+            <p>We received a request to reset the password for your LuxStay account. To verify your identity and proceed with changing your password, please click the button below:</p>
           </div>
           <div style="text-align: center; margin: 32px 0;">
             <a href="${resetUrl}" style="background-color: #0F2942; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(15, 41, 66, 0.2);">
@@ -227,7 +227,7 @@ export class EmailService {
             <p style="margin: 4px 0;"><strong>Booking Reference:</strong> ${details.bookingRef}</p>
             <p style="margin: 4px 0;"><strong>Check-in:</strong> ${details.checkIn}</p>
             <p style="margin: 4px 0;"><strong>Check-out:</strong> ${details.checkOut}</p>
-            <p style="margin: 4px 0;"><strong>Total Price:</strong> $${details.total.toFixed(2)}</p>
+            <p style="margin: 4px 0;"><strong>Total Price:</strong> ETB ${details.total.toFixed(2)}</p>
           </div>
           <p>We look forward to hosting you!</p>
         </div>
@@ -281,7 +281,7 @@ export class EmailService {
           <h2>Payment Received</h2>
           <p>We have received your payment for booking <strong>${details.bookingRef}</strong>.</p>
           <div style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 15px 0;">
-            <p style="margin: 4px 0;"><strong>Amount Paid:</strong> $${details.amount.toFixed(2)}</p>
+            <p style="margin: 4px 0;"><strong>Amount Paid:</strong> ETB ${details.amount.toFixed(2)}</p>
             <p style="margin: 4px 0;"><strong>Payment Method:</strong> ${details.method}</p>
             ${details.providerRef ? `<p style="margin: 4px 0;"><strong>Transaction Ref:</strong> ${details.providerRef}</p>` : ''}
           </div>
@@ -305,7 +305,7 @@ export class EmailService {
         <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.5;">
           <h2>Booking Cancellation Notice</h2>
           <p>Your booking <strong>${details.bookingRef}</strong> has been cancelled.</p>
-          ${details.refundAmount !== undefined && details.refundAmount > 0 ? `<p>A refund of <strong>$${details.refundAmount.toFixed(2)}</strong> has been processed to your payment method.</p>` : ''}
+          ${details.refundAmount !== undefined && details.refundAmount > 0 ? `<p>A refund of <strong>ETB ${details.refundAmount.toFixed(2)}</strong> has been processed to your payment method.</p>` : ''}
           <p>If you have questions, please contact our support team.</p>
         </div>
       `,

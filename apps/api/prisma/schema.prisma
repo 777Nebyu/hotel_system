@@ -540,6 +540,7 @@ model StaffHotel {
   staff      User     @relation(fields: [staffId], references: [id], onDelete: Cascade)
   hotelId    String
   hotel      Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  role       String   @default("Front Desk")
   assignedAt DateTime @default(now())
 
   @@id([staffId, hotelId])

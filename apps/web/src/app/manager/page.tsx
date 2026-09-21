@@ -5,6 +5,43 @@ import { useRouter } from 'next/navigation'
 import { hotelApi, managerApi, paymentApi } from '@/lib/services'
 import { useAuth } from '@/lib/auth-store'
 import AuthGate from '@/components/AuthGate'
+import {
+  AlertTriangle,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  X,
+  Eye,
+  EyeOff,
+  Users,
+  Clock,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Star,
+  Lightbulb,
+  Search,
+  Sparkles,
+  BellRing,
+  Briefcase,
+  FileDown,
+  FileSpreadsheet,
+  BarChart3,
+  Calendar,
+  Banknote,
+  Phone,
+  RefreshCw,
+  MessageSquare,
+  Wrench,
+  Building2,
+  TrendingUp,
+  CreditCard,
+  Layers,
+  Activity,
+} from 'lucide-react'
+
+import { ManagerAnalyticsCharts } from '@/components/manager/ManagerAnalyticsCharts'
+
+
 import type {
   Booking,
   DailyBookingTrendItem,
@@ -46,6 +83,7 @@ type ManagedHotel = {
 }
 
 type ManagedBooking = Booking & {
+  bookingRef?: string | null
   user?: { fullName: string; email: string; phone?: string | null }
   details?: Array<{ id: string; roomId: string; room?: { id: string; roomNumber: string; type: string } }>
 }
@@ -97,6 +135,20 @@ function ManagerDashboard() {
   const [successBanner, setSuccessBanner] = useState('')
   const [acting, setActing] = useState<string | null>(null)
 
+  // Auto-dismiss notification banners
+  useEffect(() => {
+    if (!successBanner) return
+    const timer = setTimeout(() => setSuccessBanner(''), 5000)
+    return () => clearTimeout(timer)
+  }, [successBanner])
+
+  useEffect(() => {
+    if (!error) return
+    const timer = setTimeout(() => setError(''), 7000)
+    return () => clearTimeout(timer)
+  }, [error])
+
+
   // Countries / Cities for hotel editing
   const [countries, setCountries] = useState<Country[]>([])
 
@@ -114,6 +166,16 @@ function ManagerDashboard() {
   const [reportOverview, setReportOverview] = useState<HotelReportOverview | null>(null)
   const [revenueItems, setRevenueItems] = useState<MonthlyRevenueItem[]>([])
   const [trendItems, setTrendItems] = useState<DailyBookingTrendItem[]>([])
+  const [occupancy, setOccupancy] = useState<any>({ totalRooms: 0, occupiedToday: 0, occupancyRate: 0 })
+
+  // Manager Reporting & Statement Download State
+  const [reportCategory, setReportCategory] = useState<
+    'overview' | 'booking' | 'revenue' | 'occupancy' | 'cancellation' | 'customer'
+  >('overview')
+  const [reportPeriod, setReportPeriod] = useState<
+    'daily' | 'weekly' | 'monthly' | 'yearly'
+  >('monthly')
+  const [reportDownloading, setReportDownloading] = useState<'pdf' | 'excel' | null>(null)
 
   // Reviews & Management Responses
   const [hotelReviews, setHotelReviews] = useState<Review[]>([])
@@ -171,10 +233,24 @@ function ManagerDashboard() {
   })
   const [seasonalSaving, setSeasonalSaving] = useState(false)
 
-  // Staff Assign Modal
+  // Staff Management State
   const [staffModalOpen, setStaffModalOpen] = useState(false)
-  const [staffUserId, setStaffUserId] = useState('')
+  const [staffModalMode, setStaffModalMode] = useState<'create' | 'assign'>('create')
+  const [staffForm, setStaffForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    phone: '',
+    rolePreset: 'Front Desk' as 'Front Desk' | 'Cleaner' | 'Other',
+    customRole: '',
+  })
+  const [assignRolePreset, setAssignRolePreset] = useState<'Front Desk' | 'Cleaner' | 'Other'>('Front Desk')
+  const [assignCustomRole, setAssignCustomRole] = useState('')
+  const [showStaffPassword, setShowStaffPassword] = useState(false)
+  const [assignEmail, setAssignEmail] = useState('')
   const [staffSaving, setStaffSaving] = useState(false)
+  const [staffSearchQuery, setStaffSearchQuery] = useState('')
+  const [statusTogglingId, setStatusTogglingId] = useState<string | null>(null)
 
   // Walk-in Booking Modal
   const [walkInModalOpen, setWalkInModalOpen] = useState(false)
@@ -202,6 +278,11 @@ function ManagerDashboard() {
   const [decisionNote, setDecisionNote] = useState('')
   const [decidingSubmitting, setDecidingSubmitting] = useState(false)
 
+  // No-Show Confirmation Modal
+  const [noShowModalBooking, setNoShowModalBooking] = useState<ManagedBooking | null>(null)
+  const [noShowSubmitting, setNoShowSubmitting] = useState(false)
+
+
   useEffect(() => {
     void hotelApi.countries().then(setCountries).catch(() => undefined)
   }, [])
@@ -223,7 +304,12 @@ function ManagerDashboard() {
       const hList = hotelData as unknown as ManagedHotel[]
       setHotels(hList)
       setBookings(bookingData.data as ManagedBooking[])
-      setStats(statsData)
+      setStats({
+        pendingApprovals: statsData.pendingApprovals ?? (statsData as any).pendingQueue ?? 0,
+        todaysCheckIns: statsData.todaysCheckIns ?? (statsData as any).arrivalsToday ?? 0,
+        todaysCheckOuts: statsData.todaysCheckOuts ?? (statsData as any).departuresToday ?? 0,
+        activeGuests: statsData.activeGuests ?? ((statsData as any).arrivals?.length ?? 0),
+      })
 
       if (hList.length > 0 && !selectedHotelId) {
         setSelectedHotelId(hList[0].id)
@@ -243,16 +329,17 @@ function ManagerDashboard() {
   const loadHotelDetails = useCallback(async (hId: string) => {
     if (!hId) return
     try {
-      const [hotelData, policyData, staffData, requestsData, overviewData, revenueData, trendsData, reviewsData] =
+      const [hotelData, policyData, staffData, requestsData, overviewData, revenueData, trendsData, reviewsData, occupancyData] =
         await Promise.all([
           hotelApi.getById(hId).catch(() => null),
           managerApi.getPolicy(hId).catch(() => null),
           managerApi.listStaff(hId).catch(() => ({ data: [] })),
           managerApi.listStayRequests(hId).catch(() => []),
           managerApi.reportOverview(hId).catch(() => null),
-          managerApi.reportRevenue(hId, 6).catch(() => []),
+          managerApi.reportRevenue(hId, 12).catch(() => []),
           managerApi.reportTrends(hId, 30).catch(() => []),
           managerApi.listReviews(hId).catch(() => null),
+          managerApi.reportOccupancy(hId).catch(() => null),
         ])
 
       if (hotelData?.rooms) setSelectedHotelRooms(hotelData.rooms)
@@ -262,6 +349,7 @@ function ManagerDashboard() {
       setReportOverview(overviewData)
       setRevenueItems(revenueData)
       setTrendItems(trendsData)
+      if (occupancyData) setOccupancy(occupancyData)
       if (reviewsData?.data) {
         setHotelReviews(reviewsData.data)
         setReviewSummary(reviewsData.summary)
@@ -309,17 +397,26 @@ function ManagerDashboard() {
     }
   }
 
-  const markNoShow = async (bookingId: string) => {
-    if (!confirm('Are you sure you want to mark this guest as No-Show? Availability will be released.')) return
+  const confirmNoShow = async () => {
+    if (!noShowModalBooking) return
+    setNoShowSubmitting(true)
     setError('')
     try {
-      await managerApi.noShow(bookingId)
-      setSuccessBanner('Booking marked as No-Show.')
+      await managerApi.noShow(noShowModalBooking.id)
+      setSuccessBanner(`Booking ${noShowModalBooking.bookingRef} successfully marked as No-Show. Room availability has been restored.`)
+      setNoShowModalBooking(null)
       await load()
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Failed to mark No-Show.')
+      setError(caught instanceof Error ? caught.message : 'Failed to mark reservation as No-Show.')
+    } finally {
+      setNoShowSubmitting(false)
     }
   }
+
+  const openNoShowModal = (booking: ManagedBooking) => {
+    setNoShowModalBooking(booking)
+  }
+
 
   // Review Response Handlers
   const handleSaveResponse = async (reviewId: string) => {
@@ -472,6 +569,23 @@ function ManagerDashboard() {
     }
   }
 
+  // Room Status Change
+  const handleRoomStatusChange = async (roomId: string, newStatus: 'AVAILABLE' | 'CLEANING' | 'MAINTENANCE') => {
+    setActing(`room-status-${roomId}`)
+    setError('')
+    try {
+      await managerApi.updateRoomStatus(roomId, newStatus)
+      setSelectedHotelRooms((prev) =>
+        prev.map((rm) => (rm.id === roomId ? { ...rm, status: newStatus } : rm)),
+      )
+      setSuccessBanner(`Room status updated to ${newStatus}.`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update room status.')
+    } finally {
+      setActing(null)
+    }
+  }
+
   // Seasonal Pricing
   const handleSaveSeasonalPricing = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -513,31 +627,105 @@ function ManagerDashboard() {
     }
   }
 
-  // Staff Assign & Remove
-  const handleAssignStaff = async (e: React.FormEvent) => {
+  // Staff Handlers
+  const handleOpenAddStaff = () => {
+    setStaffForm({
+      fullName: '',
+      email: '',
+      password: '',
+      phone: '',
+      rolePreset: 'Front Desk',
+      customRole: '',
+    })
+    setAssignEmail('')
+    setAssignRolePreset('Front Desk')
+    setAssignCustomRole('')
+    setShowStaffPassword(false)
+    setStaffModalMode('create')
+    setStaffModalOpen(true)
+  }
+
+  const handleSaveStaff = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedHotelId || !staffUserId.trim()) return
+    if (!selectedHotelId) return
     setStaffSaving(true)
     setError('')
     try {
-      await managerApi.assignStaff(selectedHotelId, { userId: staffUserId.trim() })
-      setSuccessBanner('Staff member assigned to hotel!')
+      if (staffModalMode === 'create') {
+        if (!staffForm.fullName.trim()) throw new Error('Please enter the staff member’s full name.')
+        if (!staffForm.email.trim()) throw new Error('Please enter a valid email address.')
+        if (!staffForm.password || staffForm.password.length < 8) {
+          throw new Error('Password must be at least 8 characters long.')
+        }
+        const resolvedRole =
+          staffForm.rolePreset === 'Other'
+            ? staffForm.customRole.trim() || 'Staff'
+            : staffForm.rolePreset
+        await managerApi.createStaff(selectedHotelId, {
+          fullName: staffForm.fullName.trim(),
+          email: staffForm.email.trim(),
+          password: staffForm.password,
+          phone: staffForm.phone.trim() || undefined,
+          role: resolvedRole,
+        })
+        setSuccessBanner(`Staff member (${resolvedRole}) created and assigned to hotel successfully!`)
+      } else {
+        if (!assignEmail.trim()) throw new Error('Please enter the email address of the staff member.')
+        const resolvedRole =
+          assignRolePreset === 'Other'
+            ? assignCustomRole.trim() || 'Staff'
+            : assignRolePreset
+        await managerApi.assignStaff(selectedHotelId, {
+          email: assignEmail.trim(),
+          role: resolvedRole,
+        })
+        setSuccessBanner(`Staff member (${resolvedRole}) assigned to hotel successfully!`)
+      }
       setStaffModalOpen(false)
-      setStaffUserId('')
       await loadHotelDetails(selectedHotelId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to assign staff member.')
+      setError(err instanceof Error ? err.message : 'Failed to save staff member.')
     } finally {
       setStaffSaving(false)
     }
   }
 
-  const handleRemoveStaff = async (staffId: string) => {
-    if (!confirm('Remove this staff member from this hotel?')) return
+  const handleToggleStaffStatus = async (staffId: string, currentActive: boolean) => {
+    if (!selectedHotelId) return
+    setStatusTogglingId(staffId)
+    setError('')
+    try {
+      await managerApi.updateStaffStatus(selectedHotelId, staffId, !currentActive)
+      setSuccessBanner(`Staff account ${!currentActive ? 'activated' : 'deactivated'}.`)
+      setHotelStaff((prev) =>
+        prev.map((item) => {
+          const id = item.staffId || item.staff?.id || item.user?.id || item.id
+          if (id === staffId) {
+            const updatedUser = { ...(item.staff || item.user), isActive: !currentActive }
+            return {
+              ...item,
+              staff: updatedUser,
+              user: updatedUser,
+            }
+          }
+          return item
+        }),
+      )
+      await loadHotelDetails(selectedHotelId)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update staff status.')
+    } finally {
+      setStatusTogglingId(null)
+    }
+  }
+
+  const handleRemoveStaff = async (staffId: string, staffName?: string) => {
+    const displayName = staffName || 'this staff member'
+    if (!confirm(`Are you sure you want to remove ${displayName} from this hotel?`)) return
     setError('')
     try {
       await managerApi.removeStaff(selectedHotelId, staffId)
-      setSuccessBanner('Staff member removed.')
+      setSuccessBanner(`${displayName} has been removed from this hotel.`)
       await loadHotelDetails(selectedHotelId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove staff.')
@@ -714,188 +902,242 @@ function ManagerDashboard() {
       {/* Main Panel */}
       <main className="flex-1 p-6 lg:p-8 max-w-6xl overflow-auto">
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-3.5 flex items-center justify-between">
-            <span>{error}</span>
-            <button onClick={() => setError('')} className="font-bold text-red-500">
-              ✕
+          <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+              <span>{error}</span>
+            </div>
+            <button
+              onClick={() => setError('')}
+              className="text-rose-600 hover:text-rose-900 p-1.5 rounded-lg hover:bg-rose-100/60 transition-colors cursor-pointer"
+              aria-label="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
         {successBanner && (
-          <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl p-3.5 flex items-center justify-between">
-            <span>{successBanner}</span>
-            <button onClick={() => setSuccessBanner('')} className="font-bold text-emerald-500">
-              ✕
+          <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>{successBanner}</span>
+            </div>
+            <button
+              onClick={() => setSuccessBanner('')}
+              className="text-emerald-600 hover:text-emerald-900 p-1.5 rounded-lg hover:bg-emerald-100/60 transition-colors cursor-pointer"
+              aria-label="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
+
         {/* Tab 1: Dashboard Overview */}
-        {tab === 'Dashboard' && (
-          <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <div>
-                <h1 className="font-serif text-3xl text-[#0F172A]">Manager Overview</h1>
-                <p className="text-[#64748B]">Live operations for {selectedHotel?.name || 'Assigned Hotels'}.</p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setWalkInModalOpen(true)}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors"
-                >
-                  + Walk-in Guest
-                </button>
-                <button
-                  onClick={() => void load()}
-                  className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm transition-colors"
-                >
-                  Refresh
-                </button>
-              </div>
-            </div>
+        {tab === 'Dashboard' && (() => {
+          const hotelRevenueDisplay = reportOverview?.totalRevenue ?? 0
+          const hotelBookingsDisplay = reportOverview?.totalBookings ?? bookings.length
+          const hotelActiveRoomsCount = selectedHotelRooms.length || (reportOverview?.activeRooms ?? 0)
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {[
-                ['Pending approvals', stats.pendingApprovals, '⏳'],
-                ["Today's check-ins", stats.todaysCheckIns, '↪'],
-                ["Today's check-outs", stats.todaysCheckOuts, '↩'],
-                ['Active guests', stats.activeGuests, '👥'],
-              ].map(([label, value, icon]) => (
-                <div key={String(label)} className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm">
-                  <div className="text-2xl mb-3">{icon}</div>
-                  <div className="font-bold text-[#0F172A] text-2xl">{value}</div>
-                  <div className="text-[#64748B] text-xs mt-0.5">{label}</div>
-                </div>
-              ))}
-            </div>
+          const occupancyRateNum =
+            typeof occupancy?.occupancyRate === 'number' && !isNaN(occupancy.occupancyRate)
+              ? occupancy.occupancyRate
+              : typeof reportOverview?.occupancyRate === 'number' && !isNaN(reportOverview.occupancyRate)
+                ? reportOverview.occupancyRate
+                : 0
+          const occupiedRoomsCount = occupancy?.occupiedToday ?? reportOverview?.occupiedToday ?? 0
 
-            {/* Pending Stay Requests Alert */}
-            {stayRequests.filter((r) => r.status === 'PENDING').length > 0 && (
-              <div className="mb-8 bg-indigo-50 border border-indigo-200 rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-bold text-indigo-900 text-base flex items-center gap-2">
-                    <span>🕒</span> Pending Guest Stay Requests (
-                    {stayRequests.filter((r) => r.status === 'PENDING').length})
-                  </h3>
+          return (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <div>
+                  <h1 className="font-serif text-3xl text-[#0F172A]">Manager Overview</h1>
+                  <p className="text-[#64748B]">Live operations, revenue analytics, and occupancy for {selectedHotel?.name || 'Assigned Hotels'}.</p>
                 </div>
-                <div className="space-y-2">
-                  {stayRequests
-                    .filter((r) => r.status === 'PENDING')
-                    .map((req) => (
-                      <div
-                        key={req.id}
-                        className="bg-white rounded-xl p-3 border border-indigo-100 flex items-center justify-between"
-                      >
-                        <div>
-                          <span className="font-semibold text-sm text-[#0F172A]">
-                            {req.type === 'EARLY_CHECK_IN' ? 'Early Check-In' : 'Late Check-Out'}
-                          </span>{' '}
-                          <span className="text-xs text-[#64748B]">at {req.requestedTime}</span>
-                          <span className="font-mono text-xs text-[#94A3B8] block">Booking #{req.bookingId.slice(-8)}</span>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setDecidingRequest(req)
-                            setDecisionNote('')
-                          }}
-                          className="px-3.5 py-1.5 bg-[#2563EB] text-white rounded-lg text-xs font-semibold"
-                        >
-                          Review & Decide
-                        </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setWalkInModalOpen(true)}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors cursor-pointer"
+                  >
+                    + Walk-in Guest
+                  </button>
+                  <button
+                    onClick={() => void load()}
+                    className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm transition-colors cursor-pointer"
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </div>
+
+              {/* 4 Primary Top Luxury Metrics */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {[
+                  { label: 'Property Revenue', value: formatMoney(hotelRevenueDisplay), icon: CreditCard, color: 'text-purple-600 bg-purple-50 border-purple-100' },
+                  { label: "Today's Occupancy", value: `${(occupancyRateNum * 100).toFixed(1)}%`, icon: Activity, color: 'text-blue-600 bg-blue-50 border-blue-100' },
+                  { label: 'Total Bookings', value: hotelBookingsDisplay, icon: Calendar, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+                  { label: 'Room Inventory', value: `${hotelActiveRoomsCount} Rooms`, icon: Building2, color: 'text-amber-600 bg-amber-50 border-amber-100' },
+                ].map((item) => {
+                  const IconComp = item.icon
+                  return (
+                    <div key={item.label} className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm flex flex-col justify-between">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 border ${item.color}`}>
+                        <IconComp className="w-5 h-5" />
                       </div>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {/* Recent Reservations */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-[#F1F5F9] flex justify-between items-center">
-                <h2 className="font-bold text-[#0F172A]">Recent Reservations</h2>
-                <button onClick={() => setTab('Bookings')} className="text-sm text-[#2563EB] font-semibold">
-                  View All ({bookings.length}) →
-                </button>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {bookings.slice(0, 6).map((booking) => (
-                  <div key={booking.id} className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div>
-                      <div className="font-semibold text-[#0F172A]">
-                        {booking.user?.fullName || 'Walk-in Guest'}{' '}
-                        <span className="font-mono font-normal text-xs text-[#94A3B8]">#{booking.id.slice(-8)}</span>
-                      </div>
-                      <div className="text-[#64748B] text-xs mt-1">
-                        {booking.hotel?.name} · {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)} ·{' '}
-                        {formatMoney(booking.totalPrice)}
+                      <div>
+                        <div className="font-bold text-[#0F172A] text-2xl">{item.value}</div>
+                        <div className="text-[#64748B] text-xs mt-0.5">{item.label}</div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusStyle(booking.status)}`}>
-                        {booking.status.replace(/_/g, ' ')}
-                      </span>
-                      {booking.status === 'PENDING' && (
-                        <>
-                          <button
-                            disabled={acting === booking.id}
-                            onClick={() => act(booking.id, 'confirm')}
-                            className="px-3 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-lg text-xs font-semibold"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            disabled={acting === booking.id}
-                            onClick={() => act(booking.id, 'reject')}
-                            className="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-xs font-semibold"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                      {booking.status === 'CONFIRMED' && (
-                        <>
-                          <button
-                            disabled={acting === booking.id}
-                            onClick={() => act(booking.id, 'check-in')}
-                            className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold"
-                          >
-                            Check In
-                          </button>
-                          <button
-                            onClick={() => markNoShow(booking.id)}
-                            className="px-3 py-1.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-semibold"
-                          >
-                            No-Show
-                          </button>
-                        </>
-                      )}
-                      {booking.status === 'CHECKED_IN' && (
-                        <>
-                          <button
-                            disabled={acting === booking.id}
-                            onClick={() => act(booking.id, 'check-out')}
-                            className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold"
-                          >
-                            Check Out
-                          </button>
+                  )
+                })}
+              </div>
+
+              {/* 4 Secondary Operational Flow Badges */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {[
+                  { label: 'Pending approvals', value: stats.pendingApprovals, icon: Clock, color: 'text-amber-600 bg-amber-50 border-amber-100' },
+                  { label: "Today's check-ins", value: stats.todaysCheckIns, icon: ArrowDownLeft, color: 'text-blue-600 bg-blue-50 border-blue-100' },
+                  { label: "Today's check-outs", value: stats.todaysCheckOuts, icon: ArrowUpRight, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
+                  { label: 'Active guests', value: stats.activeGuests, icon: Users, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+                ].map((item) => {
+                  const IconComp = item.icon
+                  return (
+                    <div key={item.label} className="bg-white rounded-2xl p-4 border border-[#E2E8F0] shadow-sm flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shrink-0 ${item.color}`}>
+                        <IconComp className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-[#0F172A] text-xl">{item.value}</div>
+                        <div className="text-[#64748B] text-xs">{item.label}</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Interactive Luxury Analytics Charts */}
+              <ManagerAnalyticsCharts
+                hotelName={selectedHotel?.name}
+                monthlyRevenue={revenueItems}
+                bookingTrends={trendItems}
+                rooms={selectedHotelRooms}
+                occupiedToday={occupiedRoomsCount}
+              />
+
+              {/* Pending Stay Requests Alert */}
+              {stayRequests.filter((r) => r.status === 'PENDING').length > 0 && (
+                <div className="mb-8 bg-indigo-50 border border-indigo-200 rounded-2xl p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-bold text-indigo-900 text-base flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-indigo-700" />
+                      <span>Pending Guest Stay Requests ({stayRequests.filter((r) => r.status === 'PENDING').length})</span>
+                    </h3>
+                  </div>
+                  <div className="space-y-2">
+                    {stayRequests
+                      .filter((r) => r.status === 'PENDING')
+                      .map((req) => (
+                        <div
+                          key={req.id}
+                          className="bg-white rounded-xl p-3 border border-indigo-100 flex items-center justify-between"
+                        >
+                          <div>
+                            <span className="font-semibold text-sm text-[#0F172A]">
+                              {req.type === 'EARLY_CHECK_IN' ? 'Early Check-In' : 'Late Check-Out'}
+                            </span>{' '}
+                            <span className="text-xs text-[#64748B]">at {req.requestedTime}</span>
+                            <span className="font-mono text-xs text-[#94A3B8] block">Booking #{req.bookingId.slice(-8)}</span>
+                          </div>
                           <button
                             onClick={() => {
-                              setRelocateBooking(booking)
-                              setRelocateNewRoomId('')
+                              setDecidingRequest(req)
+                              setDecisionNote('')
                             }}
-                            className="px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg text-xs font-semibold"
+                            className="px-3.5 py-1.5 bg-[#2563EB] text-white rounded-lg text-xs font-semibold cursor-pointer"
                           >
-                            Relocate
+                            Review & Decide
                           </button>
-                        </>
-                      )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Today's Occupancy Bar & Recent Reservations */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-sm flex flex-col justify-between">
+                  <div>
+                    <h2 className="font-bold text-[#0F172A] mb-2">Today&apos;s Property Occupancy</h2>
+                    <div className="text-4xl font-bold text-[#0F172A]">{(occupancyRateNum * 100).toFixed(1)}%</div>
+                    <p className="text-[#64748B] text-sm mt-1">
+                      {occupiedRoomsCount} occupied of {hotelActiveRoomsCount} active rooms
+                    </p>
+                    <div className="bg-[#F1F5F9] h-2.5 rounded-full mt-5 overflow-hidden">
+                      <div
+                        className="bg-[#2563EB] h-2.5 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, occupancyRateNum * 100)}%` }}
+                      />
                     </div>
                   </div>
-                ))}
+                  <div className="pt-4 border-t border-slate-100 mt-6 text-xs text-[#64748B] flex justify-between">
+                    <span>Available: {Math.max(0, hotelActiveRoomsCount - occupiedRoomsCount)} rooms</span>
+                    <span className="font-semibold text-[#2563EB]">{selectedHotel?.name}</span>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-2 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+                  <div className="p-5 border-b border-[#F1F5F9] flex justify-between items-center">
+                    <h2 className="font-bold text-[#0F172A]">Recent Reservations</h2>
+                    <button onClick={() => setTab('Bookings')} className="text-sm text-[#2563EB] font-semibold cursor-pointer">
+                      View All ({bookings.length}) →
+                    </button>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {bookings.slice(0, 5).map((booking) => (
+                      <div key={booking.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <div className="font-semibold text-[#0F172A] text-sm">
+                            {booking.user?.fullName || 'Walk-in Guest'}{' '}
+                            <span className="font-mono font-normal text-xs text-[#94A3B8]">#{booking.id.slice(-8)}</span>
+                          </div>
+                          <div className="text-[#64748B] text-xs mt-0.5">
+                            {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)} · {formatMoney(booking.totalPrice)}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${statusStyle(booking.status)}`}>
+                            {booking.status.replace(/_/g, ' ')}
+                          </span>
+                          {booking.status === 'PENDING' && (
+                            <button
+                              disabled={acting === booking.id}
+                              onClick={() => act(booking.id, 'confirm')}
+                              className="px-3 py-1 bg-[#2563EB] text-white rounded-lg text-xs font-semibold cursor-pointer"
+                            >
+                              Confirm
+                            </button>
+                          )}
+                          {booking.status === 'CONFIRMED' && (
+                            <button
+                              disabled={acting === booking.id}
+                              onClick={() => act(booking.id, 'check-in')}
+                              className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                            >
+                              Check In
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {!bookings.length && <p className="p-8 text-center text-xs text-[#64748B]">No reservations recorded.</p>}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* Tab 2: Hotels Management */}
         {tab === 'Hotels' && (
@@ -940,8 +1182,11 @@ function ManagerDashboard() {
                         </span>
                       </div>
 
-                      <div className="flex gap-4 mt-4 text-xs text-[#64748B]">
-                        <span>★ {hotel.starRating} Stars</span>
+                      <div className="flex items-center gap-4 mt-4 text-xs text-[#64748B]">
+                        <span className="inline-flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                          <span>{hotel.starRating} Stars</span>
+                        </span>
                         <span>{hotel._count?.rooms ?? 0} rooms</span>
                         <span>{hotel._count?.bookings ?? 0} bookings</span>
                       </div>
@@ -1065,45 +1310,111 @@ function ManagerDashboard() {
         )}
 
         {/* Tab 4: Seasonal Pricing */}
-        {tab === 'Pricing' && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Seasonal Dynamic Pricing</h1>
-                <p className="text-[#64748B] text-sm">
-                  Apply multipliers and price overrides during holidays and peak seasons.
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setSeasonalForm({
-                    roomId: selectedHotelRooms[0]?.id || '',
-                    name: 'Peak Season Override',
-                    startDate: new Date().toISOString().slice(0, 10),
-                    endDate: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 10),
-                    priceMultiplier: 1.25,
-                    fixedPrice: '',
-                  })
-                  setSeasonalModalOpen(true)
-                }}
-                className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm"
-              >
-                + Add Pricing Rule
-              </button>
-            </div>
+        {tab === 'Pricing' && (() => {
+          const allPricingRules = selectedHotelRooms.flatMap((r) =>
+            ((r as any).seasonalPricing || []).map((p: any) => ({ ...p, roomNumber: r.roomNumber, roomId: r.id }))
+          )
 
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6">
-              <h3 className="font-bold text-[#0F172A] mb-4">Active Pricing Rules</h3>
-              <p className="text-sm text-[#64748B] mb-4">
-                Seasonal pricing rules dynamically alter the nightly rate shown on search and booking quotes.
-              </p>
-              <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-900 leading-relaxed">
-                💡 <strong>Tip:</strong> A multiplier of 1.25 increases nightly prices by 25%. Fixed price overrides
-                completely replace base pricing for the defined date window.
+          return (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Seasonal Dynamic Pricing</h1>
+                  <p className="text-[#64748B] text-sm">
+                    Apply multipliers and price overrides during holidays and peak seasons for {selectedHotel?.name}.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setSeasonalForm({
+                      roomId: selectedHotelRooms[0]?.id || '',
+                      name: 'Peak Season Override',
+                      startDate: new Date().toISOString().slice(0, 10),
+                      endDate: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 10),
+                      priceMultiplier: 1.25,
+                      fixedPrice: '',
+                    })
+                    setSeasonalModalOpen(true)
+                  }}
+                  className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm cursor-pointer"
+                >
+                  + Add Pricing Rule
+                </button>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-[#0F172A]">Active Pricing Rules</h3>
+                  <span className="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-[#2563EB] rounded-full">
+                    {allPricingRules.length} Active Rules
+                  </span>
+                </div>
+
+                {allPricingRules.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-[#64748B] font-semibold">
+                          <th className="pb-3">Room</th>
+                          <th className="pb-3">Rule Name</th>
+                          <th className="pb-3">Active Dates</th>
+                          <th className="pb-3">Rate Adjustment</th>
+                          <th className="pb-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {allPricingRules.map((rule: any) => (
+                          <tr key={rule.id} className="hover:bg-slate-50/60">
+                            <td className="py-3.5 font-bold text-[#0F172A]">Room #{rule.roomNumber}</td>
+                            <td className="py-3.5 font-medium text-slate-700">{rule.name}</td>
+                            <td className="py-3.5 text-[#64748B]">
+                              {formatDate(rule.startDate)} → {formatDate(rule.endDate)}
+                            </td>
+                            <td className="py-3.5">
+                              {rule.fixedPrice ? (
+                                <span className="font-bold text-emerald-600">{formatMoney(rule.fixedPrice)}</span>
+                              ) : (
+                                <span className="font-bold text-[#2563EB]">{rule.priceMultiplier}x multiplier</span>
+                              )}
+                            </td>
+                            <td className="py-3.5 text-right">
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await managerApi.deleteSeasonalPricing(rule.roomId, rule.id)
+                                    setSuccessBanner('Pricing rule removed.')
+                                    if (selectedHotelId) await loadHotelDetails(selectedHotelId)
+                                  } catch (err) {
+                                    setError(err instanceof Error ? err.message : 'Failed to delete pricing rule.')
+                                  }
+                                }}
+                                className="text-xs text-rose-600 hover:text-rose-800 font-semibold cursor-pointer"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#64748B] py-4">
+                    No active seasonal pricing rules configured for this hotel yet. Click &quot;+ Add Pricing Rule&quot; to define a custom seasonal multiplier.
+                  </p>
+                )}
+
+                <div className="mt-5 p-4 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-900 leading-relaxed flex items-start gap-2.5">
+                  <Lightbulb className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <strong>Tip:</strong> A multiplier of 1.25 increases nightly prices by 25%. Fixed price overrides
+                    completely replace base pricing for the defined date window.
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* Tab 5: Availability & Maintenance */}
         {tab === 'Availability' && (
@@ -1129,194 +1440,450 @@ function ManagerDashboard() {
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6">
-              <h3 className="font-bold text-[#0F172A] mb-2">Room Maintenance Schedules</h3>
-              <p className="text-sm text-[#64748B] mb-6">
-                Rooms blocked for maintenance are immediately hidden from customer search availability.
-              </p>
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-4 border-b border-slate-100">
+                <div>
+                  <h3 className="font-bold text-[#0F172A] text-base">Room Operational Status &amp; Turnover</h3>
+                  <p className="text-xs text-[#64748B] mt-0.5">
+                    Live room turnover and service availability. Rooms set to Maintenance or Cleaning are automatically blocked from guest bookings.
+                  </p>
+                </div>
+                <div className="text-xs text-[#64748B] font-medium shrink-0">
+                  Total Inventory: <span className="font-bold text-[#0F172A]">{selectedHotelRooms.length}</span> rooms
+                </div>
+              </div>
+
               <div className="divide-y divide-slate-100">
                 {selectedHotelRooms.map((r) => (
-                  <div key={r.id} className="py-3.5 flex items-center justify-between">
+                  <div key={r.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                      <span className="font-bold text-sm text-[#0F172A]">Room #{r.roomNumber}</span>
-                      <span className="text-xs text-[#64748B] ml-2">({r.type.replace(/_/g, ' ')})</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-[#0F172A]">Room #{r.roomNumber}</span>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                          {r.type.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-xs text-[#64748B]">
+                          Cap: {r.capacity} · {r.beds} bed(s)
+                        </span>
+                      </div>
+                      <div className="text-xs text-[#64748B] mt-1 font-mono">
+                        Base Rate: {formatMoney(r.basePrice)}/night
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                          r.status === 'AVAILABLE' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
-                        }`}
-                      >
-                        {r.status}
-                      </span>
+
+                    <div className="flex items-center gap-2.5">
+                      <div className="inline-flex rounded-xl p-1 bg-slate-100 border border-slate-200">
+                        <button
+                          type="button"
+                          disabled={acting === `room-status-${r.id}` || r.status === 'AVAILABLE'}
+                          onClick={() => handleRoomStatusChange(r.id, 'AVAILABLE')}
+                          className={`text-xs px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                            r.status === 'AVAILABLE'
+                              ? 'bg-emerald-600 text-white shadow-sm'
+                              : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50/70'
+                          }`}
+                        >
+                          Available
+                        </button>
+                        <button
+                          type="button"
+                          disabled={acting === `room-status-${r.id}` || r.status === 'CLEANING'}
+                          onClick={() => handleRoomStatusChange(r.id, 'CLEANING')}
+                          className={`text-xs px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                            r.status === 'CLEANING'
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50/70'
+                          }`}
+                        >
+                          Cleaning
+                        </button>
+                        <button
+                          type="button"
+                          disabled={acting === `room-status-${r.id}` || r.status === 'MAINTENANCE'}
+                          onClick={() => handleRoomStatusChange(r.id, 'MAINTENANCE')}
+                          className={`text-xs px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                            r.status === 'MAINTENANCE'
+                              ? 'bg-rose-600 text-white shadow-sm'
+                              : 'text-slate-600 hover:text-rose-700 hover:bg-rose-50/70'
+                          }`}
+                        >
+                          Maintenance
+                        </button>
+                      </div>
+                      {acting === `room-status-${r.id}` && (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2563EB]" />
+                      )}
                     </div>
                   </div>
                 ))}
+
+                {selectedHotelRooms.length === 0 && (
+                  <div className="py-10 text-center text-sm text-[#64748B]">
+                    No rooms configured for this hotel yet. Please add rooms in the Rooms tab first.
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
 
         {/* Tab 6: Hotel Policies */}
-        {tab === 'Policies' && (
-          <div>
-            <div className="mb-6">
-              <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Hotel Policies & Rules</h1>
-              <p className="text-[#64748B] text-sm">
-                Configure check-in/out hours, cancellation policies, and early/late fees for {selectedHotel?.name}.
-              </p>
+        {tab === 'Policies' && (() => {
+          const fallbackPolicy: HotelPolicy = {
+            id: '',
+            hotelId: selectedHotelId,
+            checkInTime: '14:00',
+            checkOutTime: '11:00',
+            cancellationWindowDays: 3,
+            cancellationFeePercent: 0,
+            earlyCheckInFee: 0,
+            lateCheckOutFee: 0,
+          }
+          const currentPolicy = hotelPolicy || fallbackPolicy
+
+          return (
+            <div>
+              <div className="mb-6">
+                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Hotel Policies & Rules</h1>
+                <p className="text-[#64748B] text-sm">
+                  Configure check-in/out hours, cancellation policies, and early/late fees for {selectedHotel?.name}.
+                </p>
+              </div>
+
+              <form onSubmit={handleSavePolicy} className="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5 shadow-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
+                      Standard Check-in Time (HH:mm)
+                    </label>
+                    <input
+                      type="time"
+                      required
+                      value={currentPolicy.checkInTime || '14:00'}
+                      onChange={(e) =>
+                        setHotelPolicy((prev) => ({ ...(prev || fallbackPolicy), checkInTime: e.target.value }))
+                      }
+                      className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
+                      Standard Check-out Time (HH:mm)
+                    </label>
+                    <input
+                      type="time"
+                      required
+                      value={currentPolicy.checkOutTime || '11:00'}
+                      onChange={(e) =>
+                        setHotelPolicy((prev) => ({ ...(prev || fallbackPolicy), checkOutTime: e.target.value }))
+                      }
+                      className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
+                      Cancellation Window (Days)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={90}
+                      value={currentPolicy.cancellationWindowDays ?? 3}
+                      onChange={(e) =>
+                        setHotelPolicy((prev) => ({
+                          ...(prev || fallbackPolicy),
+                          cancellationWindowDays: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
+                    />
+                    <p className="text-[11px] text-[#94A3B8] mt-1">Full refund permitted up to this many days before check-in.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
+                      Cancellation Fee Percent (%)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={Number(currentPolicy.cancellationFeePercent ?? 0)}
+                      onChange={(e) =>
+                        setHotelPolicy((prev) => ({
+                          ...(prev || fallbackPolicy),
+                          cancellationFeePercent: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
+                      Early Check-in Fee (ETB)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={Number(currentPolicy.earlyCheckInFee ?? 0)}
+                      onChange={(e) =>
+                        setHotelPolicy((prev) => ({
+                          ...(prev || fallbackPolicy),
+                          earlyCheckInFee: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
+                      Late Check-out Fee (ETB)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={Number(currentPolicy.lateCheckOutFee ?? 0)}
+                      onChange={(e) =>
+                        setHotelPolicy((prev) => ({
+                          ...(prev || fallbackPolicy),
+                          lateCheckOutFee: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={policySaving}
+                    className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-sm transition-colors"
+                  >
+                    {policySaving ? 'Saving…' : 'Save Policies'}
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleSavePolicy} className="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                    Standard Check-in Time (HH:mm)
-                  </label>
-                  <input
-                    type="time"
-                    required
-                    value={hotelPolicy?.checkInTime || '14:00'}
-                    onChange={(e) => setHotelPolicy((prev) => ({ ...prev!, checkInTime: e.target.value }))}
-                    className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                    Standard Check-out Time (HH:mm)
-                  </label>
-                  <input
-                    type="time"
-                    required
-                    value={hotelPolicy?.checkOutTime || '11:00'}
-                    onChange={(e) => setHotelPolicy((prev) => ({ ...prev!, checkOutTime: e.target.value }))}
-                    className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                    Cancellation Window (Days)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={90}
-                    value={hotelPolicy?.cancellationWindowDays ?? 3}
-                    onChange={(e) =>
-                      setHotelPolicy((prev) => ({ ...prev!, cancellationWindowDays: Number(e.target.value) }))
-                    }
-                    className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
-                  />
-                  <p className="text-[11px] text-[#94A3B8] mt-1">Full refund permitted up to this many days before check-in.</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                    Cancellation Fee Percent (%)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={Number(hotelPolicy?.cancellationFeePercent ?? 0)}
-                    onChange={(e) =>
-                      setHotelPolicy((prev) => ({ ...prev!, cancellationFeePercent: Number(e.target.value) }))
-                    }
-                    className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                    Early Check-in Fee (ETB)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={Number(hotelPolicy?.earlyCheckInFee ?? 0)}
-                    onChange={(e) =>
-                      setHotelPolicy((prev) => ({ ...prev!, earlyCheckInFee: Number(e.target.value) }))
-                    }
-                    className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                    Late Check-out Fee (ETB)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={Number(hotelPolicy?.lateCheckOutFee ?? 0)}
-                    onChange={(e) =>
-                      setHotelPolicy((prev) => ({ ...prev!, lateCheckOutFee: Number(e.target.value) }))
-                    }
-                    className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={policySaving}
-                  className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-sm transition-colors"
-                >
-                  {policySaving ? 'Saving…' : 'Save Policies'}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+          )
+        })()}
 
         {/* Tab 7: Staff Management */}
         {tab === 'Staff' && (
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Hotel Staff Team</h1>
-                <p className="text-[#64748B] text-sm">Assign front desk personnel to {selectedHotel?.name}.</p>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-bold text-[#0F172A] text-2xl">Hotel Staff & Operations Team</h1>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                    {hotelStaff.length} {hotelStaff.length === 1 ? 'Member' : 'Members'}
+                  </span>
+                </div>
+                <p className="text-[#64748B] text-sm mt-1">
+                  Onboard front-desk personnel for <span className="font-semibold text-slate-700">{selectedHotel?.name}</span> to operate bookings, check-ins, and room availability.
+                </p>
               </div>
               <button
-                onClick={() => {
-                  setStaffUserId('')
-                  setStaffModalOpen(true)
-                }}
-                className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm"
+                onClick={handleOpenAddStaff}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm transition-colors"
               >
-                + Assign Staff
+                <span>+</span> Add Staff Member
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden divide-y divide-slate-100">
-              {hotelStaff.map((member) => (
-                <div key={member.id} className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600">
-                      {member.user?.fullName?.charAt(0) || 'S'}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-sm text-[#0F172A]">{member.user?.fullName}</div>
-                      <div className="text-xs text-[#64748B]">
-                        {member.user?.email} · {member.user?.phone || 'No phone'}
-                      </div>
-                    </div>
-                  </div>
+            {/* Filter and Search Toolbar */}
+            {hotelStaff.length > 0 && (
+              <div className="mb-4 flex items-center gap-3">
+                <div className="relative flex-1 max-w-md">
+                  <input
+                    type="text"
+                    value={staffSearchQuery}
+                    onChange={(e) => setStaffSearchQuery(e.target.value)}
+                    placeholder="Search by name, email, or phone..."
+                    className="w-full pl-9 pr-4 py-2 bg-white border border-[#CBD5E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                  {staffSearchQuery && (
+                    <button
+                      onClick={() => setStaffSearchQuery('')}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors"
+                      aria-label="Clear search"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
+            {/* Staff Table */}
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+              {hotelStaff.length === 0 ? (
+                <div className="py-16 px-6 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4 border border-blue-100">
+                    <Users className="w-7 h-7 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-[#0F172A] mb-1">No Staff Members Assigned</h3>
+                  <p className="text-sm text-[#64748B] max-w-md mx-auto mb-6">
+                    Add front-desk operators to {selectedHotel?.name}. They will be able to log in with their email and password to handle daily check-ins, room relocations, and walk-ins.
+                  </p>
                   <button
-                    onClick={() => handleRemoveStaff(member.id)}
-                    className="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold"
+                    onClick={handleOpenAddStaff}
+                    className="px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm"
                   >
-                    Remove
+                    + Add Your First Staff Member
                   </button>
                 </div>
-              ))}
-              {!hotelStaff.length && (
-                <div className="p-8 text-center text-sm text-[#64748B]">
-                  No staff members currently assigned to this hotel.
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-xs font-bold text-[#64748B] uppercase tracking-wider">
+                        <th className="py-3.5 px-4">Staff Member</th>
+                        <th className="py-3.5 px-4">Role</th>
+                        <th className="py-3.5 px-4">Contact</th>
+                        <th className="py-3.5 px-4">Account Status</th>
+                        <th className="py-3.5 px-4">Assigned On</th>
+                        <th className="py-3.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F1F5F9] text-sm">
+                      {hotelStaff
+                        .filter((m) => {
+                          if (!staffSearchQuery.trim()) return true
+                          const q = staffSearchQuery.toLowerCase()
+                          const name = (m.staff?.fullName || m.user?.fullName || '').toLowerCase()
+                          const email = (m.staff?.email || m.user?.email || '').toLowerCase()
+                          const phone = (m.staff?.phone || m.user?.phone || '').toLowerCase()
+                          return name.includes(q) || email.includes(q) || phone.includes(q)
+                        })
+                        .map((member) => {
+                          const userObj = member.staff || member.user
+                          const staffId = member.staffId || userObj?.id || member.id
+                          const fullName = userObj?.fullName || 'Staff Member'
+                          const email = userObj?.email || 'N/A'
+                          const phone = userObj?.phone || null
+                          const isActive = userObj?.isActive !== false
+                          const assignedDate = member.assignedAt || member.createdAt
+                            ? new Date(member.assignedAt || member.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })
+                            : 'Active'
+
+                          return (
+                            <tr key={staffId} className="hover:bg-slate-50/75 transition-colors">
+                              {/* Member Info */}
+                              <td className="py-3.5 px-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-full bg-[#0F2942] text-[#D4AF37] font-bold text-sm flex items-center justify-center shrink-0 shadow-sm">
+                                    {fullName.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <div className="font-semibold text-[#0F172A]">{fullName}</div>
+                                    <div className="text-xs text-[#64748B]">{email}</div>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Role */}
+                              <td className="py-3.5 px-4">
+                                {(() => {
+                                  const roleName = member.role || 'Front Desk'
+                                  const isCleaner =
+                                    roleName.toLowerCase().includes('clean') ||
+                                    roleName.toLowerCase().includes('housekeep')
+                                  const isFrontDesk =
+                                    roleName.toLowerCase().includes('front') ||
+                                    roleName.toLowerCase().includes('desk')
+                                  return (
+                                    <span
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
+                                        isCleaner
+                                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                                          : isFrontDesk
+                                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                          : 'bg-amber-50 text-amber-800 border border-amber-200'
+                                      }`}
+                                    >
+                                      {isCleaner ? (
+                                        <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                                      ) : isFrontDesk ? (
+                                        <BellRing className="w-3.5 h-3.5 text-blue-600" />
+                                      ) : (
+                                        <Briefcase className="w-3.5 h-3.5 text-amber-700" />
+                                      )}
+                                      <span>{roleName}</span>
+                                    </span>
+                                  )
+                                })()}
+                              </td>
+
+                              {/* Contact */}
+                              <td className="py-3.5 px-4 text-xs text-[#475569]">
+                                {phone ? (
+                                  <span className="font-mono">{phone}</span>
+                                ) : (
+                                  <span className="text-slate-400 italic">No phone provided</span>
+                                )}
+                              </td>
+
+                              {/* Status */}
+                              <td className="py-3.5 px-4">
+                                <span
+                                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                    isActive
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  }`}
+                                >
+                                  <span
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      isActive ? 'bg-emerald-500' : 'bg-amber-500'
+                                    }`}
+                                  />
+                                  {isActive ? 'Active' : 'Deactivated'}
+                                </span>
+                              </td>
+
+                              {/* Assigned Date */}
+                              <td className="py-3.5 px-4 text-xs text-[#64748B]">
+                                {assignedDate}
+                              </td>
+
+                              {/* Actions */}
+                              <td className="py-3.5 px-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => handleToggleStaffStatus(staffId, isActive)}
+                                    disabled={statusTogglingId === staffId}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                                      isActive
+                                        ? 'border-slate-200 text-slate-600 hover:bg-slate-100'
+                                        : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'
+                                    }`}
+                                    title={isActive ? 'Deactivate staff account' : 'Activate staff account'}
+                                  >
+                                    {statusTogglingId === staffId ? 'Updating…' : isActive ? 'Deactivate' : 'Activate'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleRemoveStaff(staffId, fullName)}
+                                    className="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold transition-colors"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
@@ -1329,92 +1896,386 @@ function ManagerDashboard() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
                 <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Reports & Analytics</h1>
-                <p className="text-[#64748B] text-sm">Performance metrics and audit exports for {selectedHotel?.name}.</p>
+                <p className="text-[#64748B] text-sm">
+                  Performance metrics, audit logs, and downloadable statements for {selectedHotel?.name || 'hotel'}.
+                </p>
               </div>
-              <div className="flex gap-2">
-                <a
-                  href={managerApi.exportReportUrl(selectedHotelId, 'overview', 'pdf')}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3.5 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-white shadow-sm"
+
+              {/* Download Buttons: PDF & Excel */}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <button
+                  type="button"
+                  disabled={reportDownloading !== null || !selectedHotelId}
+                  onClick={async () => {
+                    if (!selectedHotelId) return
+                    setReportDownloading('pdf')
+                    try {
+                      await managerApi.downloadReport(selectedHotelId, reportCategory, 'pdf', reportPeriod)
+                      setSuccessBanner(
+                        `Downloaded ${reportCategory.toUpperCase()} PDF report for ${selectedHotel?.name || 'hotel'} (${reportPeriod}).`
+                      )
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Failed to download PDF report.')
+                    } finally {
+                      setReportDownloading(null)
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0F2942] hover:bg-[#1E3E62] text-white shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  <span>📄</span> Export PDF
-                </a>
-                <a
-                  href={managerApi.exportReportUrl(selectedHotelId, 'overview', 'excel')}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3.5 py-2 border border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-white shadow-sm"
+                  {reportDownloading === 'pdf' ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+                      <span>Generating PDF…</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>Download PDF</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={reportDownloading !== null || !selectedHotelId}
+                  onClick={async () => {
+                    if (!selectedHotelId) return
+                    setReportDownloading('excel')
+                    try {
+                      await managerApi.downloadReport(selectedHotelId, reportCategory, 'excel', reportPeriod)
+                      setSuccessBanner(
+                        `Downloaded ${reportCategory.toUpperCase()} Excel spreadsheet for ${selectedHotel?.name || 'hotel'} (${reportPeriod}).`
+                      )
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Failed to download Excel report.')
+                    } finally {
+                      setReportDownloading(null)
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  <span>📊</span> Export Excel
-                </a>
+                  {reportDownloading === 'excel' ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Generating Excel…</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
+                      <span>Download Excel</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
 
+            {/* Timeframe & Category Control Bar */}
+            <div className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-sm mb-6 space-y-4">
+              {/* Row 1: Timeframe Toggle */}
+              <div>
+                <div className="text-xs font-semibold text-[#64748B] mb-2 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#2563EB]" />
+                  <span>Report Timeframe:</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      { id: 'daily', label: 'Daily (Today)' },
+                      { id: 'weekly', label: 'Weekly (7 Days)' },
+                      { id: 'monthly', label: 'Monthly (30 Days)' },
+                      { id: 'yearly', label: 'Yearly (365 Days)' },
+                    ] as const
+                  ).map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setReportPeriod(p.id)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                        reportPeriod === p.id
+                          ? 'bg-[#2563EB] text-white shadow-sm'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Row 2: Report Category */}
+              <div>
+                <div className="text-xs font-semibold text-[#64748B] mb-2 flex items-center gap-1.5">
+                  <BarChart3 className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Report Focus & Category:</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      { id: 'overview', label: 'Executive Overview' },
+                      { id: 'booking', label: 'Reservations' },
+                      { id: 'revenue', label: 'Financial Revenue' },
+                      { id: 'occupancy', label: 'Room Occupancy' },
+                      { id: 'customer', label: 'Guest Demographics' },
+                      { id: 'cancellation', label: 'Cancellations' },
+                    ] as const
+                  ).map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setReportCategory(t.id)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                        reportCategory === t.id
+                          ? 'bg-[#0F2942] text-[#D4AF37] shadow-sm border border-[#D4AF37]/30'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* KPI Overview Cards */}
             {reportOverview && (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
                   <div className="text-xs text-[#64748B] font-medium">Total Bookings</div>
-                  <div className="text-2xl font-bold text-[#0F172A] mt-1">{reportOverview.totalBookings}</div>
+                  <div className="text-2xl font-bold text-[#0F172A] mt-1">{reportOverview.totalBookings ?? 0}</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">Historical property total</div>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
                   <div className="text-xs text-[#64748B] font-medium">Confirmed / Active</div>
-                  <div className="text-2xl font-bold text-emerald-600 mt-1">{reportOverview.confirmedBookings}</div>
+                  <div className="text-2xl font-bold text-emerald-600 mt-1">
+                    {reportOverview.confirmedBookings ?? reportOverview.activeBookings ?? 0}
+                  </div>
+                  <div className="text-[11px] text-emerald-600/80 mt-0.5">Active stays &amp; reservations</div>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
                   <div className="text-xs text-[#64748B] font-medium">Occupancy Rate</div>
                   <div className="text-2xl font-bold text-[#2563EB] mt-1">
-                    {(reportOverview.occupancyRate * 100).toFixed(1)}%
+                    {typeof reportOverview.occupancyRate === 'number' && !isNaN(reportOverview.occupancyRate)
+                      ? `${(reportOverview.occupancyRate * 100).toFixed(1)}%`
+                      : '0.0%'}
                   </div>
+                  <div className="text-[11px] text-blue-500 mt-0.5">Current occupied rooms</div>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
                   <div className="text-xs text-[#64748B] font-medium">Total Revenue</div>
                   <div className="text-2xl font-bold text-[#0F172A] mt-1">
-                    {formatMoney(reportOverview.totalRevenue)}
+                    {formatMoney(reportOverview.totalRevenue ?? 0)}
                   </div>
+                  <div className="text-[11px] text-emerald-600 mt-0.5">Completed guest payments</div>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
                   <div className="text-xs text-[#64748B] font-medium">Active Room Inventory</div>
-                  <div className="text-2xl font-bold text-[#0F172A] mt-1">{reportOverview.activeRooms}</div>
+                  <div className="text-2xl font-bold text-[#0F172A] mt-1">
+                    {reportOverview.activeRooms ?? reportOverview.roomsCount ?? selectedHotelRooms.length}
+                  </div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">Rooms available or occupied</div>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
                   <div className="text-xs text-[#64748B] font-medium">Cancellations</div>
-                  <div className="text-2xl font-bold text-red-600 mt-1">{reportOverview.cancelledBookings}</div>
+                  <div className="text-2xl font-bold text-red-600 mt-1">{reportOverview.cancelledBookings ?? 0}</div>
+                  <div className="text-[11px] text-red-500 mt-0.5">Cancelled reservation requests</div>
                 </div>
               </div>
             )}
 
-            {/* Monthly Revenue Breakdown */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm mb-6">
-              <h3 className="font-bold text-[#0F172A] text-lg mb-4">Monthly Revenue Breakdown</h3>
+            {/* Live Data Preview Table */}
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden mb-6">
+              <div className="p-5 border-b border-[#F1F5F9] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h2 className="font-bold text-[#0F172A] text-base">
+                    Report Preview ({reportCategory.toUpperCase()} — {reportPeriod.toUpperCase()})
+                  </h2>
+                  <p className="text-xs text-[#64748B] mt-0.5">
+                    Live operational records compiled for {selectedHotel?.name || 'hotel'}.
+                  </p>
+                </div>
+              </div>
+
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-[#64748B] text-xs">
-                      <th className="pb-3">Month</th>
-                      <th className="pb-3">Bookings</th>
-                      <th className="pb-3 text-right">Revenue</th>
+                <table className="w-full text-left">
+                  <thead className="text-xs text-[#64748B] uppercase bg-[#F8FAFC]">
+                    <tr>
+                      <th className="px-5 py-3">Record / Identifier</th>
+                      <th className="px-5 py-3">Detail / Guest</th>
+                      <th className="px-5 py-3">Metrics / Value</th>
+                      <th className="px-5 py-3">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {revenueItems.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50">
-                        <td className="py-3 font-medium text-[#0F172A]">{item.month}</td>
-                        <td className="py-3 text-[#64748B]">{item.bookings}</td>
-                        <td className="py-3 text-right font-bold text-[#0F172A]">{formatMoney(item.revenue)}</td>
-                      </tr>
-                    ))}
-                    {!revenueItems.length && (
-                      <tr>
-                        <td colSpan={3} className="py-6 text-center text-[#94A3B8]">
-                          No historical revenue recorded.
+                  <tbody className="divide-y divide-slate-100 text-sm">
+                    {reportCategory === 'overview' && (
+                      <tr className="hover:bg-slate-50">
+                        <td className="px-5 py-3.5 font-medium text-[#0F172A]">
+                          {selectedHotel?.name || 'Hotel Property'}
+                        </td>
+                        <td className="px-5 py-3.5 text-xs text-[#64748B]">
+                          {selectedHotel?.city?.name || selectedHotel?.address || 'Property Details'}
+                        </td>
+                        <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
+                          {bookings.filter((b) => b.hotelId === selectedHotelId).length} Bookings • {formatMoney(reportOverview?.totalRevenue || 0)}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                            {selectedHotel?.status || 'ACTIVE'}
+                          </span>
                         </td>
                       </tr>
                     )}
+
+                    {reportCategory === 'booking' &&
+                      bookings
+                        .filter((b) => b.hotelId === selectedHotelId)
+                        .slice(0, 10)
+                        .map((b) => (
+                          <tr key={b.id} className="hover:bg-slate-50">
+                            <td className="px-5 py-3.5 font-medium text-[#0F172A]">
+                              <span className="font-mono text-xs">#{b.bookingRef || b.id.slice(-8)}</span>
+                            </td>
+                            <td className="px-5 py-3.5 text-xs text-[#64748B]">
+                              <span className="font-semibold text-slate-800">{b.user?.fullName || 'Guest'}</span>
+                              <span className="block text-[11px] text-slate-400">
+                                {formatDate(b.checkIn)} → {formatDate(b.checkOut)}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
+                              {formatMoney(b.totalPrice)}
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusStyle(b.status)}`}>
+                                {b.status.replace(/_/g, ' ')}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+
+                    {reportCategory === 'revenue' &&
+                      revenueItems.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50">
+                          <td className="px-5 py-3.5 font-medium text-[#0F172A]">{item.month}</td>
+                          <td className="px-5 py-3.5 text-xs text-[#64748B]">{item.bookings} confirmed bookings</td>
+                          <td className="px-5 py-3.5 text-xs font-bold text-emerald-700">{formatMoney(item.revenue)}</td>
+                          <td className="px-5 py-3.5">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                              Settled
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+
+                    {reportCategory === 'occupancy' &&
+                      selectedHotelRooms.slice(0, 10).map((r) => (
+                        <tr key={r.id} className="hover:bg-slate-50">
+                          <td className="px-5 py-3.5 font-medium text-[#0F172A]">Room {r.roomNumber}</td>
+                          <td className="px-5 py-3.5 text-xs text-[#64748B]">
+                            {r.type} • Capacity: {r.capacity} guests
+                          </td>
+                          <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
+                            {formatMoney(r.basePrice)} / night
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                              r.status === 'AVAILABLE' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                            }`}>
+                              {r.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+
+                    {reportCategory === 'cancellation' &&
+                      bookings
+                        .filter((b) => b.hotelId === selectedHotelId && b.status === 'CANCELLED')
+                        .slice(0, 10)
+                        .map((b) => (
+                          <tr key={b.id} className="hover:bg-slate-50">
+                            <td className="px-5 py-3.5 font-medium text-[#0F172A]">
+                              <span className="font-mono text-xs">#{b.bookingRef || b.id.slice(-8)}</span>
+                            </td>
+                            <td className="px-5 py-3.5 text-xs text-[#64748B]">
+                              <span className="font-semibold text-slate-800">{b.user?.fullName || 'Guest'}</span>
+                              <span className="block text-[11px] text-slate-400">
+                                {formatDate(b.checkIn)} → {formatDate(b.checkOut)}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
+                              {formatMoney(b.totalPrice)}
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600">
+                                CANCELLED
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+
+                    {reportCategory === 'customer' &&
+                      Array.from(
+                        new Map(
+                          bookings
+                            .filter((b) => b.hotelId === selectedHotelId && b.user)
+                            .map((b) => [b.user!.email, b])
+                        ).values()
+                      )
+                        .slice(0, 10)
+                        .map((b) => (
+                          <tr key={b.id} className="hover:bg-slate-50">
+                            <td className="px-5 py-3.5 font-medium text-[#0F172A]">
+                              {b.user?.fullName || 'Guest'}
+                            </td>
+                            <td className="px-5 py-3.5 text-xs text-[#64748B]">
+                              {b.user?.email} {b.user?.phone ? `• ${b.user.phone}` : ''}
+                            </td>
+                            <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
+                              {bookings.filter((bk) => bk.hotelId === selectedHotelId && bk.userId === b.userId).length} stays
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                                Verified Guest
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
                   </tbody>
                 </table>
               </div>
             </div>
+
+            {/* Monthly Revenue Breakdown Section */}
+            {(reportCategory === 'overview' || reportCategory === 'revenue') && (
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm mb-6">
+                <h3 className="font-bold text-[#0F172A] text-lg mb-4">Monthly Revenue Breakdown</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-[#64748B] text-xs">
+                        <th className="pb-3">Month</th>
+                        <th className="pb-3">Bookings</th>
+                        <th className="pb-3 text-right">Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {revenueItems.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50">
+                          <td className="py-3 font-medium text-[#0F172A]">{item.month}</td>
+                          <td className="py-3 text-[#64748B]">{item.bookings}</td>
+                          <td className="py-3 text-right font-bold text-[#0F172A]">{formatMoney(item.revenue)}</td>
+                        </tr>
+                      ))}
+                      {!revenueItems.length && (
+                        <tr>
+                          <td colSpan={3} className="py-6 text-center text-[#94A3B8]">
+                            No historical revenue recorded.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1438,27 +2299,57 @@ function ManagerDashboard() {
               {bookings.map((booking) => (
                 <div key={booking.id} className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-semibold text-[#0F172A]">{booking.user?.fullName || 'Walk-in Guest'}</span>
                       <span className="font-mono text-xs text-[#94A3B8]">#{booking.id.slice(-8)}</span>
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusStyle(booking.status)}`}>
                         {booking.status.replace(/_/g, ' ')}
                       </span>
+                      {booking.payment && (
+                        <span
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            booking.payment.status === 'SUCCEEDED'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : booking.payment.status === 'FAILED'
+                              ? 'bg-red-50 text-red-700 border border-red-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}
+                        >
+                          Payment: {booking.payment.status}
+                        </span>
+                      )}
                     </div>
-                    <div className="text-xs text-[#64748B] mt-1 space-x-3">
-                      <span>📅 {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}</span>
-                      <span>💰 {formatMoney(booking.totalPrice)}</span>
-                      <span>📞 {booking.user?.phone || 'Direct Walk-in'}</span>
+                    <div className="text-xs text-[#64748B] mt-1 flex flex-wrap items-center gap-3">
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Banknote className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{formatMoney(booking.totalPrice)}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{booking.user?.phone || 'Direct Walk-in'}</span>
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      onClick={() => markCashPaid(booking.id)}
-                      className="px-3 py-1.5 border border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg text-xs font-semibold"
-                    >
-                      💵 Mark Cash Paid
-                    </button>
+                    {booking.payment?.status === 'SUCCEEDED' ? (
+                      <span className="px-2.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Paid</span>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => markCashPaid(booking.id)}
+                        className="px-3 py-1.5 border border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Banknote className="w-3.5 h-3.5" />
+                        <span>Mark Cash Paid</span>
+                      </button>
+                    )}
 
                     {booking.status === 'PENDING' && (
                       <>
@@ -1489,9 +2380,10 @@ function ManagerDashboard() {
                           Check In
                         </button>
                         <button
-                          onClick={() => markNoShow(booking.id)}
+                          onClick={() => openNoShowModal(booking)}
                           className="px-3 py-1.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-semibold"
                         >
+
                           No-Show
                         </button>
                       </>
@@ -1541,7 +2433,8 @@ function ManagerDashboard() {
                 onClick={() => selectedHotelId && loadHotelDetails(selectedHotelId)}
                 className="px-3.5 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-semibold self-start sm:self-auto flex items-center gap-1.5"
               >
-                <span>🔄 Refresh</span>
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Refresh</span>
               </button>
             </div>
 
@@ -1554,11 +2447,11 @@ function ManagerDashboard() {
               </div>
               <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm">
                 <p className="text-xs font-medium text-[#64748B]">Average Rating</p>
-                <div className="flex items-baseline gap-1.5 mt-1">
+                <div className="flex items-center gap-1.5 mt-1">
                   <p className="text-2xl font-bold text-[#0F172A]">
                     {reviewSummary.averageRating ? Number(reviewSummary.averageRating).toFixed(1) : '—'}
                   </p>
-                  <span className="text-amber-500 text-sm">★</span>
+                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                   <span className="text-xs text-slate-400">/ 5.0</span>
                 </div>
                 <p className="text-[11px] text-slate-400 mt-0.5">Overall satisfaction</p>
@@ -1648,16 +2541,14 @@ function ManagerDashboard() {
                         </div>
 
                         {/* Stars */}
-                        <div className="flex items-center gap-1 text-amber-400">
+                        <div className="flex items-center gap-0.5 text-amber-400">
                           {Array.from({ length: 5 }).map((_, i) => (
-                            <span
+                            <Star
                               key={i}
-                              className={`text-sm ${
-                                i < rev.rating ? 'text-amber-400' : 'text-slate-200'
+                              className={`w-3.5 h-3.5 ${
+                                i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'
                               }`}
-                            >
-                              ★
-                            </span>
+                            />
                           ))}
                           <span className="text-xs font-bold text-slate-700 ml-1">
                             {rev.rating}.0
@@ -1720,9 +2611,10 @@ function ManagerDashboard() {
                               setRespondingReviewId(rev.id)
                               setResponseText('')
                             }}
-                            className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
+                            className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors inline-flex items-center gap-1.5"
                           >
-                            💬 Respond Publicly
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Respond Publicly</span>
                           </button>
                         )}
 
@@ -1749,9 +2641,10 @@ function ManagerDashboard() {
                                       'Thank you for your warm feedback! We are thrilled you had a memorable stay with us and hope to welcome you back again soon.',
                                     )
                                   }
-                                  className="text-[11px] bg-white border border-slate-200 hover:border-[#2563EB] px-2.5 py-1 rounded-md text-slate-600 text-left transition-colors"
+                                  className="text-[11px] bg-white border border-slate-200 hover:border-[#2563EB] px-2.5 py-1 rounded-md text-slate-600 text-left transition-colors inline-flex items-center gap-1.5"
                                 >
-                                  🌟 Warm Gratitude
+                                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                  <span>Warm Gratitude</span>
                                 </button>
                                 <button
                                   type="button"
@@ -1760,9 +2653,10 @@ function ManagerDashboard() {
                                       'Thank you for bringing this to our attention. We hold our guest experience to the highest standard and are actively addressing the issues you mentioned with our operations team.',
                                     )
                                   }
-                                  className="text-[11px] bg-white border border-slate-200 hover:border-[#2563EB] px-2.5 py-1 rounded-md text-slate-600 text-left transition-colors"
+                                  className="text-[11px] bg-white border border-slate-200 hover:border-[#2563EB] px-2.5 py-1 rounded-md text-slate-600 text-left transition-colors inline-flex items-center gap-1.5"
                                 >
-                                  🛠 Service Recovery
+                                  <Wrench className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                  <span>Service Recovery</span>
                                 </button>
                                 <button
                                   type="button"
@@ -1771,9 +2665,10 @@ function ManagerDashboard() {
                                       'We truly appreciate your stay and your kind review! Our team strives every day to deliver exceptional hospitality, and we look forward to hosting you on your next visit.',
                                     )
                                   }
-                                  className="text-[11px] bg-white border border-slate-200 hover:border-[#2563EB] px-2.5 py-1 rounded-md text-slate-600 text-left transition-colors"
+                                  className="text-[11px] bg-white border border-slate-200 hover:border-[#2563EB] px-2.5 py-1 rounded-md text-slate-600 text-left transition-colors inline-flex items-center gap-1.5"
                                 >
-                                  🏨 Hospitality Appreciation
+                                  <Building2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                  <span>Hospitality Appreciation</span>
                                 </button>
                               </div>
                             </div>
@@ -1856,9 +2751,10 @@ function ManagerDashboard() {
                 </h3>
                 <button
                   onClick={() => setRoomModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -1974,9 +2870,10 @@ function ManagerDashboard() {
                 <h3 className="font-bold text-lg text-[#0F172A]">Front Desk Walk-In Guest</h3>
                 <button
                   onClick={() => setWalkInModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -2125,9 +3022,10 @@ function ManagerDashboard() {
                 <h3 className="font-bold text-lg text-[#0F172A]">Relocate Checked-In Guest</h3>
                 <button
                   onClick={() => setRelocateBooking(null)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -2191,9 +3089,10 @@ function ManagerDashboard() {
                 <h3 className="font-bold text-lg text-[#0F172A]">Decide Stay Request</h3>
                 <button
                   onClick={() => setDecidingRequest(null)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -2240,46 +3139,290 @@ function ManagerDashboard() {
           </div>
         )}
 
-        {/* Modal: Staff Assign */}
+        {/* Modal: Add Staff Member */}
         {staffModalOpen && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-              <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-                <h3 className="font-bold text-lg text-[#0F172A]">Assign Staff Member</h3>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+              {/* Header */}
+              <div className="bg-[#0F2942] px-6 py-4 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-lg text-white">Add Staff Member</h3>
+                  <p className="text-xs text-slate-300">
+                    Assign front desk personnel to {selectedHotel?.name}
+                  </p>
+                </div>
                 <button
                   onClick={() => setStaffModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold"
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition-colors"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleAssignStaff} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">User ID of Staff *</label>
-                  <input
-                    required
-                    value={staffUserId}
-                    onChange={(e) => setStaffUserId(e.target.value)}
-                    placeholder="Paste the user ID of the staff member"
-                    className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
-                  />
-                </div>
+              {/* Mode Toggle Tabs */}
+              <div className="flex border-b border-slate-200 bg-slate-50 px-6 pt-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStaffModalMode('create')}
+                  className={`pb-3 text-sm font-semibold border-b-2 transition-colors ${
+                    staffModalMode === 'create'
+                      ? 'border-[#2563EB] text-[#2563EB]'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Create New Staff Account
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStaffModalMode('assign')}
+                  className={`pb-3 text-sm font-semibold border-b-2 transition-colors ${
+                    staffModalMode === 'assign'
+                      ? 'border-[#2563EB] text-[#2563EB]'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Assign Existing Staff by Email
+                </button>
+              </div>
 
-                <div className="flex justify-end gap-3 pt-3">
+              {/* Form */}
+              <form onSubmit={handleSaveStaff} className="p-6 space-y-4">
+                {staffModalMode === 'create' ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-[#334155] mb-1">
+                          Full Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={staffForm.fullName}
+                          onChange={(e) => setStaffForm({ ...staffForm, fullName: e.target.value })}
+                          placeholder="e.g. Abebe Bekele"
+                          className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#334155] mb-1">
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          value={staffForm.phone}
+                          onChange={(e) => setStaffForm({ ...staffForm, phone: e.target.value })}
+                          placeholder="e.g. +251 91 123 4567"
+                          className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#334155] mb-1">
+                        Work Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={staffForm.email}
+                        onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
+                        placeholder="e.g. abebe@grandskylight.com"
+                        className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        This email will be used as their login username.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#334155] mb-1">
+                        Initial Login Password <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showStaffPassword ? 'text' : 'password'}
+                          required
+                          minLength={8}
+                          value={staffForm.password}
+                          onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
+                          placeholder="Minimum 8 characters"
+                          className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowStaffPassword(!showStaffPassword)}
+                          className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-700 transition-colors p-0.5"
+                          title={showStaffPassword ? 'Hide password' : 'Show password'}
+                          aria-label={showStaffPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showStaffPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Staff will use this password along with their email to log in to the Staff Desk.
+                      </p>
+                    </div>
+
+                    {/* Role Selection */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#334155] mb-1.5">
+                        Staff Role / Department <span className="text-red-500">*</span>
+                      </label>
+                      <div className="grid grid-cols-3 gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setStaffForm({ ...staffForm, rolePreset: 'Front Desk' })}
+                          className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                            staffForm.rolePreset === 'Front Desk'
+                              ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm ring-1 ring-blue-500/20'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <BellRing className="w-3.5 h-3.5" />
+                          <span>Front Desk</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStaffForm({ ...staffForm, rolePreset: 'Cleaner' })}
+                          className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                            staffForm.rolePreset === 'Cleaner'
+                              ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm ring-1 ring-purple-500/20'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Cleaner</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStaffForm({ ...staffForm, rolePreset: 'Other' })}
+                          className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                            staffForm.rolePreset === 'Other'
+                              ? 'bg-amber-50 border-amber-500 text-amber-700 shadow-sm ring-1 ring-amber-500/20'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <Briefcase className="w-3.5 h-3.5" />
+                          <span>Other</span>
+                        </button>
+                      </div>
+
+                      {staffForm.rolePreset === 'Other' && (
+                        <div className="mt-2.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                          <input
+                            type="text"
+                            required
+                            value={staffForm.customRole}
+                            onChange={(e) => setStaffForm({ ...staffForm, customRole: e.target.value })}
+                            placeholder="Enter custom role (e.g. Concierge, Maintenance, Security, Chef...)"
+                            className="w-full border border-amber-300 bg-amber-50/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-xs font-bold text-[#334155] mb-1">
+                        Staff Member's Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={assignEmail}
+                        onChange={(e) => setAssignEmail(e.target.value)}
+                        placeholder="e.g. staff.member@domain.com"
+                        className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Assign an existing registered user to this hotel.
+                      </p>
+                    </div>
+
+                    {/* Role Selection for assigned staff */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#334155] mb-1.5">
+                        Assign As Role <span className="text-red-500">*</span>
+                      </label>
+                      <div className="grid grid-cols-3 gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setAssignRolePreset('Front Desk')}
+                          className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                            assignRolePreset === 'Front Desk'
+                              ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm ring-1 ring-blue-500/20'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <BellRing className="w-3.5 h-3.5" />
+                          <span>Front Desk</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAssignRolePreset('Cleaner')}
+                          className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                            assignRolePreset === 'Cleaner'
+                              ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-sm ring-1 ring-purple-500/20'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Cleaner</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAssignRolePreset('Other')}
+                          className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                            assignRolePreset === 'Other'
+                              ? 'bg-amber-50 border-amber-500 text-amber-700 shadow-sm ring-1 ring-amber-500/20'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <Briefcase className="w-3.5 h-3.5" />
+                          <span>Other</span>
+                        </button>
+                      </div>
+
+                      {assignRolePreset === 'Other' && (
+                        <div className="mt-2.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                          <input
+                            type="text"
+                            required
+                            value={assignCustomRole}
+                            onChange={(e) => setAssignCustomRole(e.target.value)}
+                            placeholder="Enter custom role (e.g. Concierge, Maintenance, Security, Chef...)"
+                            className="w-full border border-amber-300 bg-amber-50/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setStaffModalOpen(false)}
-                    className="px-4 py-2 text-sm text-[#64748B] font-semibold"
+                    className="px-4 py-2 text-sm text-[#64748B] hover:text-[#0F172A] font-semibold transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={staffSaving}
-                    className="px-5 py-2 bg-[#2563EB] text-white rounded-xl text-sm font-bold shadow-sm"
+                    className="px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-bold shadow-sm transition-colors disabled:opacity-50"
                   >
-                    {staffSaving ? 'Assigning…' : 'Assign to Hotel'}
+                    {staffSaving
+                      ? 'Saving…'
+                      : staffModalMode === 'create'
+                      ? 'Create & Assign Staff'
+                      : 'Assign Staff to Hotel'}
                   </button>
                 </div>
               </form>
@@ -2295,9 +3438,10 @@ function ManagerDashboard() {
                 <h3 className="font-bold text-lg text-[#0F172A]">Block Room for Maintenance</h3>
                 <button
                   onClick={() => setMaintenanceModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -2379,9 +3523,10 @@ function ManagerDashboard() {
                 <h3 className="font-bold text-lg text-[#0F172A]">Seasonal Dynamic Pricing</h3>
                 <button
                   onClick={() => setSeasonalModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
+                  aria-label="Close"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -2480,7 +3625,82 @@ function ManagerDashboard() {
             </div>
           </div>
         )}
+
+        {/* Confirm Guest No-Show Modal */}
+        {noShowModalBooking && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-start gap-3.5 mb-4">
+                <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0 text-amber-600">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-[#0F172A]">
+                    Confirm Guest No-Show
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Reservation Ref: <span className="font-mono font-semibold text-slate-700">{noShowModalBooking.bookingRef}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 mb-4 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Guest</span>
+                  <span className="font-semibold text-slate-800">
+                    {noShowModalBooking.user?.fullName || noShowModalBooking.details?.[0]?.guestInfo?.name || 'Registered Guest'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Scheduled Stay</span>
+                  <span className="font-semibold text-slate-800">
+                    {noShowModalBooking.checkIn?.slice?.(0, 10)} &rarr; {noShowModalBooking.checkOut?.slice?.(0, 10)}
+                  </span>
+                </div>
+                {noShowModalBooking.details?.[0]?.room && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Assigned Room</span>
+                    <span className="font-semibold text-slate-800">
+                      Room {noShowModalBooking.details[0].room.roomNumber} ({noShowModalBooking.details[0].room.type})
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-slate-600 mb-6 leading-relaxed">
+                Marking this reservation as a <strong>No-Show</strong> records that the guest did not arrive. The assigned room will be immediately released back into available inventory for new bookings.
+              </p>
+
+              <div className="flex justify-end gap-2.5">
+                <button
+                  type="button"
+                  disabled={noShowSubmitting}
+                  onClick={() => setNoShowModalBooking(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={noShowSubmitting}
+                  onClick={confirmNoShow}
+                  className="px-4 py-2 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {noShowSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    'Confirm No-Show'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
+
     </div>
   )
 }
@@ -2544,8 +3764,12 @@ function HotelFormModal({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-[#E2E8F0] flex justify-between items-center">
           <h2 className="font-bold text-[#0F172A] text-xl">{hotel ? 'Edit Hotel' : 'Create Hotel'}</h2>
-          <button onClick={onCancel} className="w-8 h-8 rounded-full text-[#64748B] hover:bg-[#F1F5F9]">
-            ✕
+          <button
+            onClick={onCancel}
+            className="w-8 h-8 rounded-full text-[#64748B] hover:bg-[#F1F5F9] flex items-center justify-center transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -2626,7 +3850,7 @@ function HotelFormModal({
             >
               {[1, 2, 3, 4, 5].map((value) => (
                 <option key={value} value={value}>
-                  {'★'.repeat(value)} {value}-Star
+                  {value} Star{value > 1 ? 's' : ''} (Rating {value}/5)
                 </option>
               ))}
             </select>

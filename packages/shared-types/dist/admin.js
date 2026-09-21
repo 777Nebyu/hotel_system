@@ -65,7 +65,13 @@ exports.adminReviewsQuerySchema = zod_1.z.object({
 });
 exports.settingParamsSchema = zod_1.z.object({ key: zod_1.z.string().min(1).max(64) });
 exports.upsertSettingSchema = zod_1.z.object({
-    value: zod_1.z.record(zod_1.z.string(), zod_1.z.unknown()),
+    value: zod_1.z.union([
+        zod_1.z.record(zod_1.z.string(), zod_1.z.unknown()),
+        zod_1.z.string(),
+        zod_1.z.number(),
+        zod_1.z.boolean(),
+        zod_1.z.array(zod_1.z.unknown()),
+    ]),
 });
 exports.auditLogsQuerySchema = zod_1.z.object({
     page,
@@ -75,8 +81,11 @@ exports.auditLogsQuerySchema = zod_1.z.object({
     actorId: id.optional(),
 });
 exports.reportParamsSchema = zod_1.z.object({
-    type: zod_1.z.enum(['booking', 'revenue', 'occupancy', 'customer', 'cancellation']),
+    type: zod_1.z.enum(['overview', 'booking', 'revenue', 'occupancy', 'customer', 'cancellation']),
 });
 exports.reportQuerySchema = zod_1.z.object({
-    format: zod_1.z.enum(['pdf', 'excel']).default('pdf'),
+    format: zod_1.z.enum(['pdf', 'excel']).optional(),
+    period: zod_1.z.enum(['daily', 'weekly', 'monthly', 'yearly']).default('monthly'),
+    startDate: zod_1.z.string().optional(),
+    endDate: zod_1.z.string().optional(),
 });

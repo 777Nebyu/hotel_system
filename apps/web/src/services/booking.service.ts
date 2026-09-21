@@ -57,8 +57,37 @@ export const bookingService = {
     return res.data
   },
 
-  // Get invoice PDF url
-  getInvoiceDownloadUrl: (bookingId: string): string => {
-    return `${API_BASE_URL}/bookings/${bookingId}/invoice`
+  // Download invoice PDF securely via authenticated blob request
+  downloadInvoice: async (bookingId: string, filename?: string): Promise<void> => {
+    const res = await apiClient.get(`/bookings/${bookingId}/invoice`, {
+      responseType: 'blob',
+    })
+    const blob = new Blob([res.data], { type: 'application/pdf' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename || `invoice-${bookingId}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  },
+
+  // Get invoice PDF url (appends token query param for direct browser navigation)
+  getInvoiceDownloadUrl: (bookingId: string, token?: string): string => {
+    let resolvedToken = token
+    if (!resolvedToken && typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('yayetech.session') || localStorage.getItem('luxstay.session')
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          resolvedToken = parsed.accessToken
+        }
+      } catch {
+        // ignore
+      }
+    }
+    const query = resolvedToken ? `?token=${encodeURIComponent(resolvedToken)}` : ''
+    return `${API_BASE_URL}/bookings/${bookingId}/invoice${query}`
   },
 }

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -14,7 +15,6 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { Role } from '../../../generated/prisma/client';
 import {
-  assignStaffSchema,
   hotelStaffQuerySchema,
   staffHotelParamsSchema,
 } from '@repo/shared-types';
@@ -26,10 +26,29 @@ const managerHotelParamsSchema = z.object({
   hotelId: z.string().min(1),
 });
 
+const addStaffSchema = z.object({
+  fullName: z.string().min(2).max(100).optional(),
+  email: z.string().email().optional(),
+  password: z.string().min(8).max(100).optional(),
+  phone: z.string().max(30).optional(),
+  role: z.string().min(1).max(50).optional(),
+  staffId: z.string().optional(),
+});
+
+const updateStaffStatusSchema = z.object({
+  isActive: z.boolean(),
+});
+
+const updateStaffRoleSchema = z.object({
+  role: z.string().min(1).max(50),
+});
+
 class ManagerHotelParamsDto extends createZodDto(managerHotelParamsSchema) {}
-class AssignStaffDto extends createZodDto(assignStaffSchema) {}
+class AddStaffDto extends createZodDto(addStaffSchema) {}
 class StaffHotelParamsDto extends createZodDto(staffHotelParamsSchema) {}
 class HotelStaffQueryDto extends createZodDto(hotelStaffQuerySchema) {}
+class UpdateStaffStatusDto extends createZodDto(updateStaffStatusSchema) {}
+class UpdateStaffRoleDto extends createZodDto(updateStaffRoleSchema) {}
 
 interface AuthedRequest {
   user: { sub: string; role: string };
@@ -62,10 +81,10 @@ export class ManagerStaffController {
 
   @Post()
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @ApiOperation({ summary: 'Assign a staff member to hotel (manager/admin)' })
-  async assign(
+  @ApiOperation({ summary: 'Create or assign a staff member to hotel (manager/admin)' })
+  async add(
     @Param() params: ManagerHotelParamsDto,
-    @Body() dto: AssignStaffDto,
+    @Body() dto: AddStaffDto,
     @Req() req: AuthedRequest,
   ) {
     await this.scope.assertManagerOwnsHotel(
@@ -73,7 +92,76 @@ export class ManagerStaffController {
       req.user.role,
       params.hotelId,
     );
-    return this.staff.assignStaff(params.hotelId, dto, req.user.sub);
+
+    if (dto.password && dto.fullName && dto.email) {
+      return this.staff.createAndAssignStaff(
+        params.hotelId,
+        {
+          fullName: dto.fullName,
+          email: dto.email,
+          password: dto.password,
+          phone: dto.phone,
+          role: dto.role,
+        },
+        req.user.sub,
+      );
+    }
+
+    return this.staff.assignStaff(
+      params.hotelId,
+      { staffId: dto.staffId, email: dto.email, role: dto.role },
+      req.user.sub,
+    );
+  }
+
+  assign(
+    params: ManagerHotelParamsDto,
+    dto: AddStaffDto,
+    req: AuthedRequest,
+  ) {
+    return this.add(params, dto, req);
+  }
+
+  @Patch(':staffId/status')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Update staff active status (manager/admin)' })
+  async updateStatus(
+    @Param() params: StaffHotelParamsDto,
+    @Body() dto: UpdateStaffStatusDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await this.scope.assertManagerOwnsHotel(
+      req.user.sub,
+      req.user.role,
+      params.hotelId,
+    );
+    return this.staff.updateStaffStatus(
+      params.hotelId,
+      params.staffId,
+      dto.isActive,
+      req.user.sub,
+    );
+  }
+
+  @Patch(':staffId/role')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Update staff role title (manager/admin)' })
+  async updateRole(
+    @Param() params: StaffHotelParamsDto,
+    @Body() dto: UpdateStaffRoleDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await this.scope.assertManagerOwnsHotel(
+      req.user.sub,
+      req.user.role,
+      params.hotelId,
+    );
+    return this.staff.updateStaffRole(
+      params.hotelId,
+      params.staffId,
+      dto.role,
+      req.user.sub,
+    );
   }
 
   @Delete(':staffId')

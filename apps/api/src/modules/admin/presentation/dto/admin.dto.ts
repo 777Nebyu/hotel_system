@@ -1,4 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 import {
   adminBookingsQuerySchema,
   adminHotelsQuerySchema,
@@ -21,6 +22,16 @@ import {
   userIdParamsSchema,
 } from '@repo/shared-types';
 
+export const createAdminUserSchema = z.object({
+  fullName: z.string().min(2).max(100),
+  email: z.string().email(),
+  password: z.string().min(8).max(100),
+  phone: z.string().max(30).optional().nullable(),
+  role: z.enum(['CUSTOMER', 'MANAGER', 'STAFF', 'ADMIN']).default('MANAGER'),
+  hotelId: z.string().optional().nullable(),
+});
+
+export class CreateAdminUserDto extends createZodDto(createAdminUserSchema) {}
 export class AdminUsersQueryDto extends createZodDto(adminUsersQuerySchema) {}
 export class UpdateUserRoleDto extends createZodDto(updateUserRoleSchema) {}
 export class SetUserActiveDto extends createZodDto(setUserActiveSchema) {}

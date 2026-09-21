@@ -87,7 +87,7 @@ const TESTIMONIALS = [
   },
   {
     quote:
-      'Exceptional properties. Every hotel on YayeTech feels hand-selected with unmatched architectural poise.',
+      'Exceptional properties. Every hotel on LuxStay feels hand-selected with unmatched architectural poise.',
     author: 'Marcus Chen',
     role: 'Architectural Director',
     rating: 5,
@@ -203,12 +203,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Value Propositions (The YayeTech Standard) */}
+      {/* 4. Value Propositions (The LuxStay Standard) */}
       <section className="bg-[#0F2942] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-bold uppercase tracking-widest text-[#D4AF37]">
-              The YayeTech Guarantee
+              The LuxStay Guarantee
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white mt-2">
               Uncompromising Hospitality Standards
@@ -283,7 +283,7 @@ export default function HomePage() {
               Reserve Your Next Extraordinary Escape Today
             </h2>
             <p className="text-sm text-slate-200 leading-relaxed mb-8">
-              Join thousands of travelers who book exclusively with YayeTech Luxury Stays for verified five-star hospitality.
+              Join thousands of travelers who book exclusively with LuxStay for verified five-star hospitality.
             </p>
             <Link href="/search">
               <Button variant="gold" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>

@@ -628,13 +628,26 @@ export class BookingService {
     return { data: bookings };
   }
 
-  async getInvoice(bookingId: string, userId: string): Promise<Buffer> {
+  async getInvoice(
+    bookingId: string,
+    user: { sub: string; role?: string; hotelId?: string } | string,
+  ): Promise<Buffer> {
+    const userId = typeof user === 'string' ? user : user.sub;
+    const role = typeof user === 'string' ? undefined : user.role;
+    const hotelId = typeof user === 'string' ? undefined : user.hotelId;
+
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
-      select: { userId: true },
+      select: { userId: true, hotelId: true },
     });
     if (!booking) throw new NotFoundException('Booking not found');
-    if (booking.userId !== userId) {
+
+    const isAdmin = role === 'ADMIN';
+    const isStaffOrManager =
+      (role === 'STAFF' || role === 'MANAGER') &&
+      (!hotelId || booking.hotelId === hotelId);
+
+    if (booking.userId && booking.userId !== userId && !isAdmin && !isStaffOrManager) {
       throw new ForbiddenException('You cannot download this invoice');
     }
     return this.invoices.generate(bookingId);

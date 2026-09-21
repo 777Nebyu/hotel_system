@@ -508,6 +508,7 @@ export type NotificationPreferenceScalarFieldEnum = (typeof NotificationPreferen
 export const StaffHotelScalarFieldEnum = {
   staffId: 'staffId',
   hotelId: 'hotelId',
+  role: 'role',
   assignedAt: 'assignedAt'
 } as const
 

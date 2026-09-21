@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { HotelStatus, Prisma } from '../../../generated/prisma/client';
+import { HotelStatus, Prisma, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
 import { NotificationService } from '../../notification/application/notification.service';
@@ -194,9 +194,15 @@ export class AdminHotelService {
     if (dto.managerId) {
       const manager = await this.db.user.findUnique({
         where: { id: dto.managerId },
-        select: { id: true, fullName: true },
+        select: { id: true, fullName: true, role: true },
       });
       if (!manager) throw new NotFoundException('Manager not found');
+      if (manager.role !== Role.MANAGER && manager.role !== Role.ADMIN) {
+        await this.db.user.update({
+          where: { id: dto.managerId },
+          data: { role: Role.MANAGER },
+        });
+      }
     }
     const before = await this.db.hotel.findUniqueOrThrow({
       where: { id: hotelId },

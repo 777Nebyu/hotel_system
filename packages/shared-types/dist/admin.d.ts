@@ -152,11 +152,11 @@ export declare const settingParamsSchema: z.ZodObject<{
 }>;
 export type SettingParams = z.infer<typeof settingParamsSchema>;
 export declare const upsertSettingSchema: z.ZodObject<{
-    value: z.ZodRecord<z.ZodString, z.ZodUnknown>;
+    value: z.ZodUnion<[z.ZodRecord<z.ZodString, z.ZodUnknown>, z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodArray<z.ZodUnknown, "many">]>;
 }, "strip", z.ZodTypeAny, {
-    value: Record<string, unknown>;
+    value: string | number | boolean | unknown[] | Record<string, unknown>;
 }, {
-    value: Record<string, unknown>;
+    value: string | number | boolean | unknown[] | Record<string, unknown>;
 }>;
 export type UpsertSetting = z.infer<typeof upsertSettingSchema>;
 export declare const auditLogsQuerySchema: z.ZodObject<{
@@ -180,19 +180,28 @@ export declare const auditLogsQuerySchema: z.ZodObject<{
 }>;
 export type AuditLogsQuery = z.infer<typeof auditLogsQuerySchema>;
 export declare const reportParamsSchema: z.ZodObject<{
-    type: z.ZodEnum<["booking", "revenue", "occupancy", "customer", "cancellation"]>;
+    type: z.ZodEnum<["overview", "booking", "revenue", "occupancy", "customer", "cancellation"]>;
 }, "strip", z.ZodTypeAny, {
-    type: "booking" | "revenue" | "occupancy" | "customer" | "cancellation";
+    type: "overview" | "booking" | "revenue" | "occupancy" | "customer" | "cancellation";
 }, {
-    type: "booking" | "revenue" | "occupancy" | "customer" | "cancellation";
+    type: "overview" | "booking" | "revenue" | "occupancy" | "customer" | "cancellation";
 }>;
 export type ReportParams = z.infer<typeof reportParamsSchema>;
 export declare const reportQuerySchema: z.ZodObject<{
-    format: z.ZodDefault<z.ZodEnum<["pdf", "excel"]>>;
+    format: z.ZodOptional<z.ZodEnum<["pdf", "excel"]>>;
+    period: z.ZodDefault<z.ZodEnum<["daily", "weekly", "monthly", "yearly"]>>;
+    startDate: z.ZodOptional<z.ZodString>;
+    endDate: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    format: "pdf" | "excel";
+    period: "daily" | "weekly" | "monthly" | "yearly";
+    format?: "pdf" | "excel" | undefined;
+    startDate?: string | undefined;
+    endDate?: string | undefined;
 }, {
     format?: "pdf" | "excel" | undefined;
+    period?: "daily" | "weekly" | "monthly" | "yearly" | undefined;
+    startDate?: string | undefined;
+    endDate?: string | undefined;
 }>;
 export type ReportQuery = z.infer<typeof reportQuerySchema>;
 //# sourceMappingURL=admin.d.ts.map

@@ -45,6 +45,8 @@ export interface Hotel extends Omit<HotelSummary, 'primaryImageUrl' | 'minPriceP
   images: HotelImage[]
   amenities: string[]
   rooms: Room[]
+  managerId?: string | null
+  manager?: { id: string; fullName: string; email: string } | null
   createdAt: string
   updatedAt: string
 }
@@ -224,10 +226,21 @@ export interface SeasonalPricing {
 
 export interface HotelStaffMember {
   id: string
+  staffId: string
   hotelId: string
-  userId: string
+  role?: string
+  userId?: string
+  assignedAt?: string
   createdAt: string
   user: {
+    id: string
+    fullName: string
+    email: string
+    phone?: string | null
+    role: string
+    isActive: boolean
+  }
+  staff?: {
     id: string
     fullName: string
     email: string
@@ -238,24 +251,37 @@ export interface HotelStaffMember {
 }
 
 export interface HotelReportOverview {
+  hotel?: {
+    id: string
+    name: string
+    starRating?: number
+    status?: string
+  }
   totalBookings: number
-  confirmedBookings: number
-  cancelledBookings: number
+  confirmedBookings?: number
+  cancelledBookings?: number
+  activeBookings?: number
+  pendingBookings?: number
   totalRevenue: number
-  occupancyRate: number
-  activeRooms: number
+  occupancyRate?: number
+  activeRooms?: number
+  roomsCount?: number
+  totalRooms?: number
+  occupiedToday?: number
+  occupiedRoomsToday?: number
 }
 
 export interface MonthlyRevenueItem {
   month: string
   revenue: number
-  bookings: number
+  bookings?: number
 }
 
 export interface DailyBookingTrendItem {
   date: string
-  count: number
-  revenue: number
+  bookings?: number
+  count?: number
+  revenue?: number
 }
 
 export interface Coupon {

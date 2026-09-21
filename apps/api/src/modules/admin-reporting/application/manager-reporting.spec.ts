@@ -11,6 +11,15 @@ describe('Manager Reporting & Hotel-Scoped Analytics', () => {
 
   beforeEach(() => {
     db = {
+      hotel: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'hotel-1',
+          name: 'Grand Haile',
+          starRating: 5,
+          status: 'ACTIVE',
+          _count: { rooms: 20, bookings: 45, reviews: 10 },
+        }),
+      },
       room: {
         count: jest.fn().mockResolvedValue(20),
       },
@@ -23,6 +32,9 @@ describe('Manager Reporting & Hotel-Scoped Analytics', () => {
         ]),
       },
       payment: {
+        aggregate: jest.fn().mockResolvedValue({
+          _sum: { amount: { toNumber: () => 2000 } },
+        }),
         findMany: jest.fn().mockResolvedValue([
           { amount: { toNumber: () => 1500 }, createdAt: new Date() },
           { amount: { toNumber: () => 500 }, createdAt: new Date() },
@@ -45,23 +57,19 @@ describe('Manager Reporting & Hotel-Scoped Analytics', () => {
     it('aggregates metrics strictly scoped to the specified hotelId', async () => {
       const overview = await service.hotelOverview('hotel-1');
 
-      expect(overview.hotelId).toBe('hotel-1');
-      expect(overview.roomCount).toBe(20);
-      expect(overview.bookingCount).toBe(45);
+      expect(overview.hotel.id).toBe('hotel-1');
+      expect(overview.roomsCount).toBe(20);
+      expect(overview.totalBookings).toBe(45);
       expect(overview.totalRevenue).toBe(2000);
-      expect(overview.bookingsByStatus).toEqual({
-        CONFIRMED: 30,
-        CANCELLED: 15,
-      });
 
-      expect(db.room.count).toHaveBeenCalledWith({ where: { hotelId: 'hotel-1' } });
-      expect(db.booking.count).toHaveBeenCalledWith({ where: { hotelId: 'hotel-1' } });
-      expect(db.payment.findMany).toHaveBeenCalledWith({
-        where: {
-          status: 'SUCCEEDED',
-          booking: { hotelId: 'hotel-1' },
+      expect(db.hotel.findUnique).toHaveBeenCalledWith({
+        where: { id: 'hotel-1' },
+        include: {
+          _count: { select: { rooms: true, bookings: true, reviews: true } },
         },
-        select: { amount: true },
+      });
+      expect(db.booking.count).toHaveBeenCalledWith({
+        where: { hotelId: 'hotel-1', status: { in: ['CONFIRMED', 'CHECKED_IN'] } },
       });
     });
   });
@@ -75,7 +83,9 @@ describe('Manager Reporting & Hotel-Scoped Analytics', () => {
       await expect(
         controller.overview(
           { hotelId: 'hotel-other' },
+          {} as any,
           { user: { sub: 'mgr-1', role: 'MANAGER' } },
+          { setHeader: jest.fn() } as any,
         ),
       ).rejects.toThrow(ForbiddenException);
 
@@ -91,10 +101,12 @@ describe('Manager Reporting & Hotel-Scoped Analytics', () => {
 
       const res = await controller.overview(
         { hotelId: 'hotel-1' },
+        {} as any,
         { user: { sub: 'mgr-1', role: 'MANAGER' } },
+        { setHeader: jest.fn() } as any,
       );
 
-      expect(res.hotelId).toBe('hotel-1');
+      expect(res.hotel.id).toBe('hotel-1');
       expect(res.totalRevenue).toBe(2000);
     });
   });

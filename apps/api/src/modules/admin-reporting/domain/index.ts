@@ -1,6 +1,7 @@
 export type { AuditLog } from '../../../generated/prisma/client';
 
 export const REPORT_TYPES = [
+  'overview',
   'booking',
   'revenue',
   'occupancy',

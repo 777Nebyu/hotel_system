@@ -225,8 +225,10 @@ function HotelDetailsContent() {
             <span>{hotel.starRating} Star Luxury</span>
           </div>
           {hotel.averageRating && (
-            <span className="px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
-              {hotel.averageRating.toFixed(1)} ★ Excellent ({hotel.reviewCount} reviews)
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+              <span>{hotel.averageRating.toFixed(1)}</span>
+              <Star className="w-3 h-3 fill-emerald-600 text-emerald-600 inline" />
+              <span>Excellent ({hotel.reviewCount} reviews)</span>
             </span>
           )}
         </div>

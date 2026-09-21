@@ -13,6 +13,7 @@ import {
   KeyRound,
   ShieldCheck,
   Loader2,
+  X,
 } from 'lucide-react'
 import { authApi } from '@/lib/services'
 
@@ -29,6 +30,13 @@ function ResetPasswordContent() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+
+  // Auto-dismiss error banner after 7 seconds
+  useEffect(() => {
+    if (!error) return
+    const timer = setTimeout(() => setError(''), 7000)
+    return () => clearTimeout(timer)
+  }, [error])
 
   useEffect(() => {
     setMounted(true)
@@ -85,10 +93,10 @@ function ResetPasswordContent() {
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
             <div className="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-[#996515] rounded-xl flex items-center justify-center shadow-md">
-              <span className="text-white text-base font-serif font-bold">Y</span>
+              <span className="text-white text-base font-serif font-bold">L</span>
             </div>
             <span className="font-serif text-2xl font-bold text-[#0F2942]">
-              YayeTech <span className="text-[#D4AF37] text-sm font-sans font-normal">Luxury</span>
+              LuxStay <span className="text-[#D4AF37] text-sm font-sans font-normal">Luxury</span>
             </span>
           </Link>
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-50 text-[#996515] mb-3">
@@ -96,7 +104,7 @@ function ResetPasswordContent() {
           </div>
           <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-1.5">Set New Password</h1>
           <p className="text-sm text-[#64748B]">
-            Create a strong, secure password for your YayeTech account.
+            Create a strong, secure password for your LuxStay account.
           </p>
         </div>
 
@@ -124,9 +132,19 @@ function ResetPasswordContent() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
             {error && (
-              <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-sm text-rose-700 flex items-start gap-2.5">
-                <AlertCircle className="w-5 h-5 shrink-0 text-rose-500 mt-0.5" />
-                <span>{error}</span>
+              <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-sm text-rose-700 flex items-start justify-between gap-3 animate-in fade-in">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-5 h-5 shrink-0 text-rose-500 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setError('')}
+                  className="text-rose-500 hover:text-rose-800 p-1 -mr-1 rounded-lg hover:bg-rose-100/60 transition-colors shrink-0"
+                  aria-label="Dismiss notification"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             )}
 

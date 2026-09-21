@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '../../../generated/prisma/client';
-import { Role } from '../../../generated/prisma/client';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import { Prisma, Role, UserStatus } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
 import type {
@@ -220,5 +224,107 @@ export class AdminUsersService {
       reason: reason || 'Manual unflag by admin',
     });
     return updated;
+  }
+
+  async create(
+    dto: {
+      fullName: string;
+      email: string;
+      password: string;
+      phone?: string | null;
+      role?: 'CUSTOMER' | 'MANAGER' | 'STAFF' | 'ADMIN';
+      hotelId?: string | null;
+    },
+    actorId: string,
+  ) {
+    const normalizedEmail = dto.email.trim().toLowerCase();
+
+    // 1. Check existing user
+    const existing = await this.db.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true, email: true },
+    });
+    if (existing) {
+      throw new ConflictException(
+        'A user with this email address already exists.',
+      );
+    }
+
+    // 2. Validate hotel if hotelId provided
+    if (dto.hotelId) {
+      const hotel = await this.db.hotel.findUnique({
+        where: { id: dto.hotelId },
+        select: { id: true, name: true },
+      });
+      if (!hotel) {
+        throw new NotFoundException('Selected hotel does not exist.');
+      }
+    }
+
+    // 3. Hash password
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+
+    // 4. Create user with pre-verified status
+    const targetRole = (dto.role as Role) || Role.MANAGER;
+    const user = await this.db.user.create({
+      data: {
+        fullName: dto.fullName.trim(),
+        email: normalizedEmail,
+        passwordHash,
+        phone: dto.phone?.trim() || null,
+        role: targetRole,
+        status: UserStatus.ACTIVE,
+        isActive: true,
+        emailVerifiedAt: new Date(),
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    // 5. If hotelId provided, assign accordingly
+    let assignedHotel: { id: string; name: string } | null = null;
+    if (dto.hotelId) {
+      if (targetRole === Role.MANAGER) {
+        assignedHotel = await this.db.hotel.update({
+          where: { id: dto.hotelId },
+          data: { managerId: user.id },
+          select: { id: true, name: true },
+        });
+      } else if (targetRole === Role.STAFF) {
+        await this.db.staffHotel.create({
+          data: {
+            staffId: user.id,
+            hotelId: dto.hotelId,
+            role: 'Staff',
+          },
+        });
+        const hotel = await this.db.hotel.findUnique({
+          where: { id: dto.hotelId },
+          select: { id: true, name: true },
+        });
+        assignedHotel = hotel;
+      }
+    }
+
+    // 6. Audit log
+    await this.audit.record(actorId, 'CREATE_USER', 'User', user.id, {
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+      assignedHotelId: dto.hotelId || null,
+    });
+
+    return {
+      ...user,
+      assignedHotel,
+    };
   }
 }

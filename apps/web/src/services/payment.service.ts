@@ -26,23 +26,27 @@ export const paymentService = {
   // Mock gateway completion callback for testing
   mockGatewayCallback: async (
     bookingId: string,
-    data?: { reference?: string; transactionId?: string; message?: string },
-    secret = 'development-mock-payment-secret',
+    data?: { reference?: string; transactionId?: string; message?: string; status?: 'SUCCEEDED' | 'FAILED' },
+    secret = process.env.NEXT_PUBLIC_MOCK_PAYMENT_WEBHOOK_SECRET || 'development-mock-payment-secret',
   ): Promise<any> => {
-    const res = await apiClient.post(`/payments/mock/${bookingId}`, data ?? {}, {
-      headers: { 'x-mock-payment-secret': secret },
-    })
+    const res = await apiClient.post(
+      `/payments/mock/${bookingId}`,
+      { status: 'SUCCEEDED', ...data },
+      { headers: { 'x-mock-payment-secret': secret } },
+    )
     return res.data
   },
 
   mockCallback: async (
     bookingId: string,
-    data?: { reference?: string; transactionId?: string; message?: string },
-    secret = 'development-mock-payment-secret',
+    data?: { reference?: string; transactionId?: string; message?: string; status?: 'SUCCEEDED' | 'FAILED' },
+    secret = process.env.NEXT_PUBLIC_MOCK_PAYMENT_WEBHOOK_SECRET || 'development-mock-payment-secret',
   ): Promise<any> => {
-    const res = await apiClient.post(`/payments/mock/${bookingId}`, data ?? {}, {
-      headers: { 'x-mock-payment-secret': secret },
-    })
+    const res = await apiClient.post(
+      `/payments/mock/${bookingId}`,
+      { status: 'SUCCEEDED', ...data },
+      { headers: { 'x-mock-payment-secret': secret } },
+    )
     return res.data
   },
 
