@@ -29,9 +29,9 @@ export const registerSchema = baseRegisterSchema
 export type RegisterInput = z.infer<typeof registerSchema>
 
 export const guestInfoSchema = z.object({
-  guestFullName: z.string().min(1, 'Guest name is required'),
+  guestFullName: z.string().min(2, 'Guest name is required (min 2 characters)'),
   guestEmail: z.string().email('Please enter a valid email address'),
-  guestPhone: z.string().optional(),
+  guestPhone: z.string().min(3, 'Phone number is required (min 3 characters)'),
 })
 
 export type GuestInfoInput = z.infer<typeof guestInfoSchema>

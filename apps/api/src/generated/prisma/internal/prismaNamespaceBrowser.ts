@@ -405,6 +405,9 @@ export const ReviewScalarFieldEnum = {
   response: 'response',
   respondedAt: 'respondedAt',
   respondedById: 'respondedById',
+  flagged: 'flagged',
+  flagReason: 'flagReason',
+  flaggedAt: 'flaggedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

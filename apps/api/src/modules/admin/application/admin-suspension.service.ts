@@ -116,7 +116,15 @@ export class AdminSuspensionService {
     if (targetType === 'USER') {
       await this.db.user.update({
         where: { id: targetId },
-        data: { isActive: false },
+        data: {
+          isActive: false,
+          refreshTokenHash: null,
+          refreshTokenFamily: null,
+        },
+      });
+      await this.db.userSession.updateMany({
+        where: { userId: targetId, revokedAt: null },
+        data: { revokedAt: new Date() },
       });
     } else if (targetType === 'HOTEL') {
       await this.db.hotel.update({

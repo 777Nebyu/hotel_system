@@ -22,6 +22,7 @@ import DatePickerModal from '../../components/DatePickerModal';
 import { colors, font, radius } from '../../theme';
 import { useTheme } from '../../hooks/useTheme';
 import { hapticSuccess, hapticError } from '../../hooks/useHaptics';
+import { getHotelIdFromToken } from '../../utils/jwt';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -52,7 +53,7 @@ interface RoomOption {
 export default function WalkInBookingScreen() {
   const navigation = useNavigation<Nav>();
   const token = useAppSelector((s) => s.auth.session?.accessToken ?? '');
-  const hotelId = useAppSelector((s) => s.auth.session?.user?.hotelId ?? '');
+  const hotelId = getHotelIdFromToken(token);
   const hotelName = useAppSelector((s) => s.auth.session?.user?.hotelName ?? 'My Hotel');
   const { colors: c } = useTheme();
 
@@ -168,6 +169,7 @@ export default function WalkInBookingScreen() {
   const validate = (): string | null => {
     if (!fullName.trim() || fullName.trim().length < 2) return 'Guest full name is required (min 2 characters).';
     if (!phone.trim() || phone.replace(/\s/g, '').length < 3) return 'Valid phone number is required.';
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'Valid email address is required.';
     if (!checkIn || !checkOut) return 'Both check-in and check-out dates are required.';
     if (checkIn >= checkOut) return 'Check-out must be after check-in.';
     if (!selectedRoomId) return 'Please select a room.';
@@ -179,6 +181,7 @@ export default function WalkInBookingScreen() {
     const errs: Record<string, string | undefined> = {};
     if (field === 'fullName' && (!fullName.trim() || fullName.trim().length < 2)) errs.fullName = 'Guest full name is required (min 2 characters).';
     if (field === 'phone' && (!phone.trim() || phone.replace(/\s/g, '').length < 3)) errs.phone = 'Valid phone number is required.';
+    if (field === 'email' && (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) errs.email = 'Valid email address is required.';
     if (field === 'checkIn' && !checkIn) errs.checkIn = 'Check-in date is required.';
     if (field === 'checkOut' && !checkOut) errs.checkOut = 'Check-out date is required.';
     else if (field === 'checkOut' && checkIn && checkOut && checkIn >= checkOut) errs.checkOut = 'Check-out must be after check-in.';
@@ -191,6 +194,7 @@ export default function WalkInBookingScreen() {
       const errs: Record<string, string | undefined> = {};
       if (!fullName.trim() || fullName.trim().length < 2) errs.fullName = 'Guest full name is required (min 2 characters).';
       if (!phone.trim() || phone.replace(/\s/g, '').length < 3) errs.phone = 'Valid phone number is required.';
+      if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errs.email = 'Valid email address is required.';
       if (!checkIn || !checkOut) errs.checkIn = 'Both dates are required.';
       else if (checkIn >= checkOut) errs.checkOut = 'Check-out must be after check-in.';
       setFieldErrors(errs);

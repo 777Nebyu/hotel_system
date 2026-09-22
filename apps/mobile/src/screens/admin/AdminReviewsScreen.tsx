@@ -49,8 +49,9 @@ export default function AdminReviewsScreen({ onBack }: Props) {
 
   // Flag modal
   const [flagModal,  setFlagModal]  = useState(false);
+  const [flagTarget, setFlagTarget] = useState<string | null>(null);
   const [flagReason, setFlagReason] = useState('');
-  const [flagging]                  = useState(false);
+  const [flagging,   setFlagging]   = useState(false);
 
   // Delete confirm
   const [deleteId,      setDeleteId]      = useState<string | null>(null);
@@ -73,17 +74,40 @@ export default function AdminReviewsScreen({ onBack }: Props) {
   useEffect(() => { void fetchReviews(); }, [fetchReviews]);
 
   // ── Flag a review ──────────────────────────────────────────────────────────
-  const openFlagModal = () => {
-    toast('info', 'Flagging not available', 'Review flagging will be available in a future update.');
+  const openFlagModal = (reviewId: string) => {
+    setFlagTarget(reviewId);
+    setFlagReason('');
+    setFlagModal(true);
   };
 
   const submitFlag = async () => {
-    // No-op: backend does not support review flagging yet
+    if (!flagTarget) return;
+    setFlagging(true);
+    try {
+      await request(`/admin/reviews/${flagTarget}/flag`, {
+        method: 'POST',
+        body: { reason: flagReason.trim() || undefined },
+        token,
+      });
+      setReviews((prev) => prev.map((r) => r.id === flagTarget ? { ...r, flagged: true, flagReason: flagReason.trim() || null } : r));
+      toast('success', 'Review flagged');
+      setFlagModal(false);
+    } catch (err: any) {
+      toast('error', err.message || 'Failed to flag review');
+    } finally {
+      setFlagging(false);
+    }
   };
 
   // ── Unflag a review ────────────────────────────────────────────────────────
-  const unflagReview = async () => {
-    toast('info', 'Unflagging not available', 'Review unflagging will be available in a future update.');
+  const unflagReview = async (reviewId: string) => {
+    try {
+      await request(`/admin/reviews/${reviewId}/unflag`, { method: 'POST', token });
+      setReviews((prev) => prev.map((r) => r.id === reviewId ? { ...r, flagged: false, flagReason: null, flaggedAt: null } : r));
+      toast('success', 'Review unflagged');
+    } catch (err: any) {
+      toast('error', err.message || 'Failed to unflag review');
+    }
   };
 
   // ── Delete a review ────────────────────────────────────────────────────────
@@ -195,14 +219,14 @@ export default function AdminReviewsScreen({ onBack }: Props) {
                     title="Unflag"
                     variant="secondary"
                     size="sm"
-                    onPress={() => unflagReview()}
+                    onPress={() => unflagReview(rv.id)}
                   />
                 ) : (
                   <Button
                     title="Flag"
                     variant="gold"
                     size="sm"
-                    onPress={() => openFlagModal()}
+                    onPress={() => openFlagModal(rv.id)}
                   />
                 )}
                 <Button

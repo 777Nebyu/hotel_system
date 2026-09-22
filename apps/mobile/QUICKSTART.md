@@ -85,9 +85,11 @@ After running, check:
 
 ## 6️⃣ Login Credentials
 
-Test user credentials:
-- **Email**: `admin@yayetech.com`
-- **Password**: `password123`
+Test user credentials (from `apps/api/prisma/seed.ts`):
+- **Admin**: `admin@yayetech.com` / `AdminPass123!`
+- **Manager**: `manager@yayetech.com` / `ManagerPass123!`
+- **Staff**: `staff@yayetech.com` / `StaffPass123!`
+- **Customer**: `customer@yayetech.com` / `CustomerPass123!`
 
 ---
 

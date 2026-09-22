@@ -9,7 +9,6 @@ import { useAppSelector } from '../store/hooks';
 import { request, ApiError } from '../api';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
-import MockModeBanner from '../components/MockModeBanner';
 import { Button } from '../components/Shared';
 import { hapticSuccess, hapticError } from '../hooks/useHaptics';
 
@@ -141,8 +140,6 @@ export default function TelebirrOtpScreen() {
       </View>
 
       <View style={[styles.content, { paddingHorizontal: pad }]}>
-        <MockModeBanner />
-
         {/* Provider Header */}
         <View style={[styles.providerCard, { backgroundColor: '#E2B94A' }]}>
           <Ionicons name="phone-portrait-outline" size={32} color="#FFFFFF" />
@@ -219,11 +216,7 @@ export default function TelebirrOtpScreen() {
           </Text>
         </View>
 
-        <View style={styles.sandboxNotice}>
-          <Ionicons name="lock-closed" size={14} color={c.inkMuted} />
-          <Text style={[styles.sandboxText, { color: c.inkMuted }]}>SANDBOX — No real charge</Text>
         </View>
-      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -248,6 +241,4 @@ const styles = StyleSheet.create({
   resendText: { fontSize: 14, fontWeight: '500' },
   smsHint: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 10, borderWidth: 1 },
   smsHintText: { fontSize: 13, flex: 1 },
-  sandboxNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 8 },
-  sandboxText: { fontSize: 12 },
 });

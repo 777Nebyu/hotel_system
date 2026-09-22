@@ -13,7 +13,7 @@
       "backgroundColor": "#1f6f64"
     },
     "assetBundlePatterns": [
-      "**/*"
+      "assets/**/*"
     ],
     "ios": {
       "supportsTablet": true,
@@ -82,11 +82,13 @@
           "faceIDPermission": "Allow LuxSty Hotel to use Face ID for quick unlock."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-web-browser",
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {
-        "projectId": "7142f727-be73-4dc8-ac43-99a415a10557"
+        "projectId": "a36cb467-d6a2-49e9-9702-fa3fbec91578"
       }
     },
     "owner": "kibruyisfa"

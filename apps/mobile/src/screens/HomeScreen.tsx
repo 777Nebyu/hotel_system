@@ -50,7 +50,7 @@ function statusChip(status: string, dark: boolean): { bg: string; fg: string; la
     }
   }
   switch (status) {
-    case 'CONFIRMED': return { bg: '#D9F7E8', fg: '#0F766E', label: 'Confirmed' };
+    case 'CONFIRMED': return { bg: '#DBEAFE', fg: '#0F2942', label: 'Confirmed' };
     case 'PENDING': return { bg: '#FFF4D6', fg: '#B45309', label: 'Pending' };
     case 'CHECKED_IN': return { bg: '#DBEAFE', fg: '#1D4ED8', label: 'Checked in' };
     default: return { bg: '#E5E7EB', fg: '#475569', label: status };

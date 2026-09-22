@@ -13,6 +13,8 @@ import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { BookingService } from '../application/booking.service';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { Role } from '../../../generated/prisma/client';
 import {
   BookingIdParamsDto,
   CancelRoomsDto,
@@ -32,6 +34,7 @@ interface AuthedRequest {
 @ApiTags('bookings')
 @ApiBearerAuth()
 @Controller('bookings')
+@Roles(Role.CUSTOMER)
 export class BookingController {
   constructor(private readonly bookings: BookingService) {}
 

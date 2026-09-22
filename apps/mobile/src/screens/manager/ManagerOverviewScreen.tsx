@@ -2,10 +2,10 @@
  * ManagerOverviewScreen — Premium Hotel PMS Dashboard
  *
  * Design system:
- *   Primary:    Deep Emerald  #0F766E
- *   Accent:     Luxury Gold   #C89B3C
- *   Background: Warm Ivory    #FAFAF7
- *   Text:       Dark Navy     #132238
+ *   Primary:    Deep Sapphire  #0F2942
+ *   Accent:     Luxury Gold   #D4AF37
+ *   Background: Warm Ivory    #F8FAFC
+ *   Text:       Dark Navy     #0F172A
  *   Cards:      White + soft shadow + glassmorphism tint
  */
 
@@ -31,23 +31,23 @@ import { SkeletonCard } from '../../components/Skeleton';
 import { useTheme } from '../../hooks/useTheme';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const EMERALD       = '#0F766E';
+const EMERALD       = '#0F2942';
 const EMERALD_DARK  = '#0A5A54';
 const EMERALD_LIGHT = '#E6F4F2';
-const GOLD          = '#C89B3C';
+const GOLD          = '#D4AF37';
 const GOLD_LIGHT    = '#FBF4E5';
-const IVORY         = '#FAFAF7';
-const NAVY          = '#132238';
-const NAVY_MUTED    = '#4A5568';
+const IVORY         = '#F8FAFC';
+const NAVY          = '#0F172A';
+const NAVY_MUTED    = '#475569';
 const NAVY_SUBTLE   = '#8FA1B3';
 const WHITE         = '#FFFFFF';
-const SUCCESS       = '#16A34A';
+const SUCCESS       = '#10B981';
 const SUCCESS_BG    = '#F0FDF4';
-const WARNING       = '#D97706';
+const WARNING       = '#F59E0B';
 const WARNING_BG    = '#FFFBEB';
-const ERROR         = '#DC2626';
+const ERROR         = '#EF4444';
 const ERROR_BG      = '#FEF2F2';
-const BLUE          = '#2563EB';
+const BLUE          = '#3B82F6';
 const BLUE_BG       = '#EFF6FF';
 
 // Dark mode overrides
@@ -224,7 +224,7 @@ function GuestCard({
     <View style={[gc.card, {
       backgroundColor: dark ? D_CARD : WHITE,
       borderColor: dark ? D_BORDER : '#F0F4F7',
-      shadowColor: dark ? 'transparent' : '#132238',
+      shadowColor: dark ? 'transparent' : '#0F172A',
     }]}>
       {/* Avatar */}
       <View style={[gc.avatar, { backgroundColor: dark ? 'rgba(15,118,110,0.25)' : EMERALD_LIGHT }]}>
@@ -440,7 +440,7 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
               <Ionicons name="notifications-outline" size={20} color={textPri} />
             </Pressable>
             <Pressable
-              onPress={onBack}
+              onPress={() => onNavigate({ screen: 'Settings' })}
               style={[s.avatarBtn, { backgroundColor: EMERALD }]}
               accessibilityRole="button"
               accessibilityLabel="Profile"
@@ -485,27 +485,20 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
                 <View style={s.kpiHeroIconWrap}>
                   <Ionicons name="business" size={18} color={WHITE} />
                 </View>
-                <View style={s.kpiBadge}>
-                  <Ionicons name="trending-up" size={11} color={GOLD} />
-                  <Text style={s.kpiBadgeText}>+8%</Text>
-                </View>
               </View>
               <Text style={s.kpiHeroValue}>
-                {stats?.occupancyRate ?? 72}%
+                {stats?.occupancyRate ?? 0}%
               </Text>
               <Text style={s.kpiHeroLabel}>Occupancy Rate</Text>
-              <Text style={s.kpiHeroSub}>vs. yesterday</Text>
             </View>
           </View>
 
           {/* Revenue */}
+          {userRole !== 'STAFF' && (
           <View style={[s.kpiCard, { backgroundColor: card, borderColor: border, flex: 1 }, shadow]}>
             <View style={s.kpiTop}>
               <View style={[s.kpiIcon, { backgroundColor: GOLD_LIGHT }]}>
                 <Ionicons name="cash-outline" size={16} color={GOLD} />
-              </View>
-              <View style={[s.kpiBadgeSmall, { backgroundColor: '#F0FDF4' }]}>
-                <Text style={[s.kpiBadgeSmallText, { color: SUCCESS }]}>+12%</Text>
               </View>
             </View>
             <Text style={[s.kpiValue, { color: textPri }]} numberOfLines={1} adjustsFontSizeToFit>
@@ -513,6 +506,7 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
             </Text>
             <Text style={[s.kpiLabel, { color: textSec }]}>{"Today's Revenue"}</Text>
           </View>
+          )}
         </View>
 
         {/* Row 2: 4 small KPI cards */}
@@ -520,7 +514,7 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
           {[
             { icon: 'log-in-outline',  color: EMERALD,   bg: EMERALD_LIGHT, value: stats?.arrivalsToday ?? 0,       label: 'Arrivals',    sub: 'Check-in today'  },
             { icon: 'log-out-outline', color: BLUE,      bg: BLUE_BG,       value: stats?.departuresToday ?? 0,     label: 'Departures',  sub: 'Check-out today' },
-            { icon: 'receipt-outline', color: WARNING,   bg: WARNING_BG,    value: fmtCurrency(stats?.pendingPayments ?? 0), label: 'Pending Pay', sub: 'Outstanding', isText: true },
+            ...(userRole !== 'STAFF' ? [{ icon: 'receipt-outline', color: WARNING,   bg: WARNING_BG,    value: fmtCurrency(stats?.pendingPayments ?? 0), label: 'Pending Pay', sub: 'Outstanding', isText: true }] : []),
             { icon: 'bed-outline',     color: SUCCESS,   bg: SUCCESS_BG,    value: availRooms,                       label: 'Available',   sub: 'Rooms free'      },
           ].map((kpi, i) => (
             <View key={i} style={[s.kpiSmall, { backgroundColor: card, borderColor: border }, shadow]}>
@@ -550,8 +544,8 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
             { icon: 'person-add-outline', color: GOLD,    bg: GOLD_LIGHT,    label: 'Walk-in Guest',    screen: 'WalkInBooking',                    roles: ['MANAGER','STAFF','ADMIN'] },
             { icon: 'bed-outline',        color: BLUE,    bg: BLUE_BG,       label: 'Room Mgmt',        screen: 'ManagerRooms',                     roles: ['MANAGER','ADMIN'] },
             { icon: 'key-outline',        color: SUCCESS, bg: SUCCESS_BG,    label: 'Check-in',         screen: 'ManagerBookings',                  roles: ['MANAGER','STAFF','ADMIN'] },
-            { icon: 'receipt-outline',    color: WARNING, bg: WARNING_BG,    label: 'Billing',          screen: 'ManagerBilling',                   roles: ['MANAGER','STAFF'] },
-            { icon: 'stats-chart',        color: EMERALD, bg: EMERALD_LIGHT, label: 'Reports',          screen: 'ManagerReports',                   roles: ['MANAGER','STAFF','ADMIN'] },
+            { icon: 'receipt-outline',    color: WARNING, bg: WARNING_BG,    label: 'Billing',          screen: 'ManagerBilling',                   roles: ['MANAGER'] },
+            { icon: 'stats-chart',        color: EMERALD, bg: EMERALD_LIGHT, label: 'Reports',          screen: 'ManagerReports',                   roles: ['MANAGER'] },
           ]
             .filter(a => a.roles.includes(userRole))
             .map((action, i) => (
@@ -676,6 +670,8 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
         )}
 
         {/* ── Revenue Analytics ─────────────────────────────────────────── */}
+        {userRole !== 'STAFF' && (
+        <>
         <View style={s.sectionHeaderRow}>
           <Text style={[s.sectionTitle, { color: textPri }]}>Revenue Overview</Text>
           <Pressable onPress={() => onNavigate({ screen: 'ManagerReports' })} hitSlop={8}>
@@ -692,10 +688,6 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
               </Text>
               <Text style={[s.revenueSubLabel, { color: textSec }]}>{"This week's total"}</Text>
             </View>
-            <View style={[s.revenueBadge, { backgroundColor: SUCCESS_BG }]}>
-              <Ionicons name="trending-up" size={13} color={SUCCESS} />
-              <Text style={[s.revenueBadgeText, { color: SUCCESS }]}>+15.2%</Text>
-            </View>
           </View>
           {/* Chart */}
           <RevenueChart data={weeklyData} dark={dark} />
@@ -711,6 +703,8 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
             </View>
           </View>
         </View>
+        </>
+        )}
 
       </Animated.ScrollView>
 

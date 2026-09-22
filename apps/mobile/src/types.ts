@@ -24,10 +24,9 @@ export interface User {
   id: string; email: string; fullName: string; phone?: string | null;
   role: UserRole; profilePhotoUrl?: string | null; isActive?: boolean;
   emailVerifiedAt?: string | null;
-  /** Primary managed/assigned hotel ID (MANAGER / STAFF) */
   hotelId?: string;
-  /** Primary managed/assigned hotel name (MANAGER / STAFF) */
   hotelName?: string;
+  googleId?: string;
 }
 
 export interface HotelSummary {
@@ -74,13 +73,15 @@ export interface Booking {
 export interface BookingDetail {
   id: string; bookingId: string; roomId: string;
   room?: Room; guestCount: number;
-  guestInfo: { fullName?: string; email?: string; phone?: string; nationality?: string; idPassport?: string } | null;
+  guestInfo: { fullName?: string; email?: string; phone?: string; nationality?: string; idType?: string; idNumber?: string } | null;
 }
 
 export interface Payment {
   id: string; bookingId: string; method: PaymentMethod; amount: number | string;
   status: PaymentStatus;
   providerRef?: string | null; createdAt: string;
+  refundAmount?: number | string | null;
+  refundedAt?: string | null;
 }
 
 export interface Review {

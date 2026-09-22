@@ -8,7 +8,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.1.19:3001"
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.12:3001"
       }
     },
     "preview": {
@@ -17,10 +17,13 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.1.19:3001"
+        "EXPO_PUBLIC_API_URL": "https://api.yayetech.com"
       }
     },
     "production": {
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.yayetech.com"
       }

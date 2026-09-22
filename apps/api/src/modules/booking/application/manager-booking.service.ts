@@ -991,6 +991,7 @@ export class ManagerBookingService {
           fullName: dto.guestName,
           email: dto.guestEmail,
           phone: dto.guestPhone,
+          idNumber: dto.guestIdNumber,
         },
       ],
       paymentMethod: dto.paymentMethod,

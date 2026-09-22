@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   priceSeasonal: {
-    color: '#C89B3C',
+    color: '#D4AF37',
     fontWeight: '800',
   },
   legend: {

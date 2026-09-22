@@ -10,7 +10,6 @@ import { request, ApiError } from '../api';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
 import { getMockScenario, type MockScenario } from '../components/MockScenarioSelector';
-import MockModeBanner from '../components/MockModeBanner';
 import { Button } from '../components/Shared';
 import { hapticSuccess, hapticError } from '../hooks/useHaptics';
 
@@ -18,10 +17,10 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'MockAuth'>;
 
 const PROVIDER_META: Record<string, { name: string; color: string; icon: string }> = {
-  CREDIT_CARD: { name: 'Card Payment', color: '#1A2332', icon: 'card-outline' },
+  CREDIT_CARD: { name: 'Card Payment', color: '#0F172A', icon: 'card-outline' },
   TELEBIRR: { name: 'Telebirr', color: '#E2B94A', icon: 'phone-portrait-outline' },
-  CBE_BIRR: { name: 'CBE Birr', color: '#0F8A83', icon: 'business-outline' },
-  PAYPAL: { name: 'PayPal', color: '#2563EB', icon: 'globe-outline' },
+  CBE_BIRR: { name: 'CBE Birr', color: '#0F2942', icon: 'business-outline' },
+  PAYPAL: { name: 'PayPal', color: '#3B82F6', icon: 'globe-outline' },
 };
 
 export default function MockAuthorizationScreen() {
@@ -129,8 +128,6 @@ export default function MockAuthorizationScreen() {
       </View>
 
       <View style={[styles.content, { paddingHorizontal: pad }]}>
-        <MockModeBanner />
-
         {/* Provider Header */}
         <View style={[styles.providerCard, { backgroundColor: provider.color }]}>
           <Ionicons name={provider.icon as any} size={32} color="#FFFFFF" />
@@ -194,13 +191,6 @@ export default function MockAuthorizationScreen() {
           </View>
         )}
 
-        {/* Mock Notice */}
-        <View style={styles.mockNotice}>
-          <Ionicons name="lock-closed" size={14} color={c.inkMuted} />
-          <Text style={[styles.mockText, { color: c.inkMuted }]}>
-            Simulated {'\u2014'} No real charge
-          </Text>
-        </View>
       </View>
     </View>
   );
@@ -224,6 +214,4 @@ const styles = StyleSheet.create({
   processingTitle: { fontSize: 14, fontWeight: '600' },
   processingSub: { fontSize: 12, marginTop: 2 },
   actions: { gap: 10 },
-  mockNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 8 },
-  mockText: { fontSize: 12 },
 });

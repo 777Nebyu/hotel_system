@@ -5,12 +5,13 @@ import type { RootStackParamList } from './types';
 import { useAppSelector } from '../store/hooks';
 import { navigationRef } from '../lib/navigationRef';
 import { useTheme } from '../hooks/useTheme';
-import AuthScreen from '../screens/AuthScreen';
-import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
-import VerifyEmailScreen from '../screens/VerifyEmailScreen';
-import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import MainTabs from './MainTabs';
 import AuthGuard from '../components/AuthGuard';
+
+const AuthScreen = lazy(() => import('../screens/AuthScreen'));
+const ForgotPasswordScreen = lazy(() => import('../screens/ForgotPasswordScreen'));
+const VerifyEmailScreen = lazy(() => import('../screens/VerifyEmailScreen'));
+const ResetPasswordScreen = lazy(() => import('../screens/ResetPasswordScreen'));
 
 const HotelDetailScreen = lazy(() => import('../screens/HotelDetailScreen'));
 const SearchScreen = lazy(() => import('../screens/SearchScreen'));
@@ -173,12 +174,14 @@ const AdminFeatureFlagsWrapped = withProtected(() => <AdminFeatureFlagsScreen on
 
 // Manager screens
 const ManagerOverviewWrapped = withProtected(() => <ManagerOverviewScreen onBack={goBack} onNavigate={(p: any) => goTo(p.screen, p)} />, ['MANAGER', 'STAFF']);
-const ManagerBookingsWrapped = withProtected(() => <ManagerBookingsScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'STAFF']);
+const ManagerBookingsWrapped = withProtected(() => <ManagerBookingsScreen onBack={() => goTo('ManagerOverview')} onNavigate={(p: any) => goTo(p.screen, p)} />, ['MANAGER', 'STAFF']);
+const ManagerBookingDetailScreen = lazy(() => import('../screens/manager/ManagerBookingDetailScreen'));
+const ManagerBookingDetailWrapped = withProtected(() => <ManagerBookingDetailScreen />, ['MANAGER', 'STAFF']);
 const ManagerBillingScreen = lazy(() => import('../screens/manager/ManagerBillingScreen'));
-const ManagerBillingWrapped = withProtected(() => <ManagerBillingScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'STAFF']);
+const ManagerBillingWrapped = withProtected(() => <ManagerBillingScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER']);
 const ManagerHotelWrapped = withProtected(() => <ManagerHotelScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'ADMIN']);
 const ManagerRoomsWrapped = withProtected(() => <ManagerRoomsScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'ADMIN']);
-const ManagerReportsWrapped = withProtected(() => <ManagerReportsScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'STAFF']);
+const ManagerReportsWrapped = withProtected(() => <ManagerReportsScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER']);
 const ManagerMoreWrapped = withProtected(() => <ManagerMoreScreen onBack={() => goTo('ManagerOverview')} onNavigate={(p: any) => goTo(p.screen, p)} />, ['MANAGER', 'STAFF']);
 
 const VerifyEmailWrapped = ({ route }: any) => <VerifyEmailScreen token={route.params.token} onVerified={goBack} onError={goBack} />;
@@ -216,8 +219,8 @@ export default function RootNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
-      <Stack.Screen name="Auth" component={AuthScreen} options={{ animation: 'slide_from_bottom' }} />
-      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="Auth" component={withSuspense(AuthScreen as any)} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="ForgotPassword" component={withSuspense(ForgotPasswordScreen as any)} />
       <Stack.Screen name="VerifyEmail" component={VerifyEmailWrapped} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordWrapped} />
       <Stack.Screen name="HotelDetail" component={HotelDetailWrapped} />
@@ -247,6 +250,7 @@ export default function RootNavigator() {
       <Stack.Screen name="AdminAuditLog" component={AdminAuditLogWrapped} />
       <Stack.Screen name="ManagerOverview" component={ManagerOverviewWrapped} />
       <Stack.Screen name="ManagerBookings" component={ManagerBookingsWrapped} />
+      <Stack.Screen name="ManagerBookingDetail" component={ManagerBookingDetailWrapped} />
       <Stack.Screen name="ManagerBilling" component={ManagerBillingWrapped} />
       <Stack.Screen name="ManagerHotel" component={ManagerHotelWrapped} />
       <Stack.Screen name="ManagerRooms" component={ManagerRoomsWrapped} />

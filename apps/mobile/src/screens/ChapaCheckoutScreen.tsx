@@ -9,7 +9,6 @@ import { useAppSelector } from '../store/hooks';
 import { request, ApiError } from '../api';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
-import MockModeBanner from '../components/MockModeBanner';
 import { Button } from '../components/Shared';
 import { hapticSuccess, hapticError } from '../hooks/useHaptics';
 
@@ -26,10 +25,10 @@ type ChapaMethod = {
 
 const CHAPA_METHODS: ChapaMethod[] = [
   { id: 'TELEBIRR', name: 'Telebirr', tag: 'Mobile money payment', icon: 'phone-portrait-outline', color: '#E2B94A' },
-  { id: 'CBE_BIRR', name: 'CBE Bank Transfer', tag: 'Commercial Bank of Ethiopia', icon: 'business-outline', color: '#0F8A83' },
+  { id: 'CBE_BIRR', name: 'CBE Bank Transfer', tag: 'Commercial Bank of Ethiopia', icon: 'business-outline', color: '#0F2942' },
   { id: 'AWASH_BANK', name: 'Awash Bank', tag: 'Bank transfer', icon: 'business-outline', color: '#1E3A5F' },
   { id: 'ENAT_BANK', name: 'Enat Bank', tag: 'Bank transfer', icon: 'business-outline', color: '#8B1A1A' },
-  { id: 'AMHARA_BANK', name: 'Amhara Bank', tag: 'Bank transfer', icon: 'business-outline', color: '#2563EB' },
+  { id: 'AMHARA_BANK', name: 'Amhara Bank', tag: 'Bank transfer', icon: 'business-outline', color: '#3B82F6' },
   { id: 'COOP_BANK', name: 'COOP Bank', tag: 'Bank transfer', icon: 'business-outline', color: '#047857' },
 ];
 
@@ -129,8 +128,6 @@ export default function ChapaCheckoutScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={{ paddingHorizontal: pad, paddingBottom: insets.bottom + 20 }}>
-        <MockModeBanner />
-
         {/* Provider Header */}
         <View style={[styles.providerCard, { backgroundColor: c.teal }]}>
           <Ionicons name="wallet-outline" size={28} color="#FFFFFF" />
@@ -198,10 +195,6 @@ export default function ChapaCheckoutScreen() {
           </View>
         )}
 
-        <View style={styles.sandboxNotice}>
-          <Ionicons name="lock-closed" size={14} color={c.inkMuted} />
-          <Text style={[styles.sandboxText, { color: c.inkMuted }]}>SANDBOX — No real charge</Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -236,6 +229,4 @@ const styles = StyleSheet.create({
   radioInner: { width: 12, height: 12, borderRadius: 6 },
   loadingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12 },
   loadingText: { fontSize: 13 },
-  sandboxNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 12 },
-  sandboxText: { fontSize: 12 },
 });

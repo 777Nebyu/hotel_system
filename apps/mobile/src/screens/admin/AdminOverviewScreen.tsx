@@ -2,10 +2,10 @@
  * AdminOverviewScreen — Premium Platform Admin Dashboard
  *
  * Same design language as ManagerOverviewScreen:
- *   Primary:    Deep Emerald  #0F766E
- *   Accent:     Luxury Gold   #C89B3C
- *   Background: Warm Ivory    #FAFAF7
- *   Text:       Dark Navy     #132238
+ *   Primary:    Deep Sapphire  #0F2942
+ *   Accent:     Luxury Gold   #D4AF37
+ *   Background: Clean Canvas  #F8FAFC
+ *   Text:       Deep Navy     #0F172A
  *   Cards:      White + soft shadow
  *
  * Admin-specific additions:

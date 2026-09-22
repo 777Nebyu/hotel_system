@@ -144,13 +144,14 @@ export default function AdminUsersScreen({ onNavigate: _onNavigate, onBack }: Ad
       return;
     }
     setCreating(true);
+    let newUserId: string | null = null;
     try {
       // Step 1: Register the user account
       const regRes = await request<any>('/auth/register', {
         method: 'POST',
         body: { fullName: staffForm.fullName.trim(), email: staffForm.email.trim(), phone: staffForm.phone.trim() || undefined, password: staffForm.password },
       });
-      const newUserId = regRes?.user?.id;
+      newUserId = regRes?.user?.id;
       if (!newUserId) throw new Error('User created but ID not returned');
       // Step 2: Set role to STAFF
       await request(`/admin/users/${newUserId}/role`, { method: 'PATCH', body: { role: 'STAFF' }, token });
@@ -161,6 +162,12 @@ export default function AdminUsersScreen({ onNavigate: _onNavigate, onBack }: Ad
       setCreateOpen(false);
       await fetchUsers();
     } catch (err: any) {
+      // Rollback: if user was created but subsequent steps failed, deactivate the account
+      if (newUserId) {
+        try {
+          await request(`/admin/users/${newUserId}/active`, { method: 'PATCH', body: { isActive: false, reason: 'Rolled back: staff creation failed' }, token });
+        } catch { /* best-effort cleanup */ }
+      }
       toast('error', err.message || 'Failed to create staff account');
     } finally {
       setCreating(false);
@@ -194,7 +201,7 @@ export default function AdminUsersScreen({ onNavigate: _onNavigate, onBack }: Ad
             <Card style={styles.userCard}>
               <View style={styles.userHeader}>
                 <View style={styles.userInfo}>
-                  <Text style={styles.userName}>{user.name ?? user.email}</Text>
+                  <Text style={styles.userName}>{user.fullName ?? user.email}</Text>
                   <Text style={styles.userEmail}>{user.email}</Text>
                 </View>
                 <Badge label={user.role ?? 'user'} status={user.role ?? 'user'} />
@@ -210,7 +217,7 @@ export default function AdminUsersScreen({ onNavigate: _onNavigate, onBack }: Ad
                   title={user.isActive ? 'Deactivate' : 'Activate'}
                   variant={user.isActive ? 'danger' : 'gold'}
                   size="sm"
-                  onPress={() => toggleActive(user.id, user.isActive, user.name ?? user.email)}
+                  onPress={() => toggleActive(user.id, user.isActive, user.fullName ?? user.email)}
                 />
               </View>
             </Card>

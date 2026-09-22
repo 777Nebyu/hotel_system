@@ -26,7 +26,8 @@ interface BookingFlowState {
   guestEmail: string;
   guestPhone: string;
   guestNationality: string;
-  guestIdPassport: string;
+  guestIdType: string;
+  guestIdNumber: string;
   specialRequests: string;
   promoCode: string;
   appliedPromo: string;
@@ -58,7 +59,8 @@ const initialState: BookingFlowState = {
   guestEmail: '',
   guestPhone: '',
   guestNationality: '',
-  guestIdPassport: '',
+  guestIdType: '',
+  guestIdNumber: '',
   specialRequests: '',
   promoCode: '',
   appliedPromo: '',
@@ -128,8 +130,11 @@ const bookingFlowSlice = createSlice({
     setGuestNationality(state, action: PayloadAction<string>) {
       state.guestNationality = action.payload;
     },
-    setGuestIdPassport(state, action: PayloadAction<string>) {
-      state.guestIdPassport = action.payload;
+    setGuestIdType(state, action: PayloadAction<string>) {
+      state.guestIdType = action.payload;
+    },
+    setGuestIdNumber(state, action: PayloadAction<string>) {
+      state.guestIdNumber = action.payload;
     },
     setSpecialRequests(state, action: PayloadAction<string>) {
       state.specialRequests = action.payload;
@@ -181,7 +186,7 @@ const bookingFlowSlice = createSlice({
 
 export const {
   initBooking, setDates, setAdults, setChildrenCount,
-  setGuestFullName, setGuestEmail, setGuestPhone, setGuestNationality, setGuestIdPassport, setSpecialRequests,
+  setGuestFullName, setGuestEmail, setGuestPhone, setGuestNationality, setGuestIdType, setGuestIdNumber, setSpecialRequests,
   setPromoCode, setAppliedPromo, setHouseRulesAccepted,
   setPaymentMethod, setStep, setBookingId, setBookingRef, setQuote, setQuoteData,
   setHoldExpiresAt, setRoomDetails,

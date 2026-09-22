@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +23,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   initBooking, setDates, setAdults, setChildrenCount,
-  setGuestFullName, setGuestEmail, setGuestPhone, setGuestNationality, setGuestIdPassport, setSpecialRequests,
+  setGuestFullName, setGuestEmail, setGuestPhone, setGuestNationality, setGuestIdType, setGuestIdNumber, setSpecialRequests,
   setPromoCode, setAppliedPromo, setHouseRulesAccepted,
   setPaymentMethod, setStep, setBookingId, setBookingRef, setQuote, setQuoteData,
   setHoldExpiresAt, setRoomDetails,
@@ -72,30 +73,15 @@ export default function BookingFlowScreen() {
   const { isOffline } = useNetworkStatus();
 
   const session = useAppSelector((s) => s.auth.session);
-  const currentStep = useAppSelector((s) => s.bookingFlow.currentStep);
-  const flowHotelId = useAppSelector((s) => s.bookingFlow.hotelId);
-  const flowRoomId = useAppSelector((s) => s.bookingFlow.roomId);
-  const checkIn = useAppSelector((s) => s.bookingFlow.checkIn);
-  const checkOut = useAppSelector((s) => s.bookingFlow.checkOut);
-  const adults = useAppSelector((s) => s.bookingFlow.adults);
-  const childrenCount = useAppSelector((s) => s.bookingFlow.childrenCount);
-  const guestFullName = useAppSelector((s) => s.bookingFlow.guestFullName);
-  const guestEmail = useAppSelector((s) => s.bookingFlow.guestEmail);
-  const guestPhone = useAppSelector((s) => s.bookingFlow.guestPhone);
-  const guestNationality = useAppSelector((s) => s.bookingFlow.guestNationality);
-  const guestIdPassport = useAppSelector((s) => s.bookingFlow.guestIdPassport);
-  const specialRequests = useAppSelector((s) => s.bookingFlow.specialRequests);
-  const promoCode = useAppSelector((s) => s.bookingFlow.promoCode);
-  const appliedPromo = useAppSelector((s) => s.bookingFlow.appliedPromo);
-  const houseRulesAccepted = useAppSelector((s) => s.bookingFlow.houseRulesAccepted);
-  const paymentMethod = useAppSelector((s) => s.bookingFlow.paymentMethod);
-  const quoteData = useAppSelector((s) => s.bookingFlow.quoteData);
-  const quoteTotal = useAppSelector((s) => s.bookingFlow.quoteTotal);
-  const bookingId = useAppSelector((s) => s.bookingFlow.bookingId);
-  const bookingRef = useAppSelector((s) => s.bookingFlow.bookingRef);
-  const hotelName = useAppSelector((s) => s.bookingFlow.hotelName) || route.params.hotelName || 'Hotel';
-  const idempotencyKey = useAppSelector((s) => s.bookingFlow.idempotencyKey);
-  const holdExpiresAt = useAppSelector((s) => s.bookingFlow.holdExpiresAt);
+  const {
+    currentStep, hotelId: flowHotelId, roomId: flowRoomId,
+    checkIn, checkOut, adults, childrenCount,
+    guestFullName, guestEmail, guestPhone, guestNationality, guestIdType, guestIdNumber, specialRequests,
+    promoCode, appliedPromo, houseRulesAccepted, paymentMethod,
+    quoteData, quoteTotal, bookingId, bookingRef,
+    hotelName: flowHotelName, idempotencyKey, holdExpiresAt,
+  } = useAppSelector((s) => s.bookingFlow);
+  const hotelName = flowHotelName || route.params.hotelName || 'Hotel';
   const token = session?.accessToken ?? '';
 
   const { hotelId, roomId, roomType, roomCapacity: routeCapacity, checkIn: routeCheckIn, checkOut: routeCheckOut, promoCode: routePromoCode } = route.params;
@@ -439,8 +425,10 @@ export default function BookingFlowScreen() {
             email: guestEmail.trim() || undefined,
             phone: guestPhone.trim() || undefined,
             nationality: guestNationality.trim() || undefined,
-            idPassport: guestIdPassport.trim() || undefined,
+            idType: guestIdType.trim() || undefined,
+            idNumber: guestIdNumber.trim() || undefined,
           }],
+          specialRequests: specialRequests.trim() || undefined,
           paymentMethod,
           idempotencyKey,
         };
@@ -456,8 +444,10 @@ export default function BookingFlowScreen() {
             email: guestEmail.trim() || undefined,
             phone: guestPhone.trim() || undefined,
             nationality: guestNationality.trim() || undefined,
-            idPassport: guestIdPassport.trim() || undefined,
+            idType: guestIdType.trim() || undefined,
+            idNumber: guestIdNumber.trim() || undefined,
           }],
+          specialRequests: specialRequests.trim() || undefined,
           paymentMethod,
           idempotencyKey,
         };
@@ -750,7 +740,7 @@ export default function BookingFlowScreen() {
           {/* Occupancy validation alert (§7) */}
           {isOverCapacity && (
             <View style={styles.capacityWarning}>
-              <Ionicons name="alert-circle-outline" size={16} color="#DC2626" />
+              <Ionicons name="alert-circle-outline" size={16} color="#EF4444" />
               <Text style={styles.capacityWarningText}>
                 This room cannot accommodate the selected guests (max capacity: {roomCapacity}). Please adjust guests.
               </Text>
@@ -846,11 +836,31 @@ export default function BookingFlowScreen() {
             style={[styles.input, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink }]}
           />
 
-          <Text style={[styles.label, { color: c.inkSoft }]}>{t('bookingFlow.idPassport')}</Text>
+          <Text style={[styles.label, { color: c.inkSoft }]}>ID Type</Text>
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+            {['PASSPORT', 'NATIONAL_ID', 'DRIVERS_LICENSE'].map((t2) => (
+              <TouchableOpacity
+                key={t2}
+                onPress={() => dispatch(setGuestIdType(guestIdType === t2 ? '' : t2))}
+                style={{
+                  flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1,
+                  borderColor: guestIdType === t2 ? c.teal : c.lineStrong,
+                  backgroundColor: guestIdType === t2 ? c.tealTint : c.surface,
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ color: guestIdType === t2 ? c.teal : c.inkSoft, fontSize: 12, fontWeight: guestIdType === t2 ? '600' : '400' }}>
+                  {t2 === 'PASSPORT' ? 'Passport' : t2 === 'NATIONAL_ID' ? 'National ID' : "Driver's License"}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={[styles.label, { color: c.inkSoft }]}>ID Number</Text>
           <TextInput
-            value={guestIdPassport}
-            onChangeText={(v) => dispatch(setGuestIdPassport(v))}
-            placeholder="Passport or National ID"
+            value={guestIdNumber}
+            onChangeText={(v) => dispatch(setGuestIdNumber(v))}
+            placeholder="Enter ID number"
             placeholderTextColor={c.inkMuted}
             style={[styles.input, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink }]}
             autoCapitalize="characters"
@@ -1183,7 +1193,7 @@ const styles = StyleSheet.create({
   guestsRow: { flexDirection: 'row', gap: 12, marginTop: 8 },
   flex: { flex: 1 },
   capacityWarning: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1, borderRadius: 10, padding: 10, marginTop: 8 },
-  capacityWarningText: { color: '#DC2626', fontSize: 12, flex: 1, lineHeight: 17, fontWeight: '600' },
+  capacityWarningText: { color: '#EF4444', fontSize: 12, flex: 1, lineHeight: 17, fontWeight: '600' },
   promoRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-end' },
   promoInput: { flex: 1 },
   promoBtn: { backgroundColor: BK.gold, borderRadius: radius.card, paddingHorizontal: 16, paddingVertical: 11 },

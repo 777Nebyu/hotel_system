@@ -179,6 +179,10 @@ export class CatalogService {
   }
 
   async hotelById(id: string): Promise<HotelDetail> {
+    const cacheKey = `hotel:detail:${id}`;
+    const cached = await this.cache.get<HotelDetail>(cacheKey);
+    if (cached) return cached;
+
     const hotel = await this.db.hotel.findUnique({
       where: { id },
       include: hotelDetailInclude,
@@ -186,7 +190,9 @@ export class CatalogService {
     if (!hotel || hotel.status !== 'ACTIVE') {
       throw new NotFoundException('Hotel not found');
     }
-    return this.toDetail(hotel);
+    const detail = this.toDetail(hotel);
+    await this.cache.set(cacheKey, detail, 120);
+    return detail;
   }
 
   async hotelRoomsWithAvailability(
@@ -273,7 +279,11 @@ export class CatalogService {
   }
 
   async listCountries() {
-    return this.db.country.findMany({
+    const cacheKey = 'catalog:countries';
+    const cached = await this.cache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.db.country.findMany({
       select: {
         id: true,
         name: true,
@@ -285,10 +295,16 @@ export class CatalogService {
       },
       orderBy: { name: 'asc' },
     });
+    await this.cache.set(cacheKey, data, 86400);
+    return data;
   }
 
   async listCities(country?: string) {
-    return this.db.city.findMany({
+    const cacheKey = `catalog:cities:${country ?? 'all'}`;
+    const cached = await this.cache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.db.city.findMany({
       where: country
         ? { country: { name: { contains: country, mode: 'insensitive' } } }
         : undefined,
@@ -299,12 +315,20 @@ export class CatalogService {
       },
       orderBy: { name: 'asc' },
     });
+    await this.cache.set(cacheKey, data, 86400);
+    return data;
   }
 
   async listAmenities() {
-    return this.db.amenity.findMany({
+    const cacheKey = 'catalog:amenities';
+    const cached = await this.cache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.db.amenity.findMany({
       orderBy: { name: 'asc' },
     });
+    await this.cache.set(cacheKey, data, 86400);
+    return data;
   }
 
   // ----- mapping helpers -----

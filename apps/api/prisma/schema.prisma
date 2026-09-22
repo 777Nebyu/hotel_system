@@ -440,6 +440,9 @@ model Review {
   respondedAt   DateTime?
   respondedById String?
   respondedBy   User?     @relation("ReviewResponder", fields: [respondedById], references: [id])
+  flagged       Boolean   @default(false)
+  flagReason    String?
+  flaggedAt     DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
 

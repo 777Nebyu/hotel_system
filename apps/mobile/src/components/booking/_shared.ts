@@ -18,15 +18,15 @@ export const BK = {
   borderSoft: '#F0F3F8',
 
   // Status semantic colors
-  pending:    '#D97706',
+  pending:    '#F59E0B',
   pendingBg:  '#FFFBEB',
   pendingBd:  '#FDE68A',
 
-  confirmed:  '#16A34A',
+  confirmed:  '#10B981',
   confirmedBg:'#F0FDF4',
   confirmedBd:'#BBF7D0',
 
-  checkedIn:  '#2563EB',
+  checkedIn:  '#3B82F6',
   checkedInBg:'#EFF6FF',
   checkedInBd:'#BFDBFE',
 
@@ -34,7 +34,7 @@ export const BK = {
   checkedOutBg:'#F9FAFB',
   checkedOutBd:'#E5E7EB',
 
-  cancelled:  '#DC2626',
+  cancelled:  '#EF4444',
   cancelledBg:'#FEF2F2',
   cancelledBd:'#FECACA',
 
@@ -42,7 +42,7 @@ export const BK = {
   noShowBg:   '#F3F4F6',
   noShowBd:   '#D1D5DB',
 
-  gold:       '#C89B3C',
+  gold:       '#D4AF37',
   goldBg:     '#FBF4E5',
 
   // Text

@@ -22,13 +22,14 @@ import type { TabParamList } from './types';
 import { useAppSelector } from '../store/hooks';
 import { colors, darkColors } from '../theme';
 import { useTheme } from '../hooks/useTheme';
-import HomeScreen from '../screens/HomeScreen';
-import BookingHistoryScreen from '../screens/BookingHistoryScreen';
-import FavoritesScreen from '../screens/FavoritesScreen';
-import ProfileEditScreen from '../screens/ProfileEditScreen';
 import { useNotificationUnreadCount } from '../hooks/useQueries';
 
 const Tab = createBottomTabNavigator<TabParamList>();
+
+const HomeScreen = React.lazy(() => import('../screens/HomeScreen'));
+const BookingHistoryScreen = React.lazy(() => import('../screens/BookingHistoryScreen'));
+const FavoritesScreen = React.lazy(() => import('../screens/FavoritesScreen'));
+const ProfileEditScreen = React.lazy(() => import('../screens/ProfileEditScreen'));
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 const TAB_CONFIG: {

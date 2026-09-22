@@ -36,7 +36,7 @@ import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useAppSelector } from '../store/hooks';
-import { request, requestBlob } from '../api';
+import { request, requestBlob, refundPayment } from '../api';
 import { classifyAndAnnounce } from '../errors';
 import { ErrorBox } from '../components/Shared';
 import { SkeletonDetail } from '../components/Skeleton';
@@ -45,6 +45,7 @@ import { hapticSuccess, hapticError, hapticMedium } from '../hooks/useHaptics';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { addBookingToCalendar } from '../lib/calendar';
 import { useTheme } from '../hooks/useTheme';
+import { useToast } from '../components/Toast';
 import {
   BK,
   ActionButton,
@@ -66,6 +67,7 @@ import {
   STATUS_CONFIG,
   StatusHero,
 } from '../components/BookingComponents';
+import { RefundConfirmDialog } from '../components/RefundConfirmDialog';
 
 type Nav   = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'BookingDetail'>;
@@ -125,6 +127,7 @@ export default function BookingDetailScreen() {
   const insets        = useSafeAreaInsets();
   const { colorScheme } = useTheme();
   const dark          = colorScheme === 'dark';
+  const toast         = useToast();
 
   const [booking,       setBooking]       = useState<Booking | null>(null);
   const [loading,       setLoading]       = useState(true);
@@ -132,6 +135,7 @@ export default function BookingDetailScreen() {
   const [myReview,      setMyReview]      = useState<Review | null>(null);
   const [showQR]        = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showRefundDialog, setShowRefundDialog] = useState(false);
   const [showQRModal,   setShowQRModal]   = useState(false);
   const [busy,          setBusy]          = useState<string | null>(null);
   const [historyOpen,   setHistoryOpen]   = useState(false);
@@ -227,6 +231,23 @@ export default function BookingDetailScreen() {
     } catch (err) {
       hapticError();
       Alert.alert('Could not cancel', classifyAndAnnounce(err).title);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleConfirmRefund = async () => {
+    if (!booking) return;
+    setBusy('refund');
+    try {
+      await refundPayment(bookingId, token);
+      hapticSuccess();
+      toast('success', 'Refund Requested', 'Your refund request has been submitted.');
+      setShowRefundDialog(false);
+      void load();
+    } catch (err) {
+      hapticError();
+      Alert.alert('Refund Failed', classifyAndAnnounce(err).title);
     } finally {
       setBusy(null);
     }
@@ -667,6 +688,16 @@ export default function BookingDetailScreen() {
               reference={booking.payment?.providerRef}
               onContactSupport={() => navigation.navigate('ContactNew' as any)}
             />
+            {booking.status === 'CANCELLED' && booking.payment?.status === 'SUCCEEDED' && refundState !== 'COMPLETED' && (
+              <ActionButton
+                label={busy === 'refund' ? 'Requesting…' : 'Request Refund'}
+                icon="wallet-outline"
+                variant="secondary"
+                onPress={() => setShowRefundDialog(true)}
+                loading={busy === 'refund'}
+                disabled={!!busy && busy !== 'refund'}
+              />
+            )}
             <RefundTimeline state={refundState} />
           </SectionCard>
         )}
@@ -831,6 +862,16 @@ export default function BookingDetailScreen() {
         checkIn={booking.checkIn ? booking.checkIn.slice(0, 10) : ''}
         checkOut={booking.checkOut ? booking.checkOut.slice(0, 10) : ''}
         onClose={() => setShowQRModal(false)}
+      />
+
+      <RefundConfirmDialog
+        visible={showRefundDialog}
+        onClose={() => setShowRefundDialog(false)}
+        onConfirm={handleConfirmRefund}
+        bookingRef={bookingRef}
+        totalPrice={booking.totalPrice}
+        checkIn={booking.checkIn ? booking.checkIn.slice(0, 10) : ''}
+        loading={busy === 'refund'}
       />
     </View>
   );

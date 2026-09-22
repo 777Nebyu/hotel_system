@@ -3,8 +3,8 @@
  *
  * Premium hotel aesthetic:
  *   Primary:    Deep Navy     #1A2B4A
- *   Accent:     Hotel Blue    #2563EB
- *   Success:    Confirmed Green #16A34A
+ *   Accent:     Hotel Blue    #3B82F6
+ *   Success:    Confirmed Green #10B981
  *   Background: Off-white    #F8F9FB
  *   Cards:      White + subtle shadow
  *
@@ -45,15 +45,15 @@ export const BK = {
   borderSoft: '#F0F3F8',
 
   // Status semantic colors
-  pending:    '#D97706',
+  pending:    '#F59E0B',
   pendingBg:  '#FFFBEB',
   pendingBd:  '#FDE68A',
 
-  confirmed:  '#16A34A',
+  confirmed:  '#10B981',
   confirmedBg:'#F0FDF4',
   confirmedBd:'#BBF7D0',
 
-  checkedIn:  '#2563EB',
+  checkedIn:  '#3B82F6',
   checkedInBg:'#EFF6FF',
   checkedInBd:'#BFDBFE',
 
@@ -61,7 +61,7 @@ export const BK = {
   checkedOutBg:'#F9FAFB',
   checkedOutBd:'#E5E7EB',
 
-  cancelled:  '#DC2626',
+  cancelled:  '#EF4444',
   cancelledBg:'#FEF2F2',
   cancelledBd:'#FECACA',
 
@@ -69,7 +69,7 @@ export const BK = {
   noShowBg:   '#F3F4F6',
   noShowBd:   '#D1D5DB',
 
-  gold:       '#C89B3C',
+  gold:       '#D4AF37',
   goldBg:     '#FBF4E5',
 
   // Text
@@ -1099,7 +1099,7 @@ export interface RoomCardProps {
   dark?: boolean;
 }
 
-export function RoomCard({
+export const RoomCard = React.memo(function RoomCard({
   room,
   hotelName,
   imageUrl,
@@ -1249,7 +1249,7 @@ export function RoomCard({
       </View>
     </View>
   );
-}
+});
 
 const rc = StyleSheet.create({
   card: { borderRadius: 16, overflow: 'hidden', borderWidth: 1, marginBottom: 14 },
@@ -1412,12 +1412,14 @@ const stb = StyleSheet.create({
 export function SkeletonBookingCard() {
   const anim = useRef(new Animated.Value(0.4)).current;
   useEffect(() => {
-    Animated.loop(
+    const animLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(anim, { toValue: 1,   duration: 800, useNativeDriver: true }),
         Animated.timing(anim, { toValue: 0.4, duration: 800, useNativeDriver: true }),
       ]),
-    ).start();
+    );
+    animLoop.start();
+    return () => animLoop.stop();
   }, [anim]);
   const bg = BK.bgDeep;
   return (

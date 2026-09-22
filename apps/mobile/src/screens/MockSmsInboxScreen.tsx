@@ -9,7 +9,6 @@ import { useAppSelector } from '../store/hooks';
 import { request } from '../api';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
-import MockModeBanner from '../components/MockModeBanner';
 import { useFocusEffect } from '@react-navigation/native';
 import { hapticSuccess } from '../hooks/useHaptics';
 
@@ -134,10 +133,6 @@ export default function MockSmsInboxScreen() {
         {messages.length === 0 && <View style={{ width: 44 }} />}
       </View>
 
-      <View style={[styles.banner, { paddingHorizontal: pad }]}>
-        <MockModeBanner />
-      </View>
-
       {loading ? (
         <View style={styles.emptyState}>
           <Ionicons name="hourglass-outline" size={40} color={c.inkMuted} />
@@ -170,7 +165,6 @@ const styles = StyleSheet.create({
   backBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '700' },
   clearAllText: { fontSize: 14, fontWeight: '500' },
-  banner: { marginBottom: 12 },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 24 },
   emptyTitle: { fontSize: 18, fontWeight: '700' },
   emptyText: { fontSize: 14, textAlign: 'center' },

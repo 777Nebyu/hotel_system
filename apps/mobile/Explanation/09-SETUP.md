@@ -20,7 +20,7 @@ docker compose up -d
 
 # Verify they're running
 docker ps
-# Should show: hotel_system-postgres-1 (port 5434)
+# Should show: hotel_system-postgres-1 (port 5433)
 #              hotel_system-redis-1 (port 6379)
 ```
 
@@ -81,13 +81,20 @@ pnpm start
 ```json
 {
   "expo": {
-    "name": "YayeTech Hotel",
-    "slug": "yayetech-hotel",
+    "name": "LuxSty Hotel",
+    "slug": "luxsty-hotel",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "splash": { "image": "./assets/splash.png" },
-    "plugins": ["expo-secure-store", "expo-notifications"]
+    "scheme": "luxstyhotel",
+    "splash": { "image": "./assets/splash.png", "resizeMode": "contain", "backgroundColor": "#1f6f64" },
+    "plugins": [
+      ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }],
+      ["expo-secure-store", { "configureAndroidBackup": true }],
+      ["expo-notifications", { "icon": "./assets/notification-icon.png", "color": "#1f6f64" }],
+      ["expo-local-authentication", { "faceIDPermission": "Allow LuxSty Hotel to use Face ID for quick unlock." }],
+      "expo-font"
+    ]
   }
 }
 ```
@@ -98,9 +105,9 @@ pnpm start
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "baseUrl": ".",
-    "paths": { "@/*": ["src/*"] }
-  }
+    "noEmit": true
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
 }
 ```
 

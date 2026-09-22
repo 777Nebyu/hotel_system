@@ -432,7 +432,7 @@ export default function RoomDetailScreen({
                 onPress={removePromo}
                 style={[s.promoBtn, { backgroundColor: dark ? '#2A1818' : '#FDE8E8' }]}
               >
-                <Text style={[s.promoBtnText, { color: '#DC2626' }]}>Remove</Text>
+                <Text style={[s.promoBtnText, { color: '#EF4444' }]}>Remove</Text>
               </Pressable>
             ) : (
               <Pressable

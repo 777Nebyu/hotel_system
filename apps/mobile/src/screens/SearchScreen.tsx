@@ -50,7 +50,6 @@ import { useHotelSearch, useToggleFavorite, useFavorites } from '../hooks/useQue
 import type { HotelSummary } from '../types';
 import FilterPanel, { type FilterValues, EMPTY_FILTERS } from '../components/FilterPanel';
 import DatePickerModal from '../components/DatePickerModal';
-import { FadeInCard } from '../components/FadeIn';
 import { useDebounce } from '../hooks/useDebounce';
 import { useTheme } from '../hooks/useTheme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -60,9 +59,9 @@ const C = {
   // Palette
   navy:         '#0F1D32',
   navyMid:      '#162337',
-  gold:         '#C89B3C',
+  gold:         '#D4AF37',
   goldBg:       '#FBF4E5',
-  teal:         '#0F766E',
+  teal:         '#0F2942',
   tealBg:       '#E6F4F2',
   white:        '#FFFFFF',
   bg:           '#F4F6F9',
@@ -71,7 +70,7 @@ const C = {
   text:         '#1A2B4A',
   textSec:      '#5A6D8A',
   textMut:      '#94A7BF',
-  error:        '#DC2626',
+  error:        '#EF4444',
   errorBg:      '#FEF2F2',
   // Dark
   D_bg:         '#0B1621',
@@ -127,12 +126,14 @@ function Skeleton({ dark }: { dark: boolean }) {
   const { width } = Dimensions.get('window');
   const anim = useRef(new Animated.Value(0.45)).current;
   useEffect(() => {
-    Animated.loop(
+    const animLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(anim, { toValue: 1,    duration: 800, useNativeDriver: true }),
         Animated.timing(anim, { toValue: 0.45, duration: 800, useNativeDriver: true }),
       ]),
-    ).start();
+    );
+    animLoop.start();
+    return () => animLoop.stop();
   }, [anim]);
   const sh = dark ? C.D_border : '#D8DFE9';
   const imgHeight = width < 360 ? 180 : width < 390 ? 200 : 220;
@@ -840,17 +841,15 @@ export default function SearchScreen() {
 
       <FlashList
         data={allHotels}
-        renderItem={({ item: hotel, index: i }) => (
+        renderItem={({ item: hotel }) => (
           <View style={{ paddingHorizontal: 16 }}>
-            <FadeInCard index={i}>
-              <HotelCard
-                hotel={hotel}
-                isFav={favIds.has(hotel.id)}
-                onPress={() => navigation.navigate('HotelDetail', { hotelId: hotel.id })}
-                onFav={() => onToggleFav(hotel)}
-                dark={dark}
-              />
-            </FadeInCard>
+            <HotelCard
+              hotel={hotel}
+              isFav={favIds.has(hotel.id)}
+              onPress={() => navigation.navigate('HotelDetail', { hotelId: hotel.id })}
+              onFav={() => onToggleFav(hotel)}
+              dark={dark}
+            />
           </View>
         )}
         keyExtractor={(item) => item.id}

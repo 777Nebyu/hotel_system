@@ -1,11 +1,28 @@
 import * as SecureStore from 'expo-secure-store';
 
+function isPrivateHost(hostname: string): boolean {
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '0.0.0.0' ||
+    /^10\./.test(hostname) ||
+    /^192\.168\./.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
+  );
+}
+
 function resolveApiUrl(): string {
   const configured = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
   const trimmed = configured.replace(/\/$/, '');
   if (!__DEV__ && trimmed.startsWith('http://')) {
-    // Automatically upgrade to https in production
-    return trimmed.replace(/^http:\/\//, 'https://');
+    try {
+      // Keep cleartext for LAN/preview builds; upgrade public hosts to https.
+      if (!isPrivateHost(new URL(trimmed).hostname)) {
+        return trimmed.replace(/^http:\/\//, 'https://');
+      }
+    } catch {
+      // Malformed URL — use as-is
+    }
   }
   return trimmed;
 }
@@ -27,6 +44,9 @@ export class NetworkError extends Error {
 
 let onAuthExpired: (() => void) | null = null;
 export function setAuthExpiredCallback(cb: () => void) { onAuthExpired = cb; }
+
+let onTokenRefreshed: ((session: { accessToken: string; refreshToken?: string }) => void) | null = null;
+export function setTokenRefreshedCallback(cb: (session: { accessToken: string; refreshToken?: string }) => void) { onTokenRefreshed = cb; }
 
 type RequestOptions = Omit<RequestInit, 'body'> & { body?: unknown; token?: string | null };
 
@@ -78,6 +98,7 @@ export async function refreshAccessToken(): Promise<string> {
     if (data.refreshToken) session.refreshToken = data.refreshToken;
     await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
   }
+  onTokenRefreshed?.(data);
   return data.accessToken;
 }
 
@@ -147,6 +168,10 @@ async function performRequest<T>(path: string, options: RequestOptions = {}, ret
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   return performRequest<T>(path, options);
+}
+
+export async function refundPayment(bookingId: string, token: string): Promise<any> {
+  return request<any>(`/payments/${bookingId}/refund`, { method: 'POST', token });
 }
 
 // ─── ERR-010: requestFormData now handles 401 ───────────────────────────────

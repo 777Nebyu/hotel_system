@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppSelector } from '../../store/hooks';
 import { request } from '../../api';
 import { font, useThemeColors } from '../../theme';
+import { useTheme } from '../../hooks/useTheme';
 import { SkeletonList } from '../../components/Skeleton';
 import { useToast } from '../../components/Toast';
 
@@ -39,6 +40,8 @@ export default function AdminDisputesScreen({ onBack }: Props) {
   const insets = useSafeAreaInsets();
   const c = useThemeColors();
   const s = useMemo(() => makeStyles(c), [c]);
+  const { colorScheme } = useTheme();
+  const statusBarStyle = colorScheme === 'dark' ? 'light-content' : 'dark-content';
 
   const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: string; label: string }> = {
     OPEN:         { color: c.warning, bg: 'rgba(245,158,11,0.15)', icon: 'warning', label: 'OPEN' },
@@ -278,7 +281,7 @@ export default function AdminDisputesScreen({ onBack }: Props) {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={c.paper} />
+      <StatusBar barStyle={statusBarStyle} backgroundColor={c.paper} />
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <View style={[s.header, { paddingTop: insets.top + 8 }]}>
