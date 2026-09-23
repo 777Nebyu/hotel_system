@@ -35,6 +35,7 @@ import {
   RoomAmenityParamsDto,
   RoomIdParamsDto,
   RoomImageParamsDto,
+  ReleaseMaintenanceDto,
   SeasonalPricingDto,
   SeasonalPricingParamsDto,
   UpdateHotelDto,
@@ -370,5 +371,17 @@ export class ManagerCatalogController {
     @Req() req: AuthedRequest,
   ) {
     return this.manager.blockMaintenance(dto, req.user);
+  }
+
+  @Post('maintenance/release')
+  @Roles(Role.MANAGER, Role.ADMIN)
+  @ApiOperation({
+    summary: 'Release maintenance blocks for rooms',
+  })
+  releaseMaintenance(
+    @Body() dto: ReleaseMaintenanceDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.manager.releaseMaintenance(dto, req.user);
   }
 }

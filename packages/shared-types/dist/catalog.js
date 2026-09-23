@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.availabilityWindowSchema = exports.searchHotelsSchema = exports.hotelSortSchema = exports.attachAmenitySchema = exports.upsertHotelPolicySchema = exports.blockMaintenanceSchema = exports.availabilityBulkSchema = exports.seasonalPricingSchema = exports.updateRoomSchema = exports.createRoomSchema = exports.updateHotelSchema = exports.createHotelSchema = exports.roomImageParamsSchema = exports.roomAmenityParamsSchema = exports.hotelAmenityParamsSchema = exports.seasonalPricingParamsSchema = exports.imageIdParamsSchema = exports.amenityIdParamsSchema = exports.roomIdParamsSchema = exports.hotelIdParamsSchema = exports.hotelStatusSchema = exports.updateRoomStatusSchema = exports.roomStatusSchema = exports.roomTypeSchema = void 0;
+exports.availabilityWindowSchema = exports.searchHotelsSchema = exports.hotelSortSchema = exports.attachAmenitySchema = exports.upsertHotelPolicySchema = exports.releaseMaintenanceSchema = exports.blockMaintenanceSchema = exports.availabilityBulkSchema = exports.seasonalPricingSchema = exports.updateRoomSchema = exports.createRoomSchema = exports.updateHotelSchema = exports.createHotelSchema = exports.roomImageParamsSchema = exports.roomAmenityParamsSchema = exports.hotelAmenityParamsSchema = exports.seasonalPricingParamsSchema = exports.imageIdParamsSchema = exports.amenityIdParamsSchema = exports.roomIdParamsSchema = exports.hotelIdParamsSchema = exports.hotelStatusSchema = exports.updateRoomStatusSchema = exports.roomStatusSchema = exports.roomTypeSchema = void 0;
 const zod_1 = require("zod");
 exports.roomTypeSchema = zod_1.z.enum([
     'STANDARD',
@@ -84,6 +84,21 @@ exports.blockMaintenanceSchema = zod_1.z
     startDate: zod_1.z.coerce.date(),
     endDate: zod_1.z.coerce.date(),
     reason: zod_1.z.string().max(500).optional(),
+})
+    .refine((d) => d.endDate >= d.startDate, {
+    message: 'endDate must be on or after startDate',
+    path: ['endDate'],
+})
+    .refine((d) => Boolean(d.roomId || (d.roomIds && d.roomIds.length > 0)), {
+    message: 'Either roomId or roomIds must be provided',
+    path: ['roomId'],
+});
+exports.releaseMaintenanceSchema = zod_1.z
+    .object({
+    roomId: id.optional(),
+    roomIds: zod_1.z.array(id).min(1).max(50).optional(),
+    startDate: zod_1.z.coerce.date(),
+    endDate: zod_1.z.coerce.date(),
 })
     .refine((d) => d.endDate >= d.startDate, {
     message: 'endDate must be on or after startDate',

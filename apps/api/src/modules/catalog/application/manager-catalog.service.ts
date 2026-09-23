@@ -19,6 +19,7 @@ import type {
   BlockMaintenanceInput,
   CreateHotelInput,
   CreateRoomInput,
+  ReleaseMaintenanceInput,
   SeasonalPricingInput,
   UpdateHotelInput,
   UpdateRoomInput,
@@ -666,8 +667,9 @@ export class ManagerCatalogService {
       await this.assertCanManageRoom(rid, actor);
     }
 
-    const startDate = new Date(dto.startDate);
-    const endDate = new Date(dto.endDate);
+    // Normalize to UTC midnight so date boundaries match PostgreSQL @db.Date
+    const startDate = this.toUTCMidnight(dto.startDate);
+    const endDate = this.toUTCMidnight(dto.endDate);
 
     const conflictingBookings = await this.db.bookingDetail.findMany({
       where: {
@@ -717,6 +719,55 @@ export class ManagerCatalogService {
       blockedDatesPerRoom: dates.length,
       totalEntries: roomIds.length * dates.length,
     };
+  }
+
+  async releaseMaintenance(dto: ReleaseMaintenanceInput, actor: CatalogActor) {
+    const roomIds = dto.roomIds && dto.roomIds.length > 0
+      ? dto.roomIds
+      : dto.roomId
+        ? [dto.roomId]
+        : [];
+
+    if (!roomIds.length) {
+      throw new BadRequestException('No room specified for maintenance release');
+    }
+
+    for (const rid of roomIds) {
+      await this.assertCanManageRoom(rid, actor);
+    }
+
+    // Normalize to UTC midnight
+    const startDate = this.toUTCMidnight(dto.startDate);
+    const endDate = this.toUTCMidnight(dto.endDate);
+
+    // Build array of every date in the range
+    const dates: Date[] = [];
+    const current = new Date(startDate);
+    while (current <= endDate) {
+      dates.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+
+    // Delete all MAINTENANCE records in the date range for the specified rooms
+    const result = await this.db.roomAvailability.deleteMany({
+      where: {
+        roomId: { in: roomIds },
+        date: { gte: startDate, lte: endDate },
+        status: 'MAINTENANCE',
+      },
+    });
+
+    return {
+      success: true,
+      releasedRooms: roomIds.length,
+      releasedEntries: result.count,
+    };
+  }
+
+  /** Normalize any date-like value to UTC midnight (YYYY-MM-DDT00:00:00.000Z) */
+  private toUTCMidnight(value: Date | string): Date {
+    const d = new Date(value);
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   }
 
   private async assertCanManage(

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { hotelApi, managerApi, paymentApi } from '@/lib/services'
 import { useAuth } from '@/lib/auth-store'
@@ -37,6 +37,10 @@ import {
   CreditCard,
   Layers,
   Activity,
+  Upload,
+  Trash2,
+  ImagePlus,
+  Crown,
 } from 'lucide-react'
 
 import { ManagerAnalyticsCharts } from '@/components/manager/ManagerAnalyticsCharts'
@@ -3731,6 +3735,29 @@ function HotelFormModal({
   const [cities, setCities] = useState<City[]>([])
   const [countryError, setCountryError] = useState('')
 
+  // Photo management state
+  const [hotelImages, setHotelImages] = useState<Array<{ id: string; url: string; isPrimary: boolean }>>(
+    hotel?.images ?? []
+  )
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoActionId, setPhotoActionId] = useState<string | null>(null)
+  const [photoError, setPhotoError] = useState('')
+  const [photoSuccess, setPhotoSuccess] = useState('')
+  const [dragOver, setDragOver] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Auto-dismiss photo notifications
+  useEffect(() => {
+    if (!photoSuccess) return
+    const t = setTimeout(() => setPhotoSuccess(''), 4000)
+    return () => clearTimeout(t)
+  }, [photoSuccess])
+  useEffect(() => {
+    if (!photoError) return
+    const t = setTimeout(() => setPhotoError(''), 6000)
+    return () => clearTimeout(t)
+  }, [photoError])
+
   useEffect(() => {
     if (!countryId) return
     setCountryError('')
@@ -3744,6 +3771,82 @@ function HotelFormModal({
       })
       .catch(() => setCountryError('Unable to load cities for this country.'))
   }, [countryId, suggestedCityId, hotel])
+
+  // Photo upload handler
+  const handlePhotoUpload = async (files: FileList | File[]) => {
+    if (!hotel?.id || !files.length) return
+    setPhotoUploading(true)
+    setPhotoError('')
+    try {
+      const fileArray = Array.from(files)
+      const result = await managerApi.addHotelImages(hotel.id, fileArray)
+      // The API returns the updated images array or the hotel object
+      const updatedImages = Array.isArray(result) ? result : (result as any)?.images ?? (result as any)?.data
+      if (updatedImages && Array.isArray(updatedImages)) {
+        setHotelImages(updatedImages)
+      } else {
+        // Refresh by fetching the hotel
+        const refreshed = await hotelApi.getById(hotel.id)
+        if (refreshed?.images) setHotelImages(refreshed.images)
+      }
+      setPhotoSuccess(`${fileArray.length} photo${fileArray.length > 1 ? 's' : ''} uploaded successfully!`)
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Failed to upload photos.')
+    } finally {
+      setPhotoUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  // Set primary image handler
+  const handleSetPrimary = async (imageId: string) => {
+    if (!hotel?.id) return
+    setPhotoActionId(imageId)
+    setPhotoError('')
+    try {
+      await managerApi.setPrimaryHotelImage(hotel.id, imageId)
+      setHotelImages((prev) =>
+        prev.map((img) => ({ ...img, isPrimary: img.id === imageId }))
+      )
+      setPhotoSuccess('Primary photo updated!')
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Failed to set primary image.')
+    } finally {
+      setPhotoActionId(null)
+    }
+  }
+
+  // Delete image handler
+  const handleDeleteImage = async (imageId: string) => {
+    if (!hotel?.id) return
+    setPhotoActionId(imageId)
+    setPhotoError('')
+    try {
+      await managerApi.removeHotelImage(hotel.id, imageId)
+      setHotelImages((prev) => prev.filter((img) => img.id !== imageId))
+      setPhotoSuccess('Photo removed successfully.')
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Failed to delete photo.')
+    } finally {
+      setPhotoActionId(null)
+    }
+  }
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(true)
+  }
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+  }
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    const files = e.dataTransfer.files
+    if (files.length) void handlePhotoUpload(files)
+  }
 
   const submit = () => {
     if (!name.trim() || !address.trim()) return
@@ -3890,6 +3993,141 @@ function HotelFormModal({
               className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2563EB] resize-none"
             />
           </div>
+
+          {/* ──────── Property Photos Section (only when editing) ──────── */}
+          {hotel && (
+            <div className="sm:col-span-2 mt-2">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1.5">
+                    <ImagePlus className="w-3.5 h-3.5" />
+                    Property Photos
+                  </span>
+                </label>
+                <span className="text-[10px] text-[#94A3B8] font-medium">
+                  {hotelImages.length} photo{hotelImages.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              {/* Status banners */}
+              {photoSuccess && (
+                <div className="mb-3 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-xs text-emerald-700 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                  {photoSuccess}
+                </div>
+              )}
+              {photoError && (
+                <div className="mb-3 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs text-red-600 font-medium">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  {photoError}
+                </div>
+              )}
+
+              {/* Thumbnail Grid */}
+              {hotelImages.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
+                  {hotelImages.map((img) => (
+                    <div
+                      key={img.id}
+                      className={`relative group rounded-xl overflow-hidden border-2 transition-all ${
+                        img.isPrimary
+                          ? 'border-amber-400 shadow-md shadow-amber-100'
+                          : 'border-[#E2E8F0] hover:border-[#94A3B8]'
+                      }`}
+                    >
+                      <img
+                        src={img.url}
+                        alt="Hotel photo"
+                        className="w-full aspect-square object-cover"
+                      />
+
+                      {/* Primary badge */}
+                      {img.isPrimary && (
+                        <div className="absolute top-1.5 left-1.5 bg-amber-400 text-white rounded-full px-1.5 py-0.5 flex items-center gap-0.5 shadow-sm">
+                          <Crown className="w-2.5 h-2.5" />
+                          <span className="text-[9px] font-bold uppercase">Primary</span>
+                        </div>
+                      )}
+
+                      {/* Hover overlay with actions */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
+                        {!img.isPrimary && (
+                          <button
+                            type="button"
+                            disabled={photoActionId === img.id}
+                            onClick={() => handleSetPrimary(img.id)}
+                            title="Set as Primary"
+                            className="w-8 h-8 bg-white/90 hover:bg-amber-50 rounded-full flex items-center justify-center shadow-lg transition-colors disabled:opacity-50"
+                          >
+                            {photoActionId === img.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                            ) : (
+                              <Crown className="w-3.5 h-3.5 text-amber-600" />
+                            )}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          disabled={photoActionId === img.id}
+                          onClick={() => handleDeleteImage(img.id)}
+                          title="Delete Photo"
+                          className="w-8 h-8 bg-white/90 hover:bg-red-50 rounded-full flex items-center justify-center shadow-lg transition-colors disabled:opacity-50"
+                        >
+                          {photoActionId === img.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-red-500" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload area: drag-and-drop + file input */}
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => !photoUploading && fileInputRef.current?.click()}
+                className={`relative border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
+                  dragOver
+                    ? 'border-[#2563EB] bg-blue-50/60'
+                    : 'border-[#CBD5E1] hover:border-[#94A3B8] hover:bg-slate-50/50'
+                } ${photoUploading ? 'pointer-events-none opacity-60' : ''}`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.length) void handlePhotoUpload(e.target.files)
+                  }}
+                />
+                {photoUploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-6 h-6 animate-spin text-[#2563EB]" />
+                    <span className="text-xs font-semibold text-[#2563EB]">Uploading to Cloudinary…</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                      <Upload className="w-5 h-5 text-[#2563EB]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#334155]">Upload Photos</p>
+                      <p className="text-[11px] text-[#94A3B8] mt-0.5">
+                        Drag & drop images here, or click to browse
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-6 border-t border-[#E2E8F0] flex justify-end gap-3">

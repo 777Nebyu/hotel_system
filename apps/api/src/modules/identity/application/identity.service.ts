@@ -90,7 +90,7 @@ export class IdentityService {
     private readonly audit?: AuditService,
     @Optional()
     private readonly emitter?: EventEmitter2,
-  ) {}
+  ) { }
 
   private safeUser(user: User): SafeUser<User> {
     const safe: Record<string, unknown> = { ...user };

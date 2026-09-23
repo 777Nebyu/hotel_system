@@ -4,6 +4,7 @@ import {
   availabilityBulkSchema,
   availabilityWindowSchema,
   blockMaintenanceSchema,
+  releaseMaintenanceSchema,
   createHotelSchema,
   createRoomSchema,
   hotelAmenityParamsSchema,
@@ -29,6 +30,7 @@ export class UpdateRoomStatusDto extends createZodDto(updateRoomStatusSchema) {}
 export class SeasonalPricingDto extends createZodDto(seasonalPricingSchema) {}
 export class AvailabilityBulkDto extends createZodDto(availabilityBulkSchema) {}
 export class BlockMaintenanceDto extends createZodDto(blockMaintenanceSchema) {}
+export class ReleaseMaintenanceDto extends createZodDto(releaseMaintenanceSchema) {}
 export class UpsertHotelPolicyDto extends createZodDto(upsertHotelPolicySchema) {}
 export class SearchHotelsDto extends createZodDto(searchHotelsSchema) {}
 export class AvailabilityWindowDto extends createZodDto(
