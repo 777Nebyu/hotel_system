@@ -272,7 +272,7 @@ export default function SettingsScreen() {
 
       {/* App Version */}
       <View style={styles.footer}>
-        <Text style={[styles.versionText, { color: themeColors.inkMuted }]}>YayeTech Hotel Mobile v0.1.0 (Production Build)</Text>
+        <Text style={[styles.versionText, { color: themeColors.inkMuted }]}>LuxSty Hotel Mobile v0.1.0 (Production Build)</Text>
       </View>
     </ScrollView>
   );

@@ -354,7 +354,7 @@ export function Logo({ size = 30, showWordmark = true }: { size?: number; showWo
       <View style={[styles.logoMark, { width: size, height: size, borderRadius: size * 0.22 }]}>
         <Text style={[styles.logoGlyph, { fontSize: size * 0.5 }]}>Y</Text>
       </View>
-      {showWordmark && <Text style={styles.logoWord}>YayeTech</Text>}
+      {showWordmark && <Text style={styles.logoWord}>LuxSty</Text>}
     </View>
   );
 }
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
   networkErrorText: { color: '#1D4ED8', fontSize: 13, textAlign: 'center' },
   maintenanceBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF3C7', borderBottomWidth: 1, borderBottomColor: '#FDE68A', paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
   maintenanceIcon: { fontSize: 18 },
-  maintenanceText: { color: '#D97706', fontSize: 13, fontWeight: '600', flex: 1 },
+  maintenanceText: { color: '#F59E0B', fontSize: 13, fontWeight: '600', flex: 1 },
   fullScreenError: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 16 },
   fullScreenErrorTitle: { color: colors.ink, fontSize: 16, fontWeight: '600', textAlign: 'center' },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper },

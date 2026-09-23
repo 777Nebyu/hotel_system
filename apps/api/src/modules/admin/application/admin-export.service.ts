@@ -171,6 +171,16 @@ export class AdminExportService {
       const users = await this.db.user.findMany({
         take: maxLimit,
         orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          phone: true,
+          role: true,
+          status: true,
+          isActive: true,
+          createdAt: true,
+        },
       });
 
       rows = users.map((u) => ({

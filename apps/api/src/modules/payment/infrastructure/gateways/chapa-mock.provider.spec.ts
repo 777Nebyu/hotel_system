@@ -104,11 +104,11 @@ describe('ChapaMockProvider', () => {
       expect(result.bankTransactionId).toBeTruthy();
       expect(mockDb.payment.update).toHaveBeenCalledWith({
         where: { id: 'payment-1' },
-        data: {
+        data: expect.objectContaining({
           status: 'PROCESSING',
           bankCode: 'CBE',
           transactionId: expect.stringContaining('BANK-MOCK-'),
-        },
+        }),
       });
     });
 

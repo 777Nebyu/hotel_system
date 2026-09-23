@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -83,7 +83,7 @@ export default function PaymentHistoryScreen() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
 
-  const fetchPayments = async (isPullRefresh = false) => {
+  const fetchPayments = useCallback(async (isPullRefresh = false) => {
     if (isPullRefresh) {
       setRefreshing(true);
     } else {
@@ -100,11 +100,11 @@ export default function PaymentHistoryScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchPayments();
-  }, []);
+  }, [fetchPayments]);
 
   const filteredPayments = payments.filter((item) => {
     if (activeTab === 'ALL') return true;

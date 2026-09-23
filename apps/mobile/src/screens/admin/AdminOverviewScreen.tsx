@@ -2,10 +2,10 @@
  * AdminOverviewScreen — Premium Platform Admin Dashboard
  *
  * Same design language as ManagerOverviewScreen:
- *   Primary:    Deep Emerald  #0F766E
- *   Accent:     Luxury Gold   #C89B3C
- *   Background: Warm Ivory    #FAFAF7
- *   Text:       Dark Navy     #132238
+ *   Primary:    Deep Sapphire  #0F2942
+ *   Accent:     Luxury Gold   #D4AF37
+ *   Background: Clean Canvas  #F8FAFC
+ *   Text:       Deep Navy     #0F172A
  *   Cards:      White + soft shadow
  *
  * Admin-specific additions:
@@ -89,7 +89,6 @@ interface ActivityItem {
 
 type Props = {
   onNavigate: (page: { screen: string } & Record<string, unknown>) => void;
-  onBack:     () => void;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -288,7 +287,7 @@ const nr = StyleSheet.create({
 });
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
-export default function AdminOverviewScreen({ onNavigate, onBack }: Props) {
+export default function AdminOverviewScreen({ onNavigate }: Props) {
   const insets   = useSafeAreaInsets();
   const c        = useThemeColors();
   const { colorScheme } = useTheme();
@@ -657,7 +656,7 @@ export default function AdminOverviewScreen({ onNavigate, onBack }: Props) {
               {session?.user?.fullName ?? 'Administrator'}
             </Text>
             <Text style={[s.adminFooterRole, { color: c.inkSoft }]}>
-              {session?.user?.email ?? 'admin@yayetech.com'}
+              {session?.user?.email ?? 'admin@luxsty.com'}
             </Text>
           </View>
           <View style={[s.adminRolePill, { backgroundColor: c.umber }]}>

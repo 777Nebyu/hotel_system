@@ -7,7 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 import type { RootStackParamList } from '../navigation/types';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
-import MockModeBanner from '../components/MockModeBanner';
 import { Button } from '../components/Shared';
 import { hapticSuccess } from '../hooks/useHaptics';
 
@@ -48,8 +47,8 @@ export default function PaymentResultScreen() {
       case 'SUCCEEDED':
         return {
           icon: 'checkmark-circle',
-          iconColor: '#16A34A',
-          iconBg: '#16A34A20',
+          iconColor: '#10B981',
+          iconBg: '#10B98120',
           title: 'Payment Successful',
           subtitle: 'Your payment has been processed successfully.',
         };
@@ -112,8 +111,6 @@ export default function PaymentResultScreen() {
       </View>
 
       <View style={[styles.content, { paddingHorizontal: pad }]}>
-        <MockModeBanner />
-
         {/* Status Icon */}
         <View style={[styles.iconContainer, { backgroundColor: config.iconBg }]}>
           <Ionicons name={config.icon as any} size={64} color={config.iconColor} />
@@ -159,11 +156,6 @@ export default function PaymentResultScreen() {
           <Button title="Back to Home" variant="ghost" onPress={handleGoHome} fullWidth />
         </View>
 
-        {/* Sandbox Notice */}
-        <View style={styles.sandboxNotice}>
-          <Ionicons name="lock-closed" size={14} color={c.inkMuted} />
-          <Text style={[styles.sandboxText, { color: c.inkMuted }]}>SANDBOX — No real charge</Text>
-        </View>
       </View>
     </View>
   );
@@ -183,6 +175,4 @@ const styles = StyleSheet.create({
   detailLabel: { fontSize: 14 },
   detailValue: { fontSize: 14, fontWeight: '600', flex: 1, textAlign: 'right', marginLeft: 16 },
   actions: { width: '100%', gap: 10 },
-  sandboxNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 8 },
-  sandboxText: { fontSize: 12 },
 });

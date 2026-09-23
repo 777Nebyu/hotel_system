@@ -9,7 +9,6 @@ import { useAppSelector } from '../store/hooks';
 import { request, ApiError } from '../api';
 import { useTheme } from '../hooks/useTheme';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
-import MockModeBanner from '../components/MockModeBanner';
 import { Button } from '../components/Shared';
 import { hapticSuccess, hapticError } from '../hooks/useHaptics';
 
@@ -101,17 +100,6 @@ export default function BankAuthScreen() {
         </View>
 
         <ScrollView style={styles.scroll} contentContainerStyle={{ paddingHorizontal: pad, paddingBottom: insets.bottom + 20 }}>
-          <MockModeBanner />
-
-          {/* Sandbox Banner */}
-          <View style={[styles.sandboxBanner, { backgroundColor: c.goldTint, borderColor: c.gold }]}>
-            <Ionicons name="flask-outline" size={20} color={c.gold} />
-            <View style={styles.sandboxTextWrap}>
-              <Text style={[styles.sandboxTitle, { color: c.ink }]}>DEMO BANKING ENVIRONMENT</Text>
-              <Text style={[styles.sandboxSub, { color: c.inkMuted }]}>This is a sandbox. No real money transferred.</Text>
-            </View>
-          </View>
-
           {/* Payment Summary */}
           <View style={[styles.summaryCard, { backgroundColor: c.surface, borderColor: c.line }]}>
             <View style={[styles.summaryRow, { borderBottomColor: c.line }]}>
@@ -196,11 +184,6 @@ export default function BankAuthScreen() {
             onPress={() => setStep('cbe-app')}
             fullWidth
           />
-
-          <View style={styles.sandboxNotice}>
-            <Ionicons name="lock-closed" size={14} color={c.inkMuted} />
-            <Text style={[styles.sandboxText, { color: c.inkMuted }]}>SANDBOX — No real charge</Text>
-          </View>
         </ScrollView>
       </View>
     );
@@ -218,8 +201,6 @@ export default function BankAuthScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={{ paddingHorizontal: pad, paddingBottom: insets.bottom + 20 }}>
-        <MockModeBanner />
-
         {/* Simulated CBE App Header */}
         <View style={[styles.cbeHeader, { backgroundColor: '#1A5276' }]}>
           <Ionicons name="business" size={24} color="#FFFFFF" />
@@ -281,11 +262,6 @@ export default function BankAuthScreen() {
             fullWidth
           />
         </View>
-
-        <View style={styles.sandboxNotice}>
-          <Ionicons name="lock-closed" size={14} color={c.inkMuted} />
-          <Text style={[styles.sandboxText, { color: c.inkMuted }]}>SANDBOX — No real charge</Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -297,10 +273,6 @@ const styles = StyleSheet.create({
   backBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '700' },
   scroll: { flex: 1 },
-  sandboxBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 12, borderWidth: 1, marginBottom: 16 },
-  sandboxTextWrap: { flex: 1 },
-  sandboxTitle: { fontSize: 14, fontWeight: '700' },
-  sandboxSub: { fontSize: 12, marginTop: 2 },
   summaryCard: { borderRadius: 14, borderWidth: 1, padding: 16, marginBottom: 16 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth },
   summaryLabel: { fontSize: 14 },
@@ -318,8 +290,6 @@ const styles = StyleSheet.create({
   stepDesc: { fontSize: 12, marginTop: 2 },
   stepLine: { width: 2, height: 16, marginLeft: 13, marginVertical: 2 },
   actions: { gap: 10, marginTop: 8 },
-  sandboxNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 12 },
-  sandboxText: { fontSize: 12 },
   // CBE App Simulation styles
   cbeHeader: { alignItems: 'center', paddingVertical: 20, borderRadius: 16, gap: 4, marginBottom: 16 },
   cbeTitle: { color: '#FFFFFF', fontSize: 17, fontWeight: '700', marginTop: 4 },

@@ -41,10 +41,10 @@ export class AdminBookingService {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
       include: {
-        hotel: true,
-        user: true,
-        details: { include: { room: true } },
-        payment: true,
+        hotel: { select: { id: true, name: true, starRating: true, images: true, city: { select: { name: true } } } },
+        user: { select: { id: true, email: true, fullName: true, phone: true, role: true, status: true, isActive: true } },
+        details: { include: { room: { select: { id: true, type: true, capacity: true, basePrice: true, images: true } } } },
+        payment: { select: { id: true, amount: true, currency: true, status: true, method: true, createdAt: true } },
       },
     });
     if (!booking) throw new NotFoundException('Booking not found');

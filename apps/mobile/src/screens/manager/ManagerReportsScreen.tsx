@@ -7,6 +7,7 @@ import { Button, Card, EmptyState } from '../../components/Shared';
 import ScreenHeader from '../../components/ScreenHeader';
 import { useToast } from '../../components/Toast';
 import { colors, font, radius, shadowCard } from '../../theme';
+import { getHotelIdFromToken } from '../../utils/jwt';
 import * as Sharing from 'expo-sharing';
 
 type Props = { onBack: () => void; onNavigate?: (page: { screen: string } & Record<string, any>) => void };
@@ -17,14 +18,6 @@ interface ReportType {
   description: string;
   endpoint: string;
   format: 'pdf' | 'excel';
-}
-
-function decodeJwtPayload(token: string): Record<string, unknown> {
-  try {
-    const base64 = token.split('.')[1];
-    const json = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
-    return JSON.parse(json);
-  } catch { return {}; }
 }
 
 function getReportEndpoints(hotelId: string): ReportType[] {
@@ -47,7 +40,7 @@ export default function ManagerReportsScreen({ onBack, onNavigate }: Props) {
   const toast = useToast();
   const [generating, setGenerating] = useState<string | null>(null);
 
-  const hotelId = (decodeJwtPayload(token).hotelId as string) ?? '';
+  const hotelId = getHotelIdFromToken(token);
   const ALL_REPORTS = getReportEndpoints(hotelId);
 
   const reports = userRole === 'STAFF'

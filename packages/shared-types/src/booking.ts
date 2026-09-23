@@ -68,9 +68,9 @@ export const checkoutSchema = z
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
 export const bookingGuestSchema = z.object({
-  fullName: z.string().min(1).max(120),
-  email: z.string().email().optional(),
-  phone: z.string().min(3).max(30).optional(),
+  fullName: z.string().min(2).max(120),
+  email: z.string().email(),
+  phone: z.string().min(3).max(30),
   nationality: z.string().max(80).optional(),
   idType: z
     .enum(['PASSPORT', 'NATIONAL_ID', 'DRIVERS_LICENSE'])
@@ -220,7 +220,7 @@ export const createWalkInBookingSchema = z
     checkOut: dateOnly,
     guests: guestsSchema.default({ adults: 1, children: 0 }),
     guestName: z.string().min(2).max(120),
-    guestEmail: z.string().email().optional(),
+    guestEmail: z.string().email(),
     guestPhone: z.string().min(3).max(30),
     guestIdNumber: z.string().min(3).max(50).optional(),
     paymentMethod: paymentMethodSchema.default('CASH'),

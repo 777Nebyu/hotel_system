@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';
+import compression from 'compression';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { AppModule } from './app.module';
@@ -43,6 +44,7 @@ async function bootstrap() {
       crossOriginEmbedderPolicy: false,
     }),
   );
+  app.use(compression());
   app.enableCors({
     origin: config.get<string>('webOrigin')?.split(',') ?? true,
     credentials: true,
@@ -64,7 +66,7 @@ async function bootstrap() {
   );
   SwaggerModule.setup('api/docs', app, cleanupOpenApiDoc(document));
 
-  await app.listen(config.get<number>('port') ?? 3001);
+  await app.listen(config.get<number>('port') ?? 3001, '0.0.0.0');
 }
 
 void bootstrap();

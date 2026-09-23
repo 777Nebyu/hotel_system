@@ -123,6 +123,9 @@ export class AdminHotelService {
     const before = await this.db.hotel.findUniqueOrThrow({
       where: { id: hotelId },
     });
+    if (before.status !== HotelStatus.PENDING_APPROVAL) {
+      throw new BadRequestException(`Cannot approve hotel in ${before.status} status. Only PENDING_APPROVAL hotels can be approved.`);
+    }
     const updated = await this.db.hotel.update({
       where: { id: hotelId },
       data: {

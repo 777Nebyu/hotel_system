@@ -33,17 +33,23 @@ interface AuthedRequest {
 @ApiTags('admin')
 @ApiBearerAuth()
 @Roles(Role.ADMIN)
-@Controller('admin/hotels/:id/staff')
+@Controller('admin')
 export class AdminStaffController {
   constructor(private readonly staff: AdminStaffService) {}
 
-  @Get()
+  @Get('staff-assignments')
+  @ApiOperation({ summary: 'List all staff–hotel assignments across all hotels' })
+  listAll() {
+    return this.staff.listAllAssignments();
+  }
+
+  @Get('hotels/:id/staff')
   @ApiOperation({ summary: 'List staff assigned to a hotel' })
   list(@Param() params: HotelIdParamsDto, @Query() query: HotelStaffQueryDto) {
     return this.staff.listHotelStaff(params.id, query);
   }
 
-  @Post()
+  @Post('hotels/:id/staff')
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Assign a staff member to a hotel' })
   assign(
@@ -54,7 +60,7 @@ export class AdminStaffController {
     return this.staff.assignStaff(params.id, dto, req.user.sub);
   }
 
-  @Delete(':staffId')
+  @Delete('hotels/:id/staff/:staffId')
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Remove a staff member from a hotel' })
   remove(

@@ -13,6 +13,7 @@ import { SkeletonList } from '../../components/Skeleton';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { useToast } from '../../components/Toast';
 import { colors, font, radius, shadowCard } from '../../theme';
+import { getHotelIdFromToken } from '../../utils/jwt';
 
 type Props = { onBack: () => void; onNavigate?: (page: { screen: string } & Record<string, any>) => void };
 type Tab = 'PENDING' | 'CONFIRMED' | 'ON_PROPERTY' | 'CLOSED';
@@ -52,6 +53,7 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [tab, setTab] = useState<Tab>('PENDING');
   const [bookings, setBookings] = useState<ManagedBooking[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +87,10 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
   }, [token, tab]);
 
   useEffect(() => { setLoading(true); void load(); }, [load]);
+
+  const filteredBookings = search.trim()
+    ? bookings.filter((b) => b.guestName.toLowerCase().includes(search.toLowerCase().trim()))
+    : bookings;
 
   const performAction = async (id: string, action: string) => {
     setActionLoading(id);
@@ -120,9 +126,10 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
     try {
       const detail = await request<any>(`/bookings/${booking.id}`, { token });
       const detailId = detail?.details?.[0]?.id;
-      const hotelId = detail?.hotelId ?? detail?.hotel?.id;
       const currentRoomType = detail?.details?.[0]?.room?.type;
-      if (!detailId || !hotelId) throw new Error('Booking room details are unavailable.');
+      if (!detailId) throw new Error('Booking room details are unavailable.');
+      const hotelId = getHotelIdFromToken(token);
+      if (!hotelId) throw new Error('No hotel assigned to your account.');
       setRelocateDetailId(detailId);
       setRelocateCurrentRoomType(currentRoomType);
       const roomsResponse = await request<any[]>(
@@ -226,15 +233,33 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
         ))}
       </View>
 
+      <View style={styles.searchRow}>
+        <Ionicons name="search" size={16} color={colors.inkMuted} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by guest name..."
+          placeholderTextColor={colors.inkMuted}
+          value={search}
+          onChangeText={setSearch}
+          returnKeyType="search"
+        />
+        {search.length > 0 && (
+          <Pressable onPress={() => setSearch('')} hitSlop={8}>
+            <Ionicons name="close-circle" size={18} color={colors.inkMuted} />
+          </Pressable>
+        )}
+      </View>
+
       {error && <ErrorBox message={error} onRetry={load} />}
 
       <FlashList
-        data={bookings}
+        data={filteredBookings}
         keyExtractor={(b) => b.id}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(); }} tintColor={colors.teal} colors={[colors.teal]} />}
         ListEmptyComponent={loading ? <SkeletonList count={4} /> : <EmptyState title="No bookings" subtitle={`No ${tab.toLowerCase().replace('_', ' ')} bookings found`} />}
         renderItem={({ item }) => (
+          <Pressable onPress={() => navigation.navigate('ManagerBookingDetail', { bookingId: item.id })}>
           <Card style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.flex}>
@@ -247,6 +272,7 @@ export default function ManagerBookingsScreen({ onBack, onNavigate }: Props) {
             <Text style={styles.price}>ETB {item.totalPrice}</Text>
             {renderActions(item)}
           </Card>
+          </Pressable>
         )}
       />
 
@@ -314,6 +340,8 @@ const styles = StyleSheet.create({
   tabActive: { borderColor: colors.teal, backgroundColor: colors.tealTint },
   tabText: { fontSize: 13, fontWeight: '600', color: colors.inkMuted },
   tabTextActive: { color: colors.tealDeep, fontWeight: '700' },
+  searchRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 8, backgroundColor: colors.surface, borderRadius: radius.card, borderWidth: 1, borderColor: colors.line, paddingHorizontal: 12, paddingVertical: 8, gap: 8 },
+  searchInput: { flex: 1, fontSize: 14, color: colors.ink, paddingVertical: 2 },
   list: { padding: 16, paddingTop: 4, gap: 12 },
   card: { gap: 8, padding: 16, borderRadius: radius.card, ...shadowCard },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },

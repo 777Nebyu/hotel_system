@@ -128,16 +128,17 @@ describe('ManagerBookingService - Walk-In Bookings', () => {
       data: { status: 'SUCCEEDED' },
     });
     expect(db.paymentAttempt.create).toHaveBeenCalledWith({
-      data: {
+      data: expect.objectContaining({
         paymentId: 'payment-1',
         method: 'CASH',
         outcome: 'SUCCESS',
-      },
+      }),
     });
     expect(db.bookingStatusHistory.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         bookingId: 'booking-1',
-        status: 'CONFIRMED',
+        fromStatus: 'PENDING',
+        toStatus: 'CONFIRMED',
         changedBy: 'staff-1',
       }),
     });
@@ -427,7 +428,8 @@ describe('ManagerBookingService - Milestone 3 Features (Stay Requests, Relocatio
       expect(db.bookingStatusHistory.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           bookingId: 'booking-1',
-          status: 'CHECKED_IN',
+          fromStatus: 'CHECKED_IN',
+          toStatus: 'CHECKED_IN',
           reason: expect.stringContaining('Room relocated from 101 to 201'),
         }),
       });

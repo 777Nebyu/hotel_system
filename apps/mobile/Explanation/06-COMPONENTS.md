@@ -63,6 +63,7 @@ All reusable UI components live in `src/components/`.
 |-----------|------|---------|
 | `BookingComponents` | `BookingComponents.tsx` | Booking status cards |
 | `BookingStepper` | `BookingStepper.tsx` | Multi-step progress indicator |
+| `BookingReviewCard` | `BookingReviewCard.tsx` | Premium booking review section with dark-luxury styling |
 | `AvailabilityCalendar` | `AvailabilityCalendar.tsx` | Room availability date picker |
 
 ### Responsive
@@ -70,6 +71,13 @@ All reusable UI components live in `src/components/`.
 | Component | File | Purpose |
 |-----------|------|---------|
 | `ScaledText` | `ScaledText.tsx` | Text that scales with screen size |
+
+### Mock / Development
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| `MockModeBanner` | `MockModeBanner.tsx` | Banner indicating mock payment mode is active |
+| `MockScenarioSelector` | `MockScenarioSelector.tsx` | Picker to select mock payment scenario (success, failed, etc.) |
 
 ## Common Pattern
 

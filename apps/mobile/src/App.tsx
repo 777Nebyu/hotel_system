@@ -10,8 +10,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { useAppDispatch, useAppSelector } from './store/hooks';
-import { restoreSession, loadSessionFromStorage, saveSessionToStorage, signOut } from './store/authSlice';
-import { request, setAuthExpiredCallback, refreshAccessToken } from './api';
+import { restoreSession, loadSessionFromStorage, saveSessionToStorage, signOut, setSession } from './store/authSlice';
+import { setAuthExpiredCallback, setTokenRefreshedCallback, refreshAccessToken } from './api';
 import { getStoredPushToken, deregisterPushToken, registerPushToken } from './lib/notifications';
 import { ToastProvider } from './components/Toast';
 import OfflineBanner from './components/OfflineBanner';
@@ -28,7 +28,7 @@ import { crashReporter } from './lib/crashReporting';
 void crashReporter.init();
 
 const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: ['yayetechhotel://', 'https://yayetech.com'],
+  prefixes: ['luxstyhotel://', 'https://luxsty.com'],
   config: {
     screens: {
       VerifyEmail: 'verify/:token',
@@ -239,6 +239,16 @@ function AppContent() {
   useEffect(() => {
     setAuthExpiredCallback(() => {
       void performSignOut();
+    });
+    setTokenRefreshedCallback((tokens) => {
+      const current = store.getState().auth.session;
+      if (current) {
+        store.dispatch(setSession({
+          ...current,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken ?? current.refreshToken,
+        }));
+      }
     });
   }, []);
 

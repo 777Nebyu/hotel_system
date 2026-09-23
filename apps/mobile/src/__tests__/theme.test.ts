@@ -16,9 +16,9 @@ describe('Theme', () => {
     });
 
     it('has correct color values', () => {
-      expect(colors.teal).toBe('#0F8A83');
-      expect(colors.gold).toBe('#C8983A');
-      expect(colors.brick).toBe('#DC2626');
+      expect(colors.teal).toBe('#0F2942');
+      expect(colors.gold).toBe('#D4AF37');
+      expect(colors.brick).toBe('#EF4444');
     });
   });
 

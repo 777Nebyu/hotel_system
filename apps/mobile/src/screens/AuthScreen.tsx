@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -23,6 +25,7 @@ import { FieldError } from '../components/Shared';
 import { font } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import { hapticSuccess, hapticError } from '../hooks/useHaptics';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
 import { loginSchema, registerSchema } from '../lib/schemas';
 import { getExpoPushToken, registerPushToken } from '../lib/notifications';
 import { isBiometricEnabled, getStoredRefreshToken, enableBiometric, disableBiometric } from '../lib/biometrics';
@@ -31,6 +34,9 @@ type Nav   = NativeStackNavigationProp<RootStackParamList, 'Auth'>;
 type Route = RouteProp<RootStackParamList, 'Auth'>;
 
 type Mode = 'login' | 'register';
+
+const TERMS_URL = 'https://yayetech.com/terms';
+const PRIVACY_URL = 'https://yayetech.com/privacy';
 
 // ─── Reusable labelled input ──────────────────────────────────────────────────
 function InputField({
@@ -69,7 +75,7 @@ function InputField({
   return (
     <View style={inputStyles.wrap}>
       <Text style={[inputStyles.label, { color: c.inkSoft }]}>{label}</Text>
-      <View style={[inputStyles.box, { backgroundColor: c.surface, borderColor: c.line }, !!error && inputStyles.boxError]}>
+      <View style={[inputStyles.box, { backgroundColor: c.surface, borderColor: c.line }, !!error && { borderColor: c.danger }]}>
         <TextInput
           ref={inputRef}
           value={value}
@@ -106,11 +112,25 @@ const inputStyles = StyleSheet.create({
     paddingHorizontal: 14,
     minHeight: 50,
   },
-  boxError: { borderColor: '#EF4444' },
   input:    { flex: 1, fontSize: 15, paddingVertical: 0 },
 });
 
-
+// ─── Static styles (theme-independent) ─────────────────────────────────────
+const staticStyles = StyleSheet.create({
+  eyeBtn: { paddingLeft: 8 },
+  forgotRow: { alignSelf: 'flex-end', marginTop: -4 },
+  strengthWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -4 },
+  strengthBars: { flex: 1, flexDirection: 'row', gap: 4 },
+  strengthBar: { flex: 1, height: 4, borderRadius: 2 },
+  strengthLabel: { fontSize: 11, fontWeight: '700', minWidth: 42, textAlign: 'right' },
+  termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 4 },
+  checkbox: { width: 44, height: 44, borderRadius: 10, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  ctaInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 8 },
+  dividerLine: { flex: 1, height: 1 },
+  googleBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  switchRow: { alignItems: 'center', marginTop: 8 },
+});
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function AuthScreen() {
@@ -132,7 +152,8 @@ export default function AuthScreen() {
   const [busy,            setBusy]            = useState(false);
   const [fieldErrors,     setFieldErrors]     = useState<Record<string, string | undefined>>({});
 
-  // input refs for keyboard "next" chaining
+  const { promptAsync: googlePrompt, handleGoogleAuth, loading: googleLoading, setLoading: setGoogleLoading } = useGoogleAuth();
+
   const emailRef   = useRef<TextInput>(null);
   const phoneRef   = useRef<TextInput>(null);
   const passRef    = useRef<TextInput>(null);
@@ -140,190 +161,37 @@ export default function AuthScreen() {
 
   const { colors: c } = useTheme();
 
-  const styles = StyleSheet.create({
+  const styles = useMemo(() => StyleSheet.create({
     root:   { flex: 1, backgroundColor: c.paper },
     scroll: { paddingHorizontal: 24 },
-
-    backBtn: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: c.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: c.line,
-      marginBottom: 28,
-    },
-
-    logoRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      marginBottom: 28,
-    },
-    logoMark: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      backgroundColor: c.teal,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    logoWord: {
-      fontFamily: font.display,
-      fontSize: 26,
-      fontWeight: '700',
-      color: c.ink,
-      letterSpacing: -0.5,
-    },
-
-    heading: {
-      fontSize: 28,
-      fontWeight: '800',
-      color: c.ink,
-      letterSpacing: -0.4,
-      marginBottom: 6,
-    },
-    subheading: {
-      fontSize: 15,
-      color: c.inkMuted,
-      marginBottom: 28,
-      lineHeight: 21,
-    },
-
-    modePills: {
-      flexDirection: 'row',
-      backgroundColor: c.paperDeep,
-      borderRadius: 12,
-      padding: 4,
-      marginBottom: 28,
-    },
-    modePill: {
-      flex: 1,
-      paddingVertical: 10,
-      borderRadius: 9,
-      alignItems: 'center',
-    },
-    modePillActive: {
-      backgroundColor: c.surface,
-      shadowColor: '#0F172A',
-      shadowOpacity: 0.08,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 2,
-    },
-    modePillText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: c.inkMuted,
-    },
-    modePillTextActive: {
-      color: c.ink,
-      fontWeight: '700',
-    },
-
+    backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: c.line, marginBottom: 28 },
+    logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 28 },
+    logoMark: { width: 44, height: 44, borderRadius: 12, backgroundColor: c.teal, alignItems: 'center', justifyContent: 'center' },
+    logoWord: { fontFamily: font.display, fontSize: 26, fontWeight: '700', color: c.ink, letterSpacing: -0.5 },
+    heading: { fontSize: 28, fontWeight: '800', color: c.ink, letterSpacing: -0.4, marginBottom: 6 },
+    subheading: { fontSize: 15, color: c.inkMuted, marginBottom: 28, lineHeight: 21 },
+    modePills: { flexDirection: 'row', backgroundColor: c.paperDeep, borderRadius: 12, padding: 4, marginBottom: 28 },
+    modePill: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: 'center' },
+    modePillActive: { backgroundColor: c.surface, shadowColor: c.ink, shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+    modePillText: { fontSize: 14, fontWeight: '600', color: c.inkMuted },
+    modePillTextActive: { color: c.ink, fontWeight: '700' },
     form: { gap: 16, marginBottom: 20 },
-
-    eyeBtn: { paddingLeft: 8 },
-
-    forgotRow: { alignSelf: 'flex-end', marginTop: -4 },
     forgotText: { fontSize: 13, fontWeight: '600', color: c.teal },
-
-    strengthWrap: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      marginTop: -4,
-    },
-    strengthBars: {
-      flex: 1,
-      flexDirection: 'row',
-      gap: 4,
-    },
-    strengthBar: {
-      flex: 1,
-      height: 4,
-      borderRadius: 2,
-    },
-    strengthLabel: {
-      fontSize: 11,
-      fontWeight: '700',
-      minWidth: 42,
-      textAlign: 'right',
-    },
-
-    termsRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 10,
-      marginTop: 4,
-    },
-    checkbox: {
-      width: 44,
-      height: 44,
-      borderRadius: 10,
-      borderWidth: 1.5,
-      borderColor: c.lineStrong,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 1,
-      backgroundColor: c.surface,
-    },
-    checkboxChecked: {
-      backgroundColor: c.teal,
-      borderColor: c.teal,
-    },
-    termsText: {
-      flex: 1,
-      fontSize: 13,
-      color: c.inkSoft,
-      lineHeight: 19,
-    },
-    termsLink: {
-      color: c.teal,
-      fontWeight: '600',
-    },
-
-    cta: {
-      backgroundColor: c.teal,
-      borderRadius: 14,
-      paddingVertical: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 4,
-      shadowColor: c.teal,
-      shadowOpacity: 0.3,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 4,
-      minHeight: 52,
-    },
-    ctaBusy:    { opacity: 0.65 },
+    termsText: { flex: 1, fontSize: 13, color: c.inkSoft, lineHeight: 19 },
+    termsLink: { color: c.teal, fontWeight: '600' },
+    checkboxChecked: { backgroundColor: c.teal, borderColor: c.teal },
+    cta: { backgroundColor: c.teal, borderRadius: 14, paddingVertical: 16, alignItems: 'center', justifyContent: 'center', marginTop: 4, shadowColor: c.teal, shadowOpacity: 0.3, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 4, minHeight: 52 },
+    ctaBusy: { opacity: 0.65 },
     ctaPressed: { opacity: 0.88, transform: [{ scale: 0.985 }] },
-    ctaInner: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    ctaText: {
-      color: c.surface,
-      fontSize: 16,
-      fontWeight: '700',
-      letterSpacing: 0.1,
-    },
-
-    switchRow: { alignItems: 'center', marginTop: 8 },
-    switchText: {
-      fontSize: 14,
-      color: c.inkMuted,
-      textAlign: 'center',
-    },
-    switchLink: {
-      color: c.teal,
-      fontWeight: '700',
-    },
-  });
+    ctaText: { color: c.surface, fontSize: 16, fontWeight: '700', letterSpacing: 0.1 },
+    dividerText: { fontSize: 13, fontWeight: '600', color: c.inkMuted },
+    googleBtn: { backgroundColor: c.surface, borderRadius: 14, borderWidth: 1.5, borderColor: c.lineStrong, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', minHeight: 52, shadowColor: c.ink, shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+    googleBtnBusy: { opacity: 0.65 },
+    googleBtnPressed: { opacity: 0.88, transform: [{ scale: 0.985 }] },
+    googleBtnText: { color: c.ink, fontSize: 15, fontWeight: '600' },
+    switchText: { fontSize: 14, color: c.inkMuted, textAlign: 'center' },
+    switchLink: { color: c.teal, fontWeight: '700' },
+  }), [c]);
 
   // ── Biometric auto-login on mount ──────────────────────────────────────────
   useEffect(() => {
@@ -344,6 +212,9 @@ export default function AuthScreen() {
             });
             await saveSessionToStorage(session);
             dispatch(setSession(session));
+            if (session.refreshToken) {
+              await enableBiometric(session.refreshToken);
+            }
             hapticSuccess();
             const dest: Record<string, keyof RootStackParamList> = {
               ADMIN:   'AdminOverview',
@@ -404,6 +275,66 @@ export default function AuthScreen() {
     }
   };
 
+  // ── Google OAuth ──────────────────────────────────────────────────────────
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await googlePrompt();
+      if (result?.type !== 'success') {
+        setGoogleLoading(false);
+        return;
+      }
+      const idToken = (result as any).authentication?.idToken ?? (result as any).params?.id_token;
+      if (!idToken) {
+        setGoogleLoading(false);
+        return;
+      }
+
+      const session = await handleGoogleAuth(idToken);
+      await saveSessionToStorage(session);
+      dispatch(setSession(session));
+      hapticSuccess();
+
+      const pushToken = await getExpoPushToken();
+      if (pushToken) {
+        registerPushToken(pushToken, session.accessToken).catch(() => {});
+      }
+
+      if (session.refreshToken) {
+        const already = await isBiometricEnabled();
+        if (!already) {
+          const { isBiometricAvailable } = await import('../lib/biometrics');
+          if (await isBiometricAvailable()) {
+            Alert.alert(
+              'Enable Biometric Login',
+              'Use Face ID or fingerprint for faster sign-in next time?',
+              [
+                { text: 'Not now', style: 'cancel' },
+                { text: 'Enable', onPress: () => enableBiometric(session.refreshToken!) },
+              ],
+            );
+          }
+        }
+      }
+
+      const dest: Record<string, keyof RootStackParamList> = {
+        ADMIN:   'AdminOverview',
+        MANAGER: 'ManagerOverview',
+        STAFF:   'ManagerBookings',
+      };
+      navigation.reset({
+        index: 0,
+        routes: [{ name: (dest[session.user.role] ?? 'MainTabs') as any }],
+      });
+    } catch (err) {
+      hapticError();
+      const errorClass = classifyAndAnnounce(err);
+      Alert.alert('Google sign-in failed', errorClass.title);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   // ── Validation ─────────────────────────────────────────────────────────────
   const validate = (): boolean => {
     clearErrors();
@@ -440,24 +371,34 @@ export default function AuthScreen() {
     if (!validate()) return;
     setBusy(true);
     try {
-      const path = mode === 'login' ? '/auth/login' : '/auth/register';
-      const body = mode === 'login'
-        ? { email: email.trim(), password }
-        : { fullName: fullName.trim(), email: email.trim(), phone: phone.trim() || undefined, password };
+      if (mode === 'register') {
+        await request<{ message: string }>('/auth/register', {
+          method: 'POST',
+          body: { fullName: fullName.trim(), email: email.trim(), phone: phone.trim() || undefined, password },
+        });
+        hapticSuccess();
+        Alert.alert(
+          'Verify your email',
+          `We sent a verification link to ${email.trim()}. Please check your inbox and verify your email before signing in.`,
+          [{ text: 'OK', onPress: () => switchMode('login') }],
+        );
+        return;
+      }
 
-      const session = await request<Session>(path, { method: 'POST', body });
+      const session = await request<Session>('/auth/login', {
+        method: 'POST',
+        body: { email: email.trim(), password },
+      });
       await saveSessionToStorage(session);
       dispatch(setSession(session));
       hapticSuccess();
 
-      // push token registration — use authenticated request() so the auth header is included
       const pushToken = await getExpoPushToken();
       if (pushToken) {
-        registerPushToken(pushToken, session.accessToken).catch(() => { /* non-critical — silent fail */ });
+        registerPushToken(pushToken, session.accessToken).catch(() => {});
       }
 
-      // offer biometric on first login
-      if (mode === 'login' && session.refreshToken) {
+      if (session.refreshToken) {
         const already = await isBiometricEnabled();
         if (!already) {
           const { isBiometricAvailable } = await import('../lib/biometrics');
@@ -474,7 +415,6 @@ export default function AuthScreen() {
         }
       }
 
-      // role-based routing
       const dest: Record<string, keyof RootStackParamList> = {
         ADMIN:   'AdminOverview',
         MANAGER: 'ManagerOverview',
@@ -486,8 +426,8 @@ export default function AuthScreen() {
       });
     } catch (err) {
       hapticError();
-      const c = classifyAndAnnounce(err);
-      Alert.alert(mode === 'login' ? 'Sign in failed' : 'Registration failed', c.title);
+      const errCls = classifyAndAnnounce(err);
+      Alert.alert(mode === 'login' ? 'Sign in failed' : 'Registration failed', errCls.title);
     } finally {
       setBusy(false);
     }
@@ -502,7 +442,7 @@ export default function AuthScreen() {
   ];
   const strengthPassed = strengthChecks.filter(Boolean).length;
   const strengthLabel  = strengthPassed <= 1 ? 'Weak' : strengthPassed <= 3 ? 'Fair' : 'Strong';
-  const strengthColor  = strengthPassed <= 1 ? '#EF4444' : strengthPassed <= 3 ? '#F59E0B' : '#16A34A';
+  const strengthColor  = strengthPassed <= 1 ? c.danger : strengthPassed <= 3 ? c.warning : c.success;
 
   return (
     <KeyboardAvoidingView
@@ -533,7 +473,7 @@ export default function AuthScreen() {
           <View style={styles.logoMark}>
             <Ionicons name="bed" size={20} color="#FFFFFF" />
           </View>
-          <Text style={styles.logoWord}>YayeTech</Text>
+          <Text style={styles.logoWord}>LuxSty</Text>
         </View>
 
         <Text style={styles.heading}>
@@ -542,11 +482,11 @@ export default function AuthScreen() {
         <Text style={styles.subheading}>
           {mode === 'login'
             ? 'Sign in to manage your stays'
-            : 'Join thousands of travellers on YayeTech'}
+            : 'Join thousands of travellers on LuxSty'}
         </Text>
 
         {/* ── Mode toggle pills ─────────────────────────────────────────── */}
-          <View style={styles.modePills}>
+        <View style={styles.modePills}>
           {(['login', 'register'] as Mode[]).map((m) => (
             <Pressable
               key={m}
@@ -628,7 +568,7 @@ export default function AuthScreen() {
             error={fieldErrors.password}
             c={c}
             rightElement={
-              <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8} style={styles.eyeBtn}>
+              <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8} style={staticStyles.eyeBtn}>
                 <Ionicons
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
@@ -642,25 +582,25 @@ export default function AuthScreen() {
           {mode === 'login' && (
             <Pressable
               onPress={() => navigation.navigate('ForgotPassword')}
-              style={styles.forgotRow}
+              style={staticStyles.forgotRow}
               accessibilityRole="link"
             >
-              <Text style={[styles.forgotText, { color: c.teal }]}>Forgot password?</Text>
+              <Text style={styles.forgotText}>Forgot password?</Text>
             </Pressable>
           )}
 
           {/* Password strength bar (register only) */}
           {mode === 'register' && password.length > 0 && (
-            <View style={styles.strengthWrap}>
-              <View style={styles.strengthBars}>
+            <View style={staticStyles.strengthWrap}>
+              <View style={staticStyles.strengthBars}>
                 {strengthChecks.map((ok, i) => (
                   <View
                     key={i}
-                    style={[styles.strengthBar, { backgroundColor: ok ? strengthColor : c.line }]}
+                    style={[staticStyles.strengthBar, { backgroundColor: ok ? strengthColor : c.line }]}
                   />
                 ))}
               </View>
-              <Text style={[styles.strengthLabel, { color: strengthColor }]}>{strengthLabel}</Text>
+              <Text style={[staticStyles.strengthLabel, { color: strengthColor }]}>{strengthLabel}</Text>
             </View>
           )}
 
@@ -679,7 +619,7 @@ export default function AuthScreen() {
               error={fieldErrors.confirmPassword}
               c={c}
               rightElement={
-                <Pressable onPress={() => setShowConfirm(!showConfirm)} hitSlop={8} style={styles.eyeBtn}>
+                <Pressable onPress={() => setShowConfirm(!showConfirm)} hitSlop={8} style={staticStyles.eyeBtn}>
                   <Ionicons
                     name={showConfirm ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
@@ -694,18 +634,18 @@ export default function AuthScreen() {
           {mode === 'register' && (
             <Pressable
               onPress={() => { setTermsAccepted(!termsAccepted); clearErrors(); }}
-              style={styles.termsRow}
+              style={staticStyles.termsRow}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: termsAccepted }}
             >
-              <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
+              <View style={[staticStyles.checkbox, { borderColor: c.lineStrong }, termsAccepted && styles.checkboxChecked]}>
                 {termsAccepted && <Ionicons name="checkmark" size={13} color="#FFFFFF" />}
               </View>
               <Text style={styles.termsText}>
                 I agree to the{' '}
-                <Text style={styles.termsLink}>Terms of Service</Text>
+                <Text style={styles.termsLink} onPress={() => Linking.openURL(TERMS_URL)}>Terms of Service</Text>
                 {' '}and{' '}
-                <Text style={styles.termsLink}>Privacy Policy</Text>
+                <Text style={styles.termsLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Privacy Policy</Text>
               </Text>
             </Pressable>
           )}
@@ -725,13 +665,43 @@ export default function AuthScreen() {
             ]}
           >
             {busy ? (
-              <Text style={styles.ctaText}>Please wait…</Text>
+              <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <View style={styles.ctaInner}>
+              <View style={staticStyles.ctaInner}>
                 <Text style={styles.ctaText}>
                   {mode === 'login' ? 'Sign in' : 'Create account'}
                 </Text>
                 <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+              </View>
+            )}
+          </Pressable>
+
+          {/* ── Divider ──────────────────────────────────────────────────── */}
+          <View style={staticStyles.dividerRow}>
+            <View style={[staticStyles.dividerLine, { backgroundColor: c.line }]} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={[staticStyles.dividerLine, { backgroundColor: c.line }]} />
+          </View>
+
+          {/* ── Google Sign-In ───────────────────────────────────────────── */}
+          <Pressable
+            onPress={() => void handleGoogleSignIn()}
+            disabled={googleLoading || busy}
+            accessibilityRole="button"
+            accessibilityLabel="Continue with Google"
+            accessibilityState={{ busy: googleLoading }}
+            style={({ pressed }) => [
+              styles.googleBtn,
+              (googleLoading || busy) && styles.googleBtnBusy,
+              pressed && styles.googleBtnPressed,
+            ]}
+          >
+            {googleLoading ? (
+              <ActivityIndicator color={c.ink} size="small" />
+            ) : (
+              <View style={staticStyles.googleBtnInner}>
+                <Ionicons name="logo-google" size={20} color="#DB4437" />
+                <Text style={styles.googleBtnText}>Continue with Google</Text>
               </View>
             )}
           </Pressable>
@@ -741,7 +711,7 @@ export default function AuthScreen() {
         {/* ── Switch mode ────────────────────────────────────────────────── */}
         <Pressable
           onPress={() => switchMode(mode === 'login' ? 'register' : 'login')}
-          style={styles.switchRow}
+          style={staticStyles.switchRow}
           accessibilityRole="button"
         >
           <Text style={styles.switchText}>
@@ -756,4 +726,3 @@ export default function AuthScreen() {
     </KeyboardAvoidingView>
   );
 }
-

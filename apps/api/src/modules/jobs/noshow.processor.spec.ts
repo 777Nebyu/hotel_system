@@ -86,7 +86,8 @@ describe('NoShowProcessor', () => {
     expect(db.bookingStatusHistory.create).toHaveBeenCalledWith({
       data: {
         bookingId: 'booking-1',
-        status: 'NO_SHOW',
+        fromStatus: 'CONFIRMED',
+        toStatus: 'NO_SHOW',
         changedBy: 'system',
         reason: 'Check-in date passed without guest arrival',
       },

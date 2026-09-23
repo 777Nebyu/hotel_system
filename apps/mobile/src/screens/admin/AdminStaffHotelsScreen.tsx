@@ -58,21 +58,16 @@ export default function AdminStaffHotelsScreen({ onBack }: Props) {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const hotelRes = await request<any>('/admin/hotels', { method: 'GET', token });
-      const hts = Array.isArray(hotelRes) ? hotelRes : hotelRes?.data ?? [];
-      const allAssignments: any[] = [];
-      await Promise.all(
-        hts.map(async (hotel: any) => {
-          try {
-            const staffRes = await request<any[]>(`/admin/hotels/${hotel.id}/staff`, { method: 'GET', token });
-            const staffList = Array.isArray(staffRes) ? staffRes : (staffRes as any)?.data ?? [];
-            for (const s of staffList) {
-              allAssignments.push({ id: `${s.id}-${hotel.id}`, userId: s.id, hotelId: hotel.id, user: s, hotel });
-            }
-          } catch { /* skip hotels with no staff */ }
-        }),
-      );
-      setAssignments(allAssignments);
+      const res = await request<any>('/admin/staff-assignments', { method: 'GET', token });
+      const all = Array.isArray(res) ? res : res?.data ?? [];
+      setAssignments(all.map((a: any) => ({
+        id: `${a.staffId}-${a.hotelId}`,
+        userId: a.staffId,
+        hotelId: a.hotelId,
+        user: a.staff,
+        hotel: a.hotel,
+        createdAt: a.assignedAt,
+      })));
     } catch (err: any) {
       setError(err.message || 'Failed to load assignments');
     } finally {

@@ -5,10 +5,11 @@ const fs = require('fs');
 const projectRoot = __dirname;
 const monorepoRoot = path.resolve(projectRoot, '../..');
 
-const config = getDefaultConfig(projectRoot);
+const defaultConfig = getDefaultConfig(projectRoot);
+const config = defaultConfig;
 
 config.watchFolders = [
-  projectRoot,
+  ...(defaultConfig.watchFolders ?? [projectRoot]),
   monorepoRoot,
   path.resolve(monorepoRoot, 'packages/shared-types'),
 ];

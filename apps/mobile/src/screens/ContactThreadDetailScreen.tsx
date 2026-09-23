@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -42,6 +42,7 @@ export default function ContactThreadDetailScreen() {
   const token = session?.accessToken ?? '';
   const toast = useToast();
   const flatListRef = useRef<FlatList>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { isOffline } = useNetworkStatus();
 
   const [inputText, setInputText] = useState('');
@@ -59,6 +60,12 @@ export default function ContactThreadDetailScreen() {
   const prevMsgCount = useRef(serverMessages.length);
 
   useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (serverMessages.length > prevMsgCount.current) {
       const lastMsg = serverMessages[serverMessages.length - 1];
       if (lastMsg && lastMsg.senderId !== session?.user.id) {
@@ -67,7 +74,7 @@ export default function ContactThreadDetailScreen() {
           void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         } catch { /* ignore */ }
       }
-      setTimeout(() => {
+      scrollTimeoutRef.current = setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
@@ -149,7 +156,7 @@ export default function ContactThreadDetailScreen() {
 
   const s = makeStyles(c);
 
-  const renderMessage = ({ item }: { item: any }) => {
+  const renderMessage = useCallback(({ item }: { item: any }) => {
     const isMe = item.senderId === session?.user.id;
     return (
       <View style={[s.messageBubble, isMe ? s.messageMe : s.messageThem]}>
@@ -170,7 +177,7 @@ export default function ContactThreadDetailScreen() {
         </View>
       </View>
     );
-  };
+  }, [s, session?.user.id]);
 
   if (isLoading && !thread) return <View style={s.center}><SkeletonDetail /></View>;
   if (error && !thread) return <View style={s.center}><ErrorBox message="Failed to load messages" onRetry={() => refetch()} /></View>;

@@ -9,6 +9,7 @@ import {
 import { HotelStatus, Prisma, RoomStatus } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
+import { CacheService } from '../../../common/cache/cache.service';
 import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
 import {
   STORAGE_SERVICE,
@@ -37,6 +38,7 @@ export class ManagerCatalogService {
     private readonly db: PrismaService,
     private readonly scope: ResourceScopeHelper,
     private readonly audit: AuditService,
+    private readonly cache: CacheService,
     @Inject(STORAGE_SERVICE)
     private readonly storage: StorageService,
   ) {}
@@ -137,6 +139,7 @@ export class ManagerCatalogService {
       name: hotel.name,
       status: hotel.status,
     });
+    await this.cache.delPattern('hotel:search:*');
     return hotel;
   }
 
@@ -175,6 +178,10 @@ export class ManagerCatalogService {
       id,
       dto as unknown as Prisma.InputJsonValue,
     );
+    await Promise.all([
+      this.cache.del(`hotel:detail:${id}`),
+      this.cache.delPattern('hotel:search:*'),
+    ]);
     return hotel;
   }
 
@@ -182,6 +189,10 @@ export class ManagerCatalogService {
     await this.assertCanManage(id, actor);
     await this.db.hotel.delete({ where: { id } });
     await this.audit.record(actor.sub, 'hotel.delete', 'Hotel', id, {});
+    await Promise.all([
+      this.cache.del(`hotel:detail:${id}`),
+      this.cache.delPattern('hotel:search:*'),
+    ]);
     return { deleted: true };
   }
 

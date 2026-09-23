@@ -1,5 +1,5 @@
 {
-  "app_name": "YayeTech Hotel",
+  "app_name": "LuxSty Hotel",
   "tabs": {
     "home": "Home",
     "dashboard": "Dashboard",
@@ -262,7 +262,7 @@
     "lifecycle": {
       "bookingConfirmed": {
         "title": "Booking Confirmed",
-        "body": "Your YayeTech booking is confirmed."
+        "body": "Your LuxSty booking is confirmed."
       },
       "paymentSuccessful": {
         "title": "Payment Successful",
@@ -274,7 +274,7 @@
       },
       "checkInCompleted": {
         "title": "Check-in Completed",
-        "body": "Welcome to YayeTech."
+        "body": "Welcome to LuxSty."
       },
       "checkOutReminder": {
         "title": "Check-out Reminder",
@@ -328,7 +328,7 @@
     "done": "Done",
     "passwordChanged": "Password changed successfully.",
     "accountClosure": "Account closure",
-    "accountClosureMsg": "To close your account, please email support@yayetech.com with your request. This action is irreversible.",
+    "accountClosureMsg": "To close your account, please email support@luxsty.com with your request. This action is irreversible.",
     "signOut": "Sign out",
     "signOutConfirm": "Are you sure you want to sign out?",
     "cancel": "Cancel"

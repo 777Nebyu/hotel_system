@@ -1,9 +1,9 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 
-const BIOMETRIC_KEY = 'yayetech.biometric.enabled';
-const REFRESH_TOKEN_KEY = 'yayetech.biometric.refreshToken';
-const LEGACY_CREDENTIALS_KEY = 'yayetech.biometric.credentials';
+const BIOMETRIC_KEY = 'luxsty.biometric.enabled';
+const REFRESH_TOKEN_KEY = 'luxsty.biometric.refreshToken';
+const LEGACY_CREDENTIALS_KEY = 'luxsty.biometric.credentials';
 
 export async function isBiometricAvailable(): Promise<boolean> {
   const compatible = await LocalAuthentication.hasHardwareAsync();

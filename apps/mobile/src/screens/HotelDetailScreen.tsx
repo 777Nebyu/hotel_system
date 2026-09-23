@@ -393,21 +393,24 @@ export default function HotelDetailScreen() {
           />
           {gallery.length > 1 && (
             <View style={styles.galleryThumbs}>
-              {gallery.slice(0, 5).map((url: string, i: number) => (
-                <Pressable key={i} onPress={() => setActiveImageIndex(i)}>
-                  <Image
-                    source={{ uri: url }}
-                    style={[styles.thumb, i === activeImageIndex && styles.thumbActive]}
-                    contentFit="cover"
-                    transition={200}
-                  />
-                  {i === 4 && gallery.length > 5 && (
-                    <View style={styles.thumbMore}>
-                      <Text style={styles.thumbMoreText}>+{gallery.length - 5}</Text>
-                    </View>
-                  )}
-                </Pressable>
-              ))}
+              {gallery.slice(0, 5).map((url: string, i: number) => {
+                const thumbUrl = url.includes('?') ? `${url}&w=128&h=128&fit=crop` : `${url}?w=128&h=128&fit=crop`;
+                return (
+                  <Pressable key={i} onPress={() => setActiveImageIndex(i)}>
+                    <Image
+                      source={{ uri: thumbUrl }}
+                      style={[styles.thumb, i === activeImageIndex && styles.thumbActive]}
+                      contentFit="cover"
+                      transition={200}
+                    />
+                    {i === 4 && gallery.length > 5 && (
+                      <View style={styles.thumbMore}>
+                        <Text style={styles.thumbMoreText}>+{gallery.length - 5}</Text>
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
             </View>
           )}
         </View>

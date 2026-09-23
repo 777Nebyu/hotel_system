@@ -1,93 +1,101 @@
 import { Platform, useColorScheme, useWindowDimensions } from 'react-native';
 
-// ─── 3 Base Colors ──────────────────────────────────────────────────────────
-// Emerald — primary actions, accents
-// Navy    — text, borders, dark surfaces
-// Gold    — highlights, premium accent
-const E = '#0F8A83';  // Emerald
-const N = '#1A2332';  // Navy
-const G = '#C8983A';  // Gold
+// ─── 3 Base Colors (matching web) ───────────────────────────────────────────
+// Primary — Deep Sapphire Navy #0F2942
+// Gold    — Champagne Warm Gold #D4AF37
+// Navy    — Body text / dark surfaces #0F172A
+const P = '#0F2942';  // Primary (Sapphire)
+const G = '#D4AF37';  // Accent (Gold)
+const N = '#0F172A';  // Navy (text)
 
 // ─── Light Theme ────────────────────────────────────────────────────────────
 export const colors = {
-  // Surfaces (navy lighter)
+  // Surfaces
   surface:      '#FFFFFF',
-  paper:        '#F5F6F8',
-  paperDeep:    '#ECEDF1',
-  clay:         '#E0E3E8',
-  clayLight:    '#F0F2F5',
-  line:         '#DEE2E8',
-  lineStrong:   '#C4CAD4',
+  paper:        '#F8FAFC',
+  paperDeep:    '#F1F5F9',
+  clay:         '#E2E8F0',
+  clayLight:    '#F1F5F9',
+  line:         '#E2E8F0',
+  lineStrong:   '#CBD5E1',
 
-  // Text (navy spectrum)
+  // Text
   ink:          N,
-  inkSoft:      '#4A5568',
-  inkMuted:     '#8E9BB0',
+  inkSoft:      '#475569',
+  inkMuted:     '#64748B',
 
   // Aliases
   umber:        N,
-  umberDeep:    '#4A5568',
+  umberDeep:    '#475569',
 
-  // Brand (emerald)
-  teal:         E,
-  tealDeep:     '#0B6B66',
-  tealTint:     '#E8F5F4',
+  // Brand (primary — sapphire)
+  teal:         P,
+  tealDeep:     '#163859',
+  tealTint:     '#EFF6FF',
 
   // Brand (gold)
   gold:         G,
-  goldDeep:     '#A67E2E',
-  goldTint:     '#FDF8EC',
+  goldDeep:     '#C5A028',
+  goldTint:     '#FEF9E7',
 
-  // Brand (red — derived from navy warm)
-  brick:        '#DC2626',
+  // Brand (red — danger)
+  brick:        '#EF4444',
   brickTint:    '#FEF2F2',
 
   // Semantic
-  success:      E,
-  warning:      G,
-  danger:       '#DC2626',
-  info:         '#2563EB',
+  success:      '#10B981',
+  successBg:    '#ECFDF5',
+  warning:      '#F59E0B',
+  warningBg:    '#FFFBEB',
+  danger:       '#EF4444',
+  dangerBg:     '#FEF2F2',
+  info:         '#3B82F6',
+  infoBg:       '#EFF6FF',
 } as const;
 
 // ─── Dark Theme ─────────────────────────────────────────────────────────────
 export const darkColors = {
-  // Surfaces (navy darker)
-  surface:      '#142A42',
-  paper:        '#0B1929',
-  paperDeep:    '#102035',
-  clay:         '#1A3350',
-  clayLight:    '#142A42',
-  line:         '#1C3552',
-  lineStrong:   '#2A4A6A',
+  // Surfaces
+  surface:      '#0B0F17',
+  paper:        '#0B0F17',
+  paperDeep:    '#111827',
+  clay:         '#1E293B',
+  clayLight:    '#111827',
+  line:         '#1E293B',
+  lineStrong:   '#334155',
 
-  // Text (light navy)
-  ink:          '#E4EAF0',
-  inkSoft:      '#8DA4BD',
-  inkMuted:     '#546A82',
+  // Text
+  ink:          '#F1F5F9',
+  inkSoft:      '#94A3B8',
+  inkMuted:     '#64748B',
 
   // Aliases
-  umber:        '#E4EAF0',
-  umberDeep:    '#8DA4BD',
+  umber:        '#F1F5F9',
+  umberDeep:    '#94A3B8',
 
-  // Brand (emerald — brighter for dark bg)
-  teal:         '#14B8A6',
-  tealDeep:     '#0B6B66',
-  tealTint:     '#0D3331',
+  // Brand (primary — brighter for dark bg)
+  teal:         '#3B82F6',
+  tealDeep:     '#1E40AF',
+  tealTint:     '#0C1E3A',
 
   // Brand (gold — brighter for dark bg)
-  gold:         '#E2B94A',
-  goldDeep:     '#A67E2E',
-  goldTint:     '#2A2006',
+  gold:         '#FBBF24',
+  goldDeep:     '#D97706',
+  goldTint:     '#422006',
 
   // Brand (red)
   brick:        '#F87171',
   brickTint:    '#3B1111',
 
   // Semantic
-  success:      '#14B8A6',
-  warning:      '#E2B94A',
+  success:      '#34D399',
+  successBg:    '#064E3B',
+  warning:      '#FBBF24',
+  warningBg:    '#422006',
   danger:       '#F87171',
+  dangerBg:     '#3B1111',
   info:         '#60A5FA',
+  infoBg:       '#1E3A5F',
 } as const;
 
 // ─── Typography ─────────────────────────────────────────────────────────────
@@ -117,13 +125,13 @@ export function useResponsivePadding(): number {
 
 // ─── Shadows ────────────────────────────────────────────────────────────────
 export const shadowCard = Platform.select({
-  ios:     { shadowColor: N, shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 3 } },
+  ios:     { shadowColor: N, shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 2 } },
   android: { elevation: 2 },
   default: {},
 }) as object;
 
 export const shadowMd = Platform.select({
-  ios:     { shadowColor: N, shadowOpacity: 0.10, shadowRadius: 18, shadowOffset: { width: 0, height: 5 } },
+  ios:     { shadowColor: N, shadowOpacity: 0.08, shadowRadius: 30, shadowOffset: { width: 0, height: 10 } },
   android: { elevation: 4 },
   default: {},
 }) as object;
@@ -144,48 +152,48 @@ export function useThemeColors() {
 export const statusStyle = (status: string, dark?: boolean): { bg: string; fg: string; border: string } => {
   if (dark) {
     switch (status) {
-      case 'PENDING':      return { bg: '#2A2006', fg: '#E2B94A', border: '#5C4510' };
-      case 'CONFIRMED':    return { bg: '#0D3331', fg: '#14B8A6', border: '#0B6B66' };
-      case 'CHECKED_IN':   return { bg: '#0C1E3A', fg: '#60A5FA', border: '#1E40AF' };
-      case 'CHECKED_OUT':  return { bg: '#16202C', fg: '#8DA4BD', border: '#2A4A6A' };
-      case 'CANCELLED':    return { bg: '#3B1111', fg: '#F87171', border: '#7F1D1D' };
-      case 'REJECTED':     return { bg: '#3B1111', fg: '#F87171', border: '#7F1D1D' };
-      case 'NO_SHOW':      return { bg: '#16202C', fg: '#8DA4BD', border: '#2A4A6A' };
-      case 'SUCCEEDED':    return { bg: '#0D3331', fg: '#14B8A6', border: '#0B6B66' };
-      case 'FAILED':       return { bg: '#3B1111', fg: '#F87171', border: '#7F1D1D' };
-      case 'REFUNDED':     return { bg: '#0C1E3A', fg: '#60A5FA', border: '#1E40AF' };
-      case 'ACTIVE':           return { bg: '#0D3331', fg: '#14B8A6', border: '#0B6B66' };
-      case 'PENDING_APPROVAL': return { bg: '#16202C', fg: '#C8983A', border: '#5C4A1E' };
+      case 'PENDING':          return { bg: '#422006', fg: '#FBBF24', border: '#92400E' };
+      case 'CONFIRMED':        return { bg: '#064E3B', fg: '#34D399', border: '#065F46' };
+      case 'CHECKED_IN':       return { bg: '#1E3A5F', fg: '#60A5FA', border: '#1E40AF' };
+      case 'CHECKED_OUT':      return { bg: '#1E293B', fg: '#94A3B8', border: '#334155' };
+      case 'CANCELLED':        return { bg: '#3B1111', fg: '#F87171', border: '#7F1D1D' };
+      case 'REJECTED':         return { bg: '#3B1111', fg: '#F87171', border: '#7F1D1D' };
+      case 'NO_SHOW':          return { bg: '#1E293B', fg: '#94A3B8', border: '#334155' };
+      case 'SUCCEEDED':        return { bg: '#064E3B', fg: '#34D399', border: '#065F46' };
+      case 'FAILED':           return { bg: '#3B1111', fg: '#F87171', border: '#7F1D1D' };
+      case 'REFUNDED':         return { bg: '#1E3A5F', fg: '#60A5FA', border: '#1E40AF' };
+      case 'ACTIVE':           return { bg: '#064E3B', fg: '#34D399', border: '#065F46' };
+      case 'PENDING_APPROVAL': return { bg: '#422006', fg: '#FBBF24', border: '#92400E' };
       case 'SUSPENDED':        return { bg: '#3B1111', fg: '#F87171', border: '#7F1D1D' };
-      case 'DRAFT':            return { bg: '#16202C', fg: '#8DA4BD', border: '#2A4A6A' };
-      case 'OPEN':             return { bg: '#16202C', fg: '#8DA4BD', border: '#2A4A6A' };
-      case 'UNDER_REVIEW':     return { bg: '#0C1E3A', fg: '#60A5FA', border: '#1E40AF' };
-      case 'RESOLVED':         return { bg: '#0D3331', fg: '#14B8A6', border: '#0B6B66' };
-      case 'CLOSED':           return { bg: '#16202C', fg: '#8DA4BD', border: '#2A4A6A' };
-      case 'DISMISSED':        return { bg: '#16202C', fg: '#8DA4BD', border: '#2A4A6A' };
+      case 'DRAFT':            return { bg: '#1E293B', fg: '#94A3B8', border: '#334155' };
+      case 'OPEN':             return { bg: '#1E293B', fg: '#94A3B8', border: '#334155' };
+      case 'UNDER_REVIEW':     return { bg: '#1E3A5F', fg: '#60A5FA', border: '#1E40AF' };
+      case 'RESOLVED':         return { bg: '#064E3B', fg: '#34D399', border: '#065F46' };
+      case 'CLOSED':           return { bg: '#1E293B', fg: '#94A3B8', border: '#334155' };
+      case 'DISMISSED':        return { bg: '#1E293B', fg: '#94A3B8', border: '#334155' };
       default: return { bg: darkColors.clay, fg: darkColors.inkSoft, border: darkColors.lineStrong };
     }
   }
   switch (status) {
-    case 'PENDING':          return { bg: '#FDF8EC', fg: '#A67E2E', border: '#FDE68A' };
-    case 'CONFIRMED':        return { bg: '#E8F5F4', fg: '#0B6B66', border: '#B2DFDB' };
-    case 'CHECKED_IN':       return { bg: '#EFF6FF', fg: '#1D4ED8', border: '#BFDBFE' };
-    case 'CHECKED_OUT':      return { bg: '#F8F9FB', fg: '#6B7280', border: '#E5E7EB' };
+    case 'PENDING':          return { bg: '#FEF9E7', fg: '#92400E', border: '#FDE68A' };
+    case 'CONFIRMED':        return { bg: '#ECFDF5', fg: '#065F46', border: '#A7F3D0' };
+    case 'CHECKED_IN':       return { bg: '#EFF6FF', fg: '#1E40AF', border: '#BFDBFE' };
+    case 'CHECKED_OUT':      return { bg: '#F8FAFC', fg: '#64748B', border: '#E2E8F0' };
     case 'CANCELLED':        return { bg: '#FEF2F2', fg: '#B91C1C', border: '#FECACA' };
     case 'REJECTED':         return { bg: '#FEF2F2', fg: '#B91C1C', border: '#FECACA' };
-    case 'NO_SHOW':          return { bg: '#F3F4F6', fg: '#374151', border: '#D1D5DB' };
-    case 'SUCCEEDED':        return { bg: '#E8F5F4', fg: '#0B6B66', border: '#B2DFDB' };
+    case 'NO_SHOW':          return { bg: '#F8FAFC', fg: '#64748B', border: '#E2E8F0' };
+    case 'SUCCEEDED':        return { bg: '#ECFDF5', fg: '#065F46', border: '#A7F3D0' };
     case 'FAILED':           return { bg: '#FEF2F2', fg: '#B91C1C', border: '#FECACA' };
-    case 'REFUNDED':         return { bg: '#EFF6FF', fg: '#1D4ED8', border: '#BFDBFE' };
-    case 'ACTIVE':           return { bg: '#E8F5F4', fg: '#0B6B66', border: '#B2DFDB' };
-    case 'PENDING_APPROVAL': return { bg: '#FDF8EC', fg: '#A67E2E', border: '#FDE68A' };
+    case 'REFUNDED':         return { bg: '#EFF6FF', fg: '#1E40AF', border: '#BFDBFE' };
+    case 'ACTIVE':           return { bg: '#ECFDF5', fg: '#065F46', border: '#A7F3D0' };
+    case 'PENDING_APPROVAL': return { bg: '#FEF9E7', fg: '#92400E', border: '#FDE68A' };
     case 'SUSPENDED':        return { bg: '#FEF2F2', fg: '#B91C1C', border: '#FECACA' };
     case 'DRAFT':            return { bg: '#F8FAFC', fg: '#64748B', border: '#E2E8F0' };
-    case 'OPEN':             return { bg: '#F8F9FB', fg: '#6B7280', border: '#E5E7EB' };
-    case 'UNDER_REVIEW':     return { bg: '#EFF6FF', fg: '#1D4ED8', border: '#BFDBFE' };
-    case 'RESOLVED':         return { bg: '#E8F5F4', fg: '#0B6B66', border: '#B2DFDB' };
-    case 'CLOSED':           return { bg: '#F8F9FB', fg: '#6B7280', border: '#E5E7EB' };
-    case 'DISMISSED':        return { bg: '#F8F9FB', fg: '#6B7280', border: '#E5E7EB' };
+    case 'OPEN':             return { bg: '#F8FAFC', fg: '#64748B', border: '#E2E8F0' };
+    case 'UNDER_REVIEW':     return { bg: '#EFF6FF', fg: '#1E40AF', border: '#BFDBFE' };
+    case 'RESOLVED':         return { bg: '#ECFDF5', fg: '#065F46', border: '#A7F3D0' };
+    case 'CLOSED':           return { bg: '#F8FAFC', fg: '#64748B', border: '#E2E8F0' };
+    case 'DISMISSED':        return { bg: '#F8FAFC', fg: '#64748B', border: '#E2E8F0' };
     default: return { bg: colors.paperDeep, fg: colors.inkSoft, border: colors.lineStrong };
   }
 };

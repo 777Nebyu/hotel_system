@@ -16,7 +16,6 @@ import {
   StyleSheet,
   Text,
   View,
-  type ViewStyle,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -135,7 +134,7 @@ export default function BookingReviewCard({
   leadGuestPhone,
   cancellationHours = 48,
 }: BookingReviewCardProps) {
-  const { colorScheme, colors: c } = useTheme();
+  const { colorScheme } = useTheme();
   const t = colorScheme === 'dark' ? DARK : LIGHT;
 
   const isCash = paymentMethod === 'CASH_AT_HOTEL';

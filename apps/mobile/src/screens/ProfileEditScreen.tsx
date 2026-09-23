@@ -23,7 +23,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { signOut as signOutAction, saveSessionToStorage, updateUser } from '../store/authSlice';
 import { request, requestFormData } from '../api';
 import { Button, Card } from '../components/Shared';
-import { colors } from '../theme';
+import { colors, darkColors } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import { updateProfileSchema } from '../lib/schemas';
 import { getStoredPushToken, deregisterPushToken } from '../lib/notifications';
@@ -32,7 +32,7 @@ import { useResponsivePadding } from '../hooks/useResponsivePadding';
 import { hapticLight, hapticMedium } from '../hooks/useHaptics';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
-const PREFS_KEY = 'yayetech.notification.prefs';
+const PREFS_KEY = 'luxsty.notification.prefs';
 
 export default function ProfileEditScreen() {
   const insets = useSafeAreaInsets();
@@ -240,10 +240,10 @@ export default function ProfileEditScreen() {
     <>
       <StatusBar
         barStyle={dark ? 'light-content' : 'dark-content'}
-        backgroundColor={dark ? '#07111E' : '#F4F6FB'}
+        backgroundColor={dark ? darkColors.paper : palette.paper}
       />
       <ScrollView
-        style={[styles.container, { backgroundColor: dark ? '#07111E' : '#F4F6FB' }]}
+        style={[styles.container, { backgroundColor: dark ? darkColors.paper : palette.paper }]}
         contentContainerStyle={[
           styles.content,
           {
@@ -254,15 +254,13 @@ export default function ProfileEditScreen() {
       ]}
       showsVerticalScrollIndicator={false}
     >
-      <StatusBar barStyle={dark ? 'light-content' : 'dark-content'} />
-
       {/* ─── Header Card ─── */}
       <View
         style={[
           styles.headerCard,
           {
-            backgroundColor: dark ? '#101C2D' : '#FFFFFF',
-            borderColor: dark ? '#1E2F46' : '#E2E8F0',
+            backgroundColor: dark ? darkColors.surface : palette.surface,
+            borderColor: dark ? darkColors.line : palette.line,
           },
         ]}
       >
@@ -275,17 +273,17 @@ export default function ProfileEditScreen() {
             </View>
           )}
           {session && (
-            <View style={[styles.avatarBadge, { backgroundColor: '#C89B3C' }]}>
+            <View style={[styles.avatarBadge, { backgroundColor: '#D4AF37' }]}>
               <Ionicons name="camera" size={12} color="#FFFFFF" />
             </View>
           )}
         </Pressable>
 
         <View style={styles.headerMeta}>
-          <Text style={[styles.userName, { color: dark ? '#F8FAFC' : colors.ink }]} numberOfLines={1}>
+          <Text style={[styles.userName, { color: dark ? darkColors.ink : palette.ink }]} numberOfLines={1}>
             {session?.user.fullName ?? 'Guest Traveler'}
           </Text>
-          <Text style={[styles.userEmail, { color: dark ? '#A4B4CD' : colors.inkMuted }]} numberOfLines={1}>
+          <Text style={[styles.userEmail, { color: dark ? darkColors.inkMuted : palette.inkMuted }]} numberOfLines={1}>
             {session?.user.email ?? 'Sign in to access your profile'}
           </Text>
           <View style={[styles.membershipBadge, { backgroundColor: dark ? '#16273E' : '#F4F1FF' }]}>
@@ -310,7 +308,7 @@ export default function ProfileEditScreen() {
           ]}
         >
           <View style={[styles.roleIconCircle, { backgroundColor: dark ? '#1E3A5F' : '#DCFCE7' }]}>
-            <Ionicons name="shield-half" size={18} color={dark ? '#6EE7B7' : '#16A34A'} />
+            <Ionicons name="shield-half" size={18} color={dark ? '#6EE7B7' : '#10B981'} />
           </View>
           <View style={styles.roleBannerMeta}>
             <Text style={[styles.roleBannerTitle, { color: dark ? '#F8FAFC' : '#14532D' }]}>
@@ -320,7 +318,7 @@ export default function ProfileEditScreen() {
               Access staff controls & hotel operations
             </Text>
           </View>
-          <Ionicons name="arrow-forward-circle" size={22} color={dark ? '#6EE7B7' : '#16A34A'} />
+          <Ionicons name="arrow-forward-circle" size={22} color={dark ? '#6EE7B7' : '#10B981'} />
         </Pressable>
       )}
 
@@ -330,8 +328,8 @@ export default function ProfileEditScreen() {
           style={[
             styles.card,
             {
-              backgroundColor: dark ? '#101C2D' : '#FFFFFF',
-              borderColor: dark ? '#1E2F46' : '#E2E8F0',
+              backgroundColor: dark ? darkColors.surface : palette.surface,
+              borderColor: dark ? darkColors.line : palette.line,
               alignItems: 'center',
               paddingVertical: 24,
             },
@@ -340,10 +338,10 @@ export default function ProfileEditScreen() {
           <View style={[styles.guestIconCircle, { backgroundColor: dark ? '#16273E' : '#E6F4F2' }]}>
             <Ionicons name="person-circle-outline" size={48} color={palette.teal} />
           </View>
-          <Text style={[styles.guestTitle, { color: dark ? '#F8FAFC' : colors.ink }]}>
+          <Text style={[styles.guestTitle, { color: dark ? darkColors.ink : palette.ink }]}>
             Sign in to your account
           </Text>
-          <Text style={[styles.guestSubtitle, { color: dark ? '#9DB1C9' : colors.inkMuted }]}>
+          <Text style={[styles.guestSubtitle, { color: dark ? darkColors.inkSoft : palette.inkMuted }]}>
             Save favorites, manage your bookings, and customize your luxury travel experience.
           </Text>
           <Pressable
@@ -354,7 +352,7 @@ export default function ProfileEditScreen() {
             <Text style={styles.primaryAuthBtnText}>Sign In / Register</Text>
           </Pressable>
 
-          <View style={[styles.divider, { width: '100%', marginVertical: 18, backgroundColor: dark ? '#24324A' : '#E2E8F0' }]} />
+          <View style={[styles.divider, { width: '100%', marginVertical: 18, backgroundColor: dark ? darkColors.lineStrong : palette.line }]} />
 
           <View style={{ width: '100%' }}>
             <MenuItem label="App settings" icon="settings" onPress={() => navigate('Settings')} dark={dark} />
@@ -372,14 +370,14 @@ export default function ProfileEditScreen() {
               style={[
                 styles.tab,
                 activeTab === 'profile' && styles.tabActive,
-                { borderColor: dark ? '#24324A' : '#E2E8F0' },
+                { borderColor: dark ? darkColors.lineStrong : palette.line },
               ]}
             >
               <Text
                 style={[
                   styles.tabText,
                   activeTab === 'profile' && styles.tabTextActive,
-                  { color: activeTab === 'profile' ? '#FFFFFF' : dark ? '#C7D2FE' : '#475569' },
+                  { color: activeTab === 'profile' ? '#FFFFFF' : dark ? darkColors.inkSoft : palette.inkSoft },
                 ]}
               >
                 Profile
@@ -393,14 +391,14 @@ export default function ProfileEditScreen() {
               style={[
                 styles.tab,
                 activeTab === 'security' && styles.tabActive,
-                { borderColor: dark ? '#24324A' : '#E2E8F0' },
+                { borderColor: dark ? darkColors.lineStrong : palette.line },
               ]}
             >
               <Text
                 style={[
                   styles.tabText,
                   activeTab === 'security' && styles.tabTextActive,
-                  { color: activeTab === 'security' ? '#FFFFFF' : dark ? '#C7D2FE' : '#475569' },
+                  { color: activeTab === 'security' ? '#FFFFFF' : dark ? darkColors.inkSoft : palette.inkSoft },
                 ]}
               >
                 Security
@@ -413,17 +411,17 @@ export default function ProfileEditScreen() {
             style={[
               styles.card,
               {
-                backgroundColor: dark ? '#101C2D' : '#FFFFFF',
-                borderColor: dark ? '#1E2F46' : '#E2E8F0',
+                backgroundColor: dark ? darkColors.surface : palette.surface,
+                borderColor: dark ? darkColors.line : palette.line,
               },
             ]}
           >
-            <Text style={[styles.sectionLabel, { color: dark ? '#F8FAFC' : colors.ink }]}>
+            <Text style={[styles.sectionLabel, { color: dark ? darkColors.ink : palette.ink }]}>
               Profile details
             </Text>
 
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: dark ? '#9DB1C9' : colors.inkMuted }]}>
+              <Text style={[styles.fieldLabel, { color: dark ? darkColors.inkSoft : palette.inkMuted }]}>
                 Full name
               </Text>
               <TextInput
@@ -436,19 +434,19 @@ export default function ProfileEditScreen() {
                 style={[
                   styles.input,
                   {
-                    backgroundColor: dark ? '#16273E' : '#F8FAFC',
-                    borderColor: fieldErrors.fullName ? '#F87171' : dark ? '#24324A' : '#E2E8F0',
-                    color: dark ? '#F8FAFC' : colors.ink,
+                    backgroundColor: dark ? darkColors.paperDeep : palette.paper,
+                    borderColor: fieldErrors.fullName ? (dark ? darkColors.brick : palette.brick) : dark ? darkColors.lineStrong : palette.line,
+                    color: dark ? darkColors.ink : palette.ink,
                   },
                 ]}
-                placeholderTextColor={dark ? '#8FA1B3' : '#64748B'}
+                placeholderTextColor={dark ? darkColors.inkMuted : palette.inkMuted}
                 autoCapitalize="words"
               />
               {fieldErrors.fullName ? <Text style={styles.errorText}>{fieldErrors.fullName}</Text> : null}
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: dark ? '#9DB1C9' : colors.inkMuted }]}>
+              <Text style={[styles.fieldLabel, { color: dark ? darkColors.inkSoft : palette.inkMuted }]}>
                 Email address
               </Text>
               <TextInput
@@ -456,9 +454,9 @@ export default function ProfileEditScreen() {
                 style={[
                   styles.input,
                   {
-                    backgroundColor: dark ? '#16273E' : '#F8FAFC',
-                    borderColor: dark ? '#24324A' : '#E2E8F0',
-                    color: dark ? '#A4B4CD' : '#64748B',
+                    backgroundColor: dark ? darkColors.paperDeep : palette.paper,
+                    borderColor: dark ? darkColors.lineStrong : palette.line,
+                    color: dark ? darkColors.inkMuted : palette.inkMuted,
                   },
                 ]}
                 editable={false}
@@ -466,7 +464,7 @@ export default function ProfileEditScreen() {
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={[styles.fieldLabel, { color: dark ? '#9DB1C9' : colors.inkMuted }]}>
+              <Text style={[styles.fieldLabel, { color: dark ? darkColors.inkSoft : palette.inkMuted }]}>
                 Phone number
               </Text>
               <TextInput
@@ -479,12 +477,12 @@ export default function ProfileEditScreen() {
                 style={[
                   styles.input,
                   {
-                    backgroundColor: dark ? '#16273E' : '#F8FAFC',
-                    borderColor: fieldErrors.phone ? '#F87171' : dark ? '#24324A' : '#E2E8F0',
-                    color: dark ? '#F8FAFC' : colors.ink,
+                    backgroundColor: dark ? darkColors.paperDeep : palette.paper,
+                    borderColor: fieldErrors.phone ? (dark ? darkColors.brick : palette.brick) : dark ? darkColors.lineStrong : palette.line,
+                    color: dark ? darkColors.ink : palette.ink,
                   },
                 ]}
-                placeholderTextColor={dark ? '#8FA1B3' : '#64748B'}
+                placeholderTextColor={dark ? darkColors.inkMuted : palette.inkMuted}
                 keyboardType="phone-pad"
                 placeholder="+251 9XX XXX XXX"
               />
@@ -499,18 +497,18 @@ export default function ProfileEditScreen() {
             style={[
               styles.card,
               {
-                backgroundColor: dark ? '#101C2D' : '#FFFFFF',
-                borderColor: dark ? '#1E2F46' : '#E2E8F0',
+                backgroundColor: dark ? darkColors.surface : palette.surface,
+                borderColor: dark ? darkColors.line : palette.line,
               },
             ]}
           >
-            <Text style={[styles.sectionLabel, { color: dark ? '#F8FAFC' : colors.ink }]}>
+            <Text style={[styles.sectionLabel, { color: dark ? darkColors.ink : palette.ink }]}>
               Preferences
             </Text>
             <ToggleRow label="Email deals" hint="Exclusive seasonal offers" value={emailDeals} onChange={setEmailDeals} dark={dark} />
-            <View style={[styles.divider, { backgroundColor: dark ? '#24324A' : '#E2E8F0' }]} />
+            <View style={[styles.divider, { backgroundColor: dark ? darkColors.lineStrong : palette.line }]} />
             <ToggleRow label="SMS updates" hint="Booking confirmations & alerts" value={smsUpdates} onChange={setSmsUpdates} dark={dark} />
-            <View style={[styles.divider, { backgroundColor: dark ? '#24324A' : '#E2E8F0' }]} />
+            <View style={[styles.divider, { backgroundColor: dark ? darkColors.lineStrong : palette.line }]} />
             <ToggleRow label="Amharic emails" hint="Receive communications in Amharic" value={amharicEmails} onChange={setAmharicEmails} dark={dark} />
           </Card>
 
@@ -519,12 +517,12 @@ export default function ProfileEditScreen() {
             style={[
               styles.card,
               {
-                backgroundColor: dark ? '#101C2D' : '#FFFFFF',
-                borderColor: dark ? '#1E2F46' : '#E2E8F0',
+                backgroundColor: dark ? darkColors.surface : palette.surface,
+                borderColor: dark ? darkColors.line : palette.line,
               },
             ]}
           >
-            <Text style={[styles.sectionLabel, { color: dark ? '#F8FAFC' : colors.ink }]}>
+            <Text style={[styles.sectionLabel, { color: dark ? darkColors.ink : palette.ink }]}>
               Your account
             </Text>
             <MenuItem label="Account security & credentials" icon="shield-checkmark" onPress={() => navigate('AccountSecurity')} dark={dark} />
@@ -550,12 +548,12 @@ export default function ProfileEditScreen() {
             style={[
               styles.signOutButton,
               {
-                backgroundColor: dark ? '#101C2D' : '#FFFFFF',
-                borderColor: dark ? '#1E2F46' : '#E2E8F0',
+                backgroundColor: dark ? darkColors.surface : palette.surface,
+                borderColor: dark ? darkColors.line : palette.line,
               },
             ]}
           >
-            <Ionicons name="log-out-outline" size={18} color="#F87171" style={{ marginRight: 6 }} />
+            <Ionicons name="log-out-outline" size={18} color={dark ? darkColors.brick : palette.brick} style={{ marginRight: 6 }} />
             <Text style={styles.signOutText}>Sign out</Text>
           </Pressable>
         </>
@@ -581,13 +579,13 @@ function ToggleRow({
   return (
     <View style={styles.toggleRow}>
       <View style={styles.toggleTextWrap}>
-        <Text style={[styles.toggleLabel, { color: dark ? '#F8FAFC' : colors.ink }]}>{label}</Text>
-        <Text style={[styles.toggleHint, { color: dark ? '#A4B4CD' : colors.inkMuted }]}>{hint}</Text>
+        <Text style={[styles.toggleLabel, { color: dark ? darkColors.ink : colors.ink }]}>{label}</Text>
+        <Text style={[styles.toggleHint, { color: dark ? darkColors.inkMuted : colors.inkMuted }]}>{hint}</Text>
       </View>
       <Switch
         value={value}
         onValueChange={onChange}
-        trackColor={{ true: '#0F766E', false: '#64748B' }}
+        trackColor={{ true: dark ? darkColors.teal : colors.teal, false: dark ? darkColors.inkMuted : colors.inkMuted }}
         thumbColor="#FFFFFF"
       />
     </View>
@@ -612,13 +610,13 @@ function MenuItem({
       accessibilityLabel={label}
       style={({ pressed }) => [
         styles.menuItem,
-        { backgroundColor: dark ? '#16273E' : '#F8FAFC' },
+        { backgroundColor: dark ? darkColors.paperDeep : colors.paper },
         pressed && { opacity: 0.75 },
       ]}
     >
-      <Ionicons name={icon} size={18} color={dark ? '#9DB1C9' : '#475569'} style={styles.menuIcon} />
-      <Text style={[styles.menuLabel, { color: dark ? '#F8FAFC' : colors.ink }]}>{label}</Text>
-      <Ionicons name="chevron-forward" size={16} color={dark ? '#9DB1C9' : '#64748B'} />
+      <Ionicons name={icon} size={18} color={dark ? darkColors.inkSoft : colors.inkSoft} style={styles.menuIcon} />
+      <Text style={[styles.menuLabel, { color: dark ? darkColors.ink : colors.ink }]}>{label}</Text>
+      <Ionicons name="chevron-forward" size={16} color={dark ? darkColors.inkSoft : colors.inkMuted} />
     </Pressable>
   );
 }
@@ -739,7 +737,7 @@ const styles = StyleSheet.create({
 
   tabs: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   tab: { flex: 1, borderRadius: 14, borderWidth: 1, paddingVertical: 10, alignItems: 'center' },
-  tabActive: { backgroundColor: '#0F766E', borderColor: '#0F766E' },
+  tabActive: { backgroundColor: '#0F2942', borderColor: '#0F2942' },
   tabText: { fontSize: 13, fontWeight: '700' },
   tabTextActive: { color: '#FFFFFF' },
 

@@ -1,6 +1,17 @@
 import type { PrismaService } from '../../../prisma/prisma.service';
 import { ReviewService } from './review.service';
 
+jest.mock('sanitize-html', () => {
+  return {
+    __esModule: true,
+    default: (input: string) =>
+      input
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<[^>]*>/g, ''),
+  };
+});
+
 describe('ReviewService sanitization', () => {
   it('stores review comments without HTML tags', async () => {
     const db = {

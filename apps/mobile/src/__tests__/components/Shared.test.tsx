@@ -80,13 +80,13 @@ describe('Shared Components', () => {
     it('renders', () => {
       const { getByText } = render(<Logo />);
       expect(getByText('Y')).toBeTruthy();
-      expect(getByText('YayeTech')).toBeTruthy();
+      expect(getByText('LuxSty')).toBeTruthy();
     });
 
     it('renders without wordmark when showWordmark is false', () => {
       const { getByText, queryByText } = render(<Logo showWordmark={false} />);
       expect(getByText('Y')).toBeTruthy();
-      expect(queryByText('YayeTech')).toBeNull();
+      expect(queryByText('LuxSty')).toBeNull();
     });
   });
 });

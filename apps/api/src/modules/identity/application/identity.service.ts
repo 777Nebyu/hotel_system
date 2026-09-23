@@ -13,6 +13,7 @@ import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
 import { Inject } from '@nestjs/common';
 import { randomBytes, randomUUID } from 'crypto';
 import * as bcrypt from 'bcrypt';
+import { OAuth2Client } from 'google-auth-library';
 import type {
   DeactivateAccountInput,
   LoginInput,
@@ -78,6 +79,7 @@ export interface AuthResult {
 @Injectable()
 export class IdentityService {
   private readonly logger = new Logger(IdentityService.name);
+  private readonly googleClient = new OAuth2Client();
 
   constructor(
     private readonly db: PrismaService,
@@ -317,19 +319,17 @@ export class IdentityService {
 
     if (dto.credential) {
       try {
-        const parts = dto.credential.split('.');
-        if (parts.length === 3) {
-          const payload = JSON.parse(
-            Buffer.from(parts[1], 'base64').toString('utf8'),
-          );
-          if (payload.email) {
-            email = payload.email;
-            fullName = payload.name || payload.given_name || fullName;
-            profilePhotoUrl = payload.picture || profilePhotoUrl;
-          }
+        const ticket = await this.googleClient.verifyIdToken({
+          idToken: dto.credential,
+        });
+        const payload = ticket.getPayload();
+        if (payload?.email) {
+          email = payload.email;
+          fullName = payload.name || payload.given_name || fullName;
+          profilePhotoUrl = payload.picture || profilePhotoUrl;
         }
       } catch (e) {
-        this.logger.warn(`Failed to parse Google credential token: ${e}`);
+        this.logger.warn(`Failed to verify Google credential token: ${e}`);
       }
     }
 

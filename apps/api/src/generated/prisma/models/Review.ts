@@ -44,6 +44,9 @@ export type ReviewMinAggregateOutputType = {
   response: string | null
   respondedAt: Date | null
   respondedById: string | null
+  flagged: boolean | null
+  flagReason: string | null
+  flaggedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -58,6 +61,9 @@ export type ReviewMaxAggregateOutputType = {
   response: string | null
   respondedAt: Date | null
   respondedById: string | null
+  flagged: boolean | null
+  flagReason: string | null
+  flaggedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -73,6 +79,9 @@ export type ReviewCountAggregateOutputType = {
   response: number
   respondedAt: number
   respondedById: number
+  flagged: number
+  flagReason: number
+  flaggedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -97,6 +106,9 @@ export type ReviewMinAggregateInputType = {
   response?: true
   respondedAt?: true
   respondedById?: true
+  flagged?: true
+  flagReason?: true
+  flaggedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -111,6 +123,9 @@ export type ReviewMaxAggregateInputType = {
   response?: true
   respondedAt?: true
   respondedById?: true
+  flagged?: true
+  flagReason?: true
+  flaggedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -126,6 +141,9 @@ export type ReviewCountAggregateInputType = {
   response?: true
   respondedAt?: true
   respondedById?: true
+  flagged?: true
+  flagReason?: true
+  flaggedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -228,6 +246,9 @@ export type ReviewGroupByOutputType = {
   response: string | null
   respondedAt: Date | null
   respondedById: string | null
+  flagged: boolean
+  flagReason: string | null
+  flaggedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: ReviewCountAggregateOutputType | null
@@ -266,6 +287,9 @@ export type ReviewWhereInput = {
   response?: Prisma.StringNullableFilter<"Review"> | string | null
   respondedAt?: Prisma.DateTimeNullableFilter<"Review"> | Date | string | null
   respondedById?: Prisma.StringNullableFilter<"Review"> | string | null
+  flagged?: Prisma.BoolFilter<"Review"> | boolean
+  flagReason?: Prisma.StringNullableFilter<"Review"> | string | null
+  flaggedAt?: Prisma.DateTimeNullableFilter<"Review"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -285,6 +309,9 @@ export type ReviewOrderByWithRelationInput = {
   response?: Prisma.SortOrderInput | Prisma.SortOrder
   respondedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   respondedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  flagged?: Prisma.SortOrder
+  flagReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  flaggedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -307,6 +334,9 @@ export type ReviewWhereUniqueInput = Prisma.AtLeast<{
   response?: Prisma.StringNullableFilter<"Review"> | string | null
   respondedAt?: Prisma.DateTimeNullableFilter<"Review"> | Date | string | null
   respondedById?: Prisma.StringNullableFilter<"Review"> | string | null
+  flagged?: Prisma.BoolFilter<"Review"> | boolean
+  flagReason?: Prisma.StringNullableFilter<"Review"> | string | null
+  flaggedAt?: Prisma.DateTimeNullableFilter<"Review"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -326,6 +356,9 @@ export type ReviewOrderByWithAggregationInput = {
   response?: Prisma.SortOrderInput | Prisma.SortOrder
   respondedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   respondedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  flagged?: Prisma.SortOrder
+  flagReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  flaggedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ReviewCountOrderByAggregateInput
@@ -349,6 +382,9 @@ export type ReviewScalarWhereWithAggregatesInput = {
   response?: Prisma.StringNullableWithAggregatesFilter<"Review"> | string | null
   respondedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Review"> | Date | string | null
   respondedById?: Prisma.StringNullableWithAggregatesFilter<"Review"> | string | null
+  flagged?: Prisma.BoolWithAggregatesFilter<"Review"> | boolean
+  flagReason?: Prisma.StringNullableWithAggregatesFilter<"Review"> | string | null
+  flaggedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Review"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Review"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Review"> | Date | string
 }
@@ -360,6 +396,9 @@ export type ReviewCreateInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: string | null
   respondedAt?: Date | string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutReviewsInput
@@ -379,6 +418,9 @@ export type ReviewUncheckedCreateInput = {
   response?: string | null
   respondedAt?: Date | string | null
   respondedById?: string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -390,6 +432,9 @@ export type ReviewUpdateInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutReviewsNestedInput
@@ -409,6 +454,9 @@ export type ReviewUncheckedUpdateInput = {
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   respondedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -424,6 +472,9 @@ export type ReviewCreateManyInput = {
   response?: string | null
   respondedAt?: Date | string | null
   respondedById?: string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -435,6 +486,9 @@ export type ReviewUpdateManyMutationInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -450,6 +504,9 @@ export type ReviewUncheckedUpdateManyInput = {
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   respondedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -480,6 +537,9 @@ export type ReviewCountOrderByAggregateInput = {
   response?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrder
   respondedById?: Prisma.SortOrder
+  flagged?: Prisma.SortOrder
+  flagReason?: Prisma.SortOrder
+  flaggedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -498,6 +558,9 @@ export type ReviewMaxOrderByAggregateInput = {
   response?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrder
   respondedById?: Prisma.SortOrder
+  flagged?: Prisma.SortOrder
+  flagReason?: Prisma.SortOrder
+  flaggedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -512,6 +575,9 @@ export type ReviewMinOrderByAggregateInput = {
   response?: Prisma.SortOrder
   respondedAt?: Prisma.SortOrder
   respondedById?: Prisma.SortOrder
+  flagged?: Prisma.SortOrder
+  flagReason?: Prisma.SortOrder
+  flaggedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -685,6 +751,9 @@ export type ReviewCreateWithoutUserInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: string | null
   respondedAt?: Date | string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   hotel: Prisma.HotelCreateNestedOneWithoutReviewsInput
@@ -702,6 +771,9 @@ export type ReviewUncheckedCreateWithoutUserInput = {
   response?: string | null
   respondedAt?: Date | string | null
   respondedById?: string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -723,6 +795,9 @@ export type ReviewCreateWithoutRespondedByInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: string | null
   respondedAt?: Date | string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutReviewsInput
@@ -740,6 +815,9 @@ export type ReviewUncheckedCreateWithoutRespondedByInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: string | null
   respondedAt?: Date | string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -784,6 +862,9 @@ export type ReviewScalarWhereInput = {
   response?: Prisma.StringNullableFilter<"Review"> | string | null
   respondedAt?: Prisma.DateTimeNullableFilter<"Review"> | Date | string | null
   respondedById?: Prisma.StringNullableFilter<"Review"> | string | null
+  flagged?: Prisma.BoolFilter<"Review"> | boolean
+  flagReason?: Prisma.StringNullableFilter<"Review"> | string | null
+  flaggedAt?: Prisma.DateTimeNullableFilter<"Review"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Review"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Review"> | Date | string
 }
@@ -811,6 +892,9 @@ export type ReviewCreateWithoutHotelInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: string | null
   respondedAt?: Date | string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutReviewsInput
@@ -828,6 +912,9 @@ export type ReviewUncheckedCreateWithoutHotelInput = {
   response?: string | null
   respondedAt?: Date | string | null
   respondedById?: string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -865,6 +952,9 @@ export type ReviewCreateWithoutBookingInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: string | null
   respondedAt?: Date | string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutReviewsInput
@@ -882,6 +972,9 @@ export type ReviewUncheckedCreateWithoutBookingInput = {
   response?: string | null
   respondedAt?: Date | string | null
   respondedById?: string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -909,6 +1002,9 @@ export type ReviewUpdateWithoutBookingInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutReviewsNestedInput
@@ -926,6 +1022,9 @@ export type ReviewUncheckedUpdateWithoutBookingInput = {
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   respondedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -940,6 +1039,9 @@ export type ReviewCreateManyUserInput = {
   response?: string | null
   respondedAt?: Date | string | null
   respondedById?: string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -954,6 +1056,9 @@ export type ReviewCreateManyRespondedByInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: string | null
   respondedAt?: Date | string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -965,6 +1070,9 @@ export type ReviewUpdateWithoutUserInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hotel?: Prisma.HotelUpdateOneRequiredWithoutReviewsNestedInput
@@ -982,6 +1090,9 @@ export type ReviewUncheckedUpdateWithoutUserInput = {
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   respondedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -996,6 +1107,9 @@ export type ReviewUncheckedUpdateManyWithoutUserInput = {
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   respondedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1007,6 +1121,9 @@ export type ReviewUpdateWithoutRespondedByInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutReviewsNestedInput
@@ -1024,6 +1141,9 @@ export type ReviewUncheckedUpdateWithoutRespondedByInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1038,6 +1158,9 @@ export type ReviewUncheckedUpdateManyWithoutRespondedByInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1052,6 +1175,9 @@ export type ReviewCreateManyHotelInput = {
   response?: string | null
   respondedAt?: Date | string | null
   respondedById?: string | null
+  flagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1063,6 +1189,9 @@ export type ReviewUpdateWithoutHotelInput = {
   photos?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutReviewsNestedInput
@@ -1080,6 +1209,9 @@ export type ReviewUncheckedUpdateWithoutHotelInput = {
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   respondedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1094,6 +1226,9 @@ export type ReviewUncheckedUpdateManyWithoutHotelInput = {
   response?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   respondedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   respondedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1111,6 +1246,9 @@ export type ReviewSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   response?: boolean
   respondedAt?: boolean
   respondedById?: boolean
+  flagged?: boolean
+  flagReason?: boolean
+  flaggedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1130,6 +1268,9 @@ export type ReviewSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   response?: boolean
   respondedAt?: boolean
   respondedById?: boolean
+  flagged?: boolean
+  flagReason?: boolean
+  flaggedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1149,6 +1290,9 @@ export type ReviewSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   response?: boolean
   respondedAt?: boolean
   respondedById?: boolean
+  flagged?: boolean
+  flagReason?: boolean
+  flaggedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1168,11 +1312,14 @@ export type ReviewSelectScalar = {
   response?: boolean
   respondedAt?: boolean
   respondedById?: boolean
+  flagged?: boolean
+  flagReason?: boolean
+  flaggedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ReviewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "hotelId" | "bookingId" | "rating" | "comment" | "photos" | "response" | "respondedAt" | "respondedById" | "createdAt" | "updatedAt", ExtArgs["result"]["review"]>
+export type ReviewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "hotelId" | "bookingId" | "rating" | "comment" | "photos" | "response" | "respondedAt" | "respondedById" | "flagged" | "flagReason" | "flaggedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["review"]>
 export type ReviewInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   hotel?: boolean | Prisma.HotelDefaultArgs<ExtArgs>
@@ -1211,6 +1358,9 @@ export type $ReviewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     response: string | null
     respondedAt: Date | null
     respondedById: string | null
+    flagged: boolean
+    flagReason: string | null
+    flaggedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["review"]>
@@ -1650,6 +1800,9 @@ export interface ReviewFieldRefs {
   readonly response: Prisma.FieldRef<"Review", 'String'>
   readonly respondedAt: Prisma.FieldRef<"Review", 'DateTime'>
   readonly respondedById: Prisma.FieldRef<"Review", 'String'>
+  readonly flagged: Prisma.FieldRef<"Review", 'Boolean'>
+  readonly flagReason: Prisma.FieldRef<"Review", 'String'>
+  readonly flaggedAt: Prisma.FieldRef<"Review", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Review", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Review", 'DateTime'>
 }

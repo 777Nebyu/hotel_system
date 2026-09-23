@@ -10,7 +10,7 @@ const STORAGE_KEY = 'mock_payment_scenario';
 export type MockScenario = 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'PENDING' | 'TIMEOUT' | 'EXPIRED' | 'DUPLICATE';
 
 export const MOCK_SCENARIOS: { id: MockScenario; label: string; icon: string; color: string }[] = [
-  { id: 'SUCCESS', label: 'Success', icon: 'checkmark-circle', color: '#16A34A' },
+  { id: 'SUCCESS', label: 'Success', icon: 'checkmark-circle', color: '#10B981' },
   { id: 'FAILED', label: 'Failed', icon: 'close-circle', color: '#EF4444' },
   { id: 'CANCELLED', label: 'Cancelled', icon: 'ban', color: '#F59E0B' },
   { id: 'PENDING', label: 'Pending (10s delay)', icon: 'time', color: '#3B82F6' },

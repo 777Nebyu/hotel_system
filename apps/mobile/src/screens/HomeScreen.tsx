@@ -50,7 +50,7 @@ function statusChip(status: string, dark: boolean): { bg: string; fg: string; la
     }
   }
   switch (status) {
-    case 'CONFIRMED': return { bg: '#D9F7E8', fg: '#0F766E', label: 'Confirmed' };
+    case 'CONFIRMED': return { bg: '#DBEAFE', fg: '#0F2942', label: 'Confirmed' };
     case 'PENDING': return { bg: '#FFF4D6', fg: '#B45309', label: 'Pending' };
     case 'CHECKED_IN': return { bg: '#DBEAFE', fg: '#1D4ED8', label: 'Checked in' };
     default: return { bg: '#E5E7EB', fg: '#475569', label: status };
@@ -217,7 +217,7 @@ export default function HomeScreen() {
     >
       <View style={styles.topBar}>
         <View>
-          <Text style={[styles.brandHeader, { color: palette.teal }]}>YayeTech</Text>
+          <Text style={[styles.brandHeader, { color: palette.teal }]}>LuxSty</Text>
           <Text style={[styles.greeting, { color: dark ? '#B6C3D9' : colors.inkMuted }]}>{greeting},</Text>
           <Text style={[styles.greetingName, { color: dark ? '#F8FAFC' : colors.ink }]}>{firstName} 👋</Text>
         </View>

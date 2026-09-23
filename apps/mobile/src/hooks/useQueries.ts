@@ -150,6 +150,7 @@ export const useFavorites = (token: string) => {
       2 * 60 * 1000
     ),
     staleTime: 2 * 60 * 1000,
+    enabled: !!token,
   });
 };
 
@@ -319,11 +320,9 @@ export const useManagerHotels = (token: string) => {
 };
 
 export const useManagerRooms = (token: string, hotelId: string | null) => {
-  const today = new Date().toISOString().slice(0, 10);
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   return useQuery({
     queryKey: ['managerRooms', hotelId],
-    queryFn: () => authorizedFetch<any[]>(`/catalog/hotels/${hotelId}/rooms?checkIn=${today}&checkOut=${tomorrow}`, token),
+    queryFn: () => authorizedFetch<any[]>(`/catalog/hotels/${hotelId}/rooms/operational`, token),
     staleTime: 1 * 60 * 1000,
     enabled: !!token && !!hotelId,
   });

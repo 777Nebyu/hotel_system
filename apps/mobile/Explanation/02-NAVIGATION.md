@@ -43,4 +43,4 @@ Most screens use `useNavigation()` and `useRoute()` from React Navigation. Some 
 
 ## Deep links and notification taps
 
-Configured links include `yayetech://hotel/:hotelId` and `yayetech://booking/:bookingId`. Push taps are handled in `App.tsx`: customer booking alerts open `BookingDetail`, while booking alerts for staff, managers, and admins open `ManagerBookings`.
+Configured links include `luxstyhotel://hotel/:hotelId` and `luxstyhotel://booking/:bookingId`. Push taps are handled in `App.tsx`: customer booking alerts open `BookingDetail`, while booking alerts for staff, managers, and admins open `ManagerBookings`.

@@ -383,6 +383,20 @@ export class AdminStaffService {
     return { removed: true };
   }
 
+  async listAllAssignments() {
+    return this.db.staffHotel.findMany({
+      orderBy: { assignedAt: 'desc' },
+      include: {
+        staff: {
+          select: { id: true, fullName: true, email: true, phone: true, role: true, isActive: true },
+        },
+        hotel: {
+          select: { id: true, name: true, status: true },
+        },
+      },
+    });
+  }
+
   private async requireHotelExists(hotelId: string) {
     const hotel = await this.db.hotel.findUnique({ where: { id: hotelId } });
     if (!hotel) throw new NotFoundException('Hotel not found');

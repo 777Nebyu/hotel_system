@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
@@ -29,6 +29,40 @@ export class AdminReviewService {
       }),
     ]);
     return { data: reviews, total, page: query.page, pageSize: query.pageSize };
+  }
+
+  async flag(reviewId: string, reason: string | undefined, actorId: string) {
+    const review = await this.db.review.findUnique({ where: { id: reviewId } });
+    if (!review) throw new BadRequestException('Review not found');
+    if (review.flagged) throw new BadRequestException('Review is already flagged');
+
+    const updated = await this.db.review.update({
+      where: { id: reviewId },
+      data: {
+        flagged: true,
+        flagReason: reason || null,
+        flaggedAt: new Date(),
+      },
+    });
+    await this.audit.record(actorId, 'FLAG', 'Review', reviewId, { reason });
+    return updated;
+  }
+
+  async unflag(reviewId: string, actorId: string) {
+    const review = await this.db.review.findUnique({ where: { id: reviewId } });
+    if (!review) throw new BadRequestException('Review not found');
+    if (!review.flagged) throw new BadRequestException('Review is not flagged');
+
+    const updated = await this.db.review.update({
+      where: { id: reviewId },
+      data: {
+        flagged: false,
+        flagReason: null,
+        flaggedAt: null,
+      },
+    });
+    await this.audit.record(actorId, 'UNFLAG', 'Review', reviewId);
+    return updated;
   }
 
   async remove(reviewId: string, actorId: string) {

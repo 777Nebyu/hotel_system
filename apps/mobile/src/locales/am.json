@@ -1,5 +1,5 @@
 {
-  "app_name": "ኬይቲክ ሆቴል",
+  "app_name": "لافስቲ ሆቴል",
   "tabs": {
     "home": "መነሻ",
     "dashboard": "ዳሽቦርድ",
@@ -262,7 +262,7 @@
     "lifecycle": {
       "bookingConfirmed": {
         "title": "ቦታ ማስያዣ ተረጋግጧል",
-        "body": "የያዬቴክ ቦታ ማስያዣዎ ተረጋግጧል."
+        "body": "የلافስቲ ቦታ ማስያዣዎ ተረጋግጧል."
       },
       "paymentSuccessful": {
         "title": "ክፍያ ተሳክቷል",
@@ -274,7 +274,7 @@
       },
       "checkInCompleted": {
         "title": "መግቢያ ተጠናቅቋል",
-        "body": "እንኳን ወደ ያዬቴክ በደህና መጡ."
+        "body": "እንኳን ወደ ላፍስቲ በደህና መጡ."
       },
       "checkOutReminder": {
         "title": "የመውጫ ማስታወሻ",
@@ -328,7 +328,7 @@
     "done": "ተጠናቅቋል",
     "passwordChanged": "ፓስወርድ በተሳካ ሁኔታ ተቀይሯል.",
     "accountClosure": "የመገለጫ ስለታም",
-    "accountClosureMsg": "መገለጫዎን ለመዝጋት፣ እባክዎን support@yayetech.com ይላኩ. ይህ መመለስ አይችልም.",
+    "accountClosureMsg": "መገለጫዎን ለመዝጋት፣ እባክዎን support@luxsty.com ይላኩ. ይህ መመለስ አይችልም.",
     "signOut": "ውጣ",
     "signOutConfirm": "እርግጠኛ ነዎት መውጣት ይፈልጋሉ?",
     "cancel": "ይቅር"

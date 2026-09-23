@@ -57,9 +57,9 @@ exports.checkoutSchema = zod_1.z
 })
     .refine((d) => d.checkOut > d.checkIn, stayRefine);
 exports.bookingGuestSchema = zod_1.z.object({
-    fullName: zod_1.z.string().min(1).max(120),
-    email: zod_1.z.string().email().optional(),
-    phone: zod_1.z.string().min(3).max(30).optional(),
+    fullName: zod_1.z.string().min(2).max(120),
+    email: zod_1.z.string().email(),
+    phone: zod_1.z.string().min(3).max(30),
     nationality: zod_1.z.string().max(80).optional(),
     idType: zod_1.z
         .enum(['PASSPORT', 'NATIONAL_ID', 'DRIVERS_LICENSE'])
@@ -163,7 +163,7 @@ exports.createWalkInBookingSchema = zod_1.z
     checkOut: dateOnly,
     guests: guestsSchema.default({ adults: 1, children: 0 }),
     guestName: zod_1.z.string().min(2).max(120),
-    guestEmail: zod_1.z.string().email().optional(),
+    guestEmail: zod_1.z.string().email(),
     guestPhone: zod_1.z.string().min(3).max(30),
     guestIdNumber: zod_1.z.string().min(3).max(50).optional(),
     paymentMethod: exports.paymentMethodSchema.default('CASH'),
