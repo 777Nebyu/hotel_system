@@ -83,7 +83,7 @@ async function main() {
       checkIn: '2026-10-01',
       checkOut: '2026-10-04',
       guests: { adults: 2, children: 0 },
-      guestInfos: [{ fullName: 'John Guest', email: 'customer@yayetech.com', phone: '0911234567' }],
+      guestInfos: [{ fullName: 'Kibru Guest', email: 'customer@yayetech.com', phone: '0911234567' }],
       paymentMethod: 'CREDIT_CARD',
       bookingSource: 'ONLINE',
     }),

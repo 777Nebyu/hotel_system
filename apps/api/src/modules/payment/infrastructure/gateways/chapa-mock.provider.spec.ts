@@ -86,7 +86,7 @@ describe('ChapaMockProvider', () => {
       const smsBody = mockSmsService.send.mock.calls[0][1];
       expect(smsBody).toContain('ETB 2,500');
       expect(smsBody).toContain('CHP-YT-20260918-ABC123');
-      expect(smsBody).toContain('YayeTech Payment');
+      expect(smsBody).toContain('LuxStay Payment');
     });
   });
 

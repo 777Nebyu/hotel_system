@@ -82,11 +82,15 @@ export default function AdminReviewsScreen({ onBack }: Props) {
 
   const submitFlag = async () => {
     if (!flagTarget) return;
+    if (!flagReason.trim()) {
+      toast('error', 'Enter a reason before flagging this review');
+      return;
+    }
     setFlagging(true);
     try {
       await request(`/admin/reviews/${flagTarget}/flag`, {
         method: 'POST',
-        body: { reason: flagReason.trim() || undefined },
+        body: { reason: flagReason.trim() },
         token,
       });
       setReviews((prev) => prev.map((r) => r.id === flagTarget ? { ...r, flagged: true, flagReason: flagReason.trim() || null } : r));
@@ -114,7 +118,11 @@ export default function AdminReviewsScreen({ onBack }: Props) {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await request(`/admin/reviews/${deleteId}`, { method: 'DELETE', token });
+      await request(`/admin/reviews/${deleteId}`, {
+        method: 'DELETE',
+        body: { reason: 'Review removed for policy violation.' },
+        token,
+      });
       setReviews((prev) => prev.filter((r) => r.id !== deleteId));
       toast('success', 'Review deleted');
     } catch (err: any) {

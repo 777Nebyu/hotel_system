@@ -15,6 +15,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -77,6 +78,7 @@ export default function RoomDetailScreen({
   onBack,
   onBook,
 }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useTheme();
   const dark = colorScheme === 'dark';
@@ -146,7 +148,7 @@ export default function RoomDetailScreen({
     const code = promoInput.trim().toUpperCase();
     if (!code) return;
     if (!selectedCheckIn || !selectedCheckOut) {
-      Alert.alert('Select Dates First', 'Please select check-in and check-out dates before applying a promo code.');
+      Alert.alert(t('roomDetail.select_dates_first'), t('roomDetail.promo_select_dates'));
       setShowDatePicker(true);
       return;
     }
@@ -167,10 +169,10 @@ export default function RoomDetailScreen({
       setAppliedPromo(code);
       setPromoDiscount(data.discount || 0);
       const discountText = data.discount > 0 ? ` (ETB ${Number(data.discount).toLocaleString()} off)` : '';
-      Alert.alert('Promo Applied', `Promo code ${code} applied successfully!${discountText}`);
+      Alert.alert(t('roomDetail.promo_applied'), t('roomDetail.promo_applied_msg', { code, discount: discountText }));
     } catch (err: any) {
       const msg = (err instanceof ApiError ? err.message : '') || 'This promo code is not valid or has expired.';
-      Alert.alert('Invalid Promo Code', msg);
+      Alert.alert(t('roomDetail.invalid_promo'), msg);
     } finally {
       setPromoLoading(false);
     }
@@ -211,7 +213,7 @@ export default function RoomDetailScreen({
 
   const handleToggleFav = () => {
     if (!session) {
-      Alert.alert('Sign In Required', 'Please sign in to save this hotel to your favorites.');
+      Alert.alert(t('common.sign_in_required'), t('roomDetail.signin_save'));
       return;
     }
     hapticMedium();
@@ -220,14 +222,14 @@ export default function RoomDetailScreen({
 
   const handleBook = () => {
     if (!selectedCheckIn || !selectedCheckOut) {
-      Alert.alert('Select Dates', 'Please select check-in and check-out dates before booking.');
+      Alert.alert(t('roomDetail.select_dates'), t('roomDetail.select_dates_msg'));
       setShowDatePicker(true);
       return;
     }
     // GUEST-001: Validate guest count against room capacity
     const totalGuests = (guests?.adults ?? 2) + (guests?.children ?? 0);
     if (room.capacity && totalGuests > room.capacity) {
-      Alert.alert('Capacity Exceeded', `This room can accommodate up to ${room.capacity} guests. Please reduce the guest count or select a larger room.`);
+      Alert.alert(t('roomDetail.capacity_exceeded'), t('roomDetail.capacity_msg', { capacity: room.capacity }));
       return;
     }
     hapticSuccess();
@@ -240,14 +242,14 @@ export default function RoomDetailScreen({
 
       {/* Top Navigation Bar */}
       <View style={[s.navBar, { paddingTop: insets.top + 8, backgroundColor: surface, borderBottomColor: borderC }]}>
-        <Pressable onPress={onBack} style={s.iconBtn} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back">
+        <Pressable onPress={onBack} style={s.iconBtn} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('common.go_back_nav')}>
           <Ionicons name="arrow-back" size={20} color={textPri} />
         </Pressable>
         <View style={s.navCenter}>
           <Text style={[s.navHotel, { color: textSec }]} numberOfLines={1}>{hotelName}</Text>
           <Text style={[s.navTitle, { color: textPri }]} numberOfLines={1}>{room.type}</Text>
         </View>
-        <Pressable onPress={handleToggleFav} style={s.iconBtn} hitSlop={8} accessibilityRole="button" accessibilityLabel="Save to favorites">
+        <Pressable onPress={handleToggleFav} style={s.iconBtn} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('hotel.save_fav')}>
           <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={22} color={isFavorite ? BK.cancelled : textPri} />
         </Pressable>
       </View>
@@ -305,25 +307,25 @@ export default function RoomDetailScreen({
           <View style={[s.specsGrid, { borderTopColor: borderC }]}>
             <View style={s.specCell}>
               <Ionicons name="bed-outline" size={18} color={BK.navy} />
-              <Text style={[s.specTitle, { color: textPri }]}>{room.beds} {room.beds !== 1 ? 'Beds' : 'Bed'}</Text>
-              <Text style={[s.specSubtitle, { color: textSec }]}>Bed{room.beds !== 1 ? 's' : ''}</Text>
+              <Text style={[s.specTitle, { color: textPri }]}>{room.beds} {room.beds !== 1 ? t('hotel.bedsPlural') : t('hotel.beds')}</Text>
+              <Text style={[s.specSubtitle, { color: textSec }]}>{room.beds !== 1 ? t('hotel.bedsPlural') : t('hotel.beds')}</Text>
             </View>
             <View style={s.specCell}>
               <Ionicons name="people-outline" size={18} color={BK.navy} />
               <Text style={[s.specTitle, { color: textPri }]}>Up to {room.capacity}</Text>
-              <Text style={[s.specSubtitle, { color: textSec }]}>Guests</Text>
+              <Text style={[s.specSubtitle, { color: textSec }]}>{t('hotel.guestsPlural')}</Text>
             </View>
             <View style={s.specCell}>
               <Ionicons name="water-outline" size={18} color={BK.navy} />
               <Text style={[s.specTitle, { color: textPri }]}>{room.bathroom ?? 1}</Text>
-              <Text style={[s.specSubtitle, { color: textSec }]}>Bathrooms</Text>
+              <Text style={[s.specSubtitle, { color: textSec }]}>{t('roomDetail.bathrooms')}</Text>
             </View>
           </View>
         </View>
 
         {/* 3. Description */}
         <View style={[s.card, { backgroundColor: cardBg, borderColor: borderC }]}>
-          <Text style={[s.sectionTitle, { color: textPri }]}>Description</Text>
+          <Text style={[s.sectionTitle, { color: textPri }]}>{t('roomDetail.description')}</Text>
           <Text style={[s.descText, { color: textSec }]}>
             {room.description ||
               'Experience luxury and comfort in this thoughtfully furnished room, featuring premium linens, high-speed WiFi, modern ensuite facilities, and dedicated workspace designed for ultimate relaxation.'}
@@ -333,7 +335,7 @@ export default function RoomDetailScreen({
         {/* 4. Amenities */}
         {room.amenities && room.amenities.length > 0 && (
           <View style={[s.card, { backgroundColor: cardBg, borderColor: borderC }]}>
-            <Text style={[s.sectionTitle, { color: textPri }]}>Room Amenities</Text>
+            <Text style={[s.sectionTitle, { color: textPri }]}>{t('roomDetail.room_amenities')}</Text>
             <View style={s.amenitiesGrid}>
               {room.amenities.map((a) => (
                 <View key={a} style={[s.amenityBadge, { backgroundColor: dark ? '#1F3448' : BK.bg }]}>
@@ -348,7 +350,7 @@ export default function RoomDetailScreen({
         {/* 5. Stay Dates */}
         <View style={[s.card, { backgroundColor: cardBg, borderColor: borderC }]}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={[s.sectionTitle, { color: textPri }]}>Your Stay Dates</Text>
+            <Text style={[s.sectionTitle, { color: textPri }]}>{t('roomDetail.your_stay')}</Text>
             <Pressable
               onPress={() => {
                 hapticLight();
@@ -366,14 +368,14 @@ export default function RoomDetailScreen({
             >
               <Ionicons name="calendar-outline" size={14} color={BK.navy} />
               <Text style={{ fontSize: 12, fontWeight: '700', color: BK.navy }}>
-                {showDatePicker ? 'Done' : 'Change dates'}
+                {showDatePicker ? t('common.done') : 'Change dates'}
               </Text>
             </Pressable>
           </View>
 
           <View style={s.datesRow}>
             <View style={s.dateCol}>
-              <Text style={[s.dateLabel, { color: textSec }]}>CHECK-IN</Text>
+              <Text style={[s.dateLabel, { color: textSec }]}>{t('common.check_in')}</Text>
               <Text style={[s.dateVal, { color: textPri }]}>{fmtDate(selectedCheckIn)}</Text>
             </View>
             <View style={s.nightsBadge}>
@@ -381,7 +383,7 @@ export default function RoomDetailScreen({
               <Text style={s.nightsText}>{nights} night{nights !== 1 ? 's' : ''}</Text>
             </View>
             <View style={[s.dateCol, { alignItems: 'flex-end' }]}>
-              <Text style={[s.dateLabel, { color: textSec }]}>CHECK-OUT</Text>
+              <Text style={[s.dateLabel, { color: textSec }]}>{t('common.check_out')}</Text>
               <Text style={[s.dateVal, { color: textPri }]}>{fmtDate(selectedCheckOut)}</Text>
             </View>
           </View>
@@ -406,7 +408,7 @@ export default function RoomDetailScreen({
         <View style={[s.card, { backgroundColor: cardBg, borderColor: borderC }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Ionicons name="pricetag-outline" size={16} color={BK.navy} />
-            <Text style={[s.sectionTitle, { color: textPri }]}>Promo Code</Text>
+            <Text style={[s.sectionTitle, { color: textPri }]}>{t('roomDetail.promo_code')}</Text>
           </View>
           <View style={s.promoRow}>
             <TextInput
@@ -418,7 +420,7 @@ export default function RoomDetailScreen({
                   setPromoDiscount(null);
                 }
               }}
-              placeholder="e.g. SAVE20"
+              placeholder={t('roomDetail.promo_placeholder')}
               placeholderTextColor={textSec}
               autoCapitalize="characters"
               editable={!appliedPromo}
@@ -432,7 +434,7 @@ export default function RoomDetailScreen({
                 onPress={removePromo}
                 style={[s.promoBtn, { backgroundColor: dark ? '#2A1818' : '#FDE8E8' }]}
               >
-                <Text style={[s.promoBtnText, { color: '#EF4444' }]}>Remove</Text>
+                <Text style={[s.promoBtnText, { color: '#EF4444' }]}>{t('common.remove')}</Text>
               </Pressable>
             ) : (
               <Pressable
@@ -448,7 +450,7 @@ export default function RoomDetailScreen({
                 {promoLoading ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text style={[s.promoBtnText, { color: '#FFFFFF' }]}>Apply</Text>
+                  <Text style={[s.promoBtnText, { color: '#FFFFFF' }]}>{t('common.apply')}</Text>
                 )}
               </Pressable>
             )}
@@ -465,11 +467,11 @@ export default function RoomDetailScreen({
 
         {/* 6. Cancellation Policy (§9, §29) */}
         <View style={[s.card, { backgroundColor: cardBg, borderColor: borderC }]}>
-          <Text style={[s.sectionTitle, { color: textPri }]}>Cancellation Policy</Text>
+          <Text style={[s.sectionTitle, { color: textPri }]}>{t('roomDetail.cancellation_policy')}</Text>
           <View style={[s.cancellationBox, { backgroundColor: BK.confirmedBg, borderColor: BK.confirmedBd }]}>
             <Ionicons name="checkmark-circle-outline" size={18} color={BK.confirmed} />
             <View style={s.flex}>
-              <Text style={[s.cancelTitle, { color: BK.confirmed }]}>Free cancellation available</Text>
+              <Text style={[s.cancelTitle, { color: BK.confirmed }]}>{t('roomDetail.free_cancel')}</Text>
               <Text style={[s.cancelDesc, { color: BK.navyMuted }]}>
                 Cancel before {fmtDate(selectedCheckIn)} for a full refund. Check hotel policy for specific cancellation terms.
               </Text>
@@ -512,7 +514,7 @@ export default function RoomDetailScreen({
             pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Book this room"
+          accessibilityLabel={t('buttons.book_this_room')}
         >
           <Text style={s.primaryCtaText}>
             {!isAvailable
@@ -521,7 +523,7 @@ export default function RoomDetailScreen({
               ? 'SELECT CHECK-IN'
               : !selectedCheckOut
               ? 'SELECT CHECK-OUT'
-              : 'BOOK THIS ROOM'}
+              : t('buttons.book_this_room')}
           </Text>
         </Pressable>
       </View>

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -54,11 +55,11 @@ const STATUS_CONFIG: Record<string, { bg: string; fg: string; icon: string }> = 
 };
 
 const METHOD_LABELS: Record<string, string> = {
-  CREDIT_CARD: 'Credit Card',
-  TELEBIRR: 'Telebirr',
-  CBE_BIRR: 'CBE Birr',
-  PAYPAL: 'PayPal',
-  CASH_AT_HOTEL: 'Cash at Hotel',
+  CREDIT_CARD: 'paymentMethods.credit_card',
+  TELEBIRR: 'payment.telebirr',
+  CBE_BIRR: 'payment.cbe_birr',
+  PAYPAL: 'payment.paypal',
+  CASH_AT_HOTEL: 'paymentMethods.cash_at_hotel',
 };
 
 function formatDate(iso: string) {
@@ -70,6 +71,7 @@ function formatDate(iso: string) {
 }
 
 export default function PaymentHistoryScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
   const pad = useResponsivePadding();
@@ -123,6 +125,16 @@ export default function PaymentHistoryScreen() {
   const renderPayment = ({ item }: { item: PaymentItem }) => {
     const statusCfg = STATUS_CONFIG[item.status] ?? STATUS_CONFIG.PENDING;
     const isRefunded = item.status === 'REFUNDED';
+    const methodLabel = (m: string) => {
+      switch (m) {
+        case 'CREDIT_CARD': return t('payment.card');
+        case 'TELEBIRR': return t('payment.telebirr');
+        case 'CBE_BIRR': return t('payment.cbe_birr');
+        case 'PAYPAL': return t('payment.paypal');
+        case 'CASH_AT_HOTEL': return t('payment.cash');
+        default: return METHOD_LABELS[m] ? t(METHOD_LABELS[m]) : m;
+      }
+    };
 
     return (
       <Pressable
@@ -132,7 +144,7 @@ export default function PaymentHistoryScreen() {
         <View style={styles.cardHeader}>
           <View style={styles.cardHeaderLeft}>
             <Text style={[styles.hotelName, { color: c.ink }]} numberOfLines={1}>
-              {item.booking?.hotel?.name ?? 'Hotel'}
+              {item.booking?.hotel?.name ?? t('common.hotel')}
             </Text>
             <Text style={[styles.refText, { color: c.inkMuted }]}>#{item.booking?.bookingRef}</Text>
           </View>
@@ -152,7 +164,7 @@ export default function PaymentHistoryScreen() {
           <View style={[styles.infoRow, { borderBottomColor: c.line }]}>
             <Ionicons name="wallet-outline" size={14} color={c.inkMuted} />
             <Text style={[styles.infoText, { color: c.inkMuted }]}>
-              {METHOD_LABELS[item.method] ?? item.method}
+              {methodLabel(item.method)}
             </Text>
           </View>
           <View style={styles.infoRow}>
@@ -166,7 +178,7 @@ export default function PaymentHistoryScreen() {
             <View style={[styles.refundBox, { backgroundColor: '#EEF2FF', borderColor: '#C7D2FE' }]}>
               <Ionicons name="arrow-undo-outline" size={14} color="#3730A3" />
               <Text style={styles.refundText}>
-                Refund: ETB {Number(item.refundAmount ?? item.amount).toLocaleString()}
+                {t('payment.refund')}: ETB {Number(item.refundAmount ?? item.amount).toLocaleString()}
                 {item.refundPercentage !== undefined ? ` (${item.refundPercentage}%)` : ''}
               </Text>
             </View>
@@ -187,7 +199,7 @@ export default function PaymentHistoryScreen() {
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={[styles.backBtn, { backgroundColor: c.paperDeep }]}>
           <Ionicons name="arrow-back" size={20} color={c.teal} />
         </Pressable>
-        <Text style={[styles.title, { color: c.ink }]}>Payment History</Text>
+        <Text style={[styles.title, { color: c.ink }]}>{t('payment.history')}</Text>
         <Pressable onPress={() => fetchPayments(false)} hitSlop={8} style={[styles.refreshBtn, { backgroundColor: c.paperDeep }]}>
           <Ionicons name="refresh" size={18} color={c.teal} />
         </Pressable>
@@ -232,14 +244,14 @@ export default function PaymentHistoryScreen() {
         {loading ? (
           <View style={styles.center}>
             <ActivityIndicator size="large" color={c.teal} />
-            <Text style={[styles.loadingText, { color: c.inkMuted }]}>Loading payments...</Text>
+            <Text style={[styles.loadingText, { color: c.inkMuted }]}>{t('payment.loading_payments')}</Text>
           </View>
         ) : error ? (
           <View style={styles.center}>
             <Ionicons name="alert-circle" size={40} color={c.brick} />
             <Text style={[styles.errorText, { color: c.brick }]}>{error}</Text>
             <Pressable onPress={() => fetchPayments(false)} style={[styles.retryBtn, { backgroundColor: c.tealTint }]}>
-              <Text style={[styles.retryText, { color: c.teal }]}>Retry</Text>
+              <Text style={[styles.retryText, { color: c.teal }]}>{t('common.retry')}</Text>
             </Pressable>
           </View>
         ) : filteredPayments.length === 0 ? (
@@ -250,7 +262,7 @@ export default function PaymentHistoryScreen() {
             </Text>
             <Text style={[styles.emptySub, { color: c.inkMuted }]}>
               {activeTab === 'ALL'
-                ? 'Your payment history will appear here.'
+                ? t('payment.history_empty')
                 : 'No transactions found matching this status.'}
             </Text>
           </View>

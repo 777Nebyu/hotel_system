@@ -68,21 +68,21 @@ export type CheckoutInput = z.infer<typeof checkoutSchema>;
 export declare const bookingGuestSchema: z.ZodObject<{
     fullName: z.ZodString;
     email: z.ZodString;
-    phone: z.ZodString;
+    phone: z.ZodOptional<z.ZodString>;
     nationality: z.ZodOptional<z.ZodString>;
     idType: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["PASSPORT", "NATIONAL_ID", "DRIVERS_LICENSE"]>, z.ZodString]>>;
     idNumber: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     fullName: string;
     email: string;
-    phone: string;
+    phone?: string | undefined;
     nationality?: string | undefined;
     idType?: string | undefined;
     idNumber?: string | undefined;
 }, {
     fullName: string;
     email: string;
-    phone: string;
+    phone?: string | undefined;
     nationality?: string | undefined;
     idType?: string | undefined;
     idNumber?: string | undefined;
@@ -106,21 +106,21 @@ export declare const createBookingSchema: z.ZodEffects<z.ZodObject<{
     guestInfos: z.ZodArray<z.ZodObject<{
         fullName: z.ZodString;
         email: z.ZodString;
-        phone: z.ZodString;
+        phone: z.ZodOptional<z.ZodString>;
         nationality: z.ZodOptional<z.ZodString>;
         idType: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["PASSPORT", "NATIONAL_ID", "DRIVERS_LICENSE"]>, z.ZodString]>>;
         idNumber: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
     }, {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
@@ -140,7 +140,7 @@ export declare const createBookingSchema: z.ZodEffects<z.ZodObject<{
     guestInfos: {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
@@ -156,7 +156,7 @@ export declare const createBookingSchema: z.ZodEffects<z.ZodObject<{
     guestInfos: {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
@@ -180,7 +180,7 @@ export declare const createBookingSchema: z.ZodEffects<z.ZodObject<{
     guestInfos: {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
@@ -196,7 +196,7 @@ export declare const createBookingSchema: z.ZodEffects<z.ZodObject<{
     guestInfos: {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
@@ -385,21 +385,21 @@ export declare const modifyBookingSchema: z.ZodEffects<z.ZodObject<{
     guestInfos: z.ZodOptional<z.ZodArray<z.ZodObject<{
         fullName: z.ZodString;
         email: z.ZodString;
-        phone: z.ZodString;
+        phone: z.ZodOptional<z.ZodString>;
         nationality: z.ZodOptional<z.ZodString>;
         idType: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["PASSPORT", "NATIONAL_ID", "DRIVERS_LICENSE"]>, z.ZodString]>>;
         idNumber: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
     }, {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
@@ -412,7 +412,7 @@ export declare const modifyBookingSchema: z.ZodEffects<z.ZodObject<{
     guestInfos?: {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
@@ -425,7 +425,7 @@ export declare const modifyBookingSchema: z.ZodEffects<z.ZodObject<{
     guestInfos?: {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
@@ -438,7 +438,7 @@ export declare const modifyBookingSchema: z.ZodEffects<z.ZodObject<{
     guestInfos?: {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;
@@ -451,7 +451,7 @@ export declare const modifyBookingSchema: z.ZodEffects<z.ZodObject<{
     guestInfos?: {
         fullName: string;
         email: string;
-        phone: string;
+        phone?: string | undefined;
         nationality?: string | undefined;
         idType?: string | undefined;
         idNumber?: string | undefined;

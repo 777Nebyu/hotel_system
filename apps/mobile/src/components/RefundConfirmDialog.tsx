@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 const EMERALD = '#0F2942';
@@ -36,11 +37,11 @@ interface RefundConfirmDialogProps {
   loading?: boolean;
 }
 
-function calculateRefundTier(checkIn: string): { tier: string; label: string; color: string } {
+function calculateRefundTier(checkIn: string): { tier: string; labelKey: string; color: string } {
   const hoursUntil = (new Date(checkIn).getTime() - Date.now()) / 3_600_000;
-  if (hoursUntil >= 168) return { tier: '100%', label: 'Full Refund', color: SUCCESS };
-  if (hoursUntil >= 72) return { tier: '50%', label: 'Partial Refund', color: WARNING };
-  return { tier: '0%', label: 'No Refund', color: ERROR };
+  if (hoursUntil >= 168) return { tier: '100%', labelKey: 'refundDialog.full', color: SUCCESS };
+  if (hoursUntil >= 72) return { tier: '50%', labelKey: 'refundDialog.partial', color: WARNING };
+  return { tier: '0%', labelKey: 'refundDialog.none', color: ERROR };
 }
 
 function calculateRefundAmount(totalPrice: number | string, checkIn: string): number {
@@ -60,7 +61,8 @@ export function RefundConfirmDialog({
   checkIn,
   loading = false,
 }: RefundConfirmDialogProps) {
-  const { tier, label, color } = calculateRefundTier(checkIn);
+  const { t } = useTranslation();
+  const { tier, labelKey, color } = calculateRefundTier(checkIn);
   const refundAmount = calculateRefundAmount(totalPrice, checkIn);
   const total = Number(totalPrice);
 
@@ -72,9 +74,9 @@ export function RefundConfirmDialog({
             <Ionicons name="wallet-outline" size={32} color={color} />
           </View>
 
-          <Text style={styles.title}>Request Refund</Text>
+          <Text style={styles.title}>{t('refund.request')}</Text>
           <Text style={styles.desc}>
-            Review the refund details below before confirming your request.
+            {t('refundDialog.near_checkin')}
           </Text>
 
           <View style={styles.recap}>
@@ -84,14 +86,14 @@ export function RefundConfirmDialog({
 
           <View style={[styles.tierBox, { backgroundColor: color + '10', borderColor: color + '30' }]}>
             <View style={styles.tierHeader}>
-              <Text style={[styles.tierTitle, { color }]}>{label}</Text>
+              <Text style={[styles.tierTitle, { color }]}>{t(labelKey)}</Text>
               <View style={[styles.tierBadge, { backgroundColor: color }]}>
                 <Text style={styles.tierBadgeText}>{tier}</Text>
               </View>
             </View>
             {tier !== '0%' && (
               <View style={styles.calcRow}>
-                <Text style={styles.calcKey}>Refund amount</Text>
+                <Text style={styles.calcKey}>{t('refund.amount')}</Text>
                 <Text style={[styles.calcVal, { color }]}>
                   ETB {refundAmount.toLocaleString()}
                 </Text>
@@ -99,7 +101,7 @@ export function RefundConfirmDialog({
             )}
             {tier === '0%' && (
               <Text style={styles.tierDesc}>
-                The check-in date is less than 3 days away. No refund is available under the cancellation policy.
+                {t('refundDialog.near_checkin')}
               </Text>
             )}
           </View>
@@ -110,16 +112,16 @@ export function RefundConfirmDialog({
               disabled={loading}
               style={[styles.btn, styles.btnSecondary]}
               accessibilityRole="button"
-              accessibilityLabel="Cancel"
+              accessibilityLabel={t('common.cancel')}
             >
-              <Text style={styles.btnSecondaryText}>Cancel</Text>
+              <Text style={styles.btnSecondaryText}>{t('common.cancel')}</Text>
             </Pressable>
             <Pressable
               onPress={onConfirm}
               disabled={loading}
               style={[styles.btn, styles.btnPrimary, loading && styles.btnDisabled]}
               accessibilityRole="button"
-              accessibilityLabel="Request refund"
+              accessibilityLabel={t('refund.request_a11y')}
             >
               {loading ? (
                 <ActivityIndicator size="small" color={WHITE} />
@@ -127,7 +129,7 @@ export function RefundConfirmDialog({
                 <Ionicons name="arrow-undo-outline" size={16} color={WHITE} />
               )}
               <Text style={styles.btnPrimaryText}>
-                {loading ? 'Processing…' : 'Request Refund'}
+                {loading ? 'Processing…' : t('refund.request')}
               </Text>
             </Pressable>
           </View>

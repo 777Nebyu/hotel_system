@@ -1,5 +1,6 @@
 import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../hooks/useTheme';
 
 const DEFAULT_STEPS = ['Dates', 'Guests', 'Payment', 'Review', 'Confirmed'] as const;
@@ -46,8 +47,20 @@ const SHADOW_ACTIVE = Platform.select({
 });
 
 export default function BookingStepper({ current, steps = DEFAULT_STEPS }: Props) {
+  const { t } = useTranslation();
   const { colorScheme } = useTheme();
-  const t = colorScheme === 'dark' ? DARK : LIGHT;
+  const palette = colorScheme === 'dark' ? DARK : LIGHT;
+
+  const stepLabel = (label: string): string => {
+    switch (label) {
+      case 'Dates':     return t('booking.dates');
+      case 'Guests':    return t('booking.guests');
+      case 'Payment':   return t('common.payment');
+      case 'Review':    return t('buttons.review');
+      case 'Confirmed': return t('status.confirmed');
+      default:          return label;
+    }
+  };
 
   return (
     <View style={styles.row}>
@@ -55,18 +68,18 @@ export default function BookingStepper({ current, steps = DEFAULT_STEPS }: Props
         const state = i < current ? 'done' : i === current ? 'active' : 'todo';
         const circleBg =
           state === 'done'
-            ? t.doneBg
+            ? palette.doneBg
             : state === 'active'
-              ? t.activeBg
-              : t.todoBg;
+              ? palette.activeBg
+              : palette.todoBg;
         const borderColor =
           state === 'done'
-            ? t.done
+            ? palette.done
             : state === 'active'
-              ? t.active
-              : t.todoBorder;
+              ? palette.active
+              : palette.todoBorder;
         const textColor =
-          state === 'todo' ? t.textMuted : t.text;
+          state === 'todo' ? palette.textMuted : palette.text;
 
         return (
           <React.Fragment key={label}>
@@ -74,7 +87,7 @@ export default function BookingStepper({ current, steps = DEFAULT_STEPS }: Props
               <View
                 style={[
                   styles.connector,
-                  { backgroundColor: i <= current ? t.connectorDone : t.connector },
+                  { backgroundColor: i <= current ? palette.connectorDone : palette.connector },
                 ]}
               />
             )}
@@ -97,12 +110,12 @@ export default function BookingStepper({ current, steps = DEFAULT_STEPS }: Props
               <Text
                 style={[
                   styles.label,
-                  { color: state === 'todo' ? t.textMuted : t.text },
+                  { color: state === 'todo' ? palette.textMuted : palette.text },
                   state === 'active' && styles.labelActive,
                 ]}
                 numberOfLines={1}
               >
-                {label}
+                {stepLabel(label)}
               </Text>
             </View>
           </React.Fragment>

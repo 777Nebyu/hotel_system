@@ -156,7 +156,11 @@ export default function AdminBookingsScreen({ onNavigate, onBack }: Props) { // 
     setActionLoading(id);
     try {
       const endpoint = action === 'mark-paid' ? `/payments/${id}/cash-paid` : `/bookings/${id}/${action}`;
-      await request(endpoint, { method: 'POST', token });
+      await request(endpoint, {
+        method: 'POST',
+        body: action === 'reject' ? { reason: 'Booking rejected by an administrator.' } : undefined,
+        token,
+      });
       toast('success', `${action.replace(/-/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase())} successful`);
       void fetchBookings();
     } catch (err: any) {

@@ -356,7 +356,7 @@ export default function AdminOverviewScreen({ onNavigate }: Props) {
     { icon: 'business-outline',  label: 'Hotels awaiting approval',  count: data?.pendingHotels   ?? 0, color: c.gold,    bg: c.goldTint,  screen: 'AdminHotels'   },
     { icon: 'alert-circle',      label: 'Open customer disputes',     count: data?.pendingDisputes ?? 0, color: c.brick,   bg: c.brickTint,    screen: 'AdminDisputes' },
     { icon: 'star-outline',      label: 'Flagged reviews to moderate',count: data?.flaggedReviews  ?? 0, color: c.warning, bg: c.goldTint,  screen: 'AdminReviews'  },
-    { icon: 'cash-outline',      label: 'Pending payment settlements',count: data?.pendingPayments != null ? 1 : 0, color: c.info, bg: hexToRgba(c.info, 0.1), screen: 'AdminPayments' },
+    { icon: 'cash-outline',      label: 'Pending payment settlements',count: data?.pendingPayments ?? 0, color: c.info, bg: hexToRgba(c.info, 0.1), screen: 'AdminPayments' },
   ].filter(a => a.count > 0);
 
   const topHotels = data?.topHotels ?? [];

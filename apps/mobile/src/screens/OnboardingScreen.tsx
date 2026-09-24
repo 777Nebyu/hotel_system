@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Pressable,
   StyleSheet,
@@ -16,32 +17,21 @@ import { hapticSelection, hapticSuccess } from '../hooks/useHaptics';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-const SLIDES = [
-  {
-    icon: '🏨',
-    title: 'Discover Luxury Stays',
-    description: 'Explore premier boutique hotels, scenic resorts, and top-rated accommodations curated across Ethiopia and East Africa.',
-  },
-  {
-    icon: '⚡',
-    title: 'Instant Seamless Booking',
-    description: 'Lock in your dates with instant confirmation and localized payments including Telebirr, CBE Birr, and cards.',
-  },
-  {
-    icon: '🛎️',
-    title: 'Personalized Concierge',
-    description: 'Manage bookings on the go, request custom amenities, and connect with 24/7 guest support directly from your pocket.',
-  },
+const SLIDE_KEYS = [
+  { icon: '🏨', titleKey: 'onboarding.s1_title', descKey: 'onboarding.s1_desc' },
+  { icon: '⚡', titleKey: 'onboarding.s2_title', descKey: 'onboarding.s2_desc' },
+  { icon: '🛎️', titleKey: 'onboarding.s3_title', descKey: 'onboarding.s3_desc' },
 ];
 
 export default function OnboardingScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
   const { colors: themeColors } = useTheme();
   const [currentStep, setCurrentStep] = useState(0);
 
   const handleNext = () => {
-    if (currentStep < SLIDES.length - 1) {
+    if (currentStep < SLIDE_KEYS.length - 1) {
       hapticSelection();
       setCurrentStep(currentStep + 1);
     } else {
@@ -57,14 +47,16 @@ export default function OnboardingScreen() {
     });
   };
 
-  const slide = SLIDES[currentStep];
+  const slide = SLIDE_KEYS[currentStep];
+  const isLast = currentStep === SLIDE_KEYS.length - 1;
+  const nextTitle = isLast ? t('onboarding.get_started') : t('onboarding.continue_arrow');
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.paper, paddingTop: insets.top + 16 }]}>
       {/* Top bar with skip */}
       <View style={styles.topBar}>
-        <Pressable onPress={finishOnboarding} hitSlop={12} accessibilityRole="button" accessibilityLabel="Skip onboarding">
-          <Text style={[styles.skipText, { color: themeColors.inkMuted }]}>Skip</Text>
+        <Pressable onPress={finishOnboarding} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('onboarding.skip_a11y')}>
+          <Text style={[styles.skipText, { color: themeColors.inkMuted }]}>{t('onboarding.skip')}</Text>
         </Pressable>
       </View>
 
@@ -73,14 +65,14 @@ export default function OnboardingScreen() {
         <View style={[styles.iconWrap, { backgroundColor: themeColors.tealTint, borderColor: themeColors.teal }]}>
           <Text style={styles.iconText}>{slide.icon}</Text>
         </View>
-        <Text style={[styles.title, { color: themeColors.ink }]}>{slide.title}</Text>
-        <Text style={[styles.desc, { color: themeColors.inkSoft }]}>{slide.description}</Text>
+        <Text style={[styles.title, { color: themeColors.ink }]}>{t(slide.titleKey)}</Text>
+        <Text style={[styles.desc, { color: themeColors.inkSoft }]}>{t(slide.descKey)}</Text>
       </View>
 
       {/* Indicator & Controls */}
       <View style={styles.footer}>
         <View style={styles.dotsRow}>
-          {SLIDES.map((_, i) => (
+          {SLIDE_KEYS.map((_, i) => (
             <View
               key={i}
               style={[
@@ -92,11 +84,11 @@ export default function OnboardingScreen() {
           ))}
         </View>
         <Button
-          title={currentStep === SLIDES.length - 1 ? 'Get Started' : 'Continue →'}
+          title={nextTitle}
           size="lg"
           variant="primary"
           onPress={handleNext}
-          accessibilityLabel={currentStep === SLIDES.length - 1 ? 'Get Started' : 'Continue to next slide'}
+          accessibilityLabel={isLast ? t('onboarding.get_started') : t('onboarding.continue_slide')}
         />
       </View>
     </View>

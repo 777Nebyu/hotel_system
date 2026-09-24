@@ -35,9 +35,17 @@ export class AdminSuspensionController {
   constructor(private readonly service: AdminSuspensionService) {}
 
   @Get('pending')
-  @ApiOperation({ summary: 'List pending suspension requests (four-eyes queue)' })
+  @ApiOperation({
+    summary: 'List pending suspension requests (four-eyes queue)',
+  })
   listPending() {
     return this.service.listPending();
+  }
+
+  @Get('history')
+  @ApiOperation({ summary: 'List recent emergency suspension history' })
+  listHistory() {
+    return this.service.listHistory();
   }
 
   @Post()
@@ -49,7 +57,9 @@ export class AdminSuspensionController {
 
   @Post(':id/decide')
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
-  @ApiOperation({ summary: 'Approve or reject a suspension request (second admin)' })
+  @ApiOperation({
+    summary: 'Approve or reject a suspension request (second admin)',
+  })
   decide(
     @Param() params: SuspensionIdParamsDto,
     @Body() dto: DecideSuspensionDto,

@@ -10,6 +10,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -41,6 +42,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 type TabOption = 'profile' | 'security';
 
 export default function AccountSecurityScreen() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const pad = useResponsivePadding();
   const { width } = useWindowDimensions();
@@ -89,14 +91,14 @@ export default function AccountSecurityScreen() {
   // ─── User Meta ───────────────────────────────────────────────────────────
   const role = session?.user.role;
   const membershipTitle = useMemo(() => {
-    if (role === 'ADMIN') return 'Executive Admin';
-    if (role === 'MANAGER') return 'Hotel Director';
-    if (role === 'STAFF') return 'Hospitality Staff';
-    return 'Platinum Elite';
-  }, [role]);
+    if (role === 'ADMIN') return t('accountSecurity.executive_admin');
+    if (role === 'MANAGER') return t('accountSecurity.hotel_director');
+    if (role === 'STAFF') return t('accountSecurity.hospitality_staff');
+    return t('accountSecurity.platinum_elite');
+  }, [role, t]);
 
   const initials = useMemo(() => {
-    const name = session?.user.fullName ?? 'Guest User';
+    const name = session?.user.fullName ?? t('accountSecurity.guest_user');
     return name
       .split(' ')
       .filter(Boolean)
@@ -104,7 +106,7 @@ export default function AccountSecurityScreen() {
       .join('')
       .toUpperCase()
       .slice(0, 2) || 'GU';
-  }, [session?.user.fullName]);
+  }, [session?.user.fullName, t]);
 
   // Password requirement indicators
   const hasMinLength = newPassword.length >= 8;
@@ -117,22 +119,22 @@ export default function AccountSecurityScreen() {
     const errs: Record<string, string | undefined> = {};
 
     if (!currentPassword) {
-      errs.currentPassword = 'Enter your current password.';
+      errs.currentPassword = t('accountSecurity.enter_current_password');
     }
     if (!newPassword) {
-      errs.newPassword = 'Enter your new password.';
+      errs.newPassword = t('accountSecurity.enter_new_password');
     } else if (!hasMinLength) {
-      errs.newPassword = 'Password must be at least 8 characters.';
+      errs.newPassword = t('errors.weak_password');
     } else if (!hasUppercase) {
-      errs.newPassword = 'Must include at least one uppercase letter.';
+      errs.newPassword = t('accountSecurity.need_uppercase');
     } else if (!hasNumber) {
-      errs.newPassword = 'Must include at least one number.';
+      errs.newPassword = t('accountSecurity.need_number');
     }
 
     if (newPassword && !confirmPassword) {
-      errs.confirmPassword = 'Confirm your new password.';
+      errs.confirmPassword = t('accountSecurity.confirm_new_password');
     } else if (newPassword && confirmPassword && newPassword !== confirmPassword) {
-      errs.confirmPassword = 'Passwords do not match.';
+      errs.confirmPassword = t('errors.password_mismatch');
     }
 
     if (Object.keys(errs).length > 0) {
@@ -151,13 +153,13 @@ export default function AccountSecurityScreen() {
         token: session?.accessToken,
       });
       hapticSuccess();
-      Alert.alert('Success', 'Your password has been updated securely.');
+      Alert.alert(t('common.success'), t('accountSecurity.password_updated'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
       hapticError();
-      Alert.alert('Security Notice', err instanceof Error ? err.message : 'Failed to update password.');
+      Alert.alert(t('errors.security_notice'), err instanceof Error ? err.message : t('accountSecurity.failed_update'));
     } finally {
       setLoading(false);
     }
@@ -166,12 +168,12 @@ export default function AccountSecurityScreen() {
   const handleSignOut = () => {
     hapticMedium();
     Alert.alert(
-      'Sign Out',
+      t('buttons.sign_out'),
       'Are you sure you want to sign out from your luxury profile?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Sign Out',
+          text: t('buttons.sign_out'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -239,7 +241,7 @@ export default function AccountSecurityScreen() {
               else navigation.navigate('MainTabs');
             }}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel={t('common.go_back_nav')}
             style={({ pressed }) => [
               styles.backButton,
               { backgroundColor: c.cardBg, borderColor: c.cardBorder },
@@ -250,7 +252,7 @@ export default function AccountSecurityScreen() {
           </Pressable>
 
           <Text style={[styles.screenHeading, { color: c.textPri }]}>
-            Account Security
+            {t('accountSecurity.title')}
           </Text>
 
           <View style={styles.topNavSpacer} />
@@ -315,7 +317,7 @@ export default function AccountSecurityScreen() {
               navigation.navigate('MainTabs' as any, { screen: 'ProfileTab' });
             }}
             accessibilityRole="button"
-            accessibilityLabel="Edit profile"
+            accessibilityLabel={t('accountSecurity.edit_profile')}
             style={({ pressed }) => [
               styles.editProfileBtn,
               { backgroundColor: c.cardSubtle, borderColor: c.cardBorder },
@@ -324,7 +326,7 @@ export default function AccountSecurityScreen() {
           >
             <Ionicons name="pencil-outline" size={15} color={c.teal} />
             <Text style={[styles.editProfileText, { color: c.teal }]}>
-              Edit profile
+              {t('accountSecurity.edit_profile')}
             </Text>
             <Ionicons name="chevron-forward" size={14} color={c.textMuted} />
           </Pressable>
@@ -338,7 +340,7 @@ export default function AccountSecurityScreen() {
               navigation.navigate('MainTabs' as any, { screen: 'ProfileTab' });
             }}
             accessibilityRole="tab"
-            accessibilityLabel="Profile tab"
+            accessibilityLabel={t('accountSecurity.profile_tab')}
             accessibilityState={{ selected: activeTab === 'profile' }}
             style={[styles.tabButton, activeTab === 'profile' && { backgroundColor: c.teal }]}
           >
@@ -353,7 +355,7 @@ export default function AccountSecurityScreen() {
                 { color: activeTab === 'profile' ? '#FFFFFF' : c.textSec },
               ]}
             >
-              Profile
+              {t('common.profile')}
             </Text>
           </Pressable>
 
@@ -363,7 +365,7 @@ export default function AccountSecurityScreen() {
               setActiveTab('security');
             }}
             accessibilityRole="tab"
-            accessibilityLabel="Security tab active"
+            accessibilityLabel={t('accountSecurity.security_tab')}
             accessibilityState={{ selected: activeTab === 'security' }}
             style={[styles.tabButton, activeTab === 'security' && { backgroundColor: c.teal }]}
           >
@@ -378,7 +380,7 @@ export default function AccountSecurityScreen() {
                 { color: activeTab === 'security' ? '#FFFFFF' : c.textSec },
               ]}
             >
-              Security
+              {t('accountSecurity.security')}
             </Text>
           </Pressable>
         </View>
@@ -390,16 +392,16 @@ export default function AccountSecurityScreen() {
               <Ionicons name="lock-closed" size={18} color={c.teal} />
             </View>
             <View style={styles.cardHeaderMeta}>
-              <Text style={[styles.cardTitle, { color: c.textPri }]}>Account Security</Text>
+              <Text style={[styles.cardTitle, { color: c.textPri }]}>{t('accountSecurity.title')}</Text>
               <Text style={[styles.cardSubtitle, { color: c.textSec }]}>
-                Update credentials & protect sign-in access
+                {t('accountSecurity.update_credentials_sub')}
               </Text>
             </View>
           </View>
 
           {/* Current Password Field */}
           <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: c.textSec }]}>Current password</Text>
+            <Text style={[styles.inputLabel, { color: c.textSec }]}>{t('accountSecurity.current_password')}</Text>
             <View
               style={[
                 styles.inputWrapper,
@@ -428,7 +430,7 @@ export default function AccountSecurityScreen() {
                 onPress={() => setShowCurrent(!showCurrent)}
                 hitSlop={12}
                 accessibilityRole="button"
-                accessibilityLabel={showCurrent ? 'Hide password' : 'Show password'}
+                accessibilityLabel={showCurrent ? t('accountSecurity.hide_password') : t('accountSecurity.show_password')}
                 style={styles.eyeBtn}
               >
                 <Ionicons
@@ -447,7 +449,7 @@ export default function AccountSecurityScreen() {
 
           {/* New Password Field */}
           <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: c.textSec }]}>New password</Text>
+            <Text style={[styles.inputLabel, { color: c.textSec }]}>{t('accountSecurity.new_password')}</Text>
             <View
               style={[
                 styles.inputWrapper,
@@ -467,7 +469,7 @@ export default function AccountSecurityScreen() {
                   }
                 }}
                 style={[styles.textInput, { color: c.textPri }]}
-                placeholder="Minimum 8 characters"
+                placeholder={t('accountSecurity.min_8')}
                 placeholderTextColor={c.textMuted}
                 secureTextEntry={!showNew}
                 autoCapitalize="none"
@@ -476,7 +478,7 @@ export default function AccountSecurityScreen() {
                 onPress={() => setShowNew(!showNew)}
                 hitSlop={12}
                 accessibilityRole="button"
-                accessibilityLabel={showNew ? 'Hide password' : 'Show password'}
+                accessibilityLabel={showNew ? t('accountSecurity.hide_password') : t('accountSecurity.show_password')}
                 style={styles.eyeBtn}
               >
                 <Ionicons
@@ -531,7 +533,7 @@ export default function AccountSecurityScreen() {
 
           {/* Confirm Password Field */}
           <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: c.textSec }]}>Confirm new password</Text>
+            <Text style={[styles.inputLabel, { color: c.textSec }]}>{t('accountSecurity.confirm_new')}</Text>
             <View
               style={[
                 styles.inputWrapper,
@@ -551,7 +553,7 @@ export default function AccountSecurityScreen() {
                   }
                 }}
                 style={[styles.textInput, { color: c.textPri }]}
-                placeholder="Re-enter new password"
+                placeholder={t('accountSecurity.reenter_new')}
                 placeholderTextColor={c.textMuted}
                 secureTextEntry={!showConfirm}
                 autoCapitalize="none"
@@ -560,7 +562,7 @@ export default function AccountSecurityScreen() {
                 onPress={() => setShowConfirm(!showConfirm)}
                 hitSlop={12}
                 accessibilityRole="button"
-                accessibilityLabel={showConfirm ? 'Hide password' : 'Show password'}
+                accessibilityLabel={showConfirm ? t('accountSecurity.hide_password') : t('accountSecurity.show_password')}
                 style={styles.eyeBtn}
               >
                 <Ionicons
@@ -582,7 +584,7 @@ export default function AccountSecurityScreen() {
             onPress={handleUpdatePassword}
             disabled={loading}
             accessibilityRole="button"
-            accessibilityLabel="Update password"
+            accessibilityLabel={t('accountSecurity.update_password')}
             style={({ pressed }) => [
               styles.primaryBtn,
               { backgroundColor: c.teal },
@@ -595,7 +597,7 @@ export default function AccountSecurityScreen() {
             ) : (
               <>
                 <Ionicons name="shield-checkmark" size={17} color="#FFFFFF" />
-                <Text style={styles.primaryBtnText}>Update password</Text>
+                <Text style={styles.primaryBtnText}>{t('accountSecurity.update_password')}</Text>
               </>
             )}
           </Pressable>
@@ -608,14 +610,14 @@ export default function AccountSecurityScreen() {
             <View style={styles.toggleMeta}>
               <View style={styles.toggleHeader}>
                 <Text style={[styles.toggleTitle, { color: c.textPri }]}>
-                  Two-factor authentication
+                  {t('accountSecurity.two_factor')}
                 </Text>
                 <View style={[styles.recBadge, { backgroundColor: c.goldLight, borderColor: c.goldBorder }]}>
-                  <Text style={[styles.recBadgeText, { color: c.gold }]}>RECOMMENDED</Text>
+                  <Text style={[styles.recBadgeText, { color: c.gold }]}>{t('accountSecurity.recommended')}</Text>
                 </View>
               </View>
               <Text style={[styles.toggleDesc, { color: c.textSec }]}>
-                Require an SMS code or authenticator app token on new logins
+                {t('accountSecurity.two_factor_desc')}
               </Text>
             </View>
             <Switch
@@ -636,10 +638,10 @@ export default function AccountSecurityScreen() {
           <View style={styles.toggleRow}>
             <View style={styles.toggleMeta}>
               <Text style={[styles.toggleTitle, { color: c.textPri }]}>
-                Login notifications
+                {t('accountSecurity.login_notifications')}
               </Text>
               <Text style={[styles.toggleDesc, { color: c.textSec }]}>
-                Receive immediate email and push alerts for unknown device sign-ins
+                {t('accountSecurity.login_notifications_desc')}
               </Text>
             </View>
             <Switch
@@ -661,14 +663,14 @@ export default function AccountSecurityScreen() {
               <Ionicons name="card" size={18} color={c.gold} />
             </View>
             <View style={styles.cardHeaderMeta}>
-              <Text style={[styles.cardTitle, { color: c.textPri }]}>Payment Methods</Text>
+              <Text style={[styles.cardTitle, { color: c.textPri }]}>{t('accountSecurity.payment_methods')}</Text>
               <Text style={[styles.cardSubtitle, { color: c.textSec }]}>
-                Cards & digital wallets on file
+                {t('accountSecurity.cards_on_file_sub')}
               </Text>
             </View>
             <View style={[styles.encryptedBadge, { backgroundColor: c.cardSubtle, borderColor: c.cardBorder }]}>
               <Ionicons name="lock-closed" size={11} color={c.teal} />
-              <Text style={[styles.encryptedText, { color: c.teal }]}>256-bit</Text>
+              <Text style={[styles.encryptedText, { color: c.teal }]}>{t('accountSecurity.encryption')}</Text>
             </View>
           </View>
 
@@ -690,9 +692,9 @@ export default function AccountSecurityScreen() {
 
               <View style={styles.paymentCardTopRight}>
                 <View style={[styles.defaultBadge, { backgroundColor: c.gold }]}>
-                  <Text style={styles.defaultBadgeText}>DEFAULT</Text>
+                  <Text style={styles.defaultBadgeText}>{t('accountSecurity.default')}</Text>
                 </View>
-                <Text style={styles.visaBrand}>VISA</Text>
+                <Text style={styles.visaBrand}>{t('accountSecurity.visa')}</Text>
               </View>
             </View>
 
@@ -700,13 +702,13 @@ export default function AccountSecurityScreen() {
 
             <View style={styles.paymentCardBottom}>
               <View>
-                <Text style={styles.cardMetaLabel}>CARDHOLDER</Text>
+                <Text style={styles.cardMetaLabel}>{t('accountSecurity.cardholder')}</Text>
                 <Text style={styles.cardMetaValue}>
-                  {session?.user.fullName ? session.user.fullName.toUpperCase() : 'VALUED GUEST'}
+                  {session?.user.fullName ? session.user.fullName.toUpperCase() : t('accountSecurity.valued_guest')}
                 </Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={styles.cardMetaLabel}>EXPIRES</Text>
+                <Text style={styles.cardMetaLabel}>{t('accountSecurity.expires')}</Text>
                 <Text style={styles.cardMetaValue}>09/28</Text>
               </View>
             </View>
@@ -732,7 +734,7 @@ export default function AccountSecurityScreen() {
                 </Text>
                 <View style={[styles.activeBadge, { backgroundColor: dark ? '#064E3B' : '#D1FAE5' }]}>
                   <Text style={[styles.activeBadgeText, { color: dark ? '#6EE7B7' : '#065F46' }]}>
-                    ACTIVE
+                    {t('accountSecurity.active')}
                   </Text>
                 </View>
               </View>
@@ -747,10 +749,10 @@ export default function AccountSecurityScreen() {
           <Pressable
             onPress={() => {
               hapticLight();
-              Alert.alert('Payment Gateway', 'Secure card and local gateway integration ready.');
+              Alert.alert(t('errors.payment_gateway'), t('accountSecurity.payment_ready_msg'));
             }}
             accessibilityRole="button"
-            accessibilityLabel="Add payment method"
+            accessibilityLabel={t('accountSecurity.add_payment')}
             style={({ pressed }) => [
               styles.addPaymentCard,
               { backgroundColor: c.cardSubtle, borderColor: c.cardBorder },
@@ -762,10 +764,10 @@ export default function AccountSecurityScreen() {
             </View>
             <View style={styles.addPaymentMeta}>
               <Text style={[styles.addPaymentTitle, { color: c.textPri }]}>
-                Add payment method
+                {t('accountSecurity.add_payment')}
               </Text>
               <Text style={[styles.addPaymentSubtitle, { color: c.textSec }]}>
-                Credit card, debit card, or local mobile wallet
+                {t('accountSecurity.payment_ready_msg')}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={c.textMuted} />
@@ -784,7 +786,7 @@ export default function AccountSecurityScreen() {
         >
           <View style={styles.dangerHeader}>
             <Ionicons name="alert-circle-outline" size={18} color={c.red} />
-            <Text style={[styles.dangerTitle, { color: c.red }]}>Danger Zone</Text>
+            <Text style={[styles.dangerTitle, { color: c.red }]}>{t('accountSecurity.danger_zone')}</Text>
           </View>
           <Text style={[styles.dangerText, { color: dark ? '#FCA5A5' : '#991B1B' }]}>
             Signing out will disconnect your active session and push alerts on this device.
@@ -793,7 +795,7 @@ export default function AccountSecurityScreen() {
           <Pressable
             onPress={handleSignOut}
             accessibilityRole="button"
-            accessibilityLabel="Sign out"
+            accessibilityLabel={t('buttons.sign_out')}
             style={({ pressed }) => [
               styles.signOutBtn,
               { backgroundColor: dark ? '#3D1518' : '#FFFFFF', borderColor: c.red },
@@ -801,7 +803,7 @@ export default function AccountSecurityScreen() {
             ]}
           >
             <Ionicons name="log-out-outline" size={17} color={c.red} />
-            <Text style={[styles.signOutText, { color: c.red }]}>Sign out</Text>
+            <Text style={[styles.signOutText, { color: c.red }]}>{t('buttons.sign_out')}</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -823,12 +825,12 @@ export default function AccountSecurityScreen() {
         <Pressable
           onPress={() => goToBottomTab('Home')}
           accessibilityRole="tab"
-          accessibilityLabel="Home tab"
+          accessibilityLabel={t('accountSecurity.home_tab')}
           style={({ pressed }) => [styles.navItem, pressed && { opacity: 0.6 }]}
         >
           <Ionicons name="home-outline" size={22} color={c.textSec} />
           <Text style={[styles.navLabel, { color: c.textSec }, compact && styles.navLabelCompact]}>
-            Home
+            {t('accountSecurity.home')}
           </Text>
         </Pressable>
 
@@ -836,12 +838,12 @@ export default function AccountSecurityScreen() {
         <Pressable
           onPress={() => goToBottomTab('Explore')}
           accessibilityRole="tab"
-          accessibilityLabel="Explore hotels tab"
+          accessibilityLabel={t('accountSecurity.explore_tab')}
           style={({ pressed }) => [styles.navItem, pressed && { opacity: 0.6 }]}
         >
           <Ionicons name="compass-outline" size={22} color={c.textSec} />
           <Text style={[styles.navLabel, { color: c.textSec }, compact && styles.navLabelCompact]}>
-            Explore
+            {t('accountSecurity.explore')}
           </Text>
         </Pressable>
 
@@ -849,12 +851,12 @@ export default function AccountSecurityScreen() {
         <Pressable
           onPress={() => goToBottomTab('Trips')}
           accessibilityRole="tab"
-          accessibilityLabel="Trips tab"
+          accessibilityLabel={t('accountSecurity.trips_tab')}
           style={({ pressed }) => [styles.navItem, pressed && { opacity: 0.6 }]}
         >
           <Ionicons name="calendar-outline" size={22} color={c.textSec} />
           <Text style={[styles.navLabel, { color: c.textSec }, compact && styles.navLabelCompact]}>
-            Trips
+            {t('accountSecurity.trips')}
           </Text>
         </Pressable>
 
@@ -862,12 +864,12 @@ export default function AccountSecurityScreen() {
         <Pressable
           onPress={() => goToBottomTab('Saved')}
           accessibilityRole="tab"
-          accessibilityLabel="Saved hotels tab"
+          accessibilityLabel={t('accountSecurity.saved_tab')}
           style={({ pressed }) => [styles.navItem, pressed && { opacity: 0.6 }]}
         >
           <Ionicons name="heart-outline" size={22} color={c.textSec} />
           <Text style={[styles.navLabel, { color: c.textSec }, compact && styles.navLabelCompact]}>
-            Saved
+            {t('accountSecurity.saved')}
           </Text>
         </Pressable>
 
@@ -875,7 +877,7 @@ export default function AccountSecurityScreen() {
         <Pressable
           onPress={() => goToBottomTab('Profile')}
           accessibilityRole="tab"
-          accessibilityLabel="Profile tab, active"
+          accessibilityLabel={t('accountSecurity.profile_tab_active')}
           accessibilityState={{ selected: true }}
           style={({ pressed }) => [styles.navItem, pressed && { opacity: 0.6 }]}
         >
@@ -890,7 +892,7 @@ export default function AccountSecurityScreen() {
               compact && styles.navLabelCompact,
             ]}
           >
-            Profile
+            {t('profile.title')}
           </Text>
         </Pressable>
       </View>

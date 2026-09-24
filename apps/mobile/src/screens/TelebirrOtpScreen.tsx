@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -20,6 +21,7 @@ const OTP_EXPIRY_SECONDS = 300;
 const RESEND_COOLDOWN = 60;
 
 export default function TelebirrOtpScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
@@ -100,14 +102,14 @@ export default function TelebirrOtpScreen() {
     } catch (err) {
       hapticError();
       const message = err instanceof ApiError ? err.message : 'OTP verification failed';
-      Alert.alert('Verification Failed', message, [
-        { text: 'Try Again', onPress: () => { setOtp(Array(OTP_LENGTH).fill('')); inputRefs.current[0]?.focus(); } },
-        { text: 'Go Back', style: 'cancel', onPress: () => navigation.goBack() },
+      Alert.alert(t('payment.verification_failed'), message, [
+        { text: t('common.try_again'), onPress: () => { setOtp(Array(OTP_LENGTH).fill('')); inputRefs.current[0]?.focus(); } },
+        { text: t('common.go_back'), style: 'cancel', onPress: () => navigation.goBack() },
       ]);
     } finally {
       setProcessing(false);
     }
-  }, [otpCode, processing, paymentId, bookingId, token, amount, currency, hotelName, navigation]);
+  }, [t, otpCode, processing, paymentId, bookingId, token, amount, currency, hotelName, navigation]);
 
   const handleResend = async () => {
     if (resendCooldown > 0) return;
@@ -122,7 +124,7 @@ export default function TelebirrOtpScreen() {
       setOtp(Array(OTP_LENGTH).fill(''));
       inputRefs.current[0]?.focus();
     } catch {
-      Alert.alert('Resend Failed', 'Could not resend OTP code.');
+      Alert.alert(t('payment.resend_failed'), t('telebirr.resend_failed'));
     }
   };
 
@@ -135,7 +137,7 @@ export default function TelebirrOtpScreen() {
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={[styles.backBtn, { backgroundColor: c.paperDeep }]}>
           <Ionicons name="arrow-back" size={20} color={c.teal} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: c.ink }]}>Verify Payment</Text>
+        <Text style={[styles.headerTitle, { color: c.ink }]}>{t('payment.verify_payment')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -143,26 +145,26 @@ export default function TelebirrOtpScreen() {
         {/* Provider Header */}
         <View style={[styles.providerCard, { backgroundColor: '#E2B94A' }]}>
           <Ionicons name="phone-portrait-outline" size={32} color="#FFFFFF" />
-          <Text style={styles.providerTitle}>TELEBIRR PAYMENT</Text>
-          <Text style={styles.providerSub}>Sandbox</Text>
+          <Text style={styles.providerTitle}>{t('payment.telebirr_payment')}</Text>
+          <Text style={styles.providerSub}>{t('payment.sandbox_short')}</Text>
         </View>
 
         {/* Payment Details */}
         <View style={[styles.detailsCard, { backgroundColor: c.surface, borderColor: c.line }]}>
           <View style={[styles.detailRow, { borderBottomColor: c.line }]}>
-            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>Amount</Text>
+            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>{t('common.amount')}</Text>
             <Text style={[styles.detailValue, { color: c.ink }]}>{currency} {Number(amount).toLocaleString()}</Text>
           </View>
           <View style={[styles.detailRow, { borderBottomColor: c.line }]}>
-            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>Phone</Text>
+            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>{t('common.phone')}</Text>
             <Text style={[styles.detailValue, { color: c.ink }]}>{phone}</Text>
           </View>
           <View style={[styles.detailRow, { borderBottomColor: c.line }]}>
-            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>Hotel</Text>
+            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>{t('common.hotel')}</Text>
             <Text style={[styles.detailValue, { color: c.ink }]} numberOfLines={1}>{hotelName}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>Expires in</Text>
+            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>{t('payment.expires_in')}</Text>
             <Text style={[styles.detailValue, { color: expirySeconds > 0 ? c.ink : c.brick }]}>
               {formatTime(expirySeconds)}
             </Text>
@@ -170,7 +172,7 @@ export default function TelebirrOtpScreen() {
         </View>
 
         {/* OTP Input */}
-        <Text style={[styles.otpLabel, { color: c.ink }]}>Enter the 6-digit code sent to your phone</Text>
+        <Text style={[styles.otpLabel, { color: c.ink }]}>{t('payment.enter_otp')}</Text>
 
         <View style={styles.otpRow}>
           {otp.map((digit, i) => (
@@ -190,7 +192,7 @@ export default function TelebirrOtpScreen() {
 
         {/* Verify Button */}
         <Button
-          title={processing ? 'Verifying...' : 'Verify Payment'}
+          title={processing ? t('telebirr.verifying') : t('payment.verify_payment')}
           variant="primary"
           onPress={handleVerify}
           disabled={otpCode.length !== OTP_LENGTH || processing}

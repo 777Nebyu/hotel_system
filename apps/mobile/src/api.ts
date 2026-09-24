@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from './lib/secureStorage';
 
 function isPrivateHost(hostname: string): boolean {
   return (
@@ -83,6 +83,9 @@ export async function refreshAccessToken(): Promise<string> {
     if (err.name === 'AbortError') {
       throw new NetworkError('Request timed out. Please check your connection.');
     }
+    if (err instanceof TypeError) {
+      throw new NetworkError('No internet connection. Please check your network and try again.');
+    }
     throw err;
   } finally {
     clearTimeout(timeoutId);
@@ -104,6 +107,20 @@ export async function refreshAccessToken(): Promise<string> {
 
 function handle401() {
   onAuthExpired?.();
+}
+
+function extractErrorMessage(payload: unknown, status: number): string {
+  if (typeof payload === 'object' && payload !== null) {
+    const p = payload as { message?: unknown; error?: { message?: unknown } };
+    if (p.message !== undefined && p.message !== null) {
+      return Array.isArray(p.message) ? p.message.join('\n') : String(p.message);
+    }
+    if (p.error?.message !== undefined && p.error?.message !== null) {
+      const nested = p.error.message;
+      return Array.isArray(nested) ? nested.join('\n') : String(nested);
+    }
+  }
+  return `Request failed (${status})`;
 }
 
 async function performRequest<T>(path: string, options: RequestOptions = {}, retryCount = 0): Promise<T> {
@@ -146,7 +163,11 @@ async function performRequest<T>(path: string, options: RequestOptions = {}, ret
     try {
       const newToken = await refreshPromise!;
       return performRequest<T>(path, { ...options, token: newToken }, 1);
-    } catch {
+    } catch (err) {
+      // Only sign out when the server actually rejected the session.
+      // Network/timeout failures must NOT log the user out — they lose all
+      // cached data and cannot sign back in while offline.
+      if (err instanceof NetworkError) throw err;
       handle401();
       throw new ApiError('Session expired. Please sign in again.', 401);
     }
@@ -158,10 +179,7 @@ async function performRequest<T>(path: string, options: RequestOptions = {}, ret
 
   const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    const message = typeof payload === 'object' && payload !== null && 'message' in payload
-      ? Array.isArray(payload.message) ? payload.message.join('\n') : String(payload.message)
-      : `Request failed (${response.status})`;
-    throw new ApiError(message, response.status);
+    throw new ApiError(extractErrorMessage(payload, response.status), response.status);
   }
   return payload as T;
 }
@@ -208,10 +226,7 @@ export async function requestFormData<T>(path: string, formData: FormData, token
 
   const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    const message = typeof payload === 'object' && payload !== null && 'message' in payload
-      ? Array.isArray(payload.message) ? payload.message.join('\n') : String(payload.message)
-      : `Request failed (${response.status})`;
-    throw new ApiError(message, response.status);
+    throw new ApiError(extractErrorMessage(payload, response.status), response.status);
   }
   return payload as T;
 }
@@ -256,10 +271,7 @@ export async function requestBlob(path: string, options: RequestOptions = {}): P
 
   if (!response.ok) {
     const payload: unknown = await response.json().catch(() => null);
-    const message = typeof payload === 'object' && payload !== null && 'message' in payload
-      ? Array.isArray(payload.message) ? payload.message.join('\n') : String(payload.message)
-      : `Request failed (${response.status})`;
-    throw new ApiError(message, response.status);
+    throw new ApiError(extractErrorMessage(payload, response.status), response.status);
   }
   return response.blob();
 }

@@ -22,6 +22,7 @@ import { clearOfflineCache } from '../store/offlineCache';
 import { Card } from '../components/Shared';
 import { font, radius } from '../theme';
 import { hapticSelection, hapticSuccess } from '../hooks/useHaptics';
+import { setAppLanguage } from '../i18n';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -40,7 +41,7 @@ export default function SettingsScreen() {
   const handleLanguageChange = async (lang: 'en' | 'am') => {
     hapticSelection();
     setCurrentLang(lang);
-    await i18n.changeLanguage(lang);
+    await setAppLanguage(lang);
   };
 
   const handleThemeChange = (pref: ColorScheme) => {
@@ -53,7 +54,7 @@ export default function SettingsScreen() {
     if (val) {
       const ok = await enable();
       if (!ok) {
-        Alert.alert('Biometrics Error', 'Could not authenticate with device biometrics.');
+        Alert.alert(t('errors.biometrics_error'), t('errors.biometrics_msg'));
       } else {
         hapticSuccess();
       }
@@ -66,17 +67,17 @@ export default function SettingsScreen() {
 
   const handleClearCache = async () => {
     Alert.alert(
-      'Clear Cache',
-      'This will remove saved offline searches and cached hotel listings. Your bookings and login will remain safe.',
+      t('settings.clear_cache_title'),
+      t('settings.clear_cache_msg'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Clear',
+          text: t('common.clear'),
           style: 'destructive',
           onPress: async () => {
             await clearOfflineCache();
             hapticSuccess();
-            Alert.alert('Success', 'Offline cache has been cleared.');
+            Alert.alert(t('common.success'), t('settings.cache_cleared'));
           },
         },
       ],
@@ -84,10 +85,10 @@ export default function SettingsScreen() {
   };
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('settings.sign_out_title'), t('profile.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: t('settings.sign_out_title'),
         style: 'destructive',
         onPress: async () => {
           setSigningOut(true);
@@ -109,16 +110,16 @@ export default function SettingsScreen() {
     <ScrollView style={[styles.container, { backgroundColor: themeColors.paper }]} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back">
-          <Text style={[styles.backText, { color: themeColors.teal }]}>← Back</Text>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('common.go_back_nav')}>
+          <Text style={[styles.backText, { color: themeColors.teal }]}>{'← '}{t('common.back')}</Text>
         </Pressable>
         <Text style={[styles.title, { color: themeColors.ink }]}>{t('settings.title', 'Settings')}</Text>
-        <Text style={[styles.subtitle, { color: themeColors.inkMuted }]}>Customize your app experience</Text>
+        <Text style={[styles.subtitle, { color: themeColors.inkMuted }]}>{t('settings.subtitle')}</Text>
       </View>
 
       {/* Appearance Section */}
       <Card style={[styles.sectionCard, { backgroundColor: themeColors.surface, borderColor: themeColors.line }]}>
-        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>Appearance</Text>
+        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>{t('settings.appearance')}</Text>
         <View style={styles.themeRow}>
           {(['system', 'light', 'dark'] as ColorScheme[]).map((mode) => (
             <Pressable
@@ -149,7 +150,7 @@ export default function SettingsScreen() {
 
       {/* Language Section */}
       <Card style={[styles.sectionCard, { backgroundColor: themeColors.surface, borderColor: themeColors.line }]}>
-        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>Language</Text>
+        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>{t('settings.language')}</Text>
         <View style={styles.langRow}>
           <Pressable
             onPress={() => handleLanguageChange('en')}
@@ -160,7 +161,7 @@ export default function SettingsScreen() {
             ]}
             accessibilityRole="radio"
             accessibilityState={{ selected: currentLang === 'en' }}
-            accessibilityLabel="English"
+            accessibilityLabel={t('settings.english')}
           >
             <Text style={[styles.langBtnText, { color: themeColors.inkSoft }, currentLang === 'en' && { color: '#FFFFFF', fontWeight: '700' }]}>
               English (US)
@@ -175,7 +176,7 @@ export default function SettingsScreen() {
             ]}
             accessibilityRole="radio"
             accessibilityState={{ selected: currentLang === 'am' }}
-            accessibilityLabel="Amharic"
+            accessibilityLabel={t('settings.amharic')}
           >
             <Text style={[styles.langBtnText, { color: themeColors.inkSoft }, currentLang === 'am' && { color: '#FFFFFF', fontWeight: '700' }]}>
               አማርኛ (Amharic)
@@ -187,11 +188,11 @@ export default function SettingsScreen() {
       {/* Security & Biometrics */}
       {isAvailable && (
         <Card style={[styles.sectionCard, { backgroundColor: themeColors.surface, borderColor: themeColors.line }]}>
-          <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>Security</Text>
+          <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>{t('settings.security')}</Text>
           <View style={styles.settingRow}>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingLabel, { color: themeColors.ink }]}>Biometric Unlock</Text>
-              <Text style={[styles.settingSub, { color: themeColors.inkMuted }]}>Use Face ID or fingerprint for quick access</Text>
+              <Text style={[styles.settingLabel, { color: themeColors.ink }]}>{t('settings.biometric')}</Text>
+              <Text style={[styles.settingSub, { color: themeColors.inkMuted }]}>{t('settings.biometric_sub')}</Text>
             </View>
             <Switch
               value={isEnabled}
@@ -205,16 +206,16 @@ export default function SettingsScreen() {
 
       {/* Payments & Billing */}
       <Card style={[styles.sectionCard, { backgroundColor: themeColors.surface, borderColor: themeColors.line }]}>
-        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>Payments</Text>
+        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>{t('settings.payments')}</Text>
         <Pressable
           onPress={() => navigation.navigate('PaymentHistory')}
           style={styles.actionRow}
           accessibilityRole="button"
-          accessibilityLabel="View payment history"
+          accessibilityLabel={t('settings.payment_history_a11y')}
         >
           <View>
-            <Text style={[styles.settingLabel, { color: themeColors.ink }]}>Payment History</Text>
-            <Text style={[styles.settingSub, { color: themeColors.inkMuted }]}>View all past transactions, receipts & statuses</Text>
+            <Text style={[styles.settingLabel, { color: themeColors.ink }]}>{t('settings.payment_history')}</Text>
+            <Text style={[styles.settingSub, { color: themeColors.inkMuted }]}>{t('settings.payment_history_sub')}</Text>
           </View>
           <Text style={[styles.chevron, { color: themeColors.inkMuted }]}>›</Text>
         </Pressable>
@@ -222,16 +223,16 @@ export default function SettingsScreen() {
 
       {/* Storage & Data */}
       <Card style={[styles.sectionCard, { backgroundColor: themeColors.surface, borderColor: themeColors.line }]}>
-        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>Storage & Cache</Text>
+        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>{t('settings.storage')}</Text>
         <Pressable
           onPress={handleClearCache}
           style={styles.actionRow}
           accessibilityRole="button"
-          accessibilityLabel="Clear offline cached data"
+          accessibilityLabel={t('settings.clear_cache_a11y')}
         >
           <View>
-            <Text style={[styles.settingLabel, { color: themeColors.brick }]}>Clear Offline Cache</Text>
-            <Text style={[styles.settingSub, { color: themeColors.inkMuted }]}>Free up storage used for offline listings</Text>
+            <Text style={[styles.settingLabel, { color: themeColors.brick }]}>{t('settings.clear_cache')}</Text>
+            <Text style={[styles.settingSub, { color: themeColors.inkMuted }]}>{t('settings.clear_cache_sub')}</Text>
           </View>
           <Text style={[styles.chevron, { color: themeColors.inkMuted }]}>›</Text>
         </Pressable>
@@ -239,14 +240,14 @@ export default function SettingsScreen() {
 
       {/* Support & About */}
       <Card style={[styles.sectionCard, { backgroundColor: themeColors.surface, borderColor: themeColors.line }]}>
-        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>Support & Legal</Text>
+        <Text style={[styles.sectionHeader, { color: themeColors.ink }]}>{t('settings.support')}</Text>
         <Pressable
           onPress={() => navigation.navigate('Help' as any)}
           style={styles.actionRow}
           accessibilityRole="button"
-          accessibilityLabel="Help & FAQ"
+          accessibilityLabel={t('settings.help_a11y')}
         >
-          <Text style={[styles.settingLabel, { color: themeColors.ink }]}>Help & FAQs</Text>
+          <Text style={[styles.settingLabel, { color: themeColors.ink }]}>{t('settings.help')}</Text>
           <Text style={[styles.chevron, { color: themeColors.inkMuted }]}>›</Text>
         </Pressable>
         <View style={[styles.divider, { backgroundColor: themeColors.line }]} />
@@ -254,9 +255,9 @@ export default function SettingsScreen() {
           onPress={() => navigation.navigate('ContactNew' as any, {})}
           style={styles.actionRow}
           accessibilityRole="button"
-          accessibilityLabel="Contact Support"
+          accessibilityLabel={t('settings.contact_a11y')}
         >
-          <Text style={[styles.settingLabel, { color: themeColors.ink }]}>Contact Support</Text>
+          <Text style={[styles.settingLabel, { color: themeColors.ink }]}>{t('settings.contact')}</Text>
           <Text style={[styles.chevron, { color: themeColors.inkMuted }]}>›</Text>
         </Pressable>
       </Card>
@@ -267,12 +268,12 @@ export default function SettingsScreen() {
         disabled={signingOut}
         style={({ pressed }) => [styles.signOutBtn, { borderColor: themeColors.brick + '40' }, pressed && { opacity: 0.7 }]}
       >
-        <Text style={[styles.signOutText, { color: themeColors.brick }]}>{signingOut ? 'Signing out…' : 'Sign Out'}</Text>
+        <Text style={[styles.signOutText, { color: themeColors.brick }]}>{signingOut ? 'Signing out…' : t('settings.sign_out_title')}</Text>
       </Pressable>
 
       {/* App Version */}
       <View style={styles.footer}>
-        <Text style={[styles.versionText, { color: themeColors.inkMuted }]}>LuxSty Hotel Mobile v0.1.0 (Production Build)</Text>
+        <Text style={[styles.versionText, { color: themeColors.inkMuted }]}>{t('settings.version')}</Text>
       </View>
     </ScrollView>
   );

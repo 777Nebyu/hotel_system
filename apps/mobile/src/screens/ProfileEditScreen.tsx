@@ -13,7 +13,7 @@ import {
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '../lib/secureStorage';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -37,7 +37,7 @@ const PREFS_KEY = 'luxsty.notification.prefs';
 export default function ProfileEditScreen() {
   const insets = useSafeAreaInsets();
   const pad = useResponsivePadding();
-  const { t: _t } = useTranslation(); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const dispatch = useAppDispatch();
   const session = useAppSelector((s) => s.auth.session);
@@ -116,7 +116,7 @@ export default function ProfileEditScreen() {
   const launchPicker = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission required', 'Please enable photo library access to change your avatar.');
+      Alert.alert(t('errors.permission_required'), t('profile.photo_permission'));
       return;
     }
 
@@ -134,9 +134,9 @@ export default function ProfileEditScreen() {
       formData.append('photo', { uri: compressedUri, name: 'photo.jpg', type: 'image/jpeg' } as any);
       const res = await requestFormData<{ profilePhotoUrl: string }>('/auth/me/photo', formData, session?.accessToken);
       dispatch(updateUser({ profilePhotoUrl: res.profilePhotoUrl }));
-      Alert.alert('Updated', 'Profile photo updated successfully.');
+      Alert.alert(t('profile.updated'), t('profile.profileUpdated'));
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to upload photo.');
+      Alert.alert(t('profile.error'), err instanceof Error ? err.message : t('errors.something_went_wrong'));
     }
   };
 
@@ -174,7 +174,7 @@ export default function ProfileEditScreen() {
         errors[e.path?.[0]] = e.message;
       });
       setFieldErrors(errors);
-      return Alert.alert('Validation error', err.errors?.[0]?.message ?? 'Full name is required.');
+      return Alert.alert(t('errors.validation_error'), err.errors?.[0]?.message ?? t('profile.missingNameMsg'));
     }
 
     setLoading(true);
@@ -188,9 +188,9 @@ export default function ProfileEditScreen() {
         savePrefs(emailDeals, smsUpdates, amharicEmails),
       ]);
       dispatch(updateUser({ fullName: fullName.trim(), phone: phone.trim() || undefined }));
-      Alert.alert('Updated', 'Your profile details have been saved.');
+      Alert.alert(t('profile.updated'), t('profile.profileUpdated'));
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to update profile.');
+      Alert.alert(t('profile.error'), err instanceof Error ? err.message : t('errors.something_went_wrong'));
     } finally {
       setLoading(false);
     }
@@ -198,10 +198,10 @@ export default function ProfileEditScreen() {
 
   const handleSignOut = () => {
     hapticMedium();
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('settings.sign_out_title'), t('profile.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: t('buttons.sign_out'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -264,7 +264,7 @@ export default function ProfileEditScreen() {
           },
         ]}
       >
-        <Pressable onPress={pickImage} style={styles.avatarWrap} accessibilityRole="button" accessibilityLabel="Change profile photo">
+        <Pressable onPress={pickImage} style={styles.avatarWrap} accessibilityRole="button" accessibilityLabel={t('profile.change_photo')}>
           {session?.user.profilePhotoUrl ? (
             <Image source={{ uri: session.user.profilePhotoUrl }} style={styles.avatarPhoto} />
           ) : (
@@ -349,14 +349,14 @@ export default function ProfileEditScreen() {
             style={[styles.primaryAuthBtn, { backgroundColor: palette.teal }]}
             accessibilityRole="button"
           >
-            <Text style={styles.primaryAuthBtnText}>Sign In / Register</Text>
+            <Text style={styles.primaryAuthBtnText}>{t('buttons.sign_in_register')}</Text>
           </Pressable>
 
           <View style={[styles.divider, { width: '100%', marginVertical: 18, backgroundColor: dark ? darkColors.lineStrong : palette.line }]} />
 
           <View style={{ width: '100%' }}>
-            <MenuItem label="App settings" icon="settings" onPress={() => navigate('Settings')} dark={dark} />
-            <MenuItem label="Help & Support" icon="help-circle" onPress={() => navigate('Help')} dark={dark} />
+            <MenuItem label={t('buttons.app_settings')} icon="settings" onPress={() => navigate('Settings')} dark={dark} />
+            <MenuItem label={t('buttons.help_support')} icon="help-circle" onPress={() => navigate('Help')} dark={dark} />
           </View>
         </Card>
       ) : (
@@ -380,7 +380,7 @@ export default function ProfileEditScreen() {
                   { color: activeTab === 'profile' ? '#FFFFFF' : dark ? darkColors.inkSoft : palette.inkSoft },
                 ]}
               >
-                Profile
+                {t('profile.title')}
               </Text>
             </Pressable>
 
@@ -401,7 +401,7 @@ export default function ProfileEditScreen() {
                   { color: activeTab === 'security' ? '#FFFFFF' : dark ? darkColors.inkSoft : palette.inkSoft },
                 ]}
               >
-                Security
+                {t('settings.security')}
               </Text>
             </Pressable>
           </View>
@@ -422,7 +422,7 @@ export default function ProfileEditScreen() {
 
             <View style={styles.fieldGroup}>
               <Text style={[styles.fieldLabel, { color: dark ? darkColors.inkSoft : palette.inkMuted }]}>
-                Full name
+                {t('profile.fullName')}
               </Text>
               <TextInput
                 value={fullName}
@@ -447,7 +447,7 @@ export default function ProfileEditScreen() {
 
             <View style={styles.fieldGroup}>
               <Text style={[styles.fieldLabel, { color: dark ? darkColors.inkSoft : palette.inkMuted }]}>
-                Email address
+                {t('profile.email')}
               </Text>
               <TextInput
                 value={email}
@@ -465,7 +465,7 @@ export default function ProfileEditScreen() {
 
             <View style={styles.fieldGroup}>
               <Text style={[styles.fieldLabel, { color: dark ? darkColors.inkSoft : palette.inkMuted }]}>
-                Phone number
+                {t('profile.phone')}
               </Text>
               <TextInput
                 value={phone}
@@ -484,12 +484,12 @@ export default function ProfileEditScreen() {
                 ]}
                 placeholderTextColor={dark ? darkColors.inkMuted : palette.inkMuted}
                 keyboardType="phone-pad"
-                placeholder="+251 9XX XXX XXX"
+                placeholder={t('auth.phone_placeholder')}
               />
               {fieldErrors.phone ? <Text style={styles.errorText}>{fieldErrors.phone}</Text> : null}
             </View>
 
-            <Button title="Save changes" onPress={updateProfile} loading={loading} disabled={loading} />
+            <Button title={t('profile.saveChanges')} onPress={updateProfile} loading={loading} disabled={loading} />
           </Card>
 
           {/* ─── Preferences Card ─── */}
@@ -505,11 +505,11 @@ export default function ProfileEditScreen() {
             <Text style={[styles.sectionLabel, { color: dark ? darkColors.ink : palette.ink }]}>
               Preferences
             </Text>
-            <ToggleRow label="Email deals" hint="Exclusive seasonal offers" value={emailDeals} onChange={setEmailDeals} dark={dark} />
+            <ToggleRow label={t('profile.email_deals')} hint={t('profile.email_deals_hint')} value={emailDeals} onChange={setEmailDeals} dark={dark} />
             <View style={[styles.divider, { backgroundColor: dark ? darkColors.lineStrong : palette.line }]} />
-            <ToggleRow label="SMS updates" hint="Booking confirmations & alerts" value={smsUpdates} onChange={setSmsUpdates} dark={dark} />
+            <ToggleRow label={t('profile.sms_updates')} hint={t('profile.sms_hint')} value={smsUpdates} onChange={setSmsUpdates} dark={dark} />
             <View style={[styles.divider, { backgroundColor: dark ? darkColors.lineStrong : palette.line }]} />
-            <ToggleRow label="Amharic emails" hint="Receive communications in Amharic" value={amharicEmails} onChange={setAmharicEmails} dark={dark} />
+            <ToggleRow label={t('profile.amharic_emails')} hint={t('profile.amharic_emails_hint')} value={amharicEmails} onChange={setAmharicEmails} dark={dark} />
           </Card>
 
           {/* ─── Account & Navigation Links ─── */}
@@ -525,26 +525,28 @@ export default function ProfileEditScreen() {
             <Text style={[styles.sectionLabel, { color: dark ? darkColors.ink : palette.ink }]}>
               Your account
             </Text>
-            <MenuItem label="Account security & credentials" icon="shield-checkmark" onPress={() => navigate('AccountSecurity')} dark={dark} />
-            <MenuItem label="Trips & reservations" icon="calendar" onPress={() => navigate('BookingsTab')} dark={dark} />
-            <MenuItem label="Saved stays" icon="heart" onPress={() => navigate('FavoritesTab')} dark={dark} />
-            {role === 'CUSTOMER' && (
-              <MenuItem label="My hotel reviews" icon="star" onPress={() => navigate('MyReviews')} dark={dark} />
+            <MenuItem label={t('profile.account_security')} icon="shield-checkmark" onPress={() => navigate('AccountSecurity')} dark={dark} />
+            <MenuItem label={t('profile.trips')} icon="calendar" onPress={() => navigate('BookingsTab')} dark={dark} />
+            {role !== 'STAFF' && (
+              <MenuItem label={t('profile.saved_stays')} icon="heart" onPress={() => navigate('FavoritesTab')} dark={dark} />
             )}
             {role === 'CUSTOMER' && (
-              <MenuItem label="Disputes & complaints" icon="alert-circle" onPress={() => navigate('Disputes')} dark={dark} />
+              <MenuItem label={t('profile.my_reviews')} icon="star" onPress={() => navigate('MyReviews')} dark={dark} />
             )}
-            <MenuItem label="Support inbox & messages" icon="chatbubbles" onPress={() => navigate('ContactInbox')} dark={dark} />
-            <MenuItem label="Notifications" icon="notifications" onPress={() => navigate('Notifications')} dark={dark} />
-            <MenuItem label="App settings" icon="settings" onPress={() => navigate('Settings')} dark={dark} />
-            <MenuItem label="Help & FAQs" icon="help-circle" onPress={() => navigate('Help')} dark={dark} />
+            {role === 'CUSTOMER' && (
+              <MenuItem label={t('profile.disputes')} icon="alert-circle" onPress={() => navigate('Disputes')} dark={dark} />
+            )}
+            <MenuItem label={t('profile.support_inbox')} icon="chatbubbles" onPress={() => navigate('ContactInbox')} dark={dark} />
+            <MenuItem label={t('common.notifications')} icon="notifications" onPress={() => navigate('Notifications')} dark={dark} />
+            <MenuItem label={t('buttons.app_settings')} icon="settings" onPress={() => navigate('Settings')} dark={dark} />
+            <MenuItem label={t('buttons.help_faqs')} icon="help-circle" onPress={() => navigate('Help')} dark={dark} />
           </Card>
 
           {/* ─── Sign Out Button ─── */}
           <Pressable
             onPress={handleSignOut}
             accessibilityRole="button"
-            accessibilityLabel="Sign out"
+            accessibilityLabel={t('buttons.sign_out')}
             style={[
               styles.signOutButton,
               {
@@ -554,7 +556,7 @@ export default function ProfileEditScreen() {
             ]}
           >
             <Ionicons name="log-out-outline" size={18} color={dark ? darkColors.brick : palette.brick} style={{ marginRight: 6 }} />
-            <Text style={styles.signOutText}>Sign out</Text>
+            <Text style={styles.signOutText}>{t('buttons.sign_out')}</Text>
           </Pressable>
         </>
       )}

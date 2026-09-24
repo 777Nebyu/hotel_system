@@ -181,6 +181,11 @@ const bookingFlowSlice = createSlice({
         idempotencyKey: generateIdempotencyKey(),
       };
     },
+    hydrateBookingFlow(_state, action: PayloadAction<BookingFlowState>) {
+      // Restore a draft persisted by store/index.ts (app killed mid-checkout).
+      // Start from initialState so no fields from the live state leak through.
+      return { ...initialState, ...action.payload };
+    },
   },
 });
 
@@ -190,6 +195,6 @@ export const {
   setPromoCode, setAppliedPromo, setHouseRulesAccepted,
   setPaymentMethod, setStep, setBookingId, setBookingRef, setQuote, setQuoteData,
   setHoldExpiresAt, setRoomDetails,
-  resetBooking,
+  resetBooking, hydrateBookingFlow,
 } = bookingFlowSlice.actions;
 export default bookingFlowSlice.reducer;

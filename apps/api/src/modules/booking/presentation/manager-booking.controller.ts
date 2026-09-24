@@ -15,6 +15,7 @@ import {
   RelocateRoomDto,
   StayRequestIdParamsDto,
   CreateWalkInBookingDto,
+  RejectBookingDto,
 } from './dto/manager-booking.dto';
 
 import { RequireFeatureFlag } from '../../feature-flags/feature-flag.decorator';
@@ -35,10 +36,7 @@ export class ManagerBookingController {
   @Post('walk-in')
   @RequireFeatureFlag('ENABLE_WALK_IN_BOOKINGS')
   @ApiOperation({ summary: 'Create a walk-in booking at hotel front desk' })
-  createWalkIn(
-    @Body() dto: CreateWalkInBookingDto,
-    @Req() req: AuthedRequest,
-  ) {
+  createWalkIn(@Body() dto: CreateWalkInBookingDto, @Req() req: AuthedRequest) {
     return this.managerBookings.createWalkInBooking(dto, req.user);
   }
 
@@ -62,8 +60,12 @@ export class ManagerBookingController {
 
   @Post(':bookingId/reject')
   @ApiOperation({ summary: 'Reject a pending booking' })
-  reject(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
-    return this.managerBookings.reject(params.bookingId, req.user);
+  reject(
+    @Param() params: BookingIdParamsDto,
+    @Body() dto: RejectBookingDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.managerBookings.reject(params.bookingId, req.user, dto.reason);
   }
 
   @Post(':bookingId/check-in')
@@ -86,7 +88,11 @@ export class ManagerBookingController {
     @Body() dto: EarlyCheckInActionDto,
     @Req() req: AuthedRequest,
   ) {
-    return this.managerBookings.directEarlyCheckIn(params.bookingId, dto, req.user);
+    return this.managerBookings.directEarlyCheckIn(
+      params.bookingId,
+      dto,
+      req.user,
+    );
   }
 
   @Post(':bookingId/late-checkout')
@@ -97,7 +103,11 @@ export class ManagerBookingController {
     @Body() dto: LateCheckOutActionDto,
     @Req() req: AuthedRequest,
   ) {
-    return this.managerBookings.directLateCheckOut(params.bookingId, dto, req.user);
+    return this.managerBookings.directLateCheckOut(
+      params.bookingId,
+      dto,
+      req.user,
+    );
   }
 
   @Get('hotels/:id/stay-requests')
@@ -123,10 +133,7 @@ export class ManagerBookingController {
   @Post(':bookingId/no-show')
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Mark a confirmed booking as no-show' })
-  noShow(
-    @Param() params: BookingIdParamsDto,
-    @Req() req: AuthedRequest,
-  ) {
+  noShow(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
     return this.managerBookings.manualNoShow(params.bookingId, req.user);
   }
 
@@ -139,14 +146,5 @@ export class ManagerBookingController {
     @Req() req: AuthedRequest,
   ) {
     return this.managerBookings.relocateRoom(params.bookingId, dto, req.user);
-  }
-
-  @Get(':bookingId/relocations')
-  @ApiOperation({ summary: 'List room relocations for a booking' })
-  getRelocations(
-    @Param() params: BookingIdParamsDto,
-    @Req() req: AuthedRequest,
-  ) {
-    return this.managerBookings.getRelocations(params.bookingId, req.user);
   }
 }

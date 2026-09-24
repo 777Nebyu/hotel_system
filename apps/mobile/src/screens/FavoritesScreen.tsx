@@ -10,6 +10,7 @@ import { useAppSelector } from '../store/hooks';
 import { useFavorites, useToggleFavorite } from '../hooks/useQueries';
 import { useQueryClient } from '@tanstack/react-query';
 import { EmptyState, ErrorBox, Stars } from '../components/Shared';
+import { classifyError } from '../errors';
 import { SkeletonList } from '../components/Skeleton';
 import { colors, darkColors, font, radius, shadowCard } from '../theme';
 import { hapticLight } from '../hooks/useHaptics';
@@ -27,6 +28,7 @@ export default function FavoritesScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const session = useAppSelector((s) => s.auth.session);
+  const canViewFavorites = session?.user?.role !== 'STAFF';
   const queryClient = useQueryClient();
   const { colorScheme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -49,9 +51,17 @@ export default function FavoritesScreen() {
     }
   }, [session, navigation, t]);
 
-  const { data, isLoading, error, refetch, isRefetching } = useFavorites(session?.accessToken ?? '');
-  const toggleFavorite = useToggleFavorite(session?.accessToken ?? '');
+  const { data, isLoading, error, refetch, isRefetching } = useFavorites(canViewFavorites ? (session?.accessToken ?? '') : '');
+  const toggleFavorite = useToggleFavorite(canViewFavorites ? (session?.accessToken ?? '') : '');
   const favorites: any[] = Array.isArray(data) ? data : (data as any)?.data ?? [];
+
+  if (session?.user?.role === 'STAFF') {
+    return (
+      <View style={{ flex: 1, backgroundColor: c.paper, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <Text style={{ color: c.ink, fontSize: 18, fontWeight: '700', textAlign: 'center' }}>{t('profile.staff_saved_unavailable')}</Text>
+      </View>
+    );
+  }
 
   const removeFavorite = async (id: string) => {
     hapticLight();
@@ -63,13 +73,9 @@ export default function FavoritesScreen() {
     });
     try {
       await toggleFavorite.mutateAsync({ hotelId: id, isFavorite: false });
-    } catch (err) {
-      // Rollback on error
+    } catch {
+      // Rollback on error. Feedback (toast) is handled by useToggleFavorite.
       queryClient.setQueryData(['favorites'], previous);
-      Alert.alert(
-        t('favorites.error', 'Error'),
-        err instanceof Error ? err.message : t('favorites.couldNotRemove', 'Could not remove from favorites.'),
-      );
     }
   };
 
@@ -85,7 +91,7 @@ export default function FavoritesScreen() {
         </Text>
       </View>
 
-      {error && <ErrorBox message={error.message} onRetry={refetch} />}
+      {error && <ErrorBox message={classifyError(error).title} onRetry={refetch} />}
 
       <FlashList
         data={favorites}
@@ -171,16 +177,16 @@ export default function FavoritesScreen() {
                     <Stars value={item.averageRating ?? item.starRating} size={12} />
                     {item.reviewCount != null && (
                       <Text style={[s.reviewCount, { color: c.inkMuted }]}>
-                        {item.reviewCount} review{item.reviewCount !== 1 ? 's' : ''}
+                        {item.reviewCount} {item.reviewCount !== 1 ? t('search.reviews') : t('search.review')}
                       </Text>
                     )}
                   </View>
                   <View style={s.priceBlock}>
                     {item.minPricePerNight != null && (
                       <>
-                        <Text style={[s.fromLabel, { color: c.inkMuted }]}>from</Text>
+                        <Text style={[s.fromLabel, { color: c.inkMuted }]}>{t('hotel.from')}</Text>
                         <Text style={[s.price, { color: c.ink }]}>ETB {item.minPricePerNight}</Text>
-                        <Text style={[s.perNight, { color: c.inkMuted }]}>/night</Text>
+                        <Text style={[s.perNight, { color: c.inkMuted }]}>{t('hotel.perNight')}</Text>
                       </>
                     )}
                   </View>
@@ -188,7 +194,7 @@ export default function FavoritesScreen() {
 
                 {/* View button */}
                 <View style={s.viewRow}>
-                  <Text style={[s.viewBtn, { color: c.teal }]}>View hotel →</Text>
+                  <Text style={[s.viewBtn, { color: c.teal }]}>{t('buttons.view_hotel')}</Text>
                 </View>
               </View>
             </View>

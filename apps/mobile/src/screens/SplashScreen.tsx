@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -10,6 +11,7 @@ import { Logo } from '../components/Shared';
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function SplashScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const isRestoring = useAppSelector((s) => s.auth.isRestoring);
 
@@ -30,11 +32,11 @@ export default function SplashScreen() {
       <View style={styles.content}>
         <Logo size={56} showWordmark={false} />
         <Text style={styles.title}>LuxSty</Text>
-        <Text style={styles.subtitle}>HOTEL & RESORT COLLECTION</Text>
+        <Text style={styles.subtitle}>{t('splash.tagline')}</Text>
       </View>
       <View style={styles.footer}>
         <ActivityIndicator size="small" color={colors.teal} />
-        <Text style={styles.loadingText}>Loading luxury stays...</Text>
+        <Text style={styles.loadingText}>{t('splash.loading')}</Text>
       </View>
     </View>
   );

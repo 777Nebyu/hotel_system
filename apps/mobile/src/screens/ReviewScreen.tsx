@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -24,6 +25,7 @@ type Route = RouteProp<RootStackParamList, 'Review'>;
 const RATING_WORDS = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'] as const;
 
 export default function ReviewScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { hotelId, hotelName, bookingId, mode = 'create', existingReview } = route.params;
@@ -36,12 +38,12 @@ export default function ReviewScreen() {
 
   useEffect(() => {
     if (!session) {
-      Alert.alert('Sign In Required', 'Please sign in to write a review.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign In', onPress: () => navigation.navigate('Auth', { initialMode: 'login' }) },
+      Alert.alert(t('common.sign_in_required'), t('review.signin_write'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.sign_in'), onPress: () => navigation.navigate('Auth', { initialMode: 'login' }) },
       ]);
     }
-  }, [session, navigation]);
+  }, [session, navigation, t]);
 
   const [rating, setRating] = useState(existingReview?.rating ?? 0);
   const [comment, setComment] = useState(existingReview?.comment ?? '');
@@ -53,7 +55,7 @@ export default function ReviewScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
-        'Permission Required',
+        t('errors.permission_required'),
         'Photo access is needed to attach images to your review. You can still submit a text-only review.',
         [{ text: 'OK' }],
       );
@@ -68,11 +70,11 @@ export default function ReviewScreen() {
         const filename = asset.uri.split('/').pop()?.toLowerCase() ?? '';
         const ext = filename.split('.').pop() ?? '';
         if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
-          Alert.alert('Invalid file type', 'Only JPG, PNG, and WebP images are allowed.');
+          Alert.alert(t('review.invalid_file'), t('review.only_images'));
           continue;
         }
         if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
-          Alert.alert('File too large', 'Photos must be under 5MB each.');
+          Alert.alert(t('review.file_large'), t('review.photos_under'));
           continue;
         }
         validPhotos.push({ uri: asset.uri, asset });
@@ -88,8 +90,8 @@ export default function ReviewScreen() {
         'Photo Access',
         'Yayetech Hotel needs access to your photo library to attach photos to your review.',
         [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Continue', onPress: launchPhotoPicker },
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('common.continue'), onPress: launchPhotoPicker },
         ],
       );
     } else {
@@ -101,7 +103,7 @@ export default function ReviewScreen() {
 
   const submit = async () => {
     if (isOffline) {
-      Alert.alert('Offline', 'Cannot submit a review while offline. Please connect to the internet and try again.');
+      Alert.alert(t('review.offline'), t('review.offline_msg'));
       return;
     }
     const sanitizedComment = sanitizeText(comment);
@@ -112,8 +114,8 @@ export default function ReviewScreen() {
     try {
       reviewSchema.parse({ hotelId, rating, comment: sanitizedComment });
     } catch (err: any) {
-      const msg = err.errors?.[0]?.message ?? 'Please fill in all required fields.';
-      return Alert.alert('Validation error', msg);
+      const msg = err.errors?.[0]?.message ?? t('errors.missing_details');
+      return Alert.alert(t('errors.validation_error'), msg);
     }
     setLoading(true);
     try {
@@ -134,9 +136,9 @@ export default function ReviewScreen() {
         formData.append('photo', { uri: compressedUri, name: filename, type: mimeType } as any);
         await requestFormData(`/reviews/${reviewId}/photos`, formData, token);
       }
-      Alert.alert(mode === 'edit' ? 'Review updated' : 'Review submitted', 'Thank you for your feedback!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert(mode === 'edit' ? t('review.updated') : t('review.submitted'), t('review.thanks'), [{ text: t('review.ok'), onPress: () => navigation.goBack() }]);
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : `Could not ${mode === 'edit' ? 'update' : 'submit'} review`);
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : (mode === 'edit' ? t('review.could_not_update') : t('review.could_not_submit')));
     } finally { setLoading(false); }
   };
 
@@ -147,12 +149,12 @@ export default function ReviewScreen() {
       <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={s.backBtn}>
         <Ionicons name="arrow-back" size={20} color={c.teal} />
       </Pressable>
-      <Text {...textProps} style={s.title}>{mode === 'edit' ? 'Edit review' : `Review ${hotelName}`}</Text>
+      <Text {...textProps} style={s.title}>{mode === 'edit' ? t('review.edit') : `${t('buttons.review')} ${hotelName}`}</Text>
       <Text style={s.subtitle}>{mode === 'edit' ? 'Update your review' : 'Share your experience'}</Text>
 
       <Card style={s.card}>
-        <Text style={s.label}>Your rating</Text>
-        <View style={s.starsRow} accessibilityRole="radiogroup" accessibilityLabel="Rating stars">
+        <Text style={s.label}>{t('review.your_rating')}</Text>
+        <View style={s.starsRow} accessibilityRole="radiogroup" accessibilityLabel={t('review.stars')}>
           {[1, 2, 3, 4, 5].map((st) => (
             <Pressable
               key={st}
@@ -169,22 +171,22 @@ export default function ReviewScreen() {
           {rating > 0 && <Text style={s.ratingWord}>{RATING_WORDS[rating]}</Text>}
         </View>
 
-        <Text style={s.label}>Your review</Text>
+        <Text style={s.label}>{t('review.your_review')}</Text>
         <TextInput
           value={comment}
           onChangeText={(v) => { setComment(v); setFieldErrors((p) => ({ ...p, comment: undefined })); }}
-          placeholder="Clean rooms, honest breakfast, staff who actually smile..."
+          placeholder={t('review.placeholder')}
           placeholderTextColor={c.inkMuted}
           style={[s.input, { height: 120 }, fieldErrors.comment && s.inputError]}
           multiline
           textAlignVertical="top"
           maxLength={2000}
-          accessibilityLabel="Your review comments"
+          accessibilityLabel={t('review.comments')}
         />
         {fieldErrors.comment ? <Text style={s.fieldError}>{fieldErrors.comment}</Text> : null}
 
         <View style={s.photoSection}>
-          <Text style={s.label}>Add photos</Text>
+          <Text style={s.label}>{t('review.add_photos')}</Text>
           <Text style={s.photoHint}>{photos.length}/5 \u00B7 optional</Text>
           <View style={s.photoRow}>
             {photos.map((p, i) => (
@@ -205,7 +207,7 @@ export default function ReviewScreen() {
                 style={s.photoPlaceholder}
                 onPress={pickPhotos}
                 accessibilityRole="button"
-                accessibilityLabel="Add review photos"
+                accessibilityLabel={t('review.add_photo_a11y')}
                 accessibilityHint="Select up to 5 photos from your photo library"
               >
                 <Text style={s.photoPlus}>+</Text>
@@ -215,16 +217,16 @@ export default function ReviewScreen() {
         </View>
 
         <Button
-          title={mode === 'edit' ? 'Update review' : 'Publish review'}
+          title={mode === 'edit' ? t('buttons.edit_review') : t('buttons.write_review')}
           variant="gold"
           onPress={submit}
           loading={loading}
           disabled={loading || isOffline}
-          accessibilityLabel={mode === 'edit' ? 'Update review' : 'Publish review'}
+          accessibilityLabel={mode === 'edit' ? t('buttons.edit_review') : t('buttons.write_review')}
         />
       </Card>
 
-      <View style={s.hintRow}><Stars value={5} size={12} /><Text style={s.hint}>Reviews are only allowed for completed stays.</Text></View>
+      <View style={s.hintRow}><Stars value={5} size={12} /><Text style={s.hint}>{t('review.completed_only')}</Text></View>
     </ScrollView>
   );
 }

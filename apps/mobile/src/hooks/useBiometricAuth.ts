@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as LocalAuthentication from 'expo-local-authentication';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '../lib/secureStorage';
 
 const BIOMETRIC_ENABLED_KEY = 'useBiometrics';
 

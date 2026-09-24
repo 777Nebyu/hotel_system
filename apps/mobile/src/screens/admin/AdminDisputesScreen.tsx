@@ -60,7 +60,7 @@ export default function AdminDisputesScreen({ onBack }: Props) {
   };
 
   const token   = useAppSelector((s) => s.auth.session?.accessToken ?? '');
-  const adminId = useAppSelector((s) => s.auth.session?.user.id ?? '');
+  const role = useAppSelector((s) => s.auth.session?.user.role ?? '');
   const toast   = useToast();
 
   const [loading,    setLoading]    = useState(true);
@@ -72,7 +72,7 @@ export default function AdminDisputesScreen({ onBack }: Props) {
   // Action modal
   const [modalVisible, setModalVisible]  = useState(false);
   const [selected,     setSelected]      = useState<any | null>(null);
-  const [action,       setAction]        = useState<'resolve' | 'dismiss' | 'close'>('resolve');
+  const [action,       setAction]        = useState<'resolve' | 'close'>('resolve');
   const [resolution,   setResolution]    = useState('');
   const [saving,       setSaving]        = useState(false);
 
@@ -103,21 +103,17 @@ export default function AdminDisputesScreen({ onBack }: Props) {
 
   const handleAssignSelf = async (disputeId: string) => {
     try {
-      await request(`/disputes/${disputeId}/review`, {
-        method: 'POST',
-        body: { assigneeId: adminId },
-        token,
-      });
+      await request(`/disputes/${disputeId}/review`, { method: 'POST', token });
       setDisputes((prev) =>
-        prev.map((d) => d.id === disputeId ? { ...d, assigneeId: adminId } : d),
+        prev.map((d) => d.id === disputeId ? { ...d, status: 'UNDER_REVIEW' } : d),
       );
-      toast('success', 'Dispute assigned to you');
+      toast('success', 'Dispute marked under review');
     } catch (err: any) {
       toast('error', err.message || 'Failed to assign');
     }
   };
 
-  const openAction = (dispute: any, act: 'resolve' | 'dismiss' | 'close') => {
+  const openAction = (dispute: any, act: 'resolve' | 'close') => {
     setSelected(dispute);
     setAction(act);
     setResolution('');
@@ -132,7 +128,7 @@ export default function AdminDisputesScreen({ onBack }: Props) {
     }
     setSaving(true);
     const endpoint = action === 'resolve' ? `/disputes/${selected.id}/resolve` : `/disputes/${selected.id}/close`;
-    const statusMap = { resolve: 'RESOLVED', dismiss: 'CLOSED', close: 'CLOSED' };
+    const statusMap = { resolve: 'RESOLVED', close: 'CLOSED' };
     try {
       await request(endpoint, {
         method: 'POST',
@@ -163,7 +159,6 @@ export default function AdminDisputesScreen({ onBack }: Props) {
     const statusCfg = STATUS_CONFIG[d.status] ?? STATUS_CONFIG.CLOSED;
     const categoryCfg = CATEGORY_CONFIG[d.type] ?? CATEGORY_CONFIG.OTHER;
     const isOpen = !['RESOLVED', 'CLOSED'].includes(d.status);
-    const isAssignedToMe = d.assigneeId === adminId;
 
     return (
       <View key={d.id} style={s.card}>
@@ -226,42 +221,36 @@ export default function AdminDisputesScreen({ onBack }: Props) {
           </View>
         </View>
 
-        {/* Assignee */}
-        {d.assigneeId && (
-          <View style={s.assigneeRow}>
-            <Ionicons name="checkmark-circle" size={14} color={c.teal} />
-            <Text style={s.assigneeText}>
-              {isAssignedToMe ? 'Assigned to you' : `Assigned: ${d.assignee?.fullName ?? d.assigneeId.slice(0, 8)}`}
-            </Text>
-          </View>
-        )}
-
         {/* Action buttons for open disputes */}
         {isOpen && (
           <View style={s.actions}>
-            {!d.assigneeId && (
+            {d.status === 'OPEN' && (
               <Pressable
                 style={({ pressed }) => [s.actionBtnOutline, pressed && { opacity: 0.7 }]}
                 onPress={() => handleAssignSelf(d.id)}
               >
                 <Ionicons name="person-add-outline" size={16} color={c.teal} />
-                <Text style={s.actionBtnOutlineText}>Assign to Me</Text>
+                <Text style={s.actionBtnOutlineText}>Mark Under Review</Text>
               </Pressable>
             )}
-            <Pressable
-              style={({ pressed }) => [s.actionBtnGold, pressed && { opacity: 0.7 }]}
-              onPress={() => openAction(d, 'resolve')}
-            >
-              <Ionicons name="checkmark-circle-outline" size={16} color={c.gold} />
-              <Text style={s.actionBtnGoldText}>Resolve</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [s.actionBtnDanger, pressed && { opacity: 0.7 }]}
-              onPress={() => openAction(d, 'dismiss')}
-            >
-              <Ionicons name="close-circle-outline" size={16} color={c.danger} />
-              <Text style={s.actionBtnDangerText}>Dismiss</Text>
-            </Pressable>
+            {(role === 'MANAGER' || role === 'ADMIN') && d.status !== 'RESOLVED' && (
+              <Pressable
+                style={({ pressed }) => [s.actionBtnGold, pressed && { opacity: 0.7 }]}
+                onPress={() => openAction(d, 'resolve')}
+              >
+                <Ionicons name="checkmark-circle-outline" size={16} color={c.gold} />
+                <Text style={s.actionBtnGoldText}>Resolve</Text>
+              </Pressable>
+            )}
+            {role === 'ADMIN' && d.status === 'RESOLVED' && (
+              <Pressable
+                style={({ pressed }) => [s.actionBtnDanger, pressed && { opacity: 0.7 }]}
+                onPress={() => openAction(d, 'close')}
+              >
+                <Ionicons name="lock-closed-outline" size={16} color={c.danger} />
+                <Text style={s.actionBtnDangerText}>Close</Text>
+              </Pressable>
+            )}
           </View>
         )}
 
@@ -400,7 +389,7 @@ export default function AdminDisputesScreen({ onBack }: Props) {
           <Pressable style={s.modalSheet} onPress={(e) => e.stopPropagation()}>
             <View style={s.modalHandle} />
             <Text style={s.modalTitle}>
-              {action === 'resolve' ? 'Resolve Dispute' : action === 'dismiss' ? 'Dismiss Dispute' : 'Close Dispute'}
+              {action === 'resolve' ? 'Resolve Dispute' : 'Close Dispute'}
             </Text>
             <Text style={s.modalSub}>{selected?.subject}</Text>
 
@@ -409,7 +398,7 @@ export default function AdminDisputesScreen({ onBack }: Props) {
             </Text>
             <TextInput
               style={s.textarea}
-              placeholder={action === 'resolve' ? 'Describe how this was resolved…' : 'Reason for dismissal…'}
+              placeholder={action === 'resolve' ? 'Describe how this was resolved…' : 'Reason for closing…'}
               placeholderTextColor={c.inkMuted}
               value={resolution}
               onChangeText={setResolution}
@@ -435,7 +424,7 @@ export default function AdminDisputesScreen({ onBack }: Props) {
                 disabled={saving}
               >
                 <Text style={s.modalConfirmBtnText}>
-                  {saving ? 'Saving…' : action === 'resolve' ? 'Resolve' : action === 'dismiss' ? 'Dismiss' : 'Close'}
+                  {saving ? 'Saving…' : action === 'resolve' ? 'Resolve' : 'Close'}
                 </Text>
               </Pressable>
             </View>

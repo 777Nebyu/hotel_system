@@ -163,19 +163,20 @@ const SK = StyleSheet.create({
 
 // ─── Empty ────────────────────────────────────────────────────────────────────
 function Empty({ dark, onReset }: { dark: boolean; onReset: () => void }) {
+  const { t } = useTranslation();
   return (
     <View style={EM.wrap}>
       <View style={[EM.circle, { backgroundColor: dark ? '#1A2A1A' : C.goldBg }]}>
         <Ionicons name="bed-outline" size={54} color={dark ? '#6EE7B7' : C.gold} />
       </View>
-      <Text style={[EM.h, { color: dark ? C.D_text : C.text }]}>No stays found</Text>
+      <Text style={[EM.h, { color: dark ? C.D_text : C.text }]}>{t('search.no_stays')}</Text>
       <Text style={[EM.p, { color: dark ? C.D_textSec : C.textSec }]}>
-        Try a different destination, date range, or adjust your filters.
+        {t('search.noResultsSubtitle')}
       </Text>
       <Pressable onPress={onReset}
         style={({ pressed }) => [EM.btn, { opacity: pressed ? 0.8 : 1 }]}>
         <Ionicons name="refresh-outline" size={16} color="#FFF" />
-        <Text style={EM.btnT}>Reset Filters</Text>
+        <Text style={EM.btnT}>{t('buttons.reset_filters')}</Text>
       </Pressable>
     </View>
   );
@@ -191,19 +192,20 @@ const EM = StyleSheet.create({
 
 // ─── Error ────────────────────────────────────────────────────────────────────
 function Err({ dark, onRetry }: { dark: boolean; onRetry: () => void }) {
+  const { t } = useTranslation();
   return (
     <View style={ER.wrap}>
       <View style={[ER.circle, { backgroundColor: dark ? '#2D1515' : C.errorBg }]}>
         <Ionicons name="cloud-offline-outline" size={48} color={C.error} />
       </View>
-      <Text style={[ER.h, { color: dark ? C.D_text : C.text }]}>Connection problem</Text>
+      <Text style={[ER.h, { color: dark ? C.D_text : C.text }]}>{t('search.connection')}</Text>
       <Text style={[ER.p, { color: dark ? C.D_textSec : C.textSec }]}>
-        We couldn&apos;t load hotels right now. Please check your connection and try again.
+        {t('errors.check_connection')}
       </Text>
       <Pressable onPress={onRetry}
         style={({ pressed }) => [ER.btn, { opacity: pressed ? 0.8 : 1 }]}>
         <Ionicons name="refresh" size={16} color="#FFF" />
-        <Text style={ER.btnT}>Try Again</Text>
+        <Text style={ER.btnT}>{t('buttons.try_again')}</Text>
       </Pressable>
     </View>
   );
@@ -225,6 +227,7 @@ const HotelCard = React.memo(function HotelCard({
   hotel: HotelSummary; isFav: boolean;
   onPress: () => void; onFav: () => void; dark: boolean;
 }) {
+  const { t } = useTranslation();
   const { width } = Dimensions.get('window');
   const imgHeight = width < 360 ? 190 : width < 390 ? 210 : 230;
   const price  = hotel.minPricePerNight;
@@ -237,7 +240,7 @@ const HotelCard = React.memo(function HotelCard({
       onPress={onPress}
       style={({ pressed }) => [HC.card, pressed && HC.pressed,
         { shadowColor: dark ? 'transparent' : '#0F1D32' }]}
-      accessibilityRole="button"
+      accessibilityRole="link"
       accessibilityLabel={`${hotel.name}, ${stars} stars, ${loc}${price ? `, from ETB ${price}` : ''}`}
     >
       {/* ── Full-bleed image ── */}
@@ -289,9 +292,9 @@ const HotelCard = React.memo(function HotelCard({
           </View>
           {price != null && (
             <View style={HC.priceBox}>
-              <Text style={HC.priceFrom}>from</Text>
+              <Text style={HC.priceFrom}>{t('search.from')}</Text>
               <Text style={HC.price}>ETB {Number(price).toLocaleString()}</Text>
-              <Text style={HC.priceNight}>/night</Text>
+              <Text style={HC.priceNight}>{t('hotel.perNight')}</Text>
             </View>
           )}
         </View>
@@ -311,7 +314,7 @@ const HotelCard = React.memo(function HotelCard({
                 ))}
               </View>
               <Text style={[HC.reviewT, { color: dark ? C.D_textMut : C.textMut }]}>
-                {hotel.reviewCount ?? 0} review{(hotel.reviewCount ?? 0) !== 1 ? 's' : ''}
+                {hotel.reviewCount ?? 0} {(hotel.reviewCount ?? 0) !== 1 ? t('search.reviews') : t('search.review')}
               </Text>
             </>
           ) : (
@@ -334,8 +337,8 @@ const HotelCard = React.memo(function HotelCard({
         <Pressable onPress={onPress}
           style={({ pressed }) => [HC.cta, { opacity: pressed ? 0.8 : 1 }]}
           accessibilityRole="button"
-          accessibilityLabel={`View rooms at ${hotel.name}`}>
-          <Text style={HC.ctaT}>Rooms</Text>
+          accessibilityLabel={t('buttons.view_rooms')}>
+          <Text style={HC.ctaT}>{t('search.rooms')}</Text>
           <Ionicons name="chevron-forward" size={13} color="#FFF" />
         </Pressable>
       </View>
@@ -430,6 +433,7 @@ function SearchSummaryCard({
   onTapGuests: () => void;
   onSearch:    () => void;
 }) {
+  const { t } = useTranslation();
   const bg     = dark ? C.D_surface : C.card;
   const border = dark ? C.D_border  : C.border;
   const text   = dark ? C.D_text    : C.text;
@@ -449,7 +453,7 @@ function SearchSummaryCard({
           <Ionicons name="search" size={15} color={C.teal} />
         </View>
         <View style={SS.fieldBody}>
-          <Text style={[SS.fieldLabel, { color: muted }]}>Where to?</Text>
+          <Text style={[SS.fieldLabel, { color: muted }]}>{t('search.where_to')}</Text>
           <Text style={[SS.fieldValue, { color: city ? text : sec }]} numberOfLines={1}>
             {city || 'Any destination'}
           </Text>
@@ -463,7 +467,7 @@ function SearchSummaryCard({
         <Pressable onPress={onTapDates} style={SS.halfField} accessibilityRole="button">
           <Ionicons name="calendar-outline" size={15} color={C.teal} />
           <View>
-            <Text style={[SS.fieldLabel, { color: muted }]}>When</Text>
+            <Text style={[SS.fieldLabel, { color: muted }]}>{t('search.when')}</Text>
             <Text style={[SS.fieldValueSm, { color: checkIn ? text : sec }]}>
               {datesLabel}
             </Text>
@@ -475,7 +479,7 @@ function SearchSummaryCard({
         <Pressable onPress={onTapGuests} style={SS.halfField} accessibilityRole="button">
           <Ionicons name="people-outline" size={15} color={C.teal} />
           <View>
-            <Text style={[SS.fieldLabel, { color: muted }]}>Guests</Text>
+            <Text style={[SS.fieldLabel, { color: muted }]}>{t('search.guests')}</Text>
             <Text style={[SS.fieldValueSm, { color: text }]}>
               {guests} guest{guests !== 1 ? 's' : ''}
             </Text>
@@ -487,9 +491,9 @@ function SearchSummaryCard({
       <View style={[SS.divider, { backgroundColor: border }]} />
       <Pressable onPress={onSearch}
         style={({ pressed }) => [SS.searchBtn, { opacity: pressed ? 0.87 : 1 }]}
-        accessibilityRole="button" accessibilityLabel="Search hotels">
+        accessibilityRole="button" accessibilityLabel={t('common.search_hotels')}>
         <Ionicons name="search" size={17} color="#FFF" />
-        <Text style={SS.searchBtnT}>Search Hotels</Text>
+        <Text style={SS.searchBtnT}>{t('common.search_hotels_action')}</Text>
       </Pressable>
     </View>
   );
@@ -532,6 +536,7 @@ function DestInputSheet({
   onClear: () => void;
   dark: boolean;
 }) {
+  const { t } = useTranslation();
   if (!visible) return null;
   const bg   = dark ? C.D_surface : C.card;
   const bdr  = dark ? C.D_border  : C.border;
@@ -543,13 +548,13 @@ function DestInputSheet({
       <Pressable style={DI.backdrop} onPress={onClose} />
       <View style={[DI.sheet, { backgroundColor: bg }]}>
         <View style={DI.handle} />
-        <Text style={[DI.title, { color: txt }]}>Where are you going?</Text>
+        <Text style={[DI.title, { color: txt }]}>{t('home.where_going')}</Text>
         <View style={[DI.inputRow, { backgroundColor: dark ? C.D_border : '#F1F5F9', borderColor: bdr }]}>
           <Ionicons name="search" size={18} color={C.teal} />
           <TextInput
             value={value}
             onChangeText={onChange}
-            placeholder="City, country, or resort"
+            placeholder={t('search.city_placeholder')}
             placeholderTextColor={mut}
             style={[DI.input, { color: txt }]}
             autoFocus
@@ -566,9 +571,9 @@ function DestInputSheet({
         {recent.length > 0 && (
           <View style={DI.recentSection}>
             <View style={DI.recentHeader}>
-              <Text style={[DI.recentTitle, { color: sec }]}>Recent searches</Text>
+              <Text style={[DI.recentTitle, { color: sec }]}>{t('search.recent')}</Text>
               <Pressable onPress={onClear} hitSlop={8}>
-                <Text style={[DI.clearT, { color: C.teal }]}>Clear</Text>
+                <Text style={[DI.clearT, { color: C.teal }]}>{t('common.clear')}</Text>
               </Pressable>
             </View>
             {recent.map((r) => (
@@ -582,7 +587,7 @@ function DestInputSheet({
         )}
         {/* Popular */}
         <View style={DI.popularSection}>
-          <Text style={[DI.recentTitle, { color: sec }]}>Popular destinations</Text>
+          <Text style={[DI.recentTitle, { color: sec }]}>{t('search.popular')}</Text>
           {POPULAR.map((p) => (
             <Pressable key={p.city} onPress={() => { onChange(p.city); setTimeout(onConfirm, 80); }}
               style={[DI.popularRow, { borderBottomColor: bdr }]}>
@@ -623,6 +628,7 @@ const DI = StyleSheet.create({
 function GuestsSheet({
   visible, guests, onChange, onClose, dark,
 }: { visible: boolean; guests: number; onChange: (n: number) => void; onClose: () => void; dark: boolean }) {
+  const { t } = useTranslation();
   if (!visible) return null;
   const bg  = dark ? C.D_surface : C.card;
   const txt = dark ? C.D_text    : C.text;
@@ -632,31 +638,31 @@ function GuestsSheet({
       <Pressable style={GS.backdrop} onPress={onClose} />
       <View style={[GS.sheet, { backgroundColor: bg }]}>
         <View style={GS.handle} />
-        <Text style={[GS.title, { color: txt }]}>How many guests?</Text>
+        <Text style={[GS.title, { color: txt }]}>{t('search.how_many')}</Text>
         <View style={GS.row}>
           <View>
-            <Text style={[GS.label, { color: txt }]}>Guests</Text>
-            <Text style={[GS.sub, { color: sec }]}>Adults and children</Text>
+            <Text style={[GS.label, { color: txt }]}>{t('search.guests')}</Text>
+            <Text style={[GS.sub, { color: sec }]}>{t('search.adults_children')}</Text>
           </View>
           <View style={GS.stepper}>
             <Pressable
               onPress={() => onChange(Math.max(1, guests - 1))}
               style={[GS.stepBtn, { borderColor: dark ? C.D_border : C.border }]}
-              hitSlop={8} accessibilityLabel="Decrease guests">
+              hitSlop={8} accessibilityLabel={t('search.decrease')}>
               <Ionicons name="remove" size={18} color={txt} />
             </Pressable>
             <Text style={[GS.count, { color: txt }]}>{guests}</Text>
             <Pressable
               onPress={() => onChange(Math.min(12, guests + 1))}
               style={[GS.stepBtn, { backgroundColor: C.navy, borderColor: C.navy }]}
-              hitSlop={8} accessibilityLabel="Increase guests">
+              hitSlop={8} accessibilityLabel={t('search.increase')}>
               <Ionicons name="add" size={18} color="#FFF" />
             </Pressable>
           </View>
         </View>
         <Pressable onPress={onClose}
           style={({ pressed }) => [GS.done, { opacity: pressed ? 0.85 : 1 }]}>
-          <Text style={GS.doneT}>Done</Text>
+          <Text style={GS.doneT}>{t('common.done')}</Text>
         </Pressable>
       </View>
     </View>
@@ -680,7 +686,7 @@ const GS = StyleSheet.create({
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function SearchScreen() {
-  const { i18n }   = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigation     = useNavigation<Nav>();
   const insets         = useSafeAreaInsets();
   const { colorScheme } = useTheme();
@@ -871,7 +877,7 @@ export default function SearchScreen() {
                 <Animated.View style={{ opacity: heroTextOpacity }}>
                   <Text style={main.heroGreeting}>{greeting()} 👋</Text>
                   <Text style={main.heroTitle}>
-                    {isAm ? 'ትክክለኛ ማረፊያ ፈልጉ' : 'Find your perfect stay'}
+                    {t('home.find_perfect')}
                   </Text>
                 </Animated.View>
                 <View style={main.heroRight}>
@@ -911,7 +917,7 @@ export default function SearchScreen() {
             {/* ROOM TYPE CATEGORIES */}
             <View style={[main.section, { paddingTop: 24, paddingBottom: 4 }]}>
               <Text style={[main.sectionTitle, { color: textPri }]}>
-                {isAm ? 'የክፍል አይነት' : 'Room Type'}
+                {t('filters.room_type')}
               </Text>
             </View>
             <ScrollView
@@ -1037,8 +1043,8 @@ export default function SearchScreen() {
                   onPress={() => setPage((p) => p + 1)}
                   style={[main.loadMore, { borderColor: border }]}
                   accessibilityRole="button"
-                  accessibilityLabel="Load more hotels">
-                  <Text style={[main.loadMoreT, { color: textSec }]}>Load more</Text>
+                  accessibilityLabel={t('search.load_more')}>
+                  <Text style={[main.loadMoreT, { color: textSec }]}>{t('search.load_more')}</Text>
                   <Ionicons name="chevron-down" size={16} color={textSec} />
                 </Pressable>
               </View>
@@ -1048,7 +1054,7 @@ export default function SearchScreen() {
             {!hasSearched && !isLoading && allHotels.length === 0 && (
               <View style={main.popularWrap}>
                 <Text style={[main.sectionTitle, { color: textPri, paddingHorizontal: 16 }]}>
-                  {isAm ? 'ታዋቂ መዳረሻዎች' : 'Popular Destinations'}
+                  {t('search.popular')}
                 </Text>
                 <ScrollView
                   horizontal showsHorizontalScrollIndicator={false}
@@ -1133,7 +1139,7 @@ export default function SearchScreen() {
         visible={checkInVis}
         onClose={() => setCheckInVis(false)}
         onSelect={(d) => { setCheckIn(d); setCheckInVis(false); setTimeout(() => setCheckOutVis(true), 200); }}
-        label="Check-in date"
+        label={t('search.checkInDate')}
         initialDate={checkIn || undefined}
       />
 
@@ -1141,7 +1147,7 @@ export default function SearchScreen() {
         visible={checkOutVis}
         onClose={() => setCheckOutVis(false)}
         onSelect={(d) => { setCheckOut(d); setCheckOutVis(false); }}
-        label="Check-out date"
+        label={t('search.checkOutDate')}
         minDate={checkIn || undefined}
         initialDate={checkOut || undefined}
       />

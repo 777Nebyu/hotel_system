@@ -33,6 +33,7 @@ const AdminSettingsScreen = lazy(() => import('../screens/admin/AdminSettingsScr
 const AdminAuditLogScreen = lazy(() => import('../screens/admin/AdminAuditLogScreen'));
 const ManagerOverviewScreen = lazy(() => import('../screens/manager/ManagerOverviewScreen'));
 const ManagerBookingsScreen = lazy(() => import('../screens/manager/ManagerBookingsScreen'));
+const ManagerGuestsScreen = lazy(() => import('../screens/manager/ManagerGuestsScreen'));
 const ManagerHotelScreen = lazy(() => import('../screens/manager/ManagerHotelScreen'));
 const ManagerRoomsScreen = lazy(() => import('../screens/manager/ManagerRoomsScreen'));
 const ManagerReportsScreen = lazy(() => import('../screens/manager/ManagerReportsScreen'));
@@ -175,13 +176,15 @@ const AdminFeatureFlagsWrapped = withProtected(() => <AdminFeatureFlagsScreen on
 // Manager screens
 const ManagerOverviewWrapped = withProtected(() => <ManagerOverviewScreen onBack={goBack} onNavigate={(p: any) => goTo(p.screen, p)} />, ['MANAGER', 'STAFF']);
 const ManagerBookingsWrapped = withProtected(() => <ManagerBookingsScreen onBack={() => goTo('ManagerOverview')} onNavigate={(p: any) => goTo(p.screen, p)} />, ['MANAGER', 'STAFF']);
+const ManagerGuestsWrapped = withProtected(() => <ManagerGuestsScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'STAFF']);
 const ManagerBookingDetailScreen = lazy(() => import('../screens/manager/ManagerBookingDetailScreen'));
 const ManagerBookingDetailWrapped = withProtected(() => <ManagerBookingDetailScreen />, ['MANAGER', 'STAFF']);
 const ManagerBillingScreen = lazy(() => import('../screens/manager/ManagerBillingScreen'));
-const ManagerBillingWrapped = withProtected(() => <ManagerBillingScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER']);
+const ManagerBillingWrapped = withProtected(() => <ManagerBillingScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'STAFF']);
 const ManagerHotelWrapped = withProtected(() => <ManagerHotelScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'ADMIN']);
 const ManagerRoomsWrapped = withProtected(() => <ManagerRoomsScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'ADMIN']);
 const ManagerReportsWrapped = withProtected(() => <ManagerReportsScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER']);
+const ManagerDisputesWrapped = withProtected(() => <AdminDisputesScreen onBack={() => goTo('ManagerOverview')} />, ['MANAGER', 'STAFF']);
 const ManagerMoreWrapped = withProtected(() => <ManagerMoreScreen onBack={() => goTo('ManagerOverview')} onNavigate={(p: any) => goTo(p.screen, p)} />, ['MANAGER', 'STAFF']);
 
 const VerifyEmailWrapped = ({ route }: any) => <VerifyEmailScreen token={route.params.token} onVerified={goBack} onError={goBack} />;
@@ -250,11 +253,13 @@ export default function RootNavigator() {
       <Stack.Screen name="AdminAuditLog" component={AdminAuditLogWrapped} />
       <Stack.Screen name="ManagerOverview" component={ManagerOverviewWrapped} />
       <Stack.Screen name="ManagerBookings" component={ManagerBookingsWrapped} />
+      <Stack.Screen name="ManagerGuests" component={ManagerGuestsWrapped} />
       <Stack.Screen name="ManagerBookingDetail" component={ManagerBookingDetailWrapped} />
       <Stack.Screen name="ManagerBilling" component={ManagerBillingWrapped} />
       <Stack.Screen name="ManagerHotel" component={ManagerHotelWrapped} />
       <Stack.Screen name="ManagerRooms" component={ManagerRoomsWrapped} />
       <Stack.Screen name="ManagerReports" component={ManagerReportsWrapped} />
+      <Stack.Screen name="ManagerDisputes" component={ManagerDisputesWrapped} />
       <Stack.Screen name="ManagerMore" component={ManagerMoreWrapped} />
       <Stack.Screen name="BookingModify" component={BookingModifyWrapped} />
       <Stack.Screen name="Disputes" component={DisputesWrapped} />

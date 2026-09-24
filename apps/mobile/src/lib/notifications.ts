@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from './secureStorage';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { API_URL } from '../api';
 

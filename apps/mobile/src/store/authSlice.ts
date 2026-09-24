@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '../lib/secureStorage';
 import type { User } from '../types';
+import { clearAllCache } from './offlineCache';
 
 export type Session = { accessToken: string; refreshToken: string; user: User };
 
@@ -42,7 +43,10 @@ export default authSlice.reducer;
 
 export const saveSessionToStorage = async (session: Session | null) => {
   if (session) await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
-  else await SecureStore.deleteItemAsync(SESSION_KEY);
+  else {
+    await SecureStore.deleteItemAsync(SESSION_KEY);
+    await clearAllCache();
+  }
 };
 
 export const loadSessionFromStorage = async (): Promise<Session | null> => {

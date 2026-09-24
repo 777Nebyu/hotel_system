@@ -17,6 +17,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { font } from '../theme';
 import { useTheme } from '../hooks/useTheme';
@@ -40,6 +41,7 @@ export default function ScreenHeader({
   style,
   transparent = false,
 }: ScreenHeaderProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { colors: c, colorScheme } = useTheme();
   const dark   = colorScheme === 'dark';
@@ -79,7 +81,7 @@ export default function ScreenHeader({
                 onPress={onBack}
                 hitSlop={6}
                 accessibilityRole="button"
-                accessibilityLabel="Go back"
+                accessibilityLabel={t('common.go_back_nav')}
                 style={({ pressed }) => [
                   s.backBtn,
                   { backgroundColor: transparent

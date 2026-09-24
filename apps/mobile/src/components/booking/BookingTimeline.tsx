@@ -5,6 +5,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { BK, getConfig } from './_shared';
 
 function TimelineRow({
@@ -87,20 +88,21 @@ export function BookingTimeline({
   isCashAtHotel?: boolean;
   style?: ViewStyle;
 }) {
+  const { t } = useTranslation();
   const isCancelled = status === 'CANCELLED';
   const isNoShow    = status === 'NO_SHOW';
   if (isCancelled || isNoShow) {
     return (
       <View style={[styles.wrap, style]}>
         <TimelineRow
-          step={{ key: 'CONFIRMED', label: 'Booking Confirmed', sub: 'Reservation confirmed', icon: 'checkmark-circle' }}
+          step={{ key: 'CONFIRMED', label: t('notifications.lifecycle.bookingConfirmed.title'), sub: t('bookingComponents.reservation_confirmed'), icon: 'checkmark-circle' }}
           state="done"
           isLast={false}
         />
         <TimelineRow
           step={{
             key: status,
-            label: isCancelled ? 'Booking Cancelled' : 'No Show',
+            label: isCancelled ? t('notifications.lifecycle.bookingCancelled.title') : t('status.no_show'),
             sub: isCancelled ? 'Reservation cancelled' : 'Guest did not check in',
             icon: isCancelled ? 'close-circle' : 'person-remove-outline',
           }}
@@ -114,10 +116,10 @@ export function BookingTimeline({
 
   if (status === 'PENDING' && !isCashAtHotel) {
     const pendingSteps: Array<{ key: string; label: string; sub: string; icon: string; state: 'done' | 'active' | 'todo' }> = [
-      { key: 'PENDING',     label: 'Booking Created',   sub: 'Payment required to confirm', icon: 'time-outline',            state: 'active' },
-      { key: 'CONFIRMED',   label: 'Booking Confirmed', sub: 'Ready for check-in',          icon: 'checkmark-circle-outline', state: 'todo'   },
-      { key: 'CHECKED_IN',  label: 'Check-in',          sub: 'From 2:00 PM',                icon: 'log-in-outline',          state: 'todo'   },
-      { key: 'CHECKED_OUT', label: 'Check-out',         sub: 'By 12:00 PM',                 icon: 'log-out-outline',         state: 'todo'   },
+      { key: 'PENDING',     label: t('bookingComponents.booking_created'),   sub: t('bookingComponents.payment_required'), icon: 'time-outline',            state: 'active' },
+      { key: 'CONFIRMED',   label: t('notifications.lifecycle.bookingConfirmed.title'), sub: t('bookingComponents.ready_checkin'), icon: 'checkmark-circle-outline', state: 'todo' },
+      { key: 'CHECKED_IN',  label: t('booking.check_in'),  sub: t('bookingComponents.from_2pm'),                icon: 'log-in-outline',          state: 'todo'   },
+      { key: 'CHECKED_OUT', label: t('booking.check_out'), sub: t('bookingComponents.by_12pm'),                 icon: 'log-out-outline',         state: 'todo'   },
     ];
     return (
       <View style={[styles.wrap, style]}>
@@ -133,21 +135,21 @@ export function BookingTimeline({
   const lifecycleSteps: Array<{ key: string; label: string; sub: string; icon: string; state: 'done' | 'active' | 'todo' }> = [
     {
       key: 'CONFIRMED',
-      label: 'Booking Confirmed',
-      sub: isCashAtHotel ? 'Pay at hotel during stay' : 'Reservation confirmed',
+      label: t('notifications.lifecycle.bookingConfirmed.title'),
+      sub: isCashAtHotel ? t('bookingComponents.pay_at_hotel_stay') : t('bookingComponents.reservation_confirmed'),
       icon: 'checkmark-circle',
       state: 'done',
     },
     {
       key: 'CHECKED_IN',
-      label: isCheckedIn || isCheckedOut ? 'Checked In' : 'Check-in',
-      sub: isCheckedIn ? 'Currently staying with us' : isCheckedOut ? 'Checked in' : 'From 2:00 PM on arrival date',
+      label: isCheckedIn || isCheckedOut ? t('status.checked_in') : t('booking.check_in'),
+      sub: isCheckedIn ? t('bookingComponents.currently_staying') : isCheckedOut ? t('status.checked_in') : t('bookingComponents.from_2pm'),
       icon: isCheckedIn || isCheckedOut ? 'bed' : 'log-in-outline',
       state: isCheckedIn ? 'active' : isCheckedOut ? 'done' : 'todo',
     },
     {
       key: 'CHECKED_OUT',
-      label: isCheckedOut ? 'Checked Out' : 'Check-out',
+      label: isCheckedOut ? t('status.checked_out') : t('booking.check_out'),
       sub: isCheckedOut ? 'Stay completed' : 'By 12:00 PM on departure date',
       icon: isCheckedOut ? 'checkmark-done-circle' : 'log-out-outline',
       state: isCheckedOut ? 'done' : 'todo',

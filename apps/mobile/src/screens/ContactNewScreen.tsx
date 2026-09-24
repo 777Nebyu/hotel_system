@@ -51,21 +51,21 @@ export default function ContactNewScreen() {
 
   const validateField = (field: string) => {
     const errs: Record<string, string | undefined> = {};
-    if (field === 'subject' && !subject.trim()) errs.subject = 'Subject is required.';
-    if (field === 'message' && !message.trim()) errs.message = 'Message is required.';
+    if (field === 'subject' && !subject.trim()) errs.subject = t('errors.missing_details');
+    if (field === 'message' && !message.trim()) errs.message = t('errors.missing_details');
     setFieldErrors((prev) => ({ ...prev, ...errs, [field]: errs[field] || undefined }));
   };
 
   const handleSubmit = async () => {
     if (isOffline) {
-      return Alert.alert('Offline', 'Cannot send a message while offline. Please connect to the internet.');
+      return Alert.alert(t('common.offline'), t('errors.check_connection'));
     }
     if (!hotelId) {
       return Alert.alert(t('contact.selectHotel'), t('contact.selectHotelHint'));
     }
     const errs: Record<string, string | undefined> = {};
-    if (!subject.trim()) errs.subject = 'Subject is required.';
-    if (!message.trim()) errs.message = 'Message is required.';
+    if (!subject.trim()) errs.subject = t('errors.missing_details');
+    if (!message.trim()) errs.message = t('errors.missing_details');
     if (Object.keys(errs).length > 0) { setFieldErrors(errs); return; }
     setFieldErrors({});
 
@@ -78,7 +78,7 @@ export default function ContactNewScreen() {
       });
       navigation.goBack();
     } catch (err: any) {
-      Alert.alert(t('contact.failedToSend'), err?.message ?? 'Please try again.');
+      Alert.alert(t('contact.error'), err?.message ?? t('common.try_again_lower'));
     } finally {
       setSubmitting(false);
     }

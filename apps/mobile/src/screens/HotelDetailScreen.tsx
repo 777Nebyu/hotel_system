@@ -278,9 +278,9 @@ export default function HotelDetailScreen() {
   const handleBookRoom = useCallback(
     (room: Room) => {
       if (!session) {
-        Alert.alert('Sign In Required', 'Please sign in to proceed with booking.', [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Sign In', onPress: () => navigation.navigate('Auth', { initialMode: 'login' }) },
+                      Alert.alert(t('common.sign_in_required'), t('hotelDetail.signin_booking'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('common.sign_in'), onPress: () => navigation.navigate('Auth', { initialMode: 'login' }) },
         ]);
         return;
       }
@@ -294,28 +294,28 @@ export default function HotelDetailScreen() {
         guests: { adults: parseInt(flowAdults) || 2, children: parseInt(flowChildren) || 0 },
       });
     },
-    [navigation, session, hotel, hotelId, flowAdults, flowChildren],
+    [navigation, session, hotel, hotelId, flowAdults, flowChildren, t],
   );
 
   const handleToggleFavorite = useCallback(() => {
     if (!session) {
-      Alert.alert('Sign In Required', 'Please sign in to save favorites.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign In', onPress: () => navigation.navigate('Auth', { initialMode: 'login' }) },
+      Alert.alert(t('common.sign_in_required'), t('hotelDetail.signin_favorites'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.sign_in'), onPress: () => navigation.navigate('Auth', { initialMode: 'login' }) },
       ]);
       return;
     }
     if (toggleFavorite.isPending) return;
     toggleFavorite.mutate({ hotelId, isFavorite });
-  }, [session, navigation, toggleFavorite, hotelId, isFavorite]);
+  }, [session, navigation, toggleFavorite, hotelId, isFavorite, t]);
 
   const styles = useMemo(() => makeStyles(c, r, dark), [c, r, dark]);
 
   if (!hotelId) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ fontSize: 16, color: '#888' }}>Hotel not found.</Text>
-        <Button title="Go Back" onPress={() => navigation.goBack()} />
+        <Text style={{ fontSize: 16, color: '#888' }}>{t('hotel.not_found')}</Text>
+        <Button title={t('common.go_back')} onPress={() => navigation.goBack()} />
       </View>
     );
   }
@@ -358,7 +358,7 @@ export default function HotelDetailScreen() {
             hitSlop={4}
             style={[styles.backBtn, { backgroundColor: dark ? c.clay : 'rgba(15,23,42,0.06)' }]}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel={t('common.go_back_nav')}
           >
             <Ionicons name="arrow-back" size={22} color={c.ink} />
           </Pressable>
@@ -438,10 +438,10 @@ export default function HotelDetailScreen() {
         <View style={styles.ratingStrip}>
           <View style={styles.ratingLeft}>
             <Text style={styles.ratingScore}>{hotel.averageRating?.toFixed(1) ?? '—'}</Text>
-            <Text style={styles.ratingLabel}>Guest rating</Text>
+            <Text style={styles.ratingLabel}>{t('hotel.guest_rating')}</Text>
           </View>
           <View style={styles.ratingBar}>
-            <Text style={styles.ratingDesc}>Based on verified stays and guest feedback.</Text>
+            <Text style={styles.ratingDesc}>{t('hotel.based_on')}</Text>
             <View style={styles.ratingTrack}>
               <View
                 style={[
@@ -453,7 +453,7 @@ export default function HotelDetailScreen() {
           </View>
           <View style={styles.ratingRight}>
             <Text style={[styles.reviewCount, { color: c.ink }]}>{hotel.reviewCount?.toLocaleString() ?? 0}</Text>
-            <Text style={[styles.ratingLabel, { color: c.inkMuted }]}>Reviews</Text>
+            <Text style={[styles.ratingLabel, { color: c.inkMuted }]}>{t('hotel.reviews_label')}</Text>
           </View>
         </View>
 
@@ -471,7 +471,7 @@ export default function HotelDetailScreen() {
               style={[styles.tab, activeTab === tab && { borderBottomColor: c.teal }]}
             >
               <Text style={[styles.tabText, { color: c.inkMuted }, activeTab === tab && { color: c.teal, fontWeight: '700' }]}>
-                {tab}
+                {tab === 'Amenities' ? t('hotel.amenities') : tab === 'Reviews' ? t('hotel.reviews_label') : tab}
               </Text>
             </Pressable>
           ))}
@@ -508,15 +508,15 @@ export default function HotelDetailScreen() {
                   }}
                   onBookRoom={() => {
                     if (!session) {
-                      Alert.alert('Sign In Required', 'Please sign in to proceed with booking.', [
-                        { text: 'Cancel', style: 'cancel' },
-                        { text: 'Sign In', onPress: () => navigation.navigate('Auth', { initialMode: 'login' }) },
+        Alert.alert(t('common.sign_in_required'), t('hotelDetail.signin_booking'), [
+                        { text: t('common.cancel'), style: 'cancel' },
+                        { text: t('common.sign_in'), onPress: () => navigation.navigate('Auth', { initialMode: 'login' }) },
                       ]);
                       return;
                     }
                     if (room.capacity < totalGuests) {
                       Alert.alert(
-                        'Capacity Exceeded',
+                        t('roomDetail.capacity_exceeded'),
                         'This room cannot accommodate the selected guests. Please reduce the guest count or select a larger room.',
                       );
                       return;
@@ -551,7 +551,7 @@ export default function HotelDetailScreen() {
           {activeTab === 'Reviews' && (
             <View>
               {reviews.length === 0 ? (
-                <Text style={[styles.muted, { color: c.inkMuted }]}>No reviews yet.</Text>
+                <Text style={[styles.muted, { color: c.inkMuted }]}>{t('hotel.no_reviews')}</Text>
               ) : (
                 <View style={styles.reviewsList}>
                   {reviews.slice(0, 5).map((r: any) => (
@@ -574,7 +574,7 @@ export default function HotelDetailScreen() {
                               })
                             }
                           >
-                            <Text style={[styles.editReview, { color: c.teal }]}>Edit review</Text>
+                            <Text style={[styles.editReview, { color: c.teal }]}>{t('hotel.edit_review')}</Text>
                           </Pressable>
                         </View>
                       )}
@@ -587,14 +587,14 @@ export default function HotelDetailScreen() {
 
           {activeTab === 'Policies' && (
             <Card style={[styles.policiesCard, { backgroundColor: c.surface }]}>
-              <PolicyRow icon="🕐" label={t('hotel.checkIn', 'Check-in')} value={policies?.checkInTime ? `From ${policies.checkInTime}` : 'From 14:00'} textColor={c.ink} mutedColor={c.inkMuted} />
-              <PolicyRow icon="🕛" label={t('hotel.checkOut', 'Check-out')} value={policies?.checkOutTime ? `Until ${policies.checkOutTime}` : 'Until 11:00'} textColor={c.ink} mutedColor={c.inkMuted} />
+              <PolicyRow icon="🕐" label={t('hotel.checkIn', 'Check-in')} value={policies?.checkInTime ? t('hotel.from_time', { time: policies.checkInTime }) : t('hotel.from_time', { time: '14:00' })} textColor={c.ink} mutedColor={c.inkMuted} />
+              <PolicyRow icon="🕛" label={t('hotel.checkOut', 'Check-out')} value={policies?.checkOutTime ? t('hotel.until_time', { time: policies.checkOutTime }) : t('hotel.until_time', { time: '11:00' })} textColor={c.ink} mutedColor={c.inkMuted} />
               {policies?.cancellationHours != null && (
-                <PolicyRow icon="🚫" label="Cancellation" value={policies.cancellationPolicy ?? `Free cancellation up to ${policies.cancellationHours}h before check-in`} textColor={c.ink} mutedColor={c.inkMuted} />
+                <PolicyRow icon="🚫" label={t('hotel.cancellation')} value={policies.cancellationPolicy ?? t('hotel.free_cancel_default', { hours: policies.cancellationHours })} textColor={c.ink} mutedColor={c.inkMuted} />
               )}
-              {policies?.houseRules && <PolicyRow icon="📋" label="House rules" value={policies.houseRules} textColor={c.ink} mutedColor={c.inkMuted} />}
-              {policies?.petPolicy && <PolicyRow icon="🐾" label="Pets" value={policies.petPolicy} textColor={c.ink} mutedColor={c.inkMuted} />}
-              {policies?.childPolicy && <PolicyRow icon="👶" label="Children" value={policies.childPolicy} textColor={c.ink} mutedColor={c.inkMuted} />}
+              {policies?.houseRules && <PolicyRow icon="📋" label={t('hotel.houseRules')} value={policies.houseRules} textColor={c.ink} mutedColor={c.inkMuted} />}
+              {policies?.petPolicy && <PolicyRow icon="🐾" label={t('hotel.pets')} value={policies.petPolicy} textColor={c.ink} mutedColor={c.inkMuted} />}
+              {policies?.childPolicy && <PolicyRow icon="👶" label={t('hotel.children')} value={policies.childPolicy} textColor={c.ink} mutedColor={c.inkMuted} />}
             </Card>
           )}
         </View>
@@ -624,7 +624,7 @@ export default function HotelDetailScreen() {
                     {hotel.lat.toFixed(4)}, {hotel.lng.toFixed(4)}
                   </Text>
                 </View>
-                <Text style={[styles.locationLink, { color: c.teal }]}>Open in Maps →</Text>
+                <Text style={[styles.locationLink, { color: c.teal }]}>{t('hotel.openInMaps')}</Text>
               </Card>
             </Pressable>
           </View>
@@ -634,10 +634,10 @@ export default function HotelDetailScreen() {
       {/* ─── Sticky booking footer ─── */}
       <View style={[styles.stickyFooter, shadowCard, { paddingBottom: insets.bottom + 14, backgroundColor: c.surface, borderTopColor: c.line }]}>
         <View>
-          <Text style={[styles.footerFrom, { color: c.inkMuted }]}>from</Text>
+          <Text style={[styles.footerFrom, { color: c.inkMuted }]}>{t('hotel.from')}</Text>
           <Text style={[styles.footerPrice, { color: c.ink }]}>
             {lowestPrice != null ? `ETB ${lowestPrice}` : '—'}
-            <Text style={[styles.footerPerNight, { color: c.inkMuted }]}> /night</Text>
+            <Text style={[styles.footerPerNight, { color: c.inkMuted }]}>{' '}{t('hotel.perNight')}</Text>
           </Text>
           <View style={styles.footerRating}>
             <Stars value={hotel.averageRating ?? 0} size={11} />
@@ -647,7 +647,7 @@ export default function HotelDetailScreen() {
           </View>
         </View>
         <Button
-          title="Reserve Now"
+          title={t('hotel.reserve_now')}
           onPress={() => {
             if (!session) {
               navigation.navigate('Auth', { initialMode: 'login' });

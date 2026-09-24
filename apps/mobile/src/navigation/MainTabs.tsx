@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import type { TabParamList } from './types';
 import { useAppSelector } from '../store/hooks';
 import { colors, darkColors } from '../theme';
@@ -34,18 +35,19 @@ type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 const TAB_CONFIG: {
   name:         keyof TabParamList;
-  label:        string;
-  labelCompact: string;
+  labelKey:     string;
+  labelCompactKey: string;
   icon:         IoniconName;
   iconActive:   IoniconName;
 }[] = [
-  { name: 'HomeTab',      label: 'Home',     labelCompact: 'Home',     icon: 'home-outline',          iconActive: 'home' },
-  { name: 'BookingsTab',  label: 'Bookings', labelCompact: 'Bookings', icon: 'calendar-outline',      iconActive: 'calendar' },
-  { name: 'FavoritesTab', label: 'Saved',    labelCompact: 'Saved',    icon: 'heart-outline',         iconActive: 'heart' },
-  { name: 'ProfileTab',   label: 'Profile',  labelCompact: 'Profile',  icon: 'person-circle-outline', iconActive: 'person-circle' },
+  { name: 'HomeTab',      labelKey: 'tabs.home',      labelCompactKey: 'tabs.home',      icon: 'home-outline',          iconActive: 'home' },
+  { name: 'BookingsTab',  labelKey: 'tabs.bookings',  labelCompactKey: 'tabs.bookings',  icon: 'calendar-outline',      iconActive: 'calendar' },
+  { name: 'FavoritesTab', labelKey: 'tabs.saved',     labelCompactKey: 'tabs.saved',     icon: 'heart-outline',         iconActive: 'heart' },
+  { name: 'ProfileTab',   labelKey: 'tabs.profile',   labelCompactKey: 'tabs.profile',   icon: 'person-circle-outline', iconActive: 'person-circle' },
 ];
 
 export default function MainTabs() {
+  const { t } = useTranslation();
   const session = useAppSelector((s) => s.auth.session);
   const token   = session?.accessToken ?? '';
   const { data: notifData } = useNotificationUnreadCount(token);
@@ -55,6 +57,9 @@ export default function MainTabs() {
   const dark = colorScheme === 'dark';
   const c = dark ? darkColors : colors;
   const { width } = useWindowDimensions();
+  const visibleTabs = session?.user?.role === 'STAFF'
+    ? TAB_CONFIG.filter((tab) => tab.name !== 'FavoritesTab')
+    : TAB_CONFIG;
   // OT.md §10: shorter labels on compact screens
   const compact = width < 360;
 
@@ -72,19 +77,19 @@ export default function MainTabs() {
             borderTopColor:  c.line,
           },
         ]}>
-          {TAB_CONFIG.map((tab, index) => {
+          {visibleTabs.map((tab, index) => {
             const focused   = state.index === index;
             const isProfile = tab.name === 'ProfileTab';
             const hasNotif  = isProfile && unread > 0;
             const label     = isProfile && !session
-              ? (compact ? 'In' : 'Sign In')
-              : (compact ? tab.labelCompact : tab.label);
+              ? (compact ? t('tabs.sign_in_short') : t('tabs.sign_in'))
+              : (compact ? t(tab.labelCompactKey) : t(tab.labelKey));
 
             return (
               <View key={tab.name} style={s.item}>
                 <Pressable
                   accessibilityRole="tab"
-                  accessibilityLabel={tab.label}
+                  accessibilityLabel={label}
                   accessibilityState={{ selected: focused }}
                   onPress={() => navigation.navigate(tab.name)}
                   style={({ pressed }) => [s.touch, pressed && { opacity: 0.6 }]}
@@ -132,7 +137,9 @@ export default function MainTabs() {
     >
       <Tab.Screen name="HomeTab"      component={HomeScreen} />
       <Tab.Screen name="BookingsTab"  component={BookingHistoryScreen} />
-      <Tab.Screen name="FavoritesTab" component={FavoritesScreen} />
+      {session?.user?.role !== 'STAFF' && (
+        <Tab.Screen name="FavoritesTab" component={FavoritesScreen} />
+      )}
       <Tab.Screen name="ProfileTab"   component={ProfileEditScreen} />
     </Tab.Navigator>
   );

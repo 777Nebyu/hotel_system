@@ -72,7 +72,7 @@ pnpm start
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `EXPO_PUBLIC_API_URL` | Backend API URL | `http://192.168.1.12:3001` |
+| `EXPO_PUBLIC_API_URL` | Backend API URL | `http://192.168.1.19:3001` |
 | `EXPO_PUBLIC_MOCK_PAYMENT_SECRET` | Payment processing secret | `c0d95ce...` |
 
 ## Project Configuration

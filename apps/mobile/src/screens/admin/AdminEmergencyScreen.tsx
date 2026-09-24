@@ -47,7 +47,7 @@ export default function AdminEmergencyScreen({ onBack }: AdminEmergencyScreenPro
 
   const loadAuditLog = async (hotelId: string) => {
     try {
-      const res = await request<any>('/admin/suspensions/pending', { method: 'GET', token });
+      const res = await request<any>('/admin/suspensions/history', { method: 'GET', token });
       const pending = Array.isArray(res) ? res : res?.data ?? [];
       setAuditLog(pending.filter((entry: any) => entry.targetId === hotelId));
     } catch { setAuditLog([]); }

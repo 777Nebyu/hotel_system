@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useIsFocused, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../navigation/types';
@@ -44,13 +44,14 @@ export default function ContactThreadDetailScreen() {
   const flatListRef = useRef<FlatList>(null);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { isOffline } = useNetworkStatus();
+  const isFocused = useIsFocused();
 
   const [inputText, setInputText] = useState('');
   const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
   const { data: thread, isLoading, error, refetch } = useContactThread(token, threadId, {
-    refetchInterval: 5000,
+    refetchInterval: isOffline || !isFocused ? false : 5000,
   });
   const sendMessage = useSendMessage(token);
   const closeThread = useCloseContactThread(token);
@@ -99,7 +100,7 @@ export default function ContactThreadDetailScreen() {
 
   const handleSend = async () => {
     if (isOffline) {
-      return Alert.alert('Offline', 'Cannot send a message while offline. Please connect to the internet.');
+      return Alert.alert(t('common.offline'), t('errors.check_connection'));
     }
     const content = inputText.trim();
     if (!content) return;
@@ -133,22 +134,22 @@ export default function ContactThreadDetailScreen() {
       setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempId));
       setIsTyping(false);
       const classified = classifyAndAnnounce(err);
-      Alert.alert('Error', classified.title);
+      Alert.alert(t('common.error'), classified.title);
     }
   };
 
   const handleClose = () => {
     if (isOffline) {
-      return Alert.alert('Offline', 'Cannot close a thread while offline. Please connect to the internet.');
+      return Alert.alert(t('common.offline'), t('errors.check_connection'));
     }
-    Alert.alert(t('contact.closeThread'), 'Are you sure?', [
+    Alert.alert(t('contact.closeThread'), t('bookingHistory.confirmCancelMsg'), [
       { text: t('buttons.cancel'), style: 'cancel' },
       { text: t('contact.closeThread'), style: 'destructive', onPress: async () => {
         try {
           await closeThread.mutateAsync(threadId);
-          toast('success', 'Thread closed');
+          toast('success', t('contact.closed'));
         } catch {
-          toast('error', 'Failed to close');
+          toast('error', t('errors.failed_load_messages'));
         }
       }},
     ]);
@@ -180,7 +181,7 @@ export default function ContactThreadDetailScreen() {
   }, [s, session?.user.id]);
 
   if (isLoading && !thread) return <View style={s.center}><SkeletonDetail /></View>;
-  if (error && !thread) return <View style={s.center}><ErrorBox message="Failed to load messages" onRetry={() => refetch()} /></View>;
+  if (error && !thread) return <View style={s.center}><ErrorBox message={t('contact.failed_load')} onRetry={() => refetch()} /></View>;
 
   return (
     <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
@@ -193,15 +194,15 @@ export default function ContactThreadDetailScreen() {
           <View style={s.statusRow}>
             {!isClosed && <View style={s.liveDot} />}
             <Text style={[s.headerStatus, isClosed ? { color: c.inkMuted } : { color: c.teal }]}>
-              {isClosed ? 'Closed' : 'Active \u2022 Real-time'}
+              {isClosed ? t('contact.closed') : t('contact.active_realtime')}
             </Text>
           </View>
         </View>
-        {!isClosed && <Button title="Close" variant="ghost" size="sm" onPress={handleClose} />}
+        {!isClosed && <Button title={t('common.close')} variant="ghost" size="sm" onPress={handleClose} />}
       </View>
 
       {allMessages.length === 0 ? (
-        <EmptyState title="No messages yet" subtitle="Send the first message below to chat with the hotel." />
+        <EmptyState title={t('contact.no_messages')} subtitle={t('contact.no_messages_sub')} />
       ) : (
         <FlatList
           ref={flatListRef}
@@ -214,7 +215,7 @@ export default function ContactThreadDetailScreen() {
             isTyping ? (
               <View style={s.typingIndicator}>
                 <View style={s.typingDot} />
-                <Text style={s.typingText}>Hotel Concierge is typing\u2026</Text>
+                <Text style={s.typingText}>{t('contact.typing')}</Text>
                 <ActivityIndicator size="small" color={c.teal} style={{ marginLeft: 6 }} />
               </View>
             ) : null

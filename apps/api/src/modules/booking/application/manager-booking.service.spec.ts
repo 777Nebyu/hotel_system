@@ -26,7 +26,11 @@ describe('ManagerBookingService - Walk-In Bookings', () => {
           hotel: { id: 'hotel-1', name: 'Grand Hotel' },
           details: [],
           payment: { id: 'payment-1', status: 'SUCCEEDED' },
-          user: { id: 'guest-1', fullName: 'John Doe', email: 'john@example.com' },
+          user: {
+            id: 'guest-1',
+            fullName: 'John Doe',
+            email: 'john@example.com',
+          },
         }),
       },
       payment: {
@@ -38,7 +42,9 @@ describe('ManagerBookingService - Walk-In Bookings', () => {
       bookingStatusHistory: {
         create: jest.fn().mockResolvedValue({}),
       },
-      $transaction: jest.fn().mockImplementation(async (callback) => callback(db)),
+      $transaction: jest
+        .fn()
+        .mockImplementation(async (callback) => callback(db)),
     };
     scope = {
       assertManagerOwnsHotel: jest.fn().mockResolvedValue(true),
@@ -69,6 +75,7 @@ describe('ManagerBookingService - Walk-In Bookings', () => {
       guests: { adults: 2, children: 0 },
       guestName: 'Jane Smith',
       guestPhone: '+251911223344',
+      guestEmail: 'jane.smith@example.com',
       paymentMethod: 'CASH' as const,
       paidImmediately: true,
     };
@@ -77,7 +84,11 @@ describe('ManagerBookingService - Walk-In Bookings', () => {
       service.createWalkInBooking(dto, { sub: 'manager-1', role: 'MANAGER' }),
     ).rejects.toThrow(ForbiddenException);
 
-    expect(scope.assertManagerOwnsHotel).toHaveBeenCalledWith('manager-1', 'MANAGER', 'hotel-1');
+    expect(scope.assertManagerOwnsHotel).toHaveBeenCalledWith(
+      'manager-1',
+      'MANAGER',
+      'hotel-1',
+    );
   });
 
   it('creates walk-in booking with new guest account, confirms booking and creates payment records', async () => {
@@ -96,11 +107,15 @@ describe('ManagerBookingService - Walk-In Bookings', () => {
       guests: { adults: 1, children: 0 },
       guestName: 'Walkin Guest',
       guestPhone: '+251922334455',
+      guestEmail: 'walkin@hotel.local',
       paymentMethod: 'CASH' as const,
       paidImmediately: true,
     };
 
-    const result = await service.createWalkInBooking(dto, { sub: 'staff-1', role: 'STAFF' });
+    const result = await service.createWalkInBooking(dto, {
+      sub: 'staff-1',
+      role: 'STAFF',
+    });
 
     expect(result.id).toBe('booking-1');
     expect(db.user.create).toHaveBeenCalledWith({
@@ -147,7 +162,10 @@ describe('ManagerBookingService - Walk-In Bookings', () => {
       'WALK_IN_BOOKING_CREATED',
       'Booking',
       'booking-1',
-      expect.objectContaining({ hotelId: 'hotel-1', guestName: 'Walkin Guest' }),
+      expect.objectContaining({
+        hotelId: 'hotel-1',
+        guestName: 'Walkin Guest',
+      }),
     );
   });
 });
@@ -167,7 +185,9 @@ describe('ManagerBookingService - Milestone 3 Features (Stay Requests, Relocatio
       },
       stayRequest: {
         findUnique: jest.fn(),
-        update: jest.fn().mockResolvedValue({ id: 'stay-req-1', status: 'APPROVED' }),
+        update: jest
+          .fn()
+          .mockResolvedValue({ id: 'stay-req-1', status: 'APPROVED' }),
       },
       booking: {
         findUnique: jest.fn(),
@@ -175,7 +195,9 @@ describe('ManagerBookingService - Milestone 3 Features (Stay Requests, Relocatio
       },
       bookingDetail: {
         findFirst: jest.fn().mockResolvedValue(null),
-        update: jest.fn().mockResolvedValue({ id: 'detail-1', roomId: 'room-2' }),
+        update: jest
+          .fn()
+          .mockResolvedValue({ id: 'detail-1', roomId: 'room-2' }),
       },
       room: {
         findUnique: jest.fn(),
@@ -191,7 +213,9 @@ describe('ManagerBookingService - Milestone 3 Features (Stay Requests, Relocatio
       bookingStatusHistory: {
         create: jest.fn().mockResolvedValue({}),
       },
-      $transaction: jest.fn().mockImplementation(async (callback) => callback(db)),
+      $transaction: jest
+        .fn()
+        .mockImplementation(async (callback) => callback(db)),
     };
     scope = {
       assertManagerOwnsHotel: jest.fn().mockResolvedValue(true),
@@ -204,7 +228,13 @@ describe('ManagerBookingService - Milestone 3 Features (Stay Requests, Relocatio
       notify: jest.fn().mockResolvedValue({ id: 'notif-1' }),
     };
 
-    service = new ManagerBookingService(db, scope, audit, bookings, notifications);
+    service = new ManagerBookingService(
+      db,
+      scope,
+      audit,
+      bookings,
+      notifications,
+    );
   });
 
   describe('decideStayRequest', () => {
@@ -379,7 +409,11 @@ describe('ManagerBookingService - Milestone 3 Features (Stay Requests, Relocatio
           {
             id: 'detail-1',
             roomId: 'room-1',
-            room: { id: 'room-1', roomNumber: '101', basePrice: { toNumber: () => 100 } },
+            room: {
+              id: 'room-1',
+              roomNumber: '101',
+              basePrice: { toNumber: () => 100 },
+            },
           },
         ],
       });
@@ -447,7 +481,10 @@ describe('ManagerBookingService - Milestone 3 Features (Stay Requests, Relocatio
     });
 
     it('returns relocations list for managed booking', async () => {
-      db.booking.findUnique.mockResolvedValue({ id: 'booking-1', hotelId: 'hotel-1' });
+      db.booking.findUnique.mockResolvedValue({
+        id: 'booking-1',
+        hotelId: 'hotel-1',
+      });
       db.roomRelocation.findMany.mockResolvedValue([
         {
           id: 'reloc-1',
@@ -463,10 +500,13 @@ describe('ManagerBookingService - Milestone 3 Features (Stay Requests, Relocatio
         role: 'MANAGER',
       });
 
-      expect(scope.assertManagerOwnsHotel).toHaveBeenCalledWith('manager-1', 'MANAGER', 'hotel-1');
+      expect(scope.assertManagerOwnsHotel).toHaveBeenCalledWith(
+        'manager-1',
+        'MANAGER',
+        'hotel-1',
+      );
       expect(relocations).toHaveLength(1);
       expect(relocations[0].reason).toBe('AC malfunction');
     });
   });
 });
-

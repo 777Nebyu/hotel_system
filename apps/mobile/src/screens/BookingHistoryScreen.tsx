@@ -7,6 +7,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Pressable,
@@ -34,8 +35,7 @@ import {
   QRCodeModal,
   SkeletonBookingCard,
 } from '../components/BookingComponents';
-import { FadeInCard } from '../components/FadeIn';
-import { classifyAndAnnounce } from '../errors';
+import { classifyAndAnnounce, classifyError } from '../errors';
 import { hapticMedium, hapticSuccess, hapticError } from '../hooks/useHaptics';
 import { useResponsivePadding } from '../hooks/useResponsivePadding';
 import { useTheme } from '../hooks/useTheme';
@@ -43,31 +43,32 @@ import { useTheme } from '../hooks/useTheme';
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Tab = 'upcoming' | 'past' | 'cancelled';
 
-const TAB_CONFIG: { key: Tab; label: string; emptyTitle: string; emptySub: string; icon: string }[] = [
+const TAB_CONFIG: { key: Tab; labelKey: string; emptyTitleKey: string; emptySubKey: string; icon: string }[] = [
   {
-    key:        'upcoming',
-    label:      'Upcoming',
-    emptyTitle: 'No upcoming bookings',
-    emptySub:   'Your next adventure is waiting. Search for hotels to get started.',
-    icon:       'calendar-outline',
+    key:          'upcoming',
+    labelKey:     'bookingHistory.upcoming',
+    emptyTitleKey: 'bookingHistory.empty_upcoming',
+    emptySubKey:   'bookingHistory.empty_upcoming_sub',
+    icon:         'calendar-outline',
   },
   {
-    key:        'past',
-    label:      'Past',
-    emptyTitle: 'No past stays',
-    emptySub:   'Your completed stays will appear here.',
-    icon:       'checkmark-done-outline',
+    key:          'past',
+    labelKey:     'bookingHistory.past',
+    emptyTitleKey: 'bookingHistory.empty_past',
+    emptySubKey:   'bookingHistory.empty_past_sub',
+    icon:         'checkmark-done-outline',
   },
   {
-    key:        'cancelled',
-    label:      'Cancelled',
-    emptyTitle: 'No cancelled bookings',
-    emptySub:   "You haven't cancelled any bookings.",
-    icon:       'close-circle-outline',
+    key:          'cancelled',
+    labelKey:     'bookingHistory.cancelled',
+    emptyTitleKey: 'bookingHistory.empty_cancelled',
+    emptySubKey:   'bookingHistory.empty_cancelled_sub',
+    icon:         'close-circle-outline',
   },
 ];
 
 export default function BookingHistoryScreen() {
+  const { t } = useTranslation();
   const navigation   = useNavigation<Nav>();
   const insets       = useSafeAreaInsets();
   const { colorScheme } = useTheme();
@@ -78,6 +79,7 @@ export default function BookingHistoryScreen() {
 
   const [tab, setTab] = useState<Tab>('upcoming');
   const activeTab = TAB_CONFIG.find((t) => t.key === tab)!;
+  const activeTabLabel = t(activeTab.labelKey);
 
   // For cancelled tab, map to 'past' scope and filter client-side
   const scope = tab === 'cancelled' ? 'past' : tab;
@@ -109,13 +111,13 @@ export default function BookingHistoryScreen() {
       await cancelMutation.mutateAsync(target.id);
       hapticSuccess();
       setCancellingBooking(null);
-      Alert.alert('Booking Cancelled', 'Your reservation has been cancelled successfully.');
+      Alert.alert(t('bookingHistory.cancelled'), t('bookingHistory.bookingCancelled'));
       void refetch();
     } catch (err) {
       hapticError();
       queryClient.setQueryData(['bookings', scope], previous);
       const c = classifyAndAnnounce(err);
-      Alert.alert('Could not cancel', c.title);
+      Alert.alert(t('bookingHistory.could_not_cancel'), c.title);
     } finally {
       setIsCancelling(false);
     }
@@ -128,13 +130,12 @@ export default function BookingHistoryScreen() {
   const textSec = dark ? '#8FA1B3' : BK.textSec;
   const borderC = dark ? '#1F3448' : BK.border;
 
-  const renderItem = useCallback(({ item, index }: { item: any; index: number }) => {
+  const renderItem = useCallback(({ item }: { item: any; index: number }) => {
     if (!item) return <View style={s.skeletonWrap}><SkeletonBookingCard /></View>;
     const cancellable = (item.status === 'CONFIRMED' || item.status === 'PENDING') && tab === 'upcoming';
     return (
       <View style={s.cardWrap}>
-        <FadeInCard index={index}>
-          <BookingCard
+        <BookingCard
             booking={item}
             onPress={() => navigation.navigate('BookingDetail', { bookingId: item.id })}
             showCancelButton={cancellable}
@@ -147,7 +148,6 @@ export default function BookingHistoryScreen() {
             onContactReception={() => navigation.navigate('ContactNew' as any)}
             onLeaveReview={() => navigation.navigate('BookingDetail', { bookingId: item.id })}
           />
-        </FadeInCard>
       </View>
     );
   }, [tab, navigation]);
@@ -160,9 +160,9 @@ export default function BookingHistoryScreen() {
       <View style={[s.header, { paddingTop: insets.top + 10, backgroundColor: surface, borderBottomColor: borderC }]}>
         <View style={s.headerRow}>
           <View>
-            <Text {...textProps} style={[s.title, { color: textPri }]}>My Bookings</Text>
+            <Text {...textProps} style={[s.title, { color: textPri }]}>{t('bookingHistory.title')}</Text>
             <Text style={[s.subtitle, { color: textSec }]}>
-              {bookings.length > 0 ? `${bookings.length} ${activeTab.label.toLowerCase()}` : 'Manage your stays'}
+              {bookings.length > 0 ? `${bookings.length} ${activeTabLabel.toLowerCase()}` : 'Manage your stays'}
             </Text>
           </View>
           <View style={s.headerActions}>
@@ -170,7 +170,7 @@ export default function BookingHistoryScreen() {
               onPress={() => navigation.navigate('PaymentHistory')}
               style={[s.headerBtn, { backgroundColor: dark ? '#1F3448' : BK.bg, borderColor: borderC }]}
               accessibilityRole="button"
-              accessibilityLabel="Payment History"
+              accessibilityLabel={t('common.payment_history')}
             >
               <Ionicons name="wallet-outline" size={20} color={textPri} />
             </Pressable>
@@ -178,7 +178,7 @@ export default function BookingHistoryScreen() {
               onPress={() => navigation.navigate('Search')}
               style={[s.headerBtn, { backgroundColor: dark ? '#1F3448' : BK.bg, borderColor: borderC }]}
               accessibilityRole="button"
-              accessibilityLabel="Find hotels"
+              accessibilityLabel={t('common.find_hotels')}
             >
               <Ionicons name="search-outline" size={20} color={textPri} />
             </Pressable>
@@ -187,23 +187,23 @@ export default function BookingHistoryScreen() {
 
         {/* Tab pills */}
         <View style={s.tabs}>
-          {TAB_CONFIG.map((t) => {
-            const isActive = t.key === tab;
+          {TAB_CONFIG.map((cfg) => {
+            const isActive = cfg.key === tab;
             return (
               <Pressable
-                key={t.key}
-                onPress={() => setTab(t.key)}
+                key={cfg.key}
+                onPress={() => setTab(cfg.key)}
                 style={[
                   s.tab,
                   isActive && { backgroundColor: BK.navy },
                   !isActive && { backgroundColor: dark ? '#1F3448' : BK.bg, borderColor: borderC },
                 ]}
                 accessibilityRole="tab"
-                accessibilityLabel={t.label}
+                accessibilityLabel={t(cfg.labelKey)}
                 accessibilityState={{ selected: isActive }}
               >
                 <Text style={[s.tabText, { color: isActive ? BK.white : textSec }]}>
-                  {t.label}
+                  {t(cfg.labelKey)}
                 </Text>
               </Pressable>
             );
@@ -214,7 +214,7 @@ export default function BookingHistoryScreen() {
       {/* ── Error ───────────────────────────────────────────────────────── */}
       {error && (
         <View style={s.errorWrap}>
-          <ErrorBox message={error.message} onRetry={refetch} />
+          <ErrorBox message={classifyError(error).title} onRetry={refetch} />
         </View>
       )}
 
@@ -237,15 +237,15 @@ export default function BookingHistoryScreen() {
               <View style={[s.emptyIcon, { backgroundColor: dark ? '#1F3448' : BK.bgDeep }]}>
                 <Ionicons name={activeTab.icon as any} size={32} color={dark ? '#8FA1B3' : BK.navySubtle} />
               </View>
-              <Text style={[s.emptyTitle, { color: textPri }]}>{activeTab.emptyTitle}</Text>
-              <Text style={[s.emptySub, { color: textSec }]}>{activeTab.emptySub}</Text>
+              <Text style={[s.emptyTitle, { color: textPri }]}>{t(activeTab.emptyTitleKey)}</Text>
+              <Text style={[s.emptySub, { color: textSec }]}>{t(activeTab.emptySubKey)}</Text>
               {tab === 'upcoming' && (
                 <Pressable
                   style={s.searchHotels}
                   onPress={() => navigation.navigate('Search')}
                   accessibilityRole="button"
                 >
-                  <Text style={s.searchHotelsText}>Find Hotels</Text>
+                  <Text style={s.searchHotelsText}>{t('common.find_hotels')}</Text>
                 </Pressable>
               )}
             </View>
@@ -258,7 +258,7 @@ export default function BookingHistoryScreen() {
       {cancellingBooking && (
         <CancellationDialog
           visible={!!cancellingBooking}
-          hotelName={cancellingBooking.hotel?.name ?? 'Hotel'}
+          hotelName={cancellingBooking.hotel?.name ?? t('common.hotel')}
           roomType={cancellingBooking.details?.[0]?.room?.type}
           bookingRef={cancellingBooking.reference ?? `#${cancellingBooking.id.slice(0, 8).toUpperCase()}`}
           checkIn={cancellingBooking.checkIn ? cancellingBooking.checkIn.slice(0, 10) : ''}
@@ -278,7 +278,7 @@ export default function BookingHistoryScreen() {
           visible={!!qrBooking}
           bookingRef={qrBooking.reference ?? `#${qrBooking.id.slice(0, 8).toUpperCase()}`}
           guestName={qrBooking.details?.[0]?.guestInfo?.fullName ?? session?.user?.fullName}
-          hotelName={qrBooking.hotel?.name ?? 'Hotel'}
+          hotelName={qrBooking.hotel?.name ?? t('common.hotel')}
           checkIn={qrBooking.checkIn ? qrBooking.checkIn.slice(0, 10) : ''}
           checkOut={qrBooking.checkOut ? qrBooking.checkOut.slice(0, 10) : ''}
           onClose={() => setQrBooking(null)}

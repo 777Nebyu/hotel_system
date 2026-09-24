@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { colors, font, radius, shadowCard, statusStyle } from '../theme';
 import { useTheme } from '../hooks/useTheme';
 import type { ErrorCategory, ClassifiedError } from '../errors';
@@ -129,6 +130,7 @@ export const Card = React.memo(function Card({
 export const Badge = React.memo(function Badge({
   label, status,
 }: { label?: string; status?: string }) {
+  const { t } = useTranslation();
   const cfg = statusStyle(status ?? label ?? '');
   const display = (label ?? status ?? '').replace(/_/g, ' ');
   return (
@@ -143,7 +145,7 @@ export const Badge = React.memo(function Badge({
         borderColor: cfg.border,
       }}
       accessibilityRole="text"
-      accessibilityLabel={`Status: ${display}`}
+      accessibilityLabel={`${t('common.status')}: ${display}`}
     >
       <Text style={{ color: cfg.fg, fontSize: 11, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase' }}>
         {display}
@@ -212,6 +214,7 @@ export const ErrorBox = React.memo(function ErrorBox({
   message, onRetry,
 }: { message: string; onRetry?: () => void }) {
   const c = useC();
+  const { t } = useTranslation();
   return (
     <View style={{
       marginHorizontal: 16, marginVertical: 10,
@@ -226,7 +229,7 @@ export const ErrorBox = React.memo(function ErrorBox({
         {message}
       </Text>
       {onRetry && (
-        <Button title="Try again" variant="secondary" size="sm" onPress={onRetry} />
+        <Button title={t('common.try_again_lower')} variant="secondary" size="sm" onPress={onRetry} />
       )}
     </View>
   );
@@ -250,12 +253,13 @@ export function FieldError({ message }: { message?: string }) {
 // ─── ERR-002/011/012: Category-aware error box ──────────────────────────────
 
 export function CategoryErrorBox({ error, onRetry }: { error: ClassifiedError; onRetry?: () => void }) {
+  const { t } = useTranslation();
   const showRetry = error.retryable && onRetry;
   return (
     <Card style={[styles.errorBox, CATEGORY_BORDER[error.category]]}>
       <Text style={styles.errorText}>{error.title}</Text>
       {showRetry && (
-        <Button title={error.action ?? 'Try again'} variant="secondary" size="sm" onPress={onRetry} />
+        <Button title={error.action ?? t('common.try_again_lower')} variant="secondary" size="sm" onPress={onRetry} />
       )}
       {!showRetry && error.action && (
         <Text style={styles.errorActionHint}>{error.action}</Text>
@@ -267,12 +271,13 @@ export function CategoryErrorBox({ error, onRetry }: { error: ClassifiedError; o
 // ─── ERR-003/015: Network-specific error (distinct visual from server) ──────
 
 export function NetworkErrorBox({ onRetry }: { onRetry?: () => void }) {
+  const { t } = useTranslation();
   return (
     <Card style={styles.networkErrorBox}>
       <Text style={styles.networkErrorIcon}>📡</Text>
-      <Text style={styles.networkErrorTitle}>{`You're offline`}</Text>
-      <Text style={styles.networkErrorText}>Please check your connection and try again.</Text>
-      {onRetry && <Button title="Try again" variant="secondary" size="sm" onPress={onRetry} />}
+      <Text style={styles.networkErrorTitle}>{t('errors.youre_offline')}</Text>
+      <Text style={styles.networkErrorText}>{t('errors.check_connection')}</Text>
+      {onRetry && <Button title={t('common.try_again_lower')} variant="secondary" size="sm" onPress={onRetry} />}
     </Card>
   );
 }
@@ -280,11 +285,12 @@ export function NetworkErrorBox({ onRetry }: { onRetry?: () => void }) {
 // ─── ERR-014: Maintenance banner ────────────────────────────────────────────
 
 export function MaintenanceBanner({ message }: { message?: string }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.maintenanceBanner} accessibilityRole="alert" accessibilityLiveRegion="assertive">
       <Text style={styles.maintenanceIcon}>🔧</Text>
       <Text style={styles.maintenanceText}>
-        {message ?? 'The platform is temporarily unavailable for maintenance. Please check back later.'}
+        {message ?? t('errors.maintenance_default')}
       </Text>
     </View>
   );
@@ -293,11 +299,12 @@ export function MaintenanceBanner({ message }: { message?: string }) {
 // ─── ERR-016: Full-screen error (dead ends only) ────────────────────────────
 
 export function FullScreenError({ error, onRetry }: { error: ClassifiedError; onRetry?: () => void }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.fullScreenError}>
       <Text style={styles.fullScreenErrorTitle}>{error.title}</Text>
       {error.retryable && onRetry && (
-        <Button title={error.action ?? 'Try again'} onPress={onRetry} />
+        <Button title={error.action ?? t('common.try_again_lower')} onPress={onRetry} />
       )}
     </View>
   );

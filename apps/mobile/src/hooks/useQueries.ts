@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { request } from '../api';
+import { request, NetworkError } from '../api';
 import type { HotelSummary, Hotel, Booking, BookingQuote, Review, FavoriteHotel, Notification, Payment } from '../types';
 import { cacheQuery, getCachedQuery } from '../store/offlineCache';
+import { setServingCachedData } from '../store/cacheStatus';
+import { classifyError } from '../errors';
+import { useToast } from '../components/Toast';
 const authorizedFetch = async <T>(path: string, token?: string | null, options?: { method?: string; body?: unknown }): Promise<T> => {
   return request<T>(path, { method: options?.method ?? 'GET', body: options?.body, token });
 };
@@ -9,11 +12,23 @@ const authorizedFetch = async <T>(path: string, token?: string | null, options?:
 async function cachedFetch<T>(key: string, fetcher: () => Promise<T>, maxAge = 30 * 60 * 1000): Promise<T> {
   try {
     const data = await fetcher();
+    setServingCachedData(false);
     void cacheQuery(key, data).catch(() => {});
     return data;
   } catch (err) {
+    // Never serve cached private data for auth/permission/server errors.
+    if (!(err instanceof NetworkError)) throw err;
     const cached = await getCachedQuery<T>(key, maxAge);
-    if (cached) return cached;
+    if (cached) {
+      setServingCachedData(true);
+      return cached;
+    }
+    // A stale read-only snapshot is preferable to a blank screen while offline.
+    const stale = await getCachedQuery<T>(key, Number.MAX_SAFE_INTEGER);
+    if (stale) {
+      setServingCachedData(true);
+      return stale;
+    }
     throw err;
   }
 }
@@ -69,7 +84,10 @@ export const useHotelRooms = (token: string | null | undefined, hotelId: string,
       if (checkIn) params.set('checkIn', checkIn);
       if (checkOut) params.set('checkOut', checkOut);
       const qs = params.toString();
-      return authorizedFetch<any>(`/catalog/hotels/${hotelId}/rooms${qs ? `?${qs}` : ''}`, token);
+      const path = `/catalog/hotels/${hotelId}/rooms${qs ? `?${qs}` : ''}`;
+      return checkIn || checkOut
+        ? authorizedFetch<any>(path, token)
+        : cachedFetch(`hotel-rooms:${hotelId}`, () => authorizedFetch<any>(path, token), 10 * 60 * 1000);
     },
     enabled: !!hotelId,
     staleTime: 60 * 1000,
@@ -91,7 +109,7 @@ export const useFeaturedHotels = (token?: string | null) => {
 export const useHotelReviews = (token: string | null | undefined, hotelId: string) => {
   return useQuery({
     queryKey: ['reviews', hotelId],
-    queryFn: () => authorizedFetch<{ data: Review[] }>(`/hotels/${hotelId}/reviews`, token),
+    queryFn: () => cachedFetch(`hotel-reviews:${hotelId}`, () => authorizedFetch<{ data: Review[] }>(`/hotels/${hotelId}/reviews`, token), 10 * 60 * 1000),
     staleTime: 5 * 60 * 1000,
     enabled: !!hotelId,
   });
@@ -113,7 +131,7 @@ export const useBookingHistory = (token: string, scope: 'upcoming' | 'past') => 
 export const useBookingDetail = (token: string, bookingId: string) => {
   return useQuery({
     queryKey: ['bookings', bookingId],
-    queryFn: () => authorizedFetch<Booking>(`/bookings/${bookingId}`, token),
+    queryFn: () => cachedFetch(`booking-detail:${bookingId}`, () => authorizedFetch<Booking>(`/bookings/${bookingId}`, token), 5 * 60 * 1000),
     staleTime: 1 * 60 * 1000,
     enabled: !!bookingId,
   });
@@ -157,7 +175,7 @@ export const useFavorites = (token: string) => {
 export const useNotifications = (token: string) => {
   return useQuery({
     queryKey: ['notifications'],
-    queryFn: () => authorizedFetch<{ data: Notification[] }>(`/notifications`, token),
+    queryFn: () => cachedFetch('notifications', () => authorizedFetch<{ data: Notification[] }>(`/notifications`, token), 2 * 60 * 1000),
     staleTime: 1 * 60 * 1000,
     enabled: !!token,
   });
@@ -175,7 +193,7 @@ export const useNotificationUnreadCount = (token: string) => {
 export const useDashboardStats = (token: string) => {
   return useQuery({
     queryKey: ['dashboardStats'],
-    queryFn: () => authorizedFetch<{ upcomingBookings: number; totalNights: number; totalSpent: number; reviewCount: number }>(`/bookings/dashboard/stats`, token),
+    queryFn: () => cachedFetch('dashboard-stats', () => authorizedFetch<{ upcomingBookings: number; totalNights: number; totalSpent: number; reviewCount: number }>(`/bookings/dashboard/stats`, token), 5 * 60 * 1000),
     staleTime: 5 * 60 * 1000,
     enabled: !!token,
   });
@@ -221,6 +239,7 @@ export const useCancelBooking = (token: string) => {
 
 export const useToggleFavorite = (token: string) => {
   const queryClient = useQueryClient();
+  const toast = useToast();
   return useMutation({
     mutationFn: ({ hotelId, isFavorite }: { hotelId: string; isFavorite: boolean }) =>
       isFavorite
@@ -258,11 +277,15 @@ export const useToggleFavorite = (token: string) => {
 
       return { previous };
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
       // Rollback the optimistic update on failure
       if (context?.previous !== undefined) {
         queryClient.setQueryData(['favorites'], context.previous);
       }
+      // Surface why the heart snapped back — offline users otherwise see it
+      // silently revert with no explanation.
+      const classified = classifyError(err);
+      toast('error', classified.title);
     },
     onSettled: () => {
       // Always re-fetch to get the authoritative server state
@@ -283,10 +306,15 @@ export const useMarkNotificationRead = (token: string) => {
 
 export const useMarkAllNotificationsRead = (token: string) => {
   const queryClient = useQueryClient();
+  const toast = useToast();
   return useMutation({
     mutationFn: () => authorizedFetch('/notifications/read-all', token, { method: 'POST' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+    onError: (err) => {
+      const classified = classifyError(err);
+      toast('error', classified.title);
     },
   });
 };
@@ -294,7 +322,7 @@ export const useMarkAllNotificationsRead = (token: string) => {
 export const usePaymentHistory = (token: string) => {
   return useQuery({
     queryKey: ['payments'],
-    queryFn: () => authorizedFetch<{ data: Payment[] }>('/payments/my', token),
+    queryFn: () => cachedFetch('payments', () => authorizedFetch<{ data: Payment[] }>('/payments/my', token), 10 * 60 * 1000),
     staleTime: 5 * 60 * 1000,
     enabled: !!token,
   });
@@ -303,7 +331,7 @@ export const usePaymentHistory = (token: string) => {
 export const useMyReviews = (token: string) => {
   return useQuery({
     queryKey: ['myReviews'],
-    queryFn: () => authorizedFetch<Review[]>('/reviews/my', token),
+    queryFn: () => cachedFetch('my-reviews', () => authorizedFetch<Review[]>('/reviews/my', token), 10 * 60 * 1000),
     staleTime: 5 * 60 * 1000,
     enabled: !!token,
   });
