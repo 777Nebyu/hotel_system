@@ -14,6 +14,7 @@ const MENU_ITEMS = [
   { icon: 'business-outline', label: 'Hotel Settings', screen: 'ManagerHotel', description: 'Edit hotel profile & policies' },
   { icon: 'bed-outline', label: 'Room Management', screen: 'ManagerRooms', description: 'Add, edit & manage rooms' },
   { icon: 'analytics-outline', label: 'Reports & Revenue', screen: 'ManagerReports', description: 'View occupancy & revenue' },
+  { icon: 'alert-circle-outline', label: 'Customer Disputes', screen: 'ManagerDisputes', description: 'Review customer booking issues' },
   { icon: 'walk-outline', label: 'Walk-in Booking', screen: 'WalkInBooking', description: 'Create a walk-in reservation' },
   { icon: 'notifications-outline', label: 'Notifications', screen: 'Notifications', description: 'View all notifications' },
   { icon: 'shield-checkmark-outline', label: 'Account Security', screen: 'AccountSecurity', description: 'Password & security settings' },
@@ -73,7 +74,7 @@ export default function ManagerMoreScreen({ onBack, onNavigate }: Props) {
 
         {/* Menu items */}
         <View style={[styles.menuGroup, { backgroundColor: c.surface, borderColor: c.line }]}>
-          {MENU_ITEMS.filter((item) => user?.role !== 'STAFF' || !['ManagerHotel', 'ManagerRooms'].includes(item.screen)).map((item, i) => (
+          {MENU_ITEMS.filter((item) => user?.role !== 'STAFF' || !['ManagerHotel', 'ManagerRooms', 'ManagerReports'].includes(item.screen)).map((item, i) => (
             <View key={item.screen} style={[styles.menuItemWrapper, i < MENU_ITEMS.length - 1 && { borderBottomColor: c.line }]}>
               <Pressable
                 style={styles.menuItem}

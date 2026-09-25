@@ -59,7 +59,7 @@ exports.checkoutSchema = zod_1.z
 exports.bookingGuestSchema = zod_1.z.object({
     fullName: zod_1.z.string().min(2).max(120),
     email: zod_1.z.string().email(),
-    phone: zod_1.z.string().min(3).max(30),
+    phone: zod_1.z.string().min(3).max(30).optional(),
     nationality: zod_1.z.string().max(80).optional(),
     idType: zod_1.z
         .enum(['PASSPORT', 'NATIONAL_ID', 'DRIVERS_LICENSE'])

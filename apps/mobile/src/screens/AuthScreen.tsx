@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -134,6 +135,7 @@ const staticStyles = StyleSheet.create({
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function AuthScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const route      = useRoute<Route>();
   const dispatch   = useAppDispatch();
@@ -260,7 +262,7 @@ export default function AuthScreen() {
         }
       } else if (field === 'confirmPassword') {
         if (confirmPassword && confirmPassword !== password) {
-          setFieldErrors((prev) => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+          setFieldErrors((prev) => ({ ...prev, confirmPassword: t('errors.password_mismatch') }));
           return;
         }
       }
@@ -270,7 +272,7 @@ export default function AuthScreen() {
         return next;
       });
     } catch (err: any) {
-      const msg = err.errors?.[0]?.message ?? 'Invalid value';
+      const msg = err.errors?.[0]?.message ?? t('errors.validation_error');
       setFieldErrors((prev) => ({ ...prev, [field]: msg }));
     }
   };
@@ -306,11 +308,11 @@ export default function AuthScreen() {
           const { isBiometricAvailable } = await import('../lib/biometrics');
           if (await isBiometricAvailable()) {
             Alert.alert(
-              'Enable Biometric Login',
-              'Use Face ID or fingerprint for faster sign-in next time?',
+              t('auth.enable_biometrics_login'),
+              t('auth.biometrics_login_msg'),
               [
-                { text: 'Not now', style: 'cancel' },
-                { text: 'Enable', onPress: () => enableBiometric(session.refreshToken!) },
+                { text: t('auth.not_now'), style: 'cancel' },
+                { text: t('auth.enable_biometrics'), onPress: () => enableBiometric(session.refreshToken!) },
               ],
             );
           }
@@ -329,7 +331,7 @@ export default function AuthScreen() {
     } catch (err) {
       hapticError();
       const errorClass = classifyAndAnnounce(err);
-      Alert.alert('Google sign-in failed', errorClass.title);
+      Alert.alert(t('auth.google_signin_failed'), errorClass.title);
     } finally {
       setGoogleLoading(false);
     }
@@ -350,7 +352,7 @@ export default function AuthScreen() {
           confirmPassword,
         });
         if (!termsAccepted) {
-          setFieldErrors({ terms: 'Please accept the Terms of Service to continue.' });
+          setFieldErrors({ terms: t('auth.accept_terms') });
           return false;
         }
       }
@@ -378,9 +380,9 @@ export default function AuthScreen() {
         });
         hapticSuccess();
         Alert.alert(
-          'Verify your email',
-          `We sent a verification link to ${email.trim()}. Please check your inbox and verify your email before signing in.`,
-          [{ text: 'OK', onPress: () => switchMode('login') }],
+          t('auth.verify_email_title'),
+          t('auth.verify_email_msg', { email: email.trim() }),
+          [{ text: t('errors.ok'), onPress: () => switchMode('login') }],
         );
         return;
       }
@@ -403,12 +405,12 @@ export default function AuthScreen() {
         if (!already) {
           const { isBiometricAvailable } = await import('../lib/biometrics');
           if (await isBiometricAvailable()) {
-            Alert.alert(
-              'Enable Biometric Login',
-              'Use Face ID or fingerprint for faster sign-in next time?',
+              Alert.alert(
+              t('auth.enable_biometrics_login'),
+              t('auth.biometrics_login_msg'),
               [
-                { text: 'Not now', style: 'cancel' },
-                { text: 'Enable', onPress: () => enableBiometric(session.refreshToken!) },
+                { text: t('auth.not_now'), style: 'cancel' },
+                { text: t('auth.enable_biometrics'), onPress: () => enableBiometric(session.refreshToken!) },
               ],
             );
           }
@@ -427,7 +429,7 @@ export default function AuthScreen() {
     } catch (err) {
       hapticError();
       const errCls = classifyAndAnnounce(err);
-      Alert.alert(mode === 'login' ? 'Sign in failed' : 'Registration failed', errCls.title);
+      Alert.alert(mode === 'login' ? t('auth.sign_in_failed') : t('auth.registration_failed'), errCls.title);
     } finally {
       setBusy(false);
     }
@@ -441,7 +443,7 @@ export default function AuthScreen() {
     /[0-9]/.test(password),
   ];
   const strengthPassed = strengthChecks.filter(Boolean).length;
-  const strengthLabel  = strengthPassed <= 1 ? 'Weak' : strengthPassed <= 3 ? 'Fair' : 'Strong';
+  const strengthLabel  = strengthPassed <= 1 ? t('auth.strength_weak') : strengthPassed <= 3 ? t('auth.strength_fair') : t('auth.strength_strong');
   const strengthColor  = strengthPassed <= 1 ? c.danger : strengthPassed <= 3 ? c.warning : c.success;
 
   return (
@@ -463,7 +465,7 @@ export default function AuthScreen() {
           hitSlop={8}
           style={styles.backBtn}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('common.go_back_nav')}
         >
           <Ionicons name="arrow-back" size={22} color={c.ink} />
         </Pressable>
@@ -477,12 +479,12 @@ export default function AuthScreen() {
         </View>
 
         <Text style={styles.heading}>
-          {mode === 'login' ? 'Welcome back' : 'Create account'}
+          {mode === 'login' ? t('auth.welcome_back') : t('auth.create_account')}
         </Text>
         <Text style={styles.subheading}>
           {mode === 'login'
-            ? 'Sign in to manage your stays'
-            : 'Join thousands of travellers on LuxSty'}
+            ? t('auth.signin_sub')
+            : t('auth.register_sub')}
         </Text>
 
         {/* ── Mode toggle pills ─────────────────────────────────────────── */}
@@ -496,7 +498,7 @@ export default function AuthScreen() {
               accessibilityState={{ selected: mode === m }}
             >
               <Text style={[styles.modePillText, mode === m && styles.modePillTextActive]}>
-                {m === 'login' ? 'Sign in' : 'Register'}
+                {m === 'login' ? t('buttons.sign_in') : t('auth.register')}
               </Text>
             </Pressable>
           ))}
@@ -508,11 +510,11 @@ export default function AuthScreen() {
           {/* Register-only: full name */}
           {mode === 'register' && (
             <InputField
-              label="Full name"
+              label={t('auth.full_name')}
               value={fullName}
               onChangeText={(v) => { setFullName(v); clearErrors(); }}
               onBlur={() => validateField('fullName')}
-              placeholder="e.g. Selam Tesfaye"
+              placeholder={t('auth.name_placeholder')}
               autoCapitalize="words"
               returnKeyType="next"
               onSubmitEditing={() => emailRef.current?.focus()}
@@ -524,11 +526,11 @@ export default function AuthScreen() {
 
           {/* Email */}
           <InputField
-            label="Email address"
+            label={t('auth.email')}
             value={email}
             onChangeText={(v) => { setEmail(v); clearErrors(); }}
             onBlur={() => validateField('email')}
-            placeholder="you@example.com"
+            placeholder={t('auth.email_placeholder')}
             keyboardType="email-address"
             returnKeyType="next"
             onSubmitEditing={() => mode === 'register' ? phoneRef.current?.focus() : passRef.current?.focus()}
@@ -541,11 +543,11 @@ export default function AuthScreen() {
           {/* Register-only: phone */}
           {mode === 'register' && (
             <InputField
-              label="Phone number (optional)"
+              label={t('auth.phone')}
               value={phone}
               onChangeText={setPhone}
               onBlur={() => validateField('phone')}
-              placeholder="+251 9XX XXX XXX"
+              placeholder={t('auth.phone_placeholder')}
               keyboardType="phone-pad"
               returnKeyType="next"
               onSubmitEditing={() => passRef.current?.focus()}
@@ -556,11 +558,11 @@ export default function AuthScreen() {
 
           {/* Password */}
           <InputField
-            label="Password"
+            label={t('auth.password')}
             value={password}
             onChangeText={(v) => { setPassword(v); clearErrors(); }}
             onBlur={() => validateField('password')}
-            placeholder="8+ characters"
+            placeholder={t('auth.password_placeholder')}
             secureTextEntry={!showPassword}
             returnKeyType={mode === 'register' ? 'next' : 'done'}
             onSubmitEditing={() => mode === 'register' ? confRef.current?.focus() : void submit()}
@@ -585,7 +587,7 @@ export default function AuthScreen() {
               style={staticStyles.forgotRow}
               accessibilityRole="link"
             >
-              <Text style={styles.forgotText}>Forgot password?</Text>
+              <Text style={styles.forgotText}>{t('auth.forgot')}</Text>
             </Pressable>
           )}
 
@@ -607,11 +609,11 @@ export default function AuthScreen() {
           {/* Register-only: confirm password */}
           {mode === 'register' && (
             <InputField
-              label="Confirm password"
+              label={t('auth.confirm_password')}
               value={confirmPassword}
               onChangeText={(v) => { setConfirmPassword(v); clearErrors(); }}
               onBlur={() => validateField('confirmPassword')}
-              placeholder="Re-enter password"
+              placeholder={t('auth.confirm_placeholder')}
               secureTextEntry={!showConfirm}
               returnKeyType="done"
               onSubmitEditing={() => void submit()}
@@ -643,9 +645,9 @@ export default function AuthScreen() {
               </View>
               <Text style={styles.termsText}>
                 I agree to the{' '}
-                <Text style={styles.termsLink} onPress={() => Linking.openURL(TERMS_URL)}>Terms of Service</Text>
+                <Text style={styles.termsLink} onPress={() => Linking.openURL(TERMS_URL)}>{t('auth.terms')}</Text>
                 {' '}and{' '}
-                <Text style={styles.termsLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Privacy Policy</Text>
+                <Text style={styles.termsLink} onPress={() => Linking.openURL(PRIVACY_URL)}>{t('auth.privacy')}</Text>
               </Text>
             </Pressable>
           )}
@@ -656,7 +658,7 @@ export default function AuthScreen() {
             onPress={() => void submit()}
             disabled={busy}
             accessibilityRole="button"
-            accessibilityLabel={mode === 'login' ? 'Sign in' : 'Create account'}
+            accessibilityLabel={mode === 'login' ? t('buttons.sign_in') : 'Create account'}
             accessibilityState={{ busy }}
             style={({ pressed }) => [
               styles.cta,
@@ -669,7 +671,7 @@ export default function AuthScreen() {
             ) : (
               <View style={staticStyles.ctaInner}>
                 <Text style={styles.ctaText}>
-                  {mode === 'login' ? 'Sign in' : 'Create account'}
+                  {mode === 'login' ? t('buttons.sign_in') : 'Create account'}
                 </Text>
                 <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
               </View>
@@ -688,7 +690,7 @@ export default function AuthScreen() {
             onPress={() => void handleGoogleSignIn()}
             disabled={googleLoading || busy}
             accessibilityRole="button"
-            accessibilityLabel="Continue with Google"
+            accessibilityLabel={t('auth.google')}
             accessibilityState={{ busy: googleLoading }}
             style={({ pressed }) => [
               styles.googleBtn,
@@ -701,7 +703,7 @@ export default function AuthScreen() {
             ) : (
               <View style={staticStyles.googleBtnInner}>
                 <Ionicons name="logo-google" size={20} color="#DB4437" />
-                <Text style={styles.googleBtnText}>Continue with Google</Text>
+                <Text style={styles.googleBtnText}>{t('auth.google')}</Text>
               </View>
             )}
           </Pressable>
@@ -715,9 +717,9 @@ export default function AuthScreen() {
           accessibilityRole="button"
         >
           <Text style={styles.switchText}>
-            {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+            {mode === 'login' ? `${t('auth.no_account')} ` : `${t('auth.have_account')} `}
             <Text style={styles.switchLink}>
-              {mode === 'login' ? 'Sign up free' : 'Sign in'}
+              {mode === 'login' ? t('auth.sign_up_free') : t('buttons.sign_in')}
             </Text>
           </Text>
         </Pressable>

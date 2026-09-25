@@ -9,6 +9,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '../../../generated/prisma/client';
 import type { Room, RoomAvailability } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
 import {
   BookingCancelledEvent,
   BookingCreatedEvent,
@@ -55,7 +56,8 @@ function calculateModificationRefund(
   checkIn: Date,
   now: Date = new Date(),
 ): number {
-  const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60);
+  const hoursUntilCheckIn =
+    (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60);
   if (hoursUntilCheckIn >= 48) return Math.round(difference * 100) / 100;
   if (hoursUntilCheckIn >= 24) return Math.round(difference * 0.5 * 100) / 100;
   return 0;
@@ -69,6 +71,7 @@ export class BookingService {
     private readonly coupons: CouponService,
     private readonly invoices: InvoiceService,
     private readonly audit: AuditService,
+    private readonly scope: ResourceScopeHelper,
   ) {}
 
   async checkout(input: CheckoutInput) {
@@ -175,7 +178,9 @@ export class BookingService {
         userId,
       );
 
-      const taxRate = hotel.policy?.taxRate ? Number(hotel.policy.taxRate) : 0.15;
+      const taxRate = hotel.policy?.taxRate
+        ? Number(hotel.policy.taxRate)
+        : 0.15;
       const quote = buildQuote({
         hotelId: hotel.id,
         checkIn,
@@ -229,7 +234,6 @@ export class BookingService {
 
       const created = await tx.booking.create({
         data: {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           bookingRef: bookingRef!,
           userId,
           hotelId: hotel.id,
@@ -345,7 +349,8 @@ export class BookingService {
     }
 
     const now = Date.now();
-    const hoursUntilCheckIn = (booking.checkIn.getTime() - now) / (1000 * 60 * 60);
+    const hoursUntilCheckIn =
+      (booking.checkIn.getTime() - now) / (1000 * 60 * 60);
 
     let refundPercent = 0;
     if (hoursUntilCheckIn >= 48) {
@@ -357,7 +362,8 @@ export class BookingService {
     }
 
     const paymentAmount = booking.payment?.amount?.toNumber() ?? 0;
-    const shouldRefund = booking.payment?.status === 'SUCCEEDED' && refundPercent > 0;
+    const shouldRefund =
+      booking.payment?.status === 'SUCCEEDED' && refundPercent > 0;
     const refundAmount = shouldRefund
       ? Math.round(paymentAmount * refundPercent * 100) / 100
       : 0;
@@ -449,11 +455,7 @@ export class BookingService {
     };
   }
 
-  async cancelRooms(
-    bookingId: string,
-    input: CancelRoomInput,
-    userId: string,
-  ) {
+  async cancelRooms(bookingId: string, input: CancelRoomInput, userId: string) {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
       include: {
@@ -486,9 +488,7 @@ export class BookingService {
     const refundFraction = cancelledCount / allRoomsCount;
     const paymentSucceeded = booking.payment?.status === 'SUCCEEDED';
     const refundAmount = paymentSucceeded
-      ? Math.round(
-          booking.totalPrice.toNumber() * refundFraction * 100,
-        ) / 100
+      ? Math.round(booking.totalPrice.toNumber() * refundFraction * 100) / 100
       : 0;
 
     await this.db.$transaction(async (tx) => {
@@ -630,26 +630,20 @@ export class BookingService {
 
   async getInvoice(
     bookingId: string,
-    user: { sub: string; role?: string; hotelId?: string } | string,
+    user: { sub: string; role?: string } | string,
   ): Promise<Buffer> {
     const userId = typeof user === 'string' ? user : user.sub;
     const role = typeof user === 'string' ? undefined : user.role;
-    const hotelId = typeof user === 'string' ? undefined : user.hotelId;
 
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
       select: { userId: true, hotelId: true },
     });
     if (!booking) throw new NotFoundException('Booking not found');
-
-    const isAdmin = role === 'ADMIN';
-    const isStaffOrManager =
-      (role === 'STAFF' || role === 'MANAGER') &&
-      (!hotelId || booking.hotelId === hotelId);
-
-    if (booking.userId && booking.userId !== userId && !isAdmin && !isStaffOrManager) {
-      throw new ForbiddenException('You cannot download this invoice');
-    }
+    await this.assertCanViewBooking(booking, {
+      sub: userId,
+      role: role ?? 'CUSTOMER',
+    });
     return this.invoices.generate(bookingId);
   }
 
@@ -663,7 +657,9 @@ export class BookingService {
       },
     });
     if (!room) throw new NotFoundException('Room not found');
-    if (!roomAvailableAcross(room.status, room.availability, checkIn, checkOut)) {
+    if (
+      !roomAvailableAcross(room.status, room.availability, checkIn, checkOut)
+    ) {
       throw new ConflictException('Room is not available for requested dates');
     }
 
@@ -692,7 +688,9 @@ export class BookingService {
       },
     });
     if (otherHold) {
-      throw new ConflictException('Room is temporarily held by another customer');
+      throw new ConflictException(
+        'Room is temporarily held by another customer',
+      );
     }
 
     const holdEnd = new Date(Date.now() + 15 * 60 * 1000);
@@ -719,7 +717,9 @@ export class BookingService {
       holdId: hold.id,
       roomId: hold.roomId,
       holdEnd: hold.holdEnd,
-      expiresInSeconds: Math.floor((hold.holdEnd.getTime() - Date.now()) / 1000),
+      expiresInSeconds: Math.floor(
+        (hold.holdEnd.getTime() - Date.now()) / 1000,
+      ),
     };
   }
 
@@ -735,7 +735,13 @@ export class BookingService {
       where: { id: holdId },
       data: { status: 'CANCELLED' },
     });
-    await this.audit.record(userId, 'ROOM_HOLD_CANCELLED', 'RoomHold', holdId, {});
+    await this.audit.record(
+      userId,
+      'ROOM_HOLD_CANCELLED',
+      'RoomHold',
+      holdId,
+      {},
+    );
     return { cancelled: true };
   }
 
@@ -756,17 +762,25 @@ export class BookingService {
     }
     if (dto.type === 'EARLY_CHECKIN') {
       if (!['CONFIRMED'].includes(booking.status)) {
-        throw new BadRequestException('Early check-in can only be requested for confirmed bookings');
+        throw new BadRequestException(
+          'Early check-in can only be requested for confirmed bookings',
+        );
       }
       if (booking.hotel.policy && !booking.hotel.policy.allowEarlyCheckIn) {
-        throw new BadRequestException('Early check-in is not permitted by hotel policy');
+        throw new BadRequestException(
+          'Early check-in is not permitted by hotel policy',
+        );
       }
     } else if (dto.type === 'LATE_CHECKOUT') {
       if (!['CONFIRMED', 'CHECKED_IN'].includes(booking.status)) {
-        throw new BadRequestException('Late check-out can only be requested for confirmed or checked-in bookings');
+        throw new BadRequestException(
+          'Late check-out can only be requested for confirmed or checked-in bookings',
+        );
       }
       if (booking.hotel.policy && !booking.hotel.policy.allowLateCheckOut) {
-        throw new BadRequestException('Late check-out is not permitted by hotel policy');
+        throw new BadRequestException(
+          'Late check-out is not permitted by hotel policy',
+        );
       }
     }
 
@@ -786,24 +800,33 @@ export class BookingService {
       },
     });
 
-    await this.audit.record(userId, 'STAY_REQUEST_CREATED', 'StayRequest', request.id, {
-      bookingId,
-      type: dto.type,
-      fee: Number(fee),
-    });
+    await this.audit.record(
+      userId,
+      'STAY_REQUEST_CREATED',
+      'StayRequest',
+      request.id,
+      {
+        bookingId,
+        type: dto.type,
+        fee: Number(fee),
+      },
+    );
 
     return request;
   }
 
-  async getStayRequests(bookingId: string, userId: string) {
+  async getStayRequests(
+    bookingId: string,
+    actor: { sub: string; role: string } | string,
+  ) {
+    const userId = typeof actor === 'string' ? actor : actor.sub;
+    const role = typeof actor === 'string' ? 'CUSTOMER' : actor.role;
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
-      select: { userId: true },
+      select: { userId: true, hotelId: true },
     });
     if (!booking) throw new NotFoundException('Booking not found');
-    if (booking.userId !== userId) {
-      throw new ForbiddenException('Access denied');
-    }
+    await this.assertCanViewBooking(booking, { sub: userId, role });
     return this.db.stayRequest.findMany({
       where: { bookingId },
       orderBy: { createdAt: 'desc' },
@@ -831,24 +854,36 @@ export class BookingService {
     }
 
     const checkIn = dto.checkIn ? parseDateOnly(dto.checkIn) : booking.checkIn;
-    const checkOut = dto.checkOut ? parseDateOnly(dto.checkOut) : booking.checkOut;
+    const checkOut = dto.checkOut
+      ? parseDateOnly(dto.checkOut)
+      : booking.checkOut;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (checkIn < today) {
-      throw new BadRequestException('New check-in date must be today or in the future');
+      throw new BadRequestException(
+        'New check-in date must be today or in the future',
+      );
     }
     if (checkOut <= checkIn) {
       throw new BadRequestException('checkOut must be after checkIn');
     }
 
-    const roomIds = dto.roomIds && dto.roomIds.length > 0
-      ? dto.roomIds
-      : booking.details.map((d) => d.roomId);
+    const roomIds =
+      dto.roomIds && dto.roomIds.length > 0
+        ? dto.roomIds
+        : booking.details.map((d) => d.roomId);
 
-    const rooms = await this.loadRooms(booking.hotelId, roomIds, checkIn, checkOut);
+    const rooms = await this.loadRooms(
+      booking.hotelId,
+      roomIds,
+      checkIn,
+      checkOut,
+    );
     if (rooms.length !== roomIds.length) {
-      throw new NotFoundException('One or more rooms were not found in this hotel');
+      throw new NotFoundException(
+        'One or more rooms were not found in this hotel',
+      );
     }
 
     const overlaps = await this.db.bookingDetail.findMany({
@@ -891,7 +926,10 @@ export class BookingService {
     const oldTotal = booking.totalPrice.toNumber();
     const newTotal = quote.total;
     const rawDiff = Math.abs(newTotal - oldTotal);
-    const refundAmount = newTotal < oldTotal ? calculateModificationRefund(rawDiff, booking.checkIn) : 0;
+    const refundAmount =
+      newTotal < oldTotal
+        ? calculateModificationRefund(rawDiff, booking.checkIn)
+        : 0;
     const additionalCharge = newTotal > oldTotal ? newTotal - oldTotal : 0;
 
     return {
@@ -927,25 +965,38 @@ export class BookingService {
     }
 
     const checkIn = dto.checkIn ? parseDateOnly(dto.checkIn) : booking.checkIn;
-    const checkOut = dto.checkOut ? parseDateOnly(dto.checkOut) : booking.checkOut;
+    const checkOut = dto.checkOut
+      ? parseDateOnly(dto.checkOut)
+      : booking.checkOut;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (checkIn < today) {
-      throw new BadRequestException('New check-in date must be today or in the future');
+      throw new BadRequestException(
+        'New check-in date must be today or in the future',
+      );
     }
     if (checkOut <= checkIn) {
       throw new BadRequestException('checkOut must be after checkIn');
     }
 
-    const roomIds = dto.roomIds && dto.roomIds.length > 0
-      ? dto.roomIds
-      : booking.details.map((d) => d.roomId);
+    const roomIds =
+      dto.roomIds && dto.roomIds.length > 0
+        ? dto.roomIds
+        : booking.details.map((d) => d.roomId);
 
     return this.db.$transaction(async (tx) => {
-      const rooms = await this.loadRooms(booking.hotelId, roomIds, checkIn, checkOut, tx);
+      const rooms = await this.loadRooms(
+        booking.hotelId,
+        roomIds,
+        checkIn,
+        checkOut,
+        tx,
+      );
       if (rooms.length !== roomIds.length) {
-        throw new NotFoundException('One or more rooms were not found in this hotel');
+        throw new NotFoundException(
+          'One or more rooms were not found in this hotel',
+        );
       }
 
       const overlaps = await tx.bookingDetail.findMany({
@@ -1032,7 +1083,10 @@ export class BookingService {
         where: { bookingId },
       });
 
-      const firstGuestInfo = booking.details[0]?.guestInfo ?? { adults: 1, children: 0 };
+      const firstGuestInfo = booking.details[0]?.guestInfo ?? {
+        adults: 1,
+        children: 0,
+      };
       const guestCount = booking.details[0]?.guestCount ?? 1;
 
       await tx.bookingDetail.createMany({
@@ -1042,7 +1096,9 @@ export class BookingService {
           guestCount,
           checkIn,
           checkOut,
-          guestInfo: dto.guestInfos ? (dto.guestInfos as unknown as Prisma.InputJsonValue) : firstGuestInfo,
+          guestInfo: dto.guestInfos
+            ? (dto.guestInfos as unknown as Prisma.InputJsonValue)
+            : firstGuestInfo,
         })),
       });
 
@@ -1085,16 +1141,22 @@ export class BookingService {
         },
       });
 
-      await this.audit.record(userId, 'BOOKING_MODIFIED', 'Booking', bookingId, {
-        previousCheckIn: booking.checkIn,
-        newCheckIn: checkIn,
-        previousCheckOut: booking.checkOut,
-        newCheckOut: checkOut,
-        oldTotal,
-        newTotal,
-        refundAmount,
-        additionalCharge: newTotal > oldTotal ? newTotal - oldTotal : 0,
-      });
+      await this.audit.record(
+        userId,
+        'BOOKING_MODIFIED',
+        'Booking',
+        bookingId,
+        {
+          previousCheckIn: booking.checkIn,
+          newCheckIn: checkIn,
+          previousCheckOut: booking.checkOut,
+          newCheckOut: checkOut,
+          oldTotal,
+          newTotal,
+          refundAmount,
+          additionalCharge: newTotal > oldTotal ? newTotal - oldTotal : 0,
+        },
+      );
 
       this.emitter.emit(
         BookingEventNames.MODIFIED,
@@ -1116,6 +1178,38 @@ export class BookingService {
     });
   }
 
+  async getBookingDetail(
+    bookingId: string,
+    actor: { sub: string; role: string },
+  ) {
+    const booking = await this.db.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        hotel: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            starRating: true,
+            images: true,
+            city: { select: { name: true } },
+            policy: true,
+          },
+        },
+        user: {
+          select: { id: true, fullName: true, email: true, phone: true },
+        },
+        details: { include: { room: true } },
+        payment: true,
+      },
+    });
+    if (!booking || booking.deletedAt) {
+      throw new NotFoundException('Booking not found');
+    }
+    await this.assertCanViewBooking(booking, actor);
+    return booking;
+  }
+
   async getStatusHistory(
     bookingId: string,
     actor: { sub: string; role: string },
@@ -1124,13 +1218,33 @@ export class BookingService {
       where: { id: bookingId },
     });
     if (!booking) throw new NotFoundException('Booking not found');
-    if (actor.role === 'CUSTOMER' && booking.userId !== actor.sub) {
-      throw new ForbiddenException('Access denied');
-    }
+    await this.assertCanViewBooking(booking, actor);
     return this.db.bookingStatusHistory.findMany({
       where: { bookingId },
       orderBy: { createdAt: 'asc' },
     });
+  }
+
+  private async assertCanViewBooking(
+    booking: { userId: string; hotelId: string },
+    actor: { sub: string; role: string },
+  ): Promise<void> {
+    if (actor.role === 'ADMIN') return;
+    if (actor.role === 'CUSTOMER') {
+      if (booking.userId !== actor.sub) {
+        throw new ForbiddenException('Access denied');
+      }
+      return;
+    }
+    if (actor.role === 'MANAGER' || actor.role === 'STAFF') {
+      await this.scope.assertManagerOwnsHotel(
+        actor.sub,
+        actor.role,
+        booking.hotelId,
+      );
+      return;
+    }
+    throw new ForbiddenException('Insufficient role permissions');
   }
 
   private async applyPromo(
@@ -1242,15 +1356,18 @@ export class BookingService {
     }
   }
 
-  async getModifications(bookingId: string, userId: string) {
+  async getModifications(
+    bookingId: string,
+    actor: { sub: string; role: string } | string,
+  ) {
+    const userId = typeof actor === 'string' ? actor : actor.sub;
+    const role = typeof actor === 'string' ? 'CUSTOMER' : actor.role;
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
-      select: { userId: true },
+      select: { userId: true, hotelId: true },
     });
     if (!booking) throw new NotFoundException('Booking not found');
-    if (booking.userId !== userId) {
-      throw new ForbiddenException('Access denied');
-    }
+    await this.assertCanViewBooking(booking, { sub: userId, role });
     return this.db.bookingModification.findMany({
       where: { bookingId },
       orderBy: { createdAt: 'desc' },
@@ -1262,15 +1379,18 @@ export class BookingService {
     });
   }
 
-  async getRelocations(bookingId: string, userId: string) {
+  async getRelocations(
+    bookingId: string,
+    actor: { sub: string; role: string } | string,
+  ) {
+    const userId = typeof actor === 'string' ? actor : actor.sub;
+    const role = typeof actor === 'string' ? 'CUSTOMER' : actor.role;
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
-      select: { userId: true },
+      select: { userId: true, hotelId: true },
     });
     if (!booking) throw new NotFoundException('Booking not found');
-    if (booking.userId !== userId) {
-      throw new ForbiddenException('Access denied');
-    }
+    await this.assertCanViewBooking(booking, { sub: userId, role });
     return this.db.roomRelocation.findMany({
       where: { bookingId },
       orderBy: { relocatedAt: 'desc' },

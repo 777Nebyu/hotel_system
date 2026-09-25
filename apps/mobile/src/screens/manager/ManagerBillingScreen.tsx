@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useAppSelector } from '../../store/hooks';
 import { request } from '../../api';
 import { Card, EmptyState, ErrorBox } from '../../components/Shared';
@@ -33,13 +34,18 @@ export default function ManagerBillingScreen({ onBack }: { onBack: () => void })
   return <View style={[styles.root, { backgroundColor: c.paper }]}>
     <ScreenHeader title="Billing" subtitle={`ETB ${collected.toLocaleString()} collected`} onBack={onBack} />
     {loading ? <SkeletonList count={5} /> : error ? <ErrorBox message={error} onRetry={load} /> : rows.length === 0 ? <EmptyState title="No billing records" /> :
-      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(); }} tintColor={c.teal} />} contentContainerStyle={styles.content}>
-        <Text style={{ color: c.inkMuted, fontSize: 13, marginBottom: 4 }}>{pending.length} outstanding payment{pending.length === 1 ? '' : 's'}</Text>
-        {rows.map((b) => <Card key={b.id} style={[styles.card, { backgroundColor: c.surface, borderColor: c.line }]}>
+      <FlashList
+        data={rows}
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(); }} tintColor={c.teal} />}
+        ListHeaderComponent={<Text style={{ color: c.inkMuted, fontSize: 13, marginBottom: 4 }}>{pending.length} outstanding payment{pending.length === 1 ? '' : 's'}</Text>}
+        renderItem={({ item: b }) => (
+          <Card style={[styles.card, { backgroundColor: c.surface, borderColor: c.line }]}>
           <View style={styles.row}><View style={styles.flex}><Text style={[styles.guest, { color: c.ink }]}>{b.user?.fullName ?? b.guestName ?? 'Guest'}</Text><Text style={[styles.ref, { color: c.inkMuted }]}>Booking #{(b.bookingRef ?? b.id).slice(0, 8).toUpperCase()}</Text></View><Text style={[styles.amount, { color: c.teal }]}>ETB {Number(b.payment?.amount ?? b.totalPrice ?? 0).toLocaleString()}</Text></View>
           <View style={styles.row}><Text style={[styles.method, { color: c.inkSoft }]}>{b.payment?.method ?? 'Payment pending'}</Text><Text style={[styles.status, { color: b.payment?.status === 'SUCCEEDED' ? c.success : c.warning }]}>{b.payment?.status ?? 'PENDING'}</Text></View>
-        </Card>)}
-      </ScrollView>}
+          </Card>
+        )}
+      />}
   </View>;
 }
 

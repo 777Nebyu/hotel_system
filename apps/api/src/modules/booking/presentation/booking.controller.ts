@@ -31,6 +31,13 @@ interface AuthedRequest {
   user: { sub: string; role: string };
 }
 
+const ALL_AUTHENTICATED_ROLES = [
+  Role.CUSTOMER,
+  Role.MANAGER,
+  Role.STAFF,
+  Role.ADMIN,
+] as const;
+
 @ApiTags('bookings')
 @ApiBearerAuth()
 @Controller('bookings')
@@ -54,17 +61,30 @@ export class BookingController {
 
   @Delete(':bookingId')
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
-  @ApiOperation({ summary: 'Soft delete a booking record and associated payment' })
+  @ApiOperation({
+    summary: 'Soft delete a booking record and associated payment',
+  })
   softDelete(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
     return this.bookings.softDeleteBooking(params.bookingId, req.user.sub);
   }
 
   @Get('my')
+  @Roles(...ALL_AUTHENTICATED_ROLES)
   @ApiOperation({
     summary: 'List the current user bookings, optionally split by scope',
   })
   myBookings(@Query() query: MyBookingsQueryDto, @Req() req: AuthedRequest) {
     return this.bookings.myBookings(req.user.sub, query.scope);
+  }
+
+  @Get(':bookingId')
+  @Roles(...ALL_AUTHENTICATED_ROLES)
+  @ApiOperation({ summary: 'Get a booking with scoped access control' })
+  getBookingDetail(
+    @Param() params: BookingIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.bookings.getBookingDetail(params.bookingId, req.user);
   }
 
   @Post(':bookingId/cancel')
@@ -89,6 +109,7 @@ export class BookingController {
   }
 
   @Get(':bookingId/invoice')
+  @Roles(...ALL_AUTHENTICATED_ROLES)
   @Throttle({ default: { ttl: 60_000, limit: 60 } })
   @ApiOperation({ summary: 'Download the booking invoice as PDF' })
   async invoice(
@@ -107,7 +128,9 @@ export class BookingController {
 
   @Post('holds')
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @ApiOperation({ summary: 'Place a 15-minute temporary hold on a room during checkout' })
+  @ApiOperation({
+    summary: 'Place a 15-minute temporary hold on a room during checkout',
+  })
   createHold(@Body() dto: CreateRoomHoldDto, @Req() req: AuthedRequest) {
     return this.bookings.createHold(dto, req.user.sub);
   }
@@ -121,7 +144,9 @@ export class BookingController {
 
   @Post(':bookingId/stay-requests')
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
-  @ApiOperation({ summary: 'Request early check-in or late check-out for a booking' })
+  @ApiOperation({
+    summary: 'Request early check-in or late check-out for a booking',
+  })
   createStayRequest(
     @Param() params: BookingIdParamsDto,
     @Body() dto: CreateStayRequestDto,
@@ -131,25 +156,38 @@ export class BookingController {
   }
 
   @Get(':bookingId/stay-requests')
+  @Roles(...ALL_AUTHENTICATED_ROLES)
   @ApiOperation({ summary: 'Get stay requests for a booking' })
-  getStayRequests(@Param() params: BookingIdParamsDto, @Req() req: AuthedRequest) {
-    return this.bookings.getStayRequests(params.bookingId, req.user.sub);
+  getStayRequests(
+    @Param() params: BookingIdParamsDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.bookings.getStayRequests(params.bookingId, req.user);
   }
 
   @Post(':bookingId/modify-quote')
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @ApiOperation({ summary: 'Preview price difference and refund for modifying a confirmed booking' })
+  @ApiOperation({
+    summary:
+      'Preview price difference and refund for modifying a confirmed booking',
+  })
   modifyBookingQuote(
     @Param() params: BookingIdParamsDto,
     @Body() dto: ModifyBookingDto,
     @Req() req: AuthedRequest,
   ) {
-    return this.bookings.modifyBookingQuote(params.bookingId, dto, req.user.sub);
+    return this.bookings.modifyBookingQuote(
+      params.bookingId,
+      dto,
+      req.user.sub,
+    );
   }
 
   @Post(':bookingId/modify')
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
-  @ApiOperation({ summary: 'Modify stay dates or rooms of a confirmed booking' })
+  @ApiOperation({
+    summary: 'Modify stay dates or rooms of a confirmed booking',
+  })
   modifyBooking(
     @Param() params: BookingIdParamsDto,
     @Body() dto: ModifyBookingDto,
@@ -159,6 +197,7 @@ export class BookingController {
   }
 
   @Get(':bookingId/status-history')
+  @Roles(...ALL_AUTHENTICATED_ROLES)
   @ApiOperation({ summary: 'Get booking status history' })
   getStatusHistory(
     @Param() params: BookingIdParamsDto,
@@ -168,20 +207,22 @@ export class BookingController {
   }
 
   @Get(':bookingId/modifications')
+  @Roles(...ALL_AUTHENTICATED_ROLES)
   @ApiOperation({ summary: 'Get booking modification history' })
   getModifications(
     @Param() params: BookingIdParamsDto,
     @Req() req: AuthedRequest,
   ) {
-    return this.bookings.getModifications(params.bookingId, req.user.sub);
+    return this.bookings.getModifications(params.bookingId, req.user);
   }
 
   @Get(':bookingId/relocations')
+  @Roles(...ALL_AUTHENTICATED_ROLES)
   @ApiOperation({ summary: 'Get booking room relocation history' })
   getRelocations(
     @Param() params: BookingIdParamsDto,
     @Req() req: AuthedRequest,
   ) {
-    return this.bookings.getRelocations(params.bookingId, req.user.sub);
+    return this.bookings.getRelocations(params.bookingId, req.user);
   }
 }

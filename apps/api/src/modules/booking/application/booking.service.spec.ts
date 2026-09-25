@@ -8,6 +8,7 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
   let coupons: any;
   let invoices: any;
   let audit: any;
+  let scope: any;
 
   beforeEach(() => {
     db = {
@@ -43,8 +44,9 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
     coupons = {};
     invoices = {};
     audit = { record: jest.fn().mockResolvedValue({}) };
+    scope = { assertManagerOwnsHotel: jest.fn().mockResolvedValue(undefined) };
 
-    service = new BookingService(db, emitter, coupons, invoices, audit);
+    service = new BookingService(db, emitter, coupons, invoices, audit, scope);
   });
 
   describe('getModifications', () => {
@@ -120,7 +122,9 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
   describe('cancelBooking', () => {
     beforeEach(() => {
       db.$transaction = jest.fn((cb) => cb(db));
-      db.roomAvailability = { deleteMany: jest.fn().mockResolvedValue({ count: 2 }) };
+      db.roomAvailability = {
+        deleteMany: jest.fn().mockResolvedValue({ count: 2 }),
+      };
       db.payment = { update: jest.fn().mockResolvedValue({}) };
       db.bookingStatusHistory = { create: jest.fn().mockResolvedValue({}) };
     });
@@ -133,9 +137,9 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
         details: [],
       });
 
-      await expect(service.cancelBooking('booking-1', 'user-1')).rejects.toThrow(
-        'Booking in "CANCELLED" state cannot be cancelled',
-      );
+      await expect(
+        service.cancelBooking('booking-1', 'user-1'),
+      ).rejects.toThrow('Booking in "CANCELLED" state cannot be cancelled');
     });
 
     it('throws ForbiddenException if non-owner attempts cancellation', async () => {
@@ -146,14 +150,16 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
         details: [],
       });
 
-      await expect(service.cancelBooking('booking-1', 'user-1')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.cancelBooking('booking-1', 'user-1'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('grants 100% refund when cancelled >48h before check-in and releases rooms', async () => {
       const futureCheckIn = new Date(Date.now() + 72 * 3600 * 1000); // 72 hours away
-      const futureCheckOut = new Date(futureCheckIn.getTime() + 48 * 3600 * 1000);
+      const futureCheckOut = new Date(
+        futureCheckIn.getTime() + 48 * 3600 * 1000,
+      );
       db.booking.findUnique.mockResolvedValue({
         id: 'booking-1',
         userId: 'user-1',
@@ -205,7 +211,9 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
 
     it('grants 50% refund when cancelled between 24h and 48h before check-in', async () => {
       const futureCheckIn = new Date(Date.now() + 30 * 3600 * 1000); // 30 hours away
-      const futureCheckOut = new Date(futureCheckIn.getTime() + 24 * 3600 * 1000);
+      const futureCheckOut = new Date(
+        futureCheckIn.getTime() + 24 * 3600 * 1000,
+      );
       db.booking.findUnique.mockResolvedValue({
         id: 'booking-2',
         userId: 'user-1',
@@ -229,7 +237,9 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
 
     it('grants 0% refund when cancelled less than 24h before check-in', async () => {
       const futureCheckIn = new Date(Date.now() + 10 * 3600 * 1000); // 10 hours away
-      const futureCheckOut = new Date(futureCheckIn.getTime() + 24 * 3600 * 1000);
+      const futureCheckOut = new Date(
+        futureCheckIn.getTime() + 24 * 3600 * 1000,
+      );
       db.booking.findUnique.mockResolvedValue({
         id: 'booking-3',
         userId: 'user-1',
@@ -255,7 +265,9 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
   describe('createBooking - Room Snapshot', () => {
     it('creates booking with roomSnapshot in booking details', async () => {
       const futureCheckIn = new Date(Date.now() + 10 * 24 * 3600 * 1000);
-      const futureCheckOut = new Date(futureCheckIn.getTime() + 2 * 24 * 3600 * 1000);
+      const futureCheckOut = new Date(
+        futureCheckIn.getTime() + 2 * 24 * 3600 * 1000,
+      );
       const checkInStr = futureCheckIn.toISOString().slice(0, 10);
       const checkOutStr = futureCheckOut.toISOString().slice(0, 10);
 
@@ -368,7 +380,11 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
       };
       db.$transaction = jest.fn(async (cb) => cb(mockTx));
 
-      const res = await service.softDeleteBooking('booking-del-1', 'user-1', 'User requested delete');
+      const res = await service.softDeleteBooking(
+        'booking-del-1',
+        'user-1',
+        'User requested delete',
+      );
 
       expect(mockTx.booking.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -413,4 +429,3 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
     });
   });
 });
-

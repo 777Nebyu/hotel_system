@@ -11,7 +11,12 @@ import { ManagerBookingService } from './application/manager-booking.service';
 
 @Module({
   imports: [CouponModule, InvoiceModule, NotificationModule],
-  controllers: [BookingController, ManagerBookingController],
-  providers: [BookingService, ManagerBookingService, ResourceScopeHelper, AuditService],
+  controllers: [ManagerBookingController, BookingController],
+  providers: [
+    BookingService,
+    ManagerBookingService,
+    ResourceScopeHelper,
+    AuditService,
+  ],
 })
 export class BookingModule {}

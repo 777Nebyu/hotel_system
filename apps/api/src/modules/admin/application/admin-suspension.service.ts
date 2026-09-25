@@ -32,6 +32,17 @@ export class AdminSuspensionService {
     });
   }
 
+  async listHistory() {
+    return this.db.suspensionRequest.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: {
+        requester: { select: { id: true, fullName: true, email: true } },
+        approver: { select: { id: true, fullName: true, email: true } },
+      },
+    });
+  }
+
   async request(dto: RequestSuspensionInput, requesterId: string) {
     const suspensionRequest = await this.db.suspensionRequest.create({
       data: {
@@ -41,18 +52,20 @@ export class AdminSuspensionService {
         reason: dto.reason,
       },
     });
-    await this.audit.record(requesterId, 'REQUEST_SUSPENSION', dto.targetType, dto.targetId, {
-      reason: dto.reason,
-      suspensionRequestId: suspensionRequest.id,
-    });
+    await this.audit.record(
+      requesterId,
+      'REQUEST_SUSPENSION',
+      dto.targetType,
+      dto.targetId,
+      {
+        reason: dto.reason,
+        suspensionRequestId: suspensionRequest.id,
+      },
+    );
     return suspensionRequest;
   }
 
-  async decide(
-    id: string,
-    dto: DecideSuspensionInput,
-    approverId: string,
-  ) {
+  async decide(id: string, dto: DecideSuspensionInput, approverId: string) {
     const pending = await this.db.suspensionRequest.findUnique({
       where: { id },
     });
@@ -77,13 +90,23 @@ export class AdminSuspensionService {
     });
 
     if (dto.decision === 'APPROVED') {
-      await this.applySuspension(pending.targetType, pending.targetId, approverId);
+      await this.applySuspension(
+        pending.targetType,
+        pending.targetId,
+        approverId,
+      );
     }
 
-    await this.audit.record(approverId, `SUSPENSION_${dto.decision}`, pending.targetType, pending.targetId, {
-      suspensionRequestId: id,
-      decision: dto.decision,
-    });
+    await this.audit.record(
+      approverId,
+      `SUSPENSION_${dto.decision}`,
+      pending.targetType,
+      pending.targetId,
+      {
+        suspensionRequestId: id,
+        decision: dto.decision,
+      },
+    );
 
     return updated;
   }
@@ -94,10 +117,14 @@ export class AdminSuspensionService {
     });
     if (!pending) throw new NotFoundException('Suspension request not found');
     if (pending.status !== SuspensionRequestStatus.PENDING_APPROVAL) {
-      throw new BadRequestException('Only PENDING_APPROVAL requests can be cancelled');
+      throw new BadRequestException(
+        'Only PENDING_APPROVAL requests can be cancelled',
+      );
     }
     if (pending.requesterId !== actorId) {
-      throw new ForbiddenException('Only the requester can cancel this request');
+      throw new ForbiddenException(
+        'Only the requester can cancel this request',
+      );
     }
     const updated = await this.db.suspensionRequest.update({
       where: { id },
@@ -106,13 +133,23 @@ export class AdminSuspensionService {
         decidedAt: new Date(),
       },
     });
-    await this.audit.record(actorId, 'CANCEL_SUSPENSION_REQUEST', pending.targetType, pending.targetId, {
-      suspensionRequestId: id,
-    });
+    await this.audit.record(
+      actorId,
+      'CANCEL_SUSPENSION_REQUEST',
+      pending.targetType,
+      pending.targetId,
+      {
+        suspensionRequestId: id,
+      },
+    );
     return updated;
   }
 
-  private async applySuspension(targetType: string, targetId: string, actorId: string) {
+  private async applySuspension(
+    targetType: string,
+    targetId: string,
+    actorId: string,
+  ) {
     if (targetType === 'USER') {
       await this.db.user.update({
         where: { id: targetId },

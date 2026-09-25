@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { colors, radius } from '../theme';
 
 type Props = {
@@ -27,6 +28,7 @@ function today() {
 }
 
 export default function DatePickerModal({ visible, onClose, onSelect, label, minDate, initialDate }: Props) {
+  const { t } = useTranslation();
   const now = today();
   const min = minDate ? parseDate(minDate) : now;
 
@@ -64,7 +66,7 @@ export default function DatePickerModal({ visible, onClose, onSelect, label, min
 
           <View style={styles.pickerRow}>
             <ScrollView style={styles.col} showsVerticalScrollIndicator={false}>
-              <Text style={styles.colLabel}>Year</Text>
+              <Text style={styles.colLabel}>{t('calendar.year')}</Text>
               {years.map((y) => (
                 <Pressable key={y} onPress={() => setYear(y)} style={[styles.optBtn, year === y && styles.optActive]}>
                   <Text style={[styles.optText, year === y && styles.optTextActive]}>{y}</Text>
@@ -73,7 +75,7 @@ export default function DatePickerModal({ visible, onClose, onSelect, label, min
             </ScrollView>
 
             <ScrollView style={styles.col} showsVerticalScrollIndicator={false}>
-              <Text style={styles.colLabel}>Month</Text>
+              <Text style={styles.colLabel}>{t('calendar.month')}</Text>
               {months.map((m) => (
                 <Pressable
                   key={m.index}
@@ -86,7 +88,7 @@ export default function DatePickerModal({ visible, onClose, onSelect, label, min
             </ScrollView>
 
             <ScrollView style={styles.col} showsVerticalScrollIndicator={false}>
-              <Text style={styles.colLabel}>Day</Text>
+              <Text style={styles.colLabel}>{t('calendar.day')}</Text>
               {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => {
                 const disabled = isPast(year, month, d);
                 return (
@@ -105,7 +107,7 @@ export default function DatePickerModal({ visible, onClose, onSelect, label, min
           <Text style={styles.preview}>{formatDate(year, month, day)}</Text>
 
           <Pressable onPress={handleConfirm} style={({ pressed }) => [styles.confirmBtn, pressed && { opacity: 0.85 }]}>
-            <Text style={styles.confirmText}>Select</Text>
+            <Text style={styles.confirmText}>{t('common.select')}</Text>
           </Pressable>
         </View>
       </View>

@@ -34,7 +34,8 @@ export class AdminReviewService {
   async flag(reviewId: string, reason: string | undefined, actorId: string) {
     const review = await this.db.review.findUnique({ where: { id: reviewId } });
     if (!review) throw new BadRequestException('Review not found');
-    if (review.flagged) throw new BadRequestException('Review is already flagged');
+    if (review.flagged)
+      throw new BadRequestException('Review is already flagged');
 
     const updated = await this.db.review.update({
       where: { id: reviewId },
@@ -65,13 +66,14 @@ export class AdminReviewService {
     return updated;
   }
 
-  async remove(reviewId: string, actorId: string) {
+  async remove(reviewId: string, actorId: string, reason: string) {
     const review = await this.db.review.findUniqueOrThrow({
       where: { id: reviewId },
     });
     await this.db.review.delete({ where: { id: reviewId } });
     await this.audit.record(actorId, 'DELETE', 'Review', reviewId, {
       rating: review.rating,
+      reason,
     });
     return { ok: true };
   }

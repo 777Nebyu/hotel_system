@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Pressable,
   RefreshControl,
@@ -40,24 +41,25 @@ type Nav = CompositeNavigationProp<
 
 const FALLBACK = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&h=600&fit=crop&auto=format';
 
-function statusChip(status: string, dark: boolean): { bg: string; fg: string; label: string } {
+function statusChip(status: string, dark: boolean): { bg: string; fg: string; labelKey: string } {
   if (dark) {
     switch (status) {
-      case 'CONFIRMED': return { bg: '#052E16', fg: '#4ADE80', label: 'Confirmed' };
-      case 'PENDING': return { bg: '#422006', fg: '#FBBF24', label: 'Pending' };
-      case 'CHECKED_IN': return { bg: '#172554', fg: '#60A5FA', label: 'Checked in' };
-      default: return { bg: '#1F3448', fg: '#8FA1B3', label: status };
+      case 'CONFIRMED': return { bg: '#052E16', fg: '#4ADE80', labelKey: 'status.confirmed' };
+      case 'PENDING': return { bg: '#422006', fg: '#FBBF24', labelKey: 'status.pending' };
+      case 'CHECKED_IN': return { bg: '#172554', fg: '#60A5FA', labelKey: 'status.checked_in' };
+      default: return { bg: '#1F3448', fg: '#8FA1B3', labelKey: status };
     }
   }
   switch (status) {
-    case 'CONFIRMED': return { bg: '#DBEAFE', fg: '#0F2942', label: 'Confirmed' };
-    case 'PENDING': return { bg: '#FFF4D6', fg: '#B45309', label: 'Pending' };
-    case 'CHECKED_IN': return { bg: '#DBEAFE', fg: '#1D4ED8', label: 'Checked in' };
-    default: return { bg: '#E5E7EB', fg: '#475569', label: status };
+    case 'CONFIRMED': return { bg: '#DBEAFE', fg: '#0F2942', labelKey: 'status.confirmed' };
+    case 'PENDING': return { bg: '#FFF4D6', fg: '#B45309', labelKey: 'status.pending' };
+    case 'CHECKED_IN': return { bg: '#DBEAFE', fg: '#1D4ED8', labelKey: 'status.checked_in' };
+    default: return { bg: '#E5E7EB', fg: '#475569', labelKey: status };
   }
 }
 
 const UpcomingBanner = React.memo(function UpcomingBanner({ booking, onPress, dark }: { booking: Booking; onPress: () => void; dark: boolean }) {
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const chip = statusChip(booking.status, dark);
   const checkIn = new Date(booking.checkIn).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -75,10 +77,10 @@ const UpcomingBanner = React.memo(function UpcomingBanner({ booking, onPress, da
       <View style={styles.upcomingHeader}>
         <View style={[styles.upcomingChip, { backgroundColor: chip.bg }]}>
           <View style={[styles.upcomingDot, { backgroundColor: chip.fg }]} />
-          <Text style={[styles.upcomingChipText, { color: chip.fg }]}>{chip.label}</Text>
+          <Text style={[styles.upcomingChipText, { color: chip.fg }]}>{chip.labelKey.startsWith('status.') ? t(chip.labelKey) : chip.labelKey}</Text>
         </View>
         <View style={styles.upcomingManage}>
-          <Text style={[styles.upcomingManageText, { color: c.teal }]}>Details</Text>
+          <Text style={[styles.upcomingManageText, { color: c.teal }]}>{t('common.details')}</Text>
           <Ionicons name="chevron-forward" size={14} color={c.teal} />
         </View>
       </View>
@@ -91,7 +93,7 @@ const UpcomingBanner = React.memo(function UpcomingBanner({ booking, onPress, da
             <Ionicons name="calendar-outline" size={13} color={c.inkMuted} />
             <Text style={[styles.upcomingDates, { color: c.inkMuted }]}>{checkIn} – {checkOut}</Text>
           </View>
-          {booking.reference ? <Text style={[styles.upcomingRef, { color: c.inkSoft }]}>Ref: {booking.reference}</Text> : null}
+          {booking.reference ? <Text style={[styles.upcomingRef, { color: c.inkSoft }]}>{t('home.ref')} {booking.reference}</Text> : null}
         </View>
       </View>
     </Pressable>
@@ -99,13 +101,14 @@ const UpcomingBanner = React.memo(function UpcomingBanner({ booking, onPress, da
 });
 
 const HotelCard = React.memo(function HotelCard({ hotel, isFav, onPress, onToggleFav, dark }: { hotel: HotelSummary; isFav: boolean; onPress: () => void; onToggleFav: () => void; dark: boolean }) {
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const hotelImgHeight = width < 360 ? 170 : width < 390 ? 200 : 230;
   const stars = Math.min(5, Math.max(0, hotel.starRating || 4));
   const c = dark ? darkColors : colors;
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [styles.hotelCard, { backgroundColor: c.surface, borderColor: c.line }, pressed && { opacity: 0.97, transform: [{ scale: 0.995 }] }]}>
+    <Pressable onPress={onPress} accessibilityRole="link" style={({ pressed }) => [styles.hotelCard, { backgroundColor: c.surface, borderColor: c.line }, pressed && { opacity: 0.97, transform: [{ scale: 0.995 }] }]}>
       <View style={[styles.hotelImgWrap, { height: hotelImgHeight }]}>
         <Image source={{ uri: hotel.primaryImageUrl ?? FALLBACK }} style={styles.hotelImg} contentFit="cover" transition={220} placeholder={{ blurhash: 'LKO2?U42NwRn4jEYJMROM[~q?xRP' }} />
         <View style={[styles.starPill, { backgroundColor: dark ? 'rgba(15,23,42,0.55)' : 'rgba(15,23,42,0.45)' }]}>
@@ -143,7 +146,7 @@ const HotelCard = React.memo(function HotelCard({ hotel, isFav, onPress, onToggl
             <Text style={[styles.hotelPrice, { color: c.ink }]}>{hotel.minPricePerNight != null ? `ETB ${hotel.minPricePerNight}` : 'Check availability'}{hotel.minPricePerNight != null ? <Text style={[styles.perNight, { color: c.inkMuted }]}> /night</Text> : null}</Text>
           </View>
           <Pressable style={[styles.viewRoomsBtn, { backgroundColor: c.teal }]} onPress={onPress} accessibilityRole="button">
-            <Text style={styles.viewRoomsText}>View rooms</Text>
+            <Text style={styles.viewRoomsText}>{t('home.view_rooms')}</Text>
           </Pressable>
         </View>
       </View>
@@ -152,12 +155,13 @@ const HotelCard = React.memo(function HotelCard({ hotel, isFav, onPress, onToggl
 });
 
 function SectionHeader({ title, onSeeAll, textPri, textSec }: { title: string; onSeeAll?: () => void; textPri?: string; textSec?: string }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.sectionHeader}>
       <Text style={[styles.sectionTitle, { color: textPri ?? colors.ink }]}>{title}</Text>
       {onSeeAll && (
         <Pressable onPress={onSeeAll} hitSlop={8}>
-          <Text style={[styles.seeAll, { color: textSec ?? colors.inkMuted }]}>See all</Text>
+          <Text style={[styles.seeAll, { color: textSec ?? colors.inkMuted }]}>{t('common.see_all')}</Text>
         </Pressable>
       )}
     </View>
@@ -165,6 +169,7 @@ function SectionHeader({ title, onSeeAll, textPri, textSec }: { title: string; o
 }
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useTheme();
@@ -230,14 +235,14 @@ export default function HomeScreen() {
 
       {/* Booking Search Card (§6) */}
       <View style={[styles.heroCard, { backgroundColor: dark ? '#101C2D' : '#FFFFFF', borderColor: dark ? '#20304A' : '#E5E7EB' }]}>
-        <Text style={[styles.heroHeadline, { color: dark ? '#F8FAFC' : colors.ink }]}>Find your perfect stay</Text>
-        <Text style={[styles.heroSubheadline, { color: dark ? '#9DB1C9' : '#64748B' }]}>Book luxury rooms & executive suites with instant confirmation</Text>
+        <Text style={[styles.heroHeadline, { color: dark ? '#F8FAFC' : colors.ink }]}>{t('home.find_perfect')}</Text>
+        <Text style={[styles.heroSubheadline, { color: dark ? '#9DB1C9' : '#64748B' }]}>{t('home.book_luxury')}</Text>
 
         <Pressable onPress={goToSearch} style={({ pressed }) => [styles.searchPill, { backgroundColor: dark ? '#17263B' : '#F8FAFC', borderColor: dark ? '#24324A' : '#E2E8F0' }, pressed && { opacity: 0.9 }]}>
           <Ionicons name="location-outline" size={18} color={palette.teal} />
           <View style={styles.flex}>
-            <Text style={[styles.pillLabel, { color: dark ? '#9DB1C9' : '#64748B' }]}>Location / Hotel</Text>
-            <Text style={[styles.pillValue, { color: dark ? '#F8FAFC' : colors.ink }]}>Where are you going?</Text>
+            <Text style={[styles.pillLabel, { color: dark ? '#9DB1C9' : '#64748B' }]}>{t('home.location_hotel')}</Text>
+            <Text style={[styles.pillValue, { color: dark ? '#F8FAFC' : colors.ink }]}>{t('home.where_going')}</Text>
           </View>
         </Pressable>
 
@@ -245,15 +250,15 @@ export default function HomeScreen() {
           <Pressable onPress={goToSearch} style={[styles.searchHalfPill, { backgroundColor: dark ? '#17263B' : '#F8FAFC', borderColor: dark ? '#24324A' : '#E2E8F0' }]}>
             <Ionicons name="calendar-outline" size={16} color={palette.teal} />
             <View style={styles.flex}>
-              <Text style={[styles.pillLabel, { color: dark ? '#9DB1C9' : '#64748B' }]}>Dates</Text>
-              <Text style={[styles.pillValueSmall, { color: dark ? '#F8FAFC' : colors.ink }]}>Check-in — Check-out</Text>
+              <Text style={[styles.pillLabel, { color: dark ? '#9DB1C9' : '#64748B' }]}>{t('home.dates')}</Text>
+              <Text style={[styles.pillValueSmall, { color: dark ? '#F8FAFC' : colors.ink }]}>{t('home.check_in_out')}</Text>
             </View>
           </Pressable>
 
           <Pressable onPress={goToSearch} style={[styles.searchHalfPill, { backgroundColor: dark ? '#17263B' : '#F8FAFC', borderColor: dark ? '#24324A' : '#E2E8F0' }]}>
             <Ionicons name="people-outline" size={16} color={palette.teal} />
             <View style={styles.flex}>
-              <Text style={[styles.pillLabel, { color: dark ? '#9DB1C9' : '#64748B' }]}>Guests & Rooms</Text>
+              <Text style={[styles.pillLabel, { color: dark ? '#9DB1C9' : '#64748B' }]}>{t('home.guests_rooms')}</Text>
               <Text style={[styles.pillValueSmall, { color: dark ? '#F8FAFC' : colors.ink }]}>2 Guests · 1 Room</Text>
             </View>
           </Pressable>
@@ -267,22 +272,22 @@ export default function HomeScreen() {
             pressed && { opacity: 0.9, transform: [{ scale: 0.99 }] },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Check availability"
+          accessibilityLabel={t('home.check_availability')}
         >
-          <Text style={styles.checkAvailBtnText}>CHECK AVAILABILITY</Text>
+          <Text style={styles.checkAvailBtnText}>{t('home.check_availability')}</Text>
           <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
         </Pressable>
       </View>
 
       {nextTrip && (
         <View style={styles.section}>
-          <SectionHeader title="Upcoming trip" textPri={dark ? '#F8FAFC' : colors.ink} textSec={dark ? '#B6C3D9' : colors.inkMuted} />
+          <SectionHeader title={t('home.upcoming_trip')} textPri={dark ? '#F8FAFC' : colors.ink} textSec={dark ? '#B6C3D9' : colors.inkMuted} />
           <UpcomingBanner booking={nextTrip} onPress={() => goToBooking(nextTrip.id)} dark={dark} />
         </View>
       )}
 
       <View style={styles.section}>
-        <SectionHeader title={nextTrip ? 'Recommended for you' : 'Featured hotels'} onSeeAll={goToSearch} textPri={dark ? '#F8FAFC' : colors.ink} textSec={dark ? '#B6C3D9' : colors.inkMuted} />
+        <SectionHeader title={nextTrip ? t('home.recommended') : t('home.featured')} onSeeAll={goToSearch} textPri={dark ? '#F8FAFC' : colors.ink} textSec={dark ? '#B6C3D9' : colors.inkMuted} />
         {isLoading ? (
           <>
             <SkeletonCard />
@@ -293,8 +298,8 @@ export default function HomeScreen() {
         ) : hotels.length === 0 ? (
           <View style={[styles.emptyState, { backgroundColor: dark ? '#101C2D' : '#FFFFFF', borderColor: dark ? '#20304A' : '#E2E8F0' }]}>
             <Ionicons name="bed-outline" size={38} color={dark ? '#9DB1C9' : '#64748B'} />
-            <Text style={[styles.emptyTitle, { color: dark ? '#F8FAFC' : colors.ink }]}>No hotels yet</Text>
-            <Text style={[styles.emptySubtitle, { color: dark ? '#B6C3D9' : '#64748B' }]}>Check back soon for premium stays.</Text>
+            <Text style={[styles.emptyTitle, { color: dark ? '#F8FAFC' : colors.ink }]}>{t('home.no_hotels')}</Text>
+            <Text style={[styles.emptySubtitle, { color: dark ? '#B6C3D9' : '#64748B' }]}>{t('home.check_back')}</Text>
           </View>
         ) : (
           hotels.slice(0, 3).map((hotel, i) => (
@@ -309,8 +314,8 @@ export default function HomeScreen() {
         <Pressable onPress={() => navigation.navigate('Auth', { initialMode: 'login' })} style={[styles.signInNudge, { backgroundColor: dark ? '#101C2D' : '#FFFFFF', borderColor: dark ? '#20304A' : '#E2E8F0' }]}>
           <Ionicons name="person-circle-outline" size={28} color={palette.teal} />
           <View style={styles.nudgeText}>
-            <Text style={[styles.nudgeTitle, { color: dark ? '#F8FAFC' : colors.ink }]}>Sign in for tailored stays</Text>
-            <Text style={[styles.nudgeSub, { color: dark ? '#B6C3D9' : '#64748B' }]}>Save favorites and track your bookings.</Text>
+            <Text style={[styles.nudgeTitle, { color: dark ? '#F8FAFC' : colors.ink }]}>{t('home.sign_in_tailored')}</Text>
+            <Text style={[styles.nudgeSub, { color: dark ? '#B6C3D9' : '#64748B' }]}>{t('home.save_favorites')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={dark ? darkColors.inkMuted : colors.inkMuted} />
         </Pressable>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -22,18 +23,19 @@ type ResultConfig = {
 };
 
 const METHOD_LABELS: Record<string, string> = {
-  TELEBIRR: 'Telebirr',
-  CBE_BIRR: 'CBE Birr',
-  CREDIT_CARD: 'Credit Card',
-  PAYPAL: 'PayPal',
-  CASH: 'Cash',
-  AWASH_BANK: 'Awash Bank',
-  ENAT_BANK: 'Enat Bank',
-  AMHARA_BANK: 'Amhara Bank',
-  COOP_BANK: 'COOP Bank',
+  TELEBIRR: 'payment.telebirr',
+  CBE_BIRR: 'payment.cbe_birr',
+  CREDIT_CARD: 'paymentMethods.credit_card',
+  PAYPAL: 'payment.paypal',
+  CASH: 'payment.cash',
+  AWASH_BANK: 'paymentMethods.awash_bank',
+  ENAT_BANK: 'paymentMethods.enat_bank',
+  AMHARA_BANK: 'paymentMethods.amhara_bank',
+  COOP_BANK: 'paymentMethods.coop_bank',
 };
 
 export default function PaymentResultScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
@@ -49,43 +51,54 @@ export default function PaymentResultScreen() {
           icon: 'checkmark-circle',
           iconColor: '#10B981',
           iconBg: '#10B98120',
-          title: 'Payment Successful',
-          subtitle: 'Your payment has been processed successfully.',
+          title: t('payment.successful'),
+          subtitle: t('payment.successful_msg'),
         };
       case 'FAILED':
         return {
           icon: 'close-circle',
           iconColor: '#EF4444',
           iconBg: '#EF444420',
-          title: 'Payment Failed',
-          subtitle: 'Your payment could not be processed.',
+          title: t('payment.payment_failed'),
+          subtitle: t('payment.failed_msg'),
         };
       case 'PROCESSING':
         return {
           icon: 'time',
           iconColor: '#F59E0B',
           iconBg: '#F59E0B20',
-          title: 'Payment Processing',
-          subtitle: 'Your payment is being processed by the provider.',
+          title: t('payment.pending'),
+          subtitle: t('payment.successful_msg'),
         };
       case 'CANCELLED':
         return {
           icon: 'ban',
           iconColor: '#6B7280',
           iconBg: '#6B728020',
-          title: 'Payment Cancelled',
-          subtitle: 'The payment was cancelled.',
+          title: t('payment.cancelled'),
+          subtitle: t('payment.failed_msg'),
         };
       default:
         return {
           icon: 'alert-circle',
           iconColor: '#EF4444',
           iconBg: '#EF444420',
-          title: 'Payment Status Unknown',
-          subtitle: 'Please check your booking details.',
+          title: t('payment.payment_failed'),
+          subtitle: t('bookingDetail.bookingNotFound'),
         };
     }
   })();
+
+  const methodLabel = (m: string) => {
+    switch (m) {
+      case 'TELEBIRR': return t('payment.telebirr');
+      case 'CBE_BIRR': return t('payment.cbe_birr');
+      case 'CREDIT_CARD': return t('payment.card');
+      case 'PAYPAL': return t('payment.paypal');
+      case 'CASH': return t('payment.cash');
+      default: return METHOD_LABELS[m] ? t(METHOD_LABELS[m]) : m;
+    }
+  };
 
   const handleViewBooking = () => {
     hapticSuccess();
@@ -106,7 +119,7 @@ export default function PaymentResultScreen() {
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={[styles.backBtn, { backgroundColor: c.paperDeep }]}>
           <Ionicons name="arrow-back" size={20} color={c.teal} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: c.ink }]}>Payment</Text>
+        <Text style={[styles.headerTitle, { color: c.ink }]}>{t('payment.payment')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -122,19 +135,19 @@ export default function PaymentResultScreen() {
         {/* Payment Details */}
         <View style={[styles.detailsCard, { backgroundColor: c.surface, borderColor: c.line }]}>
           <View style={[styles.detailRow, { borderBottomColor: c.line }]}>
-            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>Amount</Text>
+            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>{t('common.amount')}</Text>
             <Text style={[styles.detailValue, { color: c.ink }]}>{currency} {Number(amount).toLocaleString()}</Text>
           </View>
           <View style={[styles.detailRow, { borderBottomColor: c.line }]}>
-            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>Method</Text>
-            <Text style={[styles.detailValue, { color: c.ink }]}>{METHOD_LABELS[method] || method}</Text>
+            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>{t('common.method')}</Text>
+            <Text style={[styles.detailValue, { color: c.ink }]}>{methodLabel(method)}</Text>
           </View>
           <View style={[styles.detailRow, { borderBottomColor: c.line }]}>
-            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>Hotel</Text>
+            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>{t('common.hotel')}</Text>
             <Text style={[styles.detailValue, { color: c.ink }]} numberOfLines={1}>{hotelName}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>Reference</Text>
+            <Text style={[styles.detailLabel, { color: c.inkMuted }]}>{t('common.reference')}</Text>
             <Text style={[styles.detailValue, { color: c.ink, fontFamily: 'Menlo' }]}>{reference}</Text>
           </View>
         </View>
@@ -142,18 +155,18 @@ export default function PaymentResultScreen() {
         {/* Actions */}
         <View style={styles.actions}>
           {status === 'SUCCEEDED' && (
-            <Button title="View Booking" variant="primary" onPress={handleViewBooking} fullWidth />
+            <Button title={t('buttons.view_booking')} variant="primary" onPress={handleViewBooking} fullWidth />
           )}
           {status === 'PROCESSING' && (
-            <Button title="View Booking" variant="primary" onPress={handleViewBooking} fullWidth />
+            <Button title={t('buttons.view_booking')} variant="primary" onPress={handleViewBooking} fullWidth />
           )}
           {(status === 'FAILED' || status === 'CANCELLED' || status === 'UNKNOWN') && (
             <>
-              <Button title="Try Again" variant="primary" onPress={handleTryAgain} fullWidth />
-              <Button title="Change Payment Method" variant="secondary" onPress={handleTryAgain} fullWidth />
+              <Button title={t('buttons.try_again')} variant="primary" onPress={handleTryAgain} fullWidth />
+              <Button title={t('buttons.change_payment_method')} variant="secondary" onPress={handleTryAgain} fullWidth />
             </>
           )}
-          <Button title="Back to Home" variant="ghost" onPress={handleGoHome} fullWidth />
+          <Button title={t('buttons.back_to_home')} variant="ghost" onPress={handleGoHome} fullWidth />
         </View>
 
       </View>

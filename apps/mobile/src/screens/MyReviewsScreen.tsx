@@ -17,6 +17,7 @@ import { useAppSelector } from '../store/hooks';
 import { useMyReviews } from '../hooks/useQueries';
 import { request } from '../api';
 import { Button, EmptyState, ErrorBox, Stars } from '../components/Shared';
+import { classifyError } from '../errors';
 import { SkeletonList } from '../components/Skeleton';
 import { useTheme } from '../hooks/useTheme';
 import { hapticMedium } from '../hooks/useHaptics';
@@ -43,13 +44,13 @@ export default function MyReviewsScreen() {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleDelete = (reviewId: string, hotelName: string) => {
+  const handleDelete = (reviewId: string) => {
     hapticMedium();
     Alert.alert(
-      'Delete Review',
-      `Remove your review for ${hotelName}? This cannot be undone.`,
+      t('bookingDetail.deleteReviewTitle'),
+      t('bookingDetail.deleteReviewMsg'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
@@ -59,7 +60,7 @@ export default function MyReviewsScreen() {
               await request(`/reviews/${reviewId}`, { method: 'DELETE', token });
               await refetch();
             } catch (err) {
-              Alert.alert('Error', err instanceof Error ? err.message : 'Could not delete review.');
+              Alert.alert(t('common.error'), classifyError(err).title);
             } finally {
               setDeletingId(null);
             }
@@ -87,7 +88,7 @@ export default function MyReviewsScreen() {
         </View>
       </View>
 
-      {error && <ErrorBox message={error.message} onRetry={() => refetch()} />}
+      {error && <ErrorBox message={classifyError(error).title} onRetry={() => refetch()} />}
 
       <FlashList
         data={reviews}
@@ -125,7 +126,7 @@ export default function MyReviewsScreen() {
                 existingReview: { id: item.id, rating: item.rating, comment: item.comment },
               })
             }
-            onDelete={() => handleDelete(item.id, item.hotel?.name ?? 'this hotel')}
+            onDelete={() => handleDelete(item.id)}
             isDeleting={deletingId === item.id}
           />
         )}
@@ -147,6 +148,7 @@ function MyReviewCard({
   onDelete: () => void;
   isDeleting: boolean;
 }) {
+  const { t } = useTranslation();
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString(undefined, {
       month: 'short',
@@ -154,7 +156,7 @@ function MyReviewCard({
       year: 'numeric',
     });
 
-  const hotelTitle = review.hotel?.name ?? 'Hotel';
+  const hotelTitle = review.hotel?.name ?? t('common.hotel');
   const rc = ratingColor(c, review.rating);
 
   return (
@@ -194,14 +196,14 @@ function MyReviewCard({
 
       <View style={cardStyles.actions}>
         <Button
-          title="Edit Review"
+          title={t('buttons.edit_review')}
           variant="secondary"
           size="sm"
           onPress={onEdit}
           accessibilityLabel={`Edit review for ${hotelTitle}`}
         />
         <Button
-          title={isDeleting ? 'Deleting\u2026' : 'Delete'}
+          title={isDeleting ? t('bookingDetail.deleting') : 'Delete'}
           variant="danger"
           size="sm"
           onPress={onDelete}

@@ -17,6 +17,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
@@ -134,8 +135,9 @@ export default function BookingReviewCard({
   leadGuestPhone,
   cancellationHours = 48,
 }: BookingReviewCardProps) {
+  const { t } = useTranslation();
   const { colorScheme } = useTheme();
-  const t = colorScheme === 'dark' ? DARK : LIGHT;
+  const pal = colorScheme === 'dark' ? DARK : LIGHT;
 
   const isCash = paymentMethod === 'CASH_AT_HOTEL';
 
@@ -144,25 +146,25 @@ export default function BookingReviewCard({
     const hoursUntilCheckIn =
       (new Date(checkIn).getTime() - Date.now()) / (1000 * 60 * 60);
     if (hoursUntilCheckIn >= cancellationHours) {
-      return { label: 'Free cancellation', color: t.primary, bg: t.successBg };
+      return { label: t('booking.free_cancellation'), color: pal.primary, bg: pal.successBg };
     }
     if (hoursUntilCheckIn >= cancellationHours / 2) {
       return {
-        label: '50% refund if cancelled',
-        color: t.gold,
+        label: t('bookingReview.partial_50'),
+        color: pal.gold,
         bg: 'transparent',
       };
     }
-    return { label: 'Non-refundable', color: '#EF4444', bg: 'transparent' };
-  }, [checkIn, cancellationHours, t]);
+    return { label: t('bookingReview.non_refundable'), color: '#EF4444', bg: 'transparent' };
+  }, [checkIn, cancellationHours, pal, t]);
 
   return (
-    <View style={[styles.container, { backgroundColor: t.bg }]}>
+    <View style={[styles.container, { backgroundColor: pal.bg }]}>
       {/* ── Reservation Card ─────────────────────────────────────── */}
       <View
         style={[
           styles.card,
-          { backgroundColor: t.card, borderColor: t.cardBorder },
+          { backgroundColor: pal.card, borderColor: pal.cardBorder },
           SHADOW,
         ]}
       >
@@ -178,8 +180,8 @@ export default function BookingReviewCard({
           />
           <View style={styles.imageOverlay} />
           <View style={styles.imageBadge}>
-            <Ionicons name="star" size={11} color={t.gold} />
-            <Text style={[styles.imageBadgeText, { color: t.gold }]}>
+            <Ionicons name="star" size={11} color={pal.gold} />
+            <Text style={[styles.imageBadgeText, { color: pal.gold }]}>
               Premium
             </Text>
           </View>
@@ -187,24 +189,24 @@ export default function BookingReviewCard({
 
         {/* Hotel & Room Info */}
         <View style={styles.cardBody}>
-          <Text style={[styles.roomType, { color: t.text }]} numberOfLines={1}>
+          <Text style={[styles.roomType, { color: pal.text }]} numberOfLines={1}>
             {roomType ?? roomName ?? 'Selected Room'}
           </Text>
-          <Text style={[styles.hotelName, { color: t.secondary }]} numberOfLines={1}>
-            {hotelName ?? 'Hotel'}
+          <Text style={[styles.hotelName, { color: pal.secondary }]} numberOfLines={1}>
+            {hotelName ?? t('common.hotel')}
           </Text>
           <View style={styles.infoRow}>
             {location && (
               <View style={styles.infoChip}>
-                <Ionicons name="location-outline" size={12} color={t.secondary} />
-                <Text style={[styles.infoChipText, { color: t.secondary }]}>
+                <Ionicons name="location-outline" size={12} color={pal.secondary} />
+                <Text style={[styles.infoChipText, { color: pal.secondary }]}>
                   {location}
                 </Text>
               </View>
             )}
             <View style={styles.infoChip}>
-              <Ionicons name="people-outline" size={12} color={t.secondary} />
-              <Text style={[styles.infoChipText, { color: t.secondary }]}>
+              <Ionicons name="people-outline" size={12} color={pal.secondary} />
+              <Text style={[styles.infoChipText, { color: pal.secondary }]}>
                 {guests} guest{guests !== 1 ? 's' : ''}
               </Text>
             </View>
@@ -216,90 +218,90 @@ export default function BookingReviewCard({
       <View
         style={[
           styles.card,
-          { backgroundColor: t.card, borderColor: t.cardBorder },
+          { backgroundColor: pal.card, borderColor: pal.cardBorder },
           SHADOW_SM,
         ]}
       >
         <View style={styles.cardHeader}>
-          <Ionicons name="calendar-outline" size={16} color={t.primary} />
-          <Text style={[styles.cardTitle, { color: t.text }]}>Stay Details</Text>
+          <Ionicons name="calendar-outline" size={16} color={pal.primary} />
+          <Text style={[styles.cardTitle, { color: pal.text }]}>{t('bookingReview.stay_details')}</Text>
         </View>
 
-        <View style={[styles.divider, { backgroundColor: t.divider }]} />
+        <View style={[styles.divider, { backgroundColor: pal.divider }]} />
 
         {/* Check-in / Check-out */}
         <View style={styles.dateRow}>
           <View style={styles.dateBlock}>
-            <Text style={[styles.dateLabel, { color: t.secondary }]}>CHECK-IN</Text>
-            <Text style={[styles.dateValue, { color: t.text }]}>
+            <Text style={[styles.dateLabel, { color: pal.secondary }]}>{t('common.check_in')}</Text>
+            <Text style={[styles.dateValue, { color: pal.text }]}>
               {fmtDate(checkIn)}
             </Text>
           </View>
           <View style={styles.dateArrow}>
-            <Ionicons name="arrow-forward" size={16} color={t.primary} />
+            <Ionicons name="arrow-forward" size={16} color={pal.primary} />
           </View>
           <View style={[styles.dateBlock, styles.dateBlockEnd]}>
-            <Text style={[styles.dateLabel, { color: t.secondary }]}>CHECK-OUT</Text>
-            <Text style={[styles.dateValue, { color: t.text }]}>
+            <Text style={[styles.dateLabel, { color: pal.secondary }]}>{t('common.check_out')}</Text>
+            <Text style={[styles.dateValue, { color: pal.text }]}>
               {fmtDate(checkOut)}
             </Text>
           </View>
         </View>
 
-        <View style={[styles.divider, { backgroundColor: t.divider }]} />
+        <View style={[styles.divider, { backgroundColor: pal.divider }]} />
 
         {/* Nights Badge */}
         <View style={styles.nightsRow}>
-          <View style={[styles.nightsBadge, { backgroundColor: t.primary + '18' }]}>
-            <Ionicons name="moon-outline" size={14} color={t.primary} />
-            <Text style={[styles.nightsText, { color: t.primary }]}>
+          <View style={[styles.nightsBadge, { backgroundColor: pal.primary + '18' }]}>
+            <Ionicons name="moon-outline" size={14} color={pal.primary} />
+            <Text style={[styles.nightsText, { color: pal.primary }]}>
               {nights} night{nights !== 1 ? 's' : ''}
             </Text>
           </View>
         </View>
 
-        <View style={[styles.divider, { backgroundColor: t.divider }]} />
+        <View style={[styles.divider, { backgroundColor: pal.divider }]} />
 
         {/* Price Breakdown */}
         <View style={styles.priceSection}>
           <View style={styles.priceRow}>
-            <Text style={[styles.priceLabel, { color: t.secondary }]}>
+            <Text style={[styles.priceLabel, { color: pal.secondary }]}>
               Room ({nights} night{nights !== 1 ? 's' : ''})
             </Text>
-            <Text style={[styles.priceValue, { color: t.text }]}>
+            <Text style={[styles.priceValue, { color: pal.text }]}>
               {fmtCurrency(subtotal)}
             </Text>
           </View>
           {discount != null && discount > 0 && (
             <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: t.primary }]}>Discount</Text>
-              <Text style={[styles.priceValue, { color: t.primary }]}>
+              <Text style={[styles.priceLabel, { color: pal.primary }]}>{t('bookingReview.discount')}</Text>
+              <Text style={[styles.priceValue, { color: pal.primary }]}>
                 −{fmtCurrency(discount)}
               </Text>
             </View>
           )}
           {taxAmount != null && taxAmount > 0 && (
             <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: t.secondary }]}>
+              <Text style={[styles.priceLabel, { color: pal.secondary }]}>
                 Tax & fees
               </Text>
-              <Text style={[styles.priceValue, { color: t.text }]}>
+              <Text style={[styles.priceValue, { color: pal.text }]}>
                 {fmtCurrency(taxAmount)}
               </Text>
             </View>
           )}
           {promoCode && (
             <View style={styles.promoRow}>
-              <Ionicons name="pricetag-outline" size={13} color={t.primary} />
-              <Text style={[styles.promoText, { color: t.primary }]}>
+              <Ionicons name="pricetag-outline" size={13} color={pal.primary} />
+              <Text style={[styles.promoText, { color: pal.primary }]}>
                 Promo: {promoCode}
               </Text>
             </View>
           )}
 
-          <View style={[styles.totalRow, { borderTopColor: t.divider }]}>
-            <Text style={[styles.totalLabel, { color: t.text }]}>Total</Text>
-            <Text style={[styles.totalValue, { color: t.primary }]}>
+          <View style={[styles.totalRow, { borderTopColor: pal.divider }]}>
+            <Text style={[styles.totalLabel, { color: pal.text }]}>{t('common.total')}</Text>
+            <Text style={[styles.totalValue, { color: pal.primary }]}>
               {fmtCurrency(total)}
             </Text>
           </View>
@@ -310,31 +312,31 @@ export default function BookingReviewCard({
       <View
         style={[
           styles.card,
-          { backgroundColor: t.card, borderColor: t.cardBorder },
+          { backgroundColor: pal.card, borderColor: pal.cardBorder },
           SHADOW_SM,
         ]}
       >
         <View style={styles.cardHeader}>
-          <Ionicons name="person-outline" size={16} color={t.primary} />
-          <Text style={[styles.cardTitle, { color: t.text }]}>
+          <Ionicons name="person-outline" size={16} color={pal.primary} />
+          <Text style={[styles.cardTitle, { color: pal.text }]}>
             Guest Information
           </Text>
         </View>
 
-        <View style={[styles.divider, { backgroundColor: t.divider }]} />
+        <View style={[styles.divider, { backgroundColor: pal.divider }]} />
 
         <View style={styles.guestGrid}>
           <View style={styles.guestItem}>
-            <Text style={[styles.guestLabel, { color: t.secondary }]}>Name</Text>
-            <Text style={[styles.guestValue, { color: t.text }]} numberOfLines={1}>
+            <Text style={[styles.guestLabel, { color: pal.secondary }]}>{t('common.name')}</Text>
+            <Text style={[styles.guestValue, { color: pal.text }]} numberOfLines={1}>
               {leadGuestName}
             </Text>
           </View>
           {leadGuestEmail ? (
             <View style={styles.guestItem}>
-              <Text style={[styles.guestLabel, { color: t.secondary }]}>Email</Text>
+              <Text style={[styles.guestLabel, { color: pal.secondary }]}>{t('common.email')}</Text>
               <Text
-                style={[styles.guestValue, { color: t.text }]}
+                style={[styles.guestValue, { color: pal.text }]}
                 numberOfLines={1}
               >
                 {leadGuestEmail}
@@ -343,9 +345,9 @@ export default function BookingReviewCard({
           ) : null}
           {leadGuestPhone ? (
             <View style={styles.guestItem}>
-              <Text style={[styles.guestLabel, { color: t.secondary }]}>Phone</Text>
+              <Text style={[styles.guestLabel, { color: pal.secondary }]}>{t('common.phone')}</Text>
               <Text
-                style={[styles.guestValue, { color: t.text }]}
+                style={[styles.guestValue, { color: pal.text }]}
                 numberOfLines={1}
               >
                 {leadGuestPhone}
@@ -353,8 +355,8 @@ export default function BookingReviewCard({
             </View>
           ) : null}
           <View style={styles.guestItem}>
-            <Text style={[styles.guestLabel, { color: t.secondary }]}>Guests</Text>
-            <Text style={[styles.guestValue, { color: t.text }]}>
+            <Text style={[styles.guestLabel, { color: pal.secondary }]}>{t('booking.guests')}</Text>
+            <Text style={[styles.guestValue, { color: pal.text }]}>
               {guests} guest{guests !== 1 ? 's' : ''}
             </Text>
           </View>
@@ -365,7 +367,7 @@ export default function BookingReviewCard({
       <View
         style={[
           styles.card,
-          { backgroundColor: t.card, borderColor: t.cardBorder },
+          { backgroundColor: pal.card, borderColor: pal.cardBorder },
           SHADOW_SM,
         ]}
       >
@@ -373,18 +375,18 @@ export default function BookingReviewCard({
           <Ionicons
             name={isCash ? 'cash-outline' : 'card-outline'}
             size={16}
-            color={t.primary}
+            color={pal.primary}
           />
-          <Text style={[styles.cardTitle, { color: t.text }]}>
+          <Text style={[styles.cardTitle, { color: pal.text }]}>
             Payment Summary
           </Text>
         </View>
 
-        <View style={[styles.divider, { backgroundColor: t.divider }]} />
+        <View style={[styles.divider, { backgroundColor: pal.divider }]} />
 
         <View style={styles.payRow}>
           <View style={styles.payMethod}>
-            <Text style={[styles.payMethodText, { color: t.text }]}>
+            <Text style={[styles.payMethodText, { color: pal.text }]}>
               {paymentMethod.replace(/_/g, ' ')}
             </Text>
           </View>
@@ -392,14 +394,14 @@ export default function BookingReviewCard({
             style={[
               styles.payBadge,
               {
-                backgroundColor: isCash ? t.gold + '20' : t.primary + '20',
+                backgroundColor: isCash ? pal.gold + '20' : pal.primary + '20',
               },
             ]}
           >
             <Text
               style={[
                 styles.payBadgeText,
-                { color: isCash ? t.gold : t.primary },
+                { color: isCash ? pal.gold : pal.primary },
               ]}
             >
               {isCash ? 'PAY AT HOTEL' : 'ONLINE'}
@@ -407,7 +409,7 @@ export default function BookingReviewCard({
           </View>
         </View>
         {isCash && (
-          <Text style={[styles.payNote, { color: t.secondary }]}>
+          <Text style={[styles.payNote, { color: pal.secondary }]}>
             Pay the full amount at hotel reception during check-in.
           </Text>
         )}
@@ -418,7 +420,7 @@ export default function BookingReviewCard({
         <View
           style={[
             styles.card,
-            { backgroundColor: t.card, borderColor: t.cardBorder },
+            { backgroundColor: pal.card, borderColor: pal.cardBorder },
             SHADOW_SM,
           ]}
         >
@@ -431,7 +433,7 @@ export default function BookingReviewCard({
             <Text style={[styles.cancelText, { color: refundInfo.color }]}>
               {refundInfo.label}
             </Text>
-            <Text style={[styles.cancelSub, { color: t.secondary }]}>
+            <Text style={[styles.cancelSub, { color: pal.secondary }]}>
               {cancellationHours}h before check-in
             </Text>
           </View>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { request } from '../api';
@@ -7,6 +8,7 @@ import { colors, font, radius, shadowCard } from '../theme';
 import { forgotPasswordSchema } from '../lib/schemas';
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
@@ -42,7 +44,7 @@ export default function ForgotPasswordScreen() {
       await request('/auth/forgot-password', { method: 'POST', body: { email: email.trim() } });
       setSent(true);
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Could not send reset link');
+      Alert.alert(t('forgotPassword.error'), err instanceof Error ? err.message : t('forgotPassword.could_not_send'));
     } finally { setLoading(false); }
   };
 
@@ -51,9 +53,9 @@ export default function ForgotPasswordScreen() {
       <View style={styles.container}>
         <View style={styles.centerCard}>
           <Text style={styles.doneIcon}>✉️</Text>
-          <Text style={styles.doneTitle}>Check your inbox</Text>
+          <Text style={styles.doneTitle}>{t('passwordReset.check_inbox')}</Text>
           <Text style={styles.doneSub}>We sent a password reset link to {email}</Text>
-          <Button title="Back to sign in" onPress={() => navigation.goBack()} />
+          <Button title={t('passwordReset.back_signin')} onPress={() => navigation.goBack()} />
         </View>
       </View>
     );
@@ -61,16 +63,16 @@ export default function ForgotPasswordScreen() {
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={() => navigation.goBack()}><Text style={styles.backText}>{'< Back to sign in'}</Text></Pressable>
+      <Pressable onPress={() => navigation.goBack()}><Text style={styles.backText}>{'< '}{t('passwordReset.back_signin')}</Text></Pressable>
       <View style={styles.brandBlock}>
         <Logo size={30} />
-        <Text style={styles.heading}>Reset your password</Text>
-        <Text style={styles.sub}>{`Enter the email you used to sign up. We'll send you a reset link.`}</Text>
+        <Text style={styles.heading}>{t('passwordReset.reset_title')}</Text>
+        <Text style={styles.sub}>{t('passwordReset.intro')}</Text>
       </View>
       <View style={[styles.card, shadowCard]}>
-        <TextInput value={email} onChangeText={(v) => { setEmail(v); setFieldErrors((p) => ({ ...p, email: undefined })); }} onBlur={() => validateField('email')} placeholder="Email address" placeholderTextColor={colors.inkMuted} style={[styles.input, fieldErrors.email && styles.inputError]} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
+        <TextInput value={email} onChangeText={(v) => { setEmail(v); setFieldErrors((p) => ({ ...p, email: undefined })); }} onBlur={() => validateField('email')} placeholder={t('passwordReset.email_placeholder')} placeholderTextColor={colors.inkMuted} style={[styles.input, fieldErrors.email && styles.inputError]} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
         {fieldErrors.email ? <Text style={styles.fieldError}>{fieldErrors.email}</Text> : null}
-        <Button title={loading ? 'Sending...' : 'Send reset link'} onPress={submit} disabled={loading} loading={loading} />
+        <Button title={loading ? t('passwordReset.sending') : t('passwordReset.send_reset')} onPress={submit} disabled={loading} loading={loading} />
       </View>
     </View>
   );

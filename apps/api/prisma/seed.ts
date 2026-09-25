@@ -100,7 +100,7 @@ async function main() {
     update: {},
     create: {
       email: 'customer@yayetech.com',
-      fullName: 'John Guest',
+      fullName: 'Kibru Guest',
       passwordHash: customerPassword,
       role: Role.CUSTOMER,
       emailVerifiedAt: new Date(),

@@ -5,12 +5,22 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { getConfig } from './_shared';
 
 export function BookingStatusBadge({
   status, size = 'md',
 }: { status: string; size?: 'sm' | 'md' | 'lg' }) {
+  const { t } = useTranslation();
   const c   = getConfig(status);
+  const label =
+    status === 'PENDING' ? t('status.pending') :
+    status === 'CONFIRMED' ? t('status.confirmed') :
+    status === 'CHECKED_IN' ? t('status.checked_in') :
+    status === 'CHECKED_OUT' ? t('status.checked_out') :
+    status === 'CANCELLED' ? t('status.cancelled') :
+    status === 'NO_SHOW' ? t('status.no_show') :
+    t('status.pending');
   const pad = size === 'sm' ? { px: 8, py: 3 } : size === 'lg' ? { px: 14, py: 7 } : { px: 10, py: 5 };
   const fs  = size === 'sm' ? 10 : size === 'lg' ? 14 : 12;
   const is  = size === 'sm' ? 11 : size === 'lg' ? 16 : 13;
@@ -21,10 +31,10 @@ export function BookingStatusBadge({
         { backgroundColor: c.bg, borderColor: c.border, paddingHorizontal: pad.px, paddingVertical: pad.py },
       ]}
       accessibilityRole="text"
-      accessibilityLabel={`Booking status: ${c.label}`}
+      accessibilityLabel={`Booking status: ${label}`}
     >
       <Ionicons name={c.icon as any} size={is} color={c.color} />
-      <Text style={[styles.text, { color: c.color, fontSize: fs }]}>{c.label}</Text>
+      <Text style={[styles.text, { color: c.color, fontSize: fs }]}>{label}</Text>
     </View>
   );
 }

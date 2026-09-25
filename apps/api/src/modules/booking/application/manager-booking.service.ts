@@ -57,7 +57,7 @@ export class ManagerBookingService {
     const where: Prisma.BookingWhereInput = {
       hotelId: { in: hotelIds },
       deletedAt: null,
-      ...(query.status ? { status: query.status as BookingStatus } : {}),
+      ...(query.status ? { status: query.status } : {}),
       ...(query.hotelId ? { hotelId: query.hotelId } : {}),
     };
     const [total, bookings] = await this.db.$transaction([
@@ -277,8 +277,8 @@ export class ManagerBookingService {
     return this.transition(bookingId, 'CONFIRMED', actor);
   }
 
-  async reject(bookingId: string, actor: BookingActor) {
-    return this.transition(bookingId, 'REJECTED', actor);
+  async reject(bookingId: string, actor: BookingActor, reason: string) {
+    return this.transition(bookingId, 'REJECTED', actor, reason);
   }
 
   async checkIn(bookingId: string, actor: BookingActor) {
@@ -341,14 +341,23 @@ export class ManagerBookingService {
           decidedById: actor.sub,
         },
       });
-      await this.audit.record(actor.sub, 'STAY_REQUEST_REJECTED', 'StayRequest', requestId, {
-        bookingId: request.bookingId,
-        note: dto.decisionNote,
-      });
+      await this.audit.record(
+        actor.sub,
+        'STAY_REQUEST_REJECTED',
+        'StayRequest',
+        requestId,
+        {
+          bookingId: request.bookingId,
+          note: dto.decisionNote,
+        },
+      );
 
       if (this.notifications) {
         try {
-          const reqTypeLabel = request.type === 'EARLY_CHECKIN' ? 'early check-in' : 'late check-out';
+          const reqTypeLabel =
+            request.type === 'EARLY_CHECKIN'
+              ? 'early check-in'
+              : 'late check-out';
           await this.notifications.notify({
             userId: request.booking.userId,
             type: 'STAY_REQUEST_DECIDED',
@@ -375,7 +384,9 @@ export class ManagerBookingService {
             },
           });
         } catch (err) {
-          this.logger.warn(`Failed to dispatch stay request rejection notification: ${err}`);
+          this.logger.warn(
+            `Failed to dispatch stay request rejection notification: ${err}`,
+          );
         }
       }
 
@@ -401,10 +412,16 @@ export class ManagerBookingService {
           },
         });
       });
-      await this.audit.record(actor.sub, 'EARLY_CHECKIN_APPROVED', 'Booking', request.bookingId, {
-        fee: Number(request.fee),
-        stayRequestId: requestId,
-      });
+      await this.audit.record(
+        actor.sub,
+        'EARLY_CHECKIN_APPROVED',
+        'Booking',
+        request.bookingId,
+        {
+          fee: Number(request.fee),
+          stayRequestId: requestId,
+        },
+      );
     } else if (request.type === 'LATE_CHECKOUT') {
       const roomIds = request.booking.details.map((d) => d.roomId);
       const nextBooking = await this.db.bookingDetail.findFirst({
@@ -417,7 +434,9 @@ export class ManagerBookingService {
         },
       });
       if (nextBooking) {
-        throw new BadRequestException('Room is needed for another confirmed booking starting on check-out date');
+        throw new BadRequestException(
+          'Room is needed for another confirmed booking starting on check-out date',
+        );
       }
 
       await this.db.$transaction(async (tx) => {
@@ -438,15 +457,24 @@ export class ManagerBookingService {
           },
         });
       });
-      await this.audit.record(actor.sub, 'LATE_CHECKOUT_APPROVED', 'Booking', request.bookingId, {
-        fee: Number(request.fee),
-        stayRequestId: requestId,
-      });
+      await this.audit.record(
+        actor.sub,
+        'LATE_CHECKOUT_APPROVED',
+        'Booking',
+        request.bookingId,
+        {
+          fee: Number(request.fee),
+          stayRequestId: requestId,
+        },
+      );
     }
 
     if (this.notifications) {
       try {
-        const reqTypeLabel = request.type === 'EARLY_CHECKIN' ? 'Early check-in' : 'Late check-out';
+        const reqTypeLabel =
+          request.type === 'EARLY_CHECKIN'
+            ? 'Early check-in'
+            : 'Late check-out';
         await this.notifications.notify({
           userId: request.booking.userId,
           type: 'STAY_REQUEST_DECIDED',
@@ -475,14 +503,20 @@ export class ManagerBookingService {
           },
         });
       } catch (err) {
-        this.logger.warn(`Failed to dispatch stay request approval notification: ${err}`);
+        this.logger.warn(
+          `Failed to dispatch stay request approval notification: ${err}`,
+        );
       }
     }
 
     return this.db.stayRequest.findUnique({ where: { id: requestId } });
   }
 
-  async directEarlyCheckIn(bookingId: string, dto: EarlyCheckInActionInput, actor: BookingActor) {
+  async directEarlyCheckIn(
+    bookingId: string,
+    dto: EarlyCheckInActionInput,
+    actor: BookingActor,
+  ) {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
       include: { hotel: { include: { policy: true } } },
@@ -490,9 +524,14 @@ export class ManagerBookingService {
     if (!booking) throw new NotFoundException('Booking not found');
     await this.assertCanManage(booking.hotelId, actor);
     if (booking.status !== 'CONFIRMED') {
-      throw new ConflictException('Only CONFIRMED bookings can be checked in early');
+      throw new ConflictException(
+        'Only CONFIRMED bookings can be checked in early',
+      );
     }
-    const fee = dto.earlyCheckInFee !== undefined ? dto.earlyCheckInFee : Number(booking.hotel.policy?.earlyCheckInFee ?? 0);
+    const fee =
+      dto.earlyCheckInFee !== undefined
+        ? dto.earlyCheckInFee
+        : Number(booking.hotel.policy?.earlyCheckInFee ?? 0);
     const updated = await this.db.booking.update({
       where: { id: bookingId },
       data: {
@@ -503,7 +542,13 @@ export class ManagerBookingService {
         totalPrice: { increment: fee },
       },
     });
-    await this.audit.record(actor.sub, 'EARLY_CHECKIN_APPROVED', 'Booking', bookingId, { fee });
+    await this.audit.record(
+      actor.sub,
+      'EARLY_CHECKIN_APPROVED',
+      'Booking',
+      bookingId,
+      { fee },
+    );
     this.emitter?.emit(
       BookingEventNames.CHECKED_IN,
       new BookingCheckedInEvent(booking.id, booking.userId, booking.hotelId),
@@ -534,14 +579,20 @@ export class ManagerBookingService {
           },
         });
       } catch (err) {
-        this.logger.warn(`Failed to dispatch direct early check-in notification: ${err}`);
+        this.logger.warn(
+          `Failed to dispatch direct early check-in notification: ${err}`,
+        );
       }
     }
 
     return updated;
   }
 
-  async directLateCheckOut(bookingId: string, dto: LateCheckOutActionInput, actor: BookingActor) {
+  async directLateCheckOut(
+    bookingId: string,
+    dto: LateCheckOutActionInput,
+    actor: BookingActor,
+  ) {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
       include: { details: true, hotel: { include: { policy: true } } },
@@ -549,7 +600,9 @@ export class ManagerBookingService {
     if (!booking) throw new NotFoundException('Booking not found');
     await this.assertCanManage(booking.hotelId, actor);
     if (booking.status !== 'CHECKED_IN') {
-      throw new ConflictException('Only CHECKED_IN bookings can be checked out late');
+      throw new ConflictException(
+        'Only CHECKED_IN bookings can be checked out late',
+      );
     }
     const roomIds = booking.details.map((d) => d.roomId);
     const nextBooking = await this.db.bookingDetail.findFirst({
@@ -562,9 +615,14 @@ export class ManagerBookingService {
       },
     });
     if (nextBooking) {
-      throw new BadRequestException('Room is needed for another booking starting on check-out date');
+      throw new BadRequestException(
+        'Room is needed for another booking starting on check-out date',
+      );
     }
-    const fee = dto.lateCheckOutFee !== undefined ? dto.lateCheckOutFee : Number(booking.hotel.policy?.lateCheckOutFee ?? 0);
+    const fee =
+      dto.lateCheckOutFee !== undefined
+        ? dto.lateCheckOutFee
+        : Number(booking.hotel.policy?.lateCheckOutFee ?? 0);
     const updated = await this.db.booking.update({
       where: { id: bookingId },
       data: {
@@ -575,7 +633,13 @@ export class ManagerBookingService {
         totalPrice: { increment: fee },
       },
     });
-    await this.audit.record(actor.sub, 'LATE_CHECKOUT_APPROVED', 'Booking', bookingId, { fee });
+    await this.audit.record(
+      actor.sub,
+      'LATE_CHECKOUT_APPROVED',
+      'Booking',
+      bookingId,
+      { fee },
+    );
     this.emitter?.emit(
       BookingEventNames.CHECKED_OUT,
       new BookingCheckedOutEvent(booking.id, booking.userId, booking.hotelId),
@@ -606,7 +670,9 @@ export class ManagerBookingService {
           },
         });
       } catch (err) {
-        this.logger.warn(`Failed to dispatch direct late check-out notification: ${err}`);
+        this.logger.warn(
+          `Failed to dispatch direct late check-out notification: ${err}`,
+        );
       }
     }
 
@@ -621,14 +687,18 @@ export class ManagerBookingService {
     if (!booking) throw new NotFoundException('Booking not found');
     await this.assertCanManage(booking.hotelId, actor);
     if (booking.status !== 'CONFIRMED') {
-      throw new ConflictException('Only CONFIRMED bookings can be marked as NO_SHOW');
+      throw new ConflictException(
+        'Only CONFIRMED bookings can be marked as NO_SHOW',
+      );
     }
 
     const updated = await this.db.booking.update({
       where: { id: bookingId },
       data: { status: 'NO_SHOW' },
       include: {
-        user: { select: { id: true, fullName: true, email: true, phone: true } },
+        user: {
+          select: { id: true, fullName: true, email: true, phone: true },
+        },
         hotel: { select: { id: true, name: true } },
         details: { include: { room: true } },
         payment: true,
@@ -654,9 +724,15 @@ export class ManagerBookingService {
       },
     });
 
-    await this.audit.record(actor.sub, 'BOOKING_NO_SHOW', 'Booking', bookingId, {
-      markedBy: actor.sub,
-    });
+    await this.audit.record(
+      actor.sub,
+      'BOOKING_NO_SHOW',
+      'Booking',
+      bookingId,
+      {
+        markedBy: actor.sub,
+      },
+    );
     this.emitter?.emit(
       BookingEventNames.NO_SHOW,
       new BookingNoShowEvent(booking.id, booking.userId, booking.hotelId),
@@ -682,10 +758,14 @@ export class ManagerBookingService {
     await this.assertCanManage(booking.hotelId, actor);
 
     if (booking.status !== 'CHECKED_IN') {
-      throw new ConflictException('Only CHECKED_IN bookings can have rooms relocated');
+      throw new ConflictException(
+        'Only CHECKED_IN bookings can have rooms relocated',
+      );
     }
 
-    const targetDetail = booking.details.find((d) => d.roomId === dto.oldRoomId);
+    const targetDetail = booking.details.find(
+      (d) => d.roomId === dto.oldRoomId,
+    );
     if (!targetDetail) {
       throw new NotFoundException('Old room is not part of this booking');
     }
@@ -720,7 +800,9 @@ export class ManagerBookingService {
       },
     });
     if (conflictingBooking) {
-      throw new ConflictException('New room has overlapping bookings during remaining stay');
+      throw new ConflictException(
+        'New room has overlapping bookings during remaining stay',
+      );
     }
 
     const updatedDetail = await this.db.$transaction(async (tx) => {
@@ -831,7 +913,9 @@ export class ManagerBookingService {
           },
         });
       } catch (err) {
-        this.logger.warn(`Failed to dispatch room relocation notification: ${err}`);
+        this.logger.warn(
+          `Failed to dispatch room relocation notification: ${err}`,
+        );
       }
     }
 
@@ -869,6 +953,7 @@ export class ManagerBookingService {
     bookingId: string,
     to: BookingStatus,
     actor: BookingActor,
+    reason?: string,
   ) {
     const booking = await this.db.booking.findUnique({
       where: { id: bookingId },
@@ -899,13 +984,14 @@ export class ManagerBookingService {
         fromStatus: booking.status,
         toStatus: to,
         changedBy: actor.sub,
-        reason: `Status transition from ${booking.status} to ${to}`,
+        reason: reason ?? `Status transition from ${booking.status} to ${to}`,
       },
     });
 
     await this.audit.record(actor.sub, `BOOKING_${to}`, 'Booking', bookingId, {
       from: booking.status,
       to,
+      reason,
     });
 
     if (to === 'CHECKED_IN') {
@@ -1054,7 +1140,9 @@ export class ManagerBookingService {
         hotel: { select: { id: true, name: true } },
         details: { include: { room: true } },
         payment: true,
-        user: { select: { id: true, fullName: true, email: true, phone: true } },
+        user: {
+          select: { id: true, fullName: true, email: true, phone: true },
+        },
       },
     });
   }

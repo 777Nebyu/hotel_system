@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../theme';
 
 export type PaymentMethod = 'TELEBIRR' | 'CBE_BIRR' | 'CREDIT_CARD' | 'PAYPAL' | 'CASH_AT_HOTEL';
@@ -9,6 +10,7 @@ export interface PaymentDetails {
   cardExpiry?: string;
   cardCvv?: string;
   telebirrPhone?: string;
+  cbePhone?: string;
   paypalEmail?: string;
 }
 
@@ -23,11 +25,11 @@ export interface PaymentMethodItem {
 }
 
 export const METHODS: PaymentMethodItem[] = [
-  { id: 'CREDIT_CARD', name: 'Credit / Debit Card', tag: 'Visa, Mastercard, Amex', icon: '💳', category: 'ONLINE', bg: colors.paperDeep, fg: colors.inkSoft },
-  { id: 'TELEBIRR', name: 'Telebirr', tag: 'Pay securely from your Telebirr wallet', icon: '📱', category: 'ONLINE', bg: colors.goldTint, fg: colors.goldDeep },
-  { id: 'CBE_BIRR', name: 'CBE Birr', tag: 'Commercial Bank of Ethiopia mobile pay', icon: '🏦', category: 'ONLINE', bg: colors.tealTint, fg: colors.tealDeep },
-  { id: 'PAYPAL', name: 'PayPal', tag: 'International cards and USD/EUR balance', icon: '🌐', category: 'ONLINE', bg: colors.paperDeep, fg: colors.inkSoft },
-  { id: 'CASH_AT_HOTEL', name: 'Pay at Hotel', tag: 'Reserve now, pay at reception during stay', icon: '💵', category: 'HOTEL', bg: colors.line, fg: colors.inkSoft },
+  { id: 'CREDIT_CARD', name: 'paymentMethods.credit_card', tag: 'paymentMethods.credit_card_tag', icon: '💳', category: 'ONLINE', bg: colors.paperDeep, fg: colors.inkSoft },
+  { id: 'PAYPAL', name: 'payment.paypal', tag: 'paymentMethods.paypal_tag', icon: '🌐', category: 'ONLINE', bg: colors.paperDeep, fg: colors.inkSoft },
+  { id: 'TELEBIRR', name: 'paymentMethods.telebirr', tag: 'paymentMethods.telebirr_tag', icon: '📱', category: 'ONLINE', bg: colors.goldTint, fg: colors.goldDeep },
+  { id: 'CBE_BIRR', name: 'paymentMethods.cbe_birr', tag: 'paymentMethods.cbe_birr_tag', icon: '🏦', category: 'ONLINE', bg: colors.tealTint, fg: colors.tealDeep },
+  { id: 'CASH_AT_HOTEL', name: 'paymentMethods.cash_at_hotel', tag: 'paymentMethods.cash_at_hotel_tag', icon: '💵', category: 'HOTEL', bg: colors.line, fg: colors.inkSoft },
 ];
 
 export function PaymentMethodCard({
@@ -39,6 +41,16 @@ export function PaymentMethodCard({
   selected: boolean;
   onPress: () => void;
 }) {
+  const { t } = useTranslation();
+  const nameKeyById: Record<PaymentMethod, string> = {
+    CREDIT_CARD: 'payment.card',
+    PAYPAL: 'payment.paypal',
+    TELEBIRR: 'payment.telebirr',
+    CBE_BIRR: 'payment.cbe_birr',
+    CASH_AT_HOTEL: 'payment.pay_at_hotel',
+  };
+  const displayName = nameKeyById[item.id] ? t(nameKeyById[item.id]) : item.name;
+
   return (
     <Pressable
       onPress={onPress}
@@ -50,8 +62,8 @@ export function PaymentMethodCard({
         <Text style={styles.iconText}>{item.icon}</Text>
       </View>
       <View style={styles.optionText}>
-        <Text style={styles.optionName}>{item.name}</Text>
-        <Text style={styles.optionTag}>{item.tag}</Text>
+        <Text style={styles.optionName}>{displayName}</Text>
+        <Text style={styles.optionTag}>{t(item.tag)}</Text>
       </View>
       <View style={[styles.radioDot, selected && styles.radioDotSelected]}>
         {selected && <View style={styles.radioDotInner} />}
@@ -87,17 +99,18 @@ function detectCardBrand(num: string): string | null {
 }
 
 export default function PaymentMethodSelector({ value, onChange, onDetailsChange, details }: Props) {
+  const { t } = useTranslation();
   const [cardNumber, setCardNumber] = useState(details?.cardNumber ?? '');
   const [cardExpiry, setCardExpiry] = useState(details?.cardExpiry ?? '');
   const [cardCvv, setCardCvv] = useState(details?.cardCvv ?? '');
   const [telebirrPhone, setTelebirrPhone] = useState(details?.telebirrPhone ?? '');
-  const [cbePhone, setCbePhone] = useState(details?.telebirrPhone ?? '');
+  const [cbePhone, setCbePhone] = useState(details?.cbePhone ?? '');
   const [paypalEmail, setPaypalEmail] = useState(details?.paypalEmail ?? '');
 
   const cardBrand = detectCardBrand(cardNumber);
 
   const updateDetails = (partial: PaymentDetails) => {
-    const updated = { cardNumber, cardExpiry, cardCvv, telebirrPhone, paypalEmail, ...partial };
+    const updated = { cardNumber, cardExpiry, cardCvv, telebirrPhone, cbePhone, paypalEmail, ...partial };
     onDetailsChange?.(updated);
   };
 
@@ -108,7 +121,7 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
     <View style={styles.container}>
       {/* ONLINE PAYMENT SECTION */}
       <View style={styles.section}>
-        <Text style={styles.categoryLabel}>ONLINE PAYMENT</Text>
+        <Text style={styles.categoryLabel}>{t('payment.online_payment')}</Text>
         <View style={styles.grid}>
           {onlineMethods.map((m) => (
             <PaymentMethodCard
@@ -123,7 +136,7 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
 
       {/* PAY AT HOTEL SECTION */}
       <View style={styles.section}>
-        <Text style={styles.categoryLabel}>PAY AT HOTEL</Text>
+        <Text style={styles.categoryLabel}>{t('payment.pay_at_hotel')}</Text>
         <View style={styles.grid}>
           {hotelMethods.map((m) => (
             <PaymentMethodCard
@@ -139,7 +152,7 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
       {value === 'CREDIT_CARD' && (
         <View style={styles.subForm}>
           <View style={styles.fieldHeaderRow}>
-            <Text style={styles.fieldLabel}>Card number</Text>
+            <Text style={styles.fieldLabel}>{t('payment.card_number')}</Text>
             {cardBrand && (
               <View style={styles.brandBadge}>
                 <Text style={styles.brandBadgeText}>{cardBrand}</Text>
@@ -157,7 +170,7 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
           />
           <View style={styles.row}>
             <View style={styles.halfField}>
-              <Text style={styles.fieldLabel}>Expiry</Text>
+              <Text style={styles.fieldLabel}>{t('payment.expiry')}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="MM / YY"
@@ -168,7 +181,7 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
               />
             </View>
             <View style={styles.halfField}>
-              <Text style={styles.fieldLabel}>CVV</Text>
+              <Text style={styles.fieldLabel}>{t('payment.cvv')}</Text>
               <TextInput
                 style={styles.input}
                 inputMode="numeric"
@@ -186,7 +199,7 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
 
       {value === 'TELEBIRR' && (
         <View style={styles.subForm}>
-          <Text style={styles.fieldLabel}>Telebirr number</Text>
+          <Text style={styles.fieldLabel}>{t('payment.telebirr_number')}</Text>
           <TextInput
             style={styles.input}
             inputMode="tel"
@@ -202,7 +215,7 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
 
       {value === 'PAYPAL' && (
         <View style={styles.subForm}>
-          <Text style={styles.fieldLabel}>PayPal email</Text>
+          <Text style={styles.fieldLabel}>{t('payment.paypal_email')}</Text>
           <TextInput
             style={styles.input}
             inputMode="email"
@@ -218,7 +231,7 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
 
       {value === 'CBE_BIRR' && (
         <View style={styles.subForm}>
-          <Text style={styles.fieldLabel}>CBE Birr mobile number</Text>
+          <Text style={styles.fieldLabel}>{t('payment.cbe_number')}</Text>
           <TextInput
             style={styles.input}
             inputMode="tel"
@@ -226,16 +239,16 @@ export default function PaymentMethodSelector({ value, onChange, onDetailsChange
             placeholderTextColor={colors.inkMuted}
             maxLength={10}
             value={cbePhone}
-            onChangeText={(t) => { setCbePhone(t); updateDetails({ telebirrPhone: t }); }}
+            onChangeText={(t) => { setCbePhone(t); updateDetails({ cbePhone: t }); }}
           />
-          <Text style={styles.hint}>Open the CBE Birr app on your phone and approve the payment request</Text>
+          <Text style={styles.hint}>{t('payment.cbe_hint')}</Text>
         </View>
       )}
 
       {value === 'CASH_AT_HOTEL' && (
         <View style={styles.cashInfo}>
           <Text style={styles.cashInfoText}>
-            The hotel holds your room for 6:00 PM on check-in day. Settle the full amount in birr at the front desk — bring your booking reference.
+            {t('payment.pay_at_reception')}
           </Text>
         </View>
       )}

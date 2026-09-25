@@ -16,7 +16,13 @@ export async function cacheQuery<T>(key: string, data: T): Promise<void> {
 export async function getCachedQuery<T>(key: string, maxAge = DEFAULT_MAX_AGE): Promise<T | null> {
   const raw = await AsyncStorage.getItem(`${CACHE_PREFIX}${key}`);
   if (!raw) return null;
-  const entry: CacheEntry<T> = JSON.parse(raw);
+  let entry: CacheEntry<T>;
+  try {
+    entry = JSON.parse(raw) as CacheEntry<T>;
+  } catch {
+    await AsyncStorage.removeItem(`${CACHE_PREFIX}${key}`);
+    return null;
+  }
   if (Date.now() - entry.timestamp > maxAge) return null;
   return entry.data;
 }

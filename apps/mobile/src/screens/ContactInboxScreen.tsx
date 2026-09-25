@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -34,8 +35,8 @@ export default function ContactInboxScreen() {
   const onRefresh = async () => { setRefreshing(true); await refetch(); setRefreshing(false); };
   const s = makeStyles(c);
 
-  return (
-    <ScrollView style={s.container} contentContainerStyle={[s.content, { paddingHorizontal: pad, paddingTop: insets.top + 12 }]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+  const header = (
+    <>
       <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={s.backBtn}>
         <Ionicons name="arrow-back" size={20} color={c.teal} />
       </Pressable>
@@ -43,18 +44,21 @@ export default function ContactInboxScreen() {
         <Text style={s.title}>{t('contact.inbox')}</Text>
         <Button title={t('contact.newMessage')} variant="primary" size="sm" onPress={() => navigation.navigate('ContactNew', {})} />
       </View>
+    </>
+  );
 
-      {isLoading ? (
-        <SkeletonList count={5} />
-      ) : error ? (
-        <ErrorBox
-          message={error instanceof Error ? error.message : 'Failed to load messages'}
-          onRetry={() => refetch()}
-        />
-      ) : threads.length === 0 ? (
-        <EmptyState title={t('contact.noThreads')} subtitle={t('contact.noThreadsSubtitle')} />
-      ) : (
-        threads.map((thread: any) => {
+  return (
+    <View style={s.container}>
+      <FlashList
+        data={isLoading || error ? [] : threads}
+        keyExtractor={(thread: any) => thread.id}
+        contentContainerStyle={[s.content, { paddingHorizontal: pad, paddingTop: insets.top + 12 }]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        ListHeaderComponent={header}
+        ListEmptyComponent={isLoading ? <SkeletonList count={5} /> : error ? (
+          <ErrorBox message={error instanceof Error ? error.message : t('contact.failed_load')} onRetry={() => refetch()} />
+        ) : <EmptyState title={t('contact.noThreads')} subtitle={t('contact.noThreadsSubtitle')} />}
+        renderItem={({ item: thread }: { item: any }) => {
           const isClosed = thread.status === 'CLOSED';
           const lastMsg = thread.messages?.[0];
           const lastMsgAt: string | undefined = lastMsg?.createdAt ?? thread.updatedAt ?? thread.createdAt;
@@ -72,26 +76,26 @@ export default function ContactInboxScreen() {
                   <View style={s.threadBadges}>
                     {isOverdue && (
                       <View style={[s.slaBadge, s.slaBadgeOverdue]}>
-                        <Text style={s.slaBadgeTextOverdue}>Overdue</Text>
+                        <Text style={s.slaBadgeTextOverdue}>{t('contact.overdue')}</Text>
                       </View>
                     )}
                     {isAwaiting && (
                       <View style={[s.slaBadge, s.slaBadgeAwaiting]}>
-                        <Text style={s.slaBadgeTextAwaiting}>Awaiting reply</Text>
+                        <Text style={s.slaBadgeTextAwaiting}>{t('contact.awaiting_reply')}</Text>
                       </View>
                     )}
                     <View style={[styles.statusDot, isClosed ? { backgroundColor: c.inkMuted } : { backgroundColor: c.teal }]} />
                   </View>
                 </View>
-                <Text style={s.threadHotel}>{thread.hotel?.name ?? 'Hotel'}</Text>
+                <Text style={s.threadHotel}>{thread.hotel?.name ?? t('contact.hotel')}</Text>
                 {lastMsg?.content && <Text style={s.threadPreview} numberOfLines={1}>{lastMsg.content}</Text>}
                 <Text style={s.threadDate}>{new Date(thread.createdAt).toLocaleDateString()}</Text>
               </Card>
             </Pressable>
           );
-        })
-      )}
-    </ScrollView>
+        }}
+      />
+    </View>
   );
 }
 

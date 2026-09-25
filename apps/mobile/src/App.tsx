@@ -1,4 +1,5 @@
 import './i18n';
+import './lib/webAlert';
 import React, { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus, BackHandler } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -6,12 +7,13 @@ import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { ActivityIndicator, Platform, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
+import NetInfo from '@react-native-community/netinfo';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { restoreSession, loadSessionFromStorage, saveSessionToStorage, signOut, setSession } from './store/authSlice';
-import { setAuthExpiredCallback, setTokenRefreshedCallback, refreshAccessToken } from './api';
+import { setAuthExpiredCallback, setTokenRefreshedCallback, refreshAccessToken, NetworkError } from './api';
 import { getStoredPushToken, deregisterPushToken, registerPushToken } from './lib/notifications';
 import { ToastProvider } from './components/Toast';
 import OfflineBanner from './components/OfflineBanner';
@@ -47,7 +49,13 @@ const linking: LinkingOptions<RootStackParamList> = {
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 2, staleTime: 60 * 1000 },
+    queries: {
+      retry: (failureCount, error) => !(error instanceof NetworkError) && failureCount < 2,
+      staleTime: 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
   },
 });
 
@@ -56,6 +64,35 @@ function isExpoGoClient(): boolean {
     Constants.appOwnership === 'expo' ||
     Constants.executionEnvironment === ExecutionEnvironment.StoreClient
   );
+}
+
+/**
+ * Refetch active queries as soon as connectivity returns so the app doesn't
+ * sit on stale (or failed) results until the user manually pull-to-refreshes.
+ * React Query's onlineManager is intentionally NOT flipped offline: queries
+ * must keep running while offline so cachedFetch can serve the AsyncStorage
+ * cache instead of pausing on a spinner.
+ */
+function ReconnectSync() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    let wasOffline = false;
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      const online = (state.isConnected ?? false) && (state.isInternetReachable !== false);
+      if (!online) {
+        wasOffline = true;
+        return;
+      }
+      if (wasOffline) {
+        wasOffline = false;
+        void queryClient.invalidateQueries();
+      }
+    });
+    return unsubscribe;
+  }, [queryClient]);
+
+  return null;
 }
 
 async function performSignOut() {
@@ -131,14 +168,15 @@ function NotificationHandler() {
           const type = String(data.type ?? data.notificationType ?? '').toLowerCase();
           const bookingId = typeof data.bookingId === 'string' ? data.bookingId : undefined;
           const role = session?.user?.role;
-          const isHotelRole = role === 'MANAGER' || role === 'STAFF' || role === 'ADMIN';
           const isBookingNotification = type.startsWith('booking_') || type === 'new_booking';
 
           setTimeout(() => {
             if (!navigationRef.current?.isReady()) return;
             if (!bookingId) {
               navigationRef.current.navigate('Notifications');
-            } else if (isHotelRole && isBookingNotification) {
+            } else if (role === 'ADMIN' && isBookingNotification) {
+              navigationRef.current.navigate('AdminBookings');
+            } else if ((role === 'MANAGER' || role === 'STAFF') && isBookingNotification) {
               navigationRef.current.navigate('ManagerBookings');
             } else {
               navigationRef.current.navigate('BookingDetail', { bookingId });
@@ -270,6 +308,7 @@ function AppContent() {
       <SessionRestorer>
         <NotificationHandler />
         <AppStateAndBiometricHandler />
+        <ReconnectSync />
         <OfflineBanner />
         <NavigationContainer ref={navigationRef} linking={linking} theme={navTheme}>
           <RootNavigator />

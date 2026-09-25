@@ -145,21 +145,21 @@ export default function DisputeScreen() {
 
   const validateField = (field: string) => {
     const errs: Record<string, string | undefined> = {};
-    if (field === 'subject' && !sanitizeText(subject)) errs.subject = 'Subject is required.';
-    if (field === 'description' && !sanitizeText(description)) errs.description = 'Description is required.';
+    if (field === 'subject' && !sanitizeText(subject)) errs.subject = t('errors.missing_details');
+    if (field === 'description' && !sanitizeText(description)) errs.description = t('errors.missing_details');
     setFieldErrors((prev) => ({ ...prev, ...errs, [field]: errs[field] || undefined }));
   };
 
   const handleSubmit = async () => {
     if (isOffline) {
-      return Alert.alert('Offline', 'Cannot file a dispute while offline. Please connect to the internet.');
+      return Alert.alert(t('common.offline'), t('errors.check_connection'));
     }
     const sanitizedSubject = sanitizeText(subject);
     const sanitizedDescription = sanitizeText(description);
     const errs: Record<string, string | undefined> = {};
-    if (!sanitizedSubject) errs.subject = 'Subject is required.';
-    if (!sanitizedDescription) errs.description = 'Description is required.';
-    if (!bookingRef.trim()) errs.bookingRef = 'A booking ID is required to file a dispute.';
+    if (!sanitizedSubject) errs.subject = t('errors.missing_details');
+    if (!sanitizedDescription) errs.description = t('errors.missing_details');
+    if (!bookingRef.trim()) errs.bookingRef = t('errors.missing_details');
     if (Object.keys(errs).length > 0) { setFieldErrors(errs); return; }
     setFieldErrors({});
     try {
@@ -189,7 +189,7 @@ export default function DisputeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingHorizontal: pad }]}>
-      <Pressable onPress={() => navigation.goBack()}><Text style={styles.backText}>{'< Back'}</Text></Pressable>
+      <Pressable onPress={() => navigation.goBack()}><Text style={styles.backText}>{'< '}{t('common.back')}</Text></Pressable>
       <View style={styles.headerRow}>
         <Text style={styles.title}>{t('disputes.title')}</Text>
         <Button title={t('disputes.openDispute')} variant="primary" size="sm" onPress={() => setShowForm(!showForm)} />
@@ -207,7 +207,7 @@ export default function DisputeScreen() {
           </ScrollView>
 
           <Text style={styles.label}>{t('disputes.subject')} *</Text>
-          <TextInput value={subject} onChangeText={(v) => { setSubject(v); setFieldErrors((p) => ({ ...p, subject: undefined })); }} onBlur={() => validateField('subject')} placeholder="Brief summary" placeholderTextColor={c.inkMuted} style={[styles.input, fieldErrors.subject && styles.inputError]} maxLength={200} />
+          <TextInput value={subject} onChangeText={(v) => { setSubject(v); setFieldErrors((p) => ({ ...p, subject: undefined })); }} onBlur={() => validateField('subject')} placeholder={t('disputes.brief_summary')} placeholderTextColor={c.inkMuted} style={[styles.input, fieldErrors.subject && styles.inputError]} maxLength={200} />
           {fieldErrors.subject ? <Text style={styles.fieldError}>{fieldErrors.subject}</Text> : null}
 
           <Text style={styles.label}>{t('disputes.description')} *</Text>
@@ -215,7 +215,7 @@ export default function DisputeScreen() {
             value={description}
             onChangeText={(v) => { setDescription(v); setFieldErrors((p) => ({ ...p, description: undefined })); }}
             onBlur={() => validateField('description')}
-            placeholder="Describe the issue..."
+            placeholder={t('disputes.describe_issue')}
             placeholderTextColor={c.inkMuted}
             style={[styles.input, styles.textArea, fieldErrors.description && styles.inputError]}
             multiline
@@ -226,7 +226,7 @@ export default function DisputeScreen() {
           <Text style={styles.charCount}>{description.length}/5000</Text>
 
           <Text style={styles.label}>{t('disputes.bookingRef')} *</Text>
-          <TextInput value={bookingRef} onChangeText={(v) => { setBookingRef(v); setFieldErrors((p) => ({ ...p, bookingRef: undefined })); }} placeholder="Enter the full booking ID" placeholderTextColor={c.inkMuted} style={[styles.input, fieldErrors.bookingRef && styles.inputError]} autoCapitalize="none" />
+          <TextInput value={bookingRef} onChangeText={(v) => { setBookingRef(v); setFieldErrors((p) => ({ ...p, bookingRef: undefined })); }} placeholder={t('disputes.enter_booking_id')} placeholderTextColor={c.inkMuted} style={[styles.input, fieldErrors.bookingRef && styles.inputError]} autoCapitalize="none" />
           {fieldErrors.bookingRef ? <Text style={styles.fieldError}>{fieldErrors.bookingRef}</Text> : null}
 
           <Text style={styles.label}>{t('disputes.evidence')} {t('disputes.optional')}</Text>
@@ -260,7 +260,7 @@ export default function DisputeScreen() {
       {isLoading ? (
         <SkeletonList count={4} />
       ) : error ? (
-        <ErrorBox message="Failed to load disputes" onRetry={() => refetch()} />
+        <ErrorBox message={t('errors.failed_load_disputes')} onRetry={() => refetch()} />
       ) : disputes.length === 0 ? (
         <EmptyState title={t('disputes.noDisputes')} subtitle={t('disputes.noDisputesSubtitle')} />
       ) : (

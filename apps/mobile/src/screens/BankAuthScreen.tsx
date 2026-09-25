@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -26,6 +27,7 @@ const BANK_NAMES: Record<string, string> = {
 type Step = 'reference' | 'cbe-app';
 
 export default function BankAuthScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
@@ -47,7 +49,7 @@ export default function BankAuthScreen() {
     if (processing) return;
 
     if (pin.length < 4) {
-      Alert.alert('PIN Required', 'Please enter your CBE PIN (4-6 digits).');
+      Alert.alert(t('errors.pin_required'), t('bankAuth.pin_msg'));
       return;
     }
 
@@ -78,9 +80,9 @@ export default function BankAuthScreen() {
     } catch (err) {
       hapticError();
       const message = err instanceof ApiError ? err.message : 'Payment confirmation failed';
-      Alert.alert('Error', message, [
-        { text: 'Retry', onPress: () => setProcessing(false) },
-        { text: 'Go Back', style: 'cancel', onPress: () => navigation.goBack() },
+      Alert.alert(t('common.error'), message, [
+        { text: t('common.retry'), onPress: () => setProcessing(false) },
+        { text: t('common.go_back'), style: 'cancel', onPress: () => navigation.goBack() },
       ]);
     } finally {
       setProcessing(false);
@@ -95,7 +97,7 @@ export default function BankAuthScreen() {
           <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={[styles.backBtn, { backgroundColor: c.paperDeep }]}>
             <Ionicons name="arrow-back" size={20} color={c.teal} />
           </Pressable>
-          <Text style={[styles.headerTitle, { color: c.ink }]}>Bank Payment</Text>
+          <Text style={[styles.headerTitle, { color: c.ink }]}>{t('payment.bank_payment')}</Text>
           <View style={{ width: 44 }} />
         </View>
 
@@ -103,21 +105,21 @@ export default function BankAuthScreen() {
           {/* Payment Summary */}
           <View style={[styles.summaryCard, { backgroundColor: c.surface, borderColor: c.line }]}>
             <View style={[styles.summaryRow, { borderBottomColor: c.line }]}>
-              <Text style={[styles.summaryLabel, { color: c.inkMuted }]}>Bank</Text>
+              <Text style={[styles.summaryLabel, { color: c.inkMuted }]}>{t('payment.bank')}</Text>
               <Text style={[styles.summaryValue, { color: c.ink }]}>{bankName}</Text>
             </View>
             <View style={[styles.summaryRow, { borderBottomColor: c.line }]}>
-              <Text style={[styles.summaryLabel, { color: c.inkMuted }]}>Amount</Text>
+              <Text style={[styles.summaryLabel, { color: c.inkMuted }]}>{t('common.amount')}</Text>
               <Text style={[styles.summaryValue, { color: c.teal }]}>{currency} {Number(amount).toLocaleString()}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: c.inkMuted }]}>Hotel</Text>
+              <Text style={[styles.summaryLabel, { color: c.inkMuted }]}>{t('common.hotel')}</Text>
               <Text style={[styles.summaryValue, { color: c.ink }]}>{hotelName}</Text>
             </View>
           </View>
 
           {/* Payment Reference */}
-          <Text style={[styles.sectionTitle, { color: c.ink }]}>Payment Reference</Text>
+          <Text style={[styles.sectionTitle, { color: c.ink }]}>{t('payment.payment_reference')}</Text>
           <Text style={[styles.refHint, { color: c.inkMuted }]}>
             Use this reference when paying through the {bankName} mobile app.
           </Text>
@@ -127,7 +129,7 @@ export default function BankAuthScreen() {
           </View>
 
           {/* Instructions */}
-          <Text style={[styles.sectionTitle, { color: c.ink, marginTop: 20 }]}>How to pay</Text>
+          <Text style={[styles.sectionTitle, { color: c.ink, marginTop: 20 }]}>{t('payment.how_to_pay')}</Text>
 
           <View style={styles.steps}>
             <View style={styles.step}>
@@ -136,7 +138,7 @@ export default function BankAuthScreen() {
               </View>
               <View style={styles.stepContent}>
                 <Text style={[styles.stepTitle, { color: c.ink }]}>Open {bankName} app</Text>
-                <Text style={[styles.stepDesc, { color: c.inkMuted }]}>Launch the mobile banking app on your phone</Text>
+                <Text style={[styles.stepDesc, { color: c.inkMuted }]}>{t('payment.step_launch')}</Text>
               </View>
             </View>
 
@@ -147,8 +149,8 @@ export default function BankAuthScreen() {
                 <Text style={styles.stepNumText}>2</Text>
               </View>
               <View style={styles.stepContent}>
-                <Text style={[styles.stepTitle, { color: c.ink }]}>Select Pay for → Chapa</Text>
-                <Text style={[styles.stepDesc, { color: c.inkMuted }]}>Navigate to payments and choose Chapa as the merchant</Text>
+                <Text style={[styles.stepTitle, { color: c.ink }]}>{t('payment.step_select')}</Text>
+                <Text style={[styles.stepDesc, { color: c.inkMuted }]}>{t('payment.step_select_sub')}</Text>
               </View>
             </View>
 
@@ -159,8 +161,8 @@ export default function BankAuthScreen() {
                 <Text style={styles.stepNumText}>3</Text>
               </View>
               <View style={styles.stepContent}>
-                <Text style={[styles.stepTitle, { color: c.ink }]}>Enter reference</Text>
-                <Text style={[styles.stepDesc, { color: c.inkMuted }]}>Type the payment reference shown above</Text>
+                <Text style={[styles.stepTitle, { color: c.ink }]}>{t('payment.step_reference')}</Text>
+                <Text style={[styles.stepDesc, { color: c.inkMuted }]}>{t('payment.step_reference_sub')}</Text>
               </View>
             </View>
 
@@ -171,8 +173,8 @@ export default function BankAuthScreen() {
                 <Text style={styles.stepNumText}>4</Text>
               </View>
               <View style={styles.stepContent}>
-                <Text style={[styles.stepTitle, { color: c.ink }]}>Confirm with PIN</Text>
-                <Text style={[styles.stepDesc, { color: c.inkMuted }]}>Review the amount and enter your PIN to confirm</Text>
+                <Text style={[styles.stepTitle, { color: c.ink }]}>{t('payment.step_pin')}</Text>
+                <Text style={[styles.stepDesc, { color: c.inkMuted }]}>{t('payment.step_pin_sub')}</Text>
               </View>
             </View>
           </View>
@@ -196,7 +198,7 @@ export default function BankAuthScreen() {
         <Pressable onPress={() => setStep('reference')} hitSlop={8} style={[styles.backBtn, { backgroundColor: c.paperDeep }]}>
           <Ionicons name="arrow-back" size={20} color={c.teal} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: c.ink }]}>CBE Confirmation</Text>
+        <Text style={[styles.headerTitle, { color: c.ink }]}>{t('payment.cbe_confirmation')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -204,37 +206,37 @@ export default function BankAuthScreen() {
         {/* Simulated CBE App Header */}
         <View style={[styles.cbeHeader, { backgroundColor: '#1A5276' }]}>
           <Ionicons name="business" size={24} color="#FFFFFF" />
-          <Text style={styles.cbeTitle}>CBE Mobile Banking</Text>
-          <Text style={styles.cbeSub}>Simulated Environment</Text>
+          <Text style={styles.cbeTitle}>{t('payment.cbe_mobile')}</Text>
+          <Text style={styles.cbeSub}>{t('payment.simulated')}</Text>
         </View>
 
         {/* Payment Details in CBE Style */}
         <View style={[styles.cbeCard, { backgroundColor: c.surface, borderColor: c.line }]}>
-          <Text style={[styles.cbeLabel, { color: c.inkMuted }]}>Merchant</Text>
+          <Text style={[styles.cbeLabel, { color: c.inkMuted }]}>{t('payment.merchant')}</Text>
           <Text style={[styles.cbeValue, { color: c.ink }]}>Chapa</Text>
 
           <View style={[styles.cbeDivider, { backgroundColor: c.line }]} />
 
-          <Text style={[styles.cbeLabel, { color: c.inkMuted }]}>Reference</Text>
+          <Text style={[styles.cbeLabel, { color: c.inkMuted }]}>{t('common.reference')}</Text>
           <Text style={[styles.cbeRefCode, { color: c.teal }]}>{paymentRef}</Text>
 
           <View style={[styles.cbeDivider, { backgroundColor: c.line }]} />
 
-          <Text style={[styles.cbeLabel, { color: c.inkMuted }]}>Amount</Text>
+          <Text style={[styles.cbeLabel, { color: c.inkMuted }]}>{t('common.amount')}</Text>
           <Text style={[styles.cbeAmount, { color: c.ink }]}>{currency} {Number(amount).toLocaleString()}</Text>
         </View>
 
         {/* PIN Input */}
-        <Text style={[styles.sectionTitle, { color: c.ink, marginTop: 20 }]}>Enter your CBE PIN</Text>
+        <Text style={[styles.sectionTitle, { color: c.ink, marginTop: 20 }]}>{t('payment.enter_cbe_pin')}</Text>
         <Text style={[styles.pinHint, { color: c.inkMuted }]}>
-          Enter your 4-6 digit CBE PIN to authorize this payment.
+          {t('bankAuth.pin_prompt')}
         </Text>
 
         <View style={[styles.pinInputWrap, { backgroundColor: c.surface, borderColor: pin.length > 0 ? c.teal : c.line }]}>
           <Ionicons name="lock-closed-outline" size={18} color={c.inkMuted} />
           <TextInput
             style={[styles.pinInput, { color: c.ink }]}
-            placeholder="Enter PIN"
+            placeholder={t('payment.enter_pin')}
             placeholderTextColor={c.inkMuted}
             value={pin}
             onChangeText={(text) => setPin(text.replace(/[^0-9]/g, ''))}
@@ -248,14 +250,14 @@ export default function BankAuthScreen() {
         {/* Confirm Button */}
         <View style={styles.actions}>
           <Button
-            title={processing ? 'Processing...' : `Confirm Payment ${currency} ${Number(amount).toLocaleString()}`}
+            title={processing ? t('common.processing') : t('bankAuth.confirm_payment', { currency, amount: Number(amount).toLocaleString() })}
             variant="primary"
             onPress={handleConfirmPayment}
             disabled={pin.length < 4 || processing}
             fullWidth
           />
           <Button
-            title="Cancel"
+            title={t('common.cancel')}
             variant="danger"
             onPress={() => navigation.goBack()}
             disabled={processing}

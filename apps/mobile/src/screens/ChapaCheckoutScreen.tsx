@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -41,6 +42,7 @@ const BANK_NAMES: Record<string, string> = {
 };
 
 export default function ChapaCheckoutScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const insets = useSafeAreaInsets();
@@ -61,7 +63,7 @@ export default function ChapaCheckoutScreen() {
     if (processing) return;
 
     if (isBankMethod && !phoneNumber.trim()) {
-      Alert.alert('Phone Required', 'Please enter your phone number to continue.');
+      Alert.alert(t('errors.phone_required'), t('chapa.phone_msg'));
       return;
     }
 
@@ -107,10 +109,10 @@ export default function ChapaCheckoutScreen() {
       }
     } catch (err) {
       hapticError();
-      const message = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Payment failed';
-      Alert.alert('Payment Failed', message, [
-        { text: 'Retry', onPress: () => setProcessing(false) },
-        { text: 'Go Back', style: 'cancel', onPress: () => navigation.goBack() },
+      const message = err instanceof ApiError ? err.message : err instanceof Error ? err.message : t('payment.payment_failed');
+      Alert.alert(t('payment.payment_failed'), message, [
+        { text: t('common.retry'), onPress: () => setProcessing(false) },
+        { text: t('common.go_back'), style: 'cancel', onPress: () => navigation.goBack() },
       ]);
     } finally {
       setProcessing(false);
@@ -123,7 +125,7 @@ export default function ChapaCheckoutScreen() {
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={[styles.backBtn, { backgroundColor: c.paperDeep }]}>
           <Ionicons name="arrow-back" size={20} color={c.teal} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: c.ink }]}>Payment</Text>
+        <Text style={[styles.headerTitle, { color: c.ink }]}>{t('payment.payment')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -131,8 +133,8 @@ export default function ChapaCheckoutScreen() {
         {/* Provider Header */}
         <View style={[styles.providerCard, { backgroundColor: c.teal }]}>
           <Ionicons name="wallet-outline" size={28} color="#FFFFFF" />
-          <Text style={styles.providerTitle}>CHAPA PAYMENT</Text>
-          <Text style={styles.providerSub}>Sandbox Environment</Text>
+          <Text style={styles.providerTitle}>{t('payment.chapa_payment')}</Text>
+          <Text style={styles.providerSub}>{t('payment.sandbox')}</Text>
         </View>
 
         {/* Payment Summary */}
@@ -148,20 +150,20 @@ export default function ChapaCheckoutScreen() {
             <Ionicons name={(CHAPA_METHODS.find((m) => m.id === selectedMethod)?.icon ?? 'card-outline') as any} size={22} color={c.teal} />
           </View>
           <View style={styles.methodInfo}>
-            <Text style={[styles.methodName, { color: c.ink }]}>Payment with {CHAPA_METHODS.find((m) => m.id === selectedMethod)?.name ?? selectedMethod}</Text>
-            <Text style={[styles.methodTag, { color: c.inkMuted }]}>Selected from your booking payment options</Text>
+            <Text style={[styles.methodName, { color: c.ink }]}>{t('chapa.payment_with', { method: CHAPA_METHODS.find((m) => m.id === selectedMethod)?.name ?? selectedMethod })}</Text>
+            <Text style={[styles.methodTag, { color: c.inkMuted }]}>{t('payment.selected_from_booking')}</Text>
           </View>
         </View>
         <Pressable onPress={() => navigation.goBack()} style={styles.changeMethod}>
-          <Text style={[styles.changeMethodText, { color: c.teal }]}>Change payment method</Text>
+          <Text style={[styles.changeMethodText, { color: c.teal }]}>{t('payment.change_method')}</Text>
         </Pressable>
 
         {/* Phone Number Input (for bank methods) */}
         {isBankMethod && (
           <View style={styles.phoneSection}>
-            <Text style={[styles.sectionTitle, { color: c.ink }]}>Phone Number</Text>
+            <Text style={[styles.sectionTitle, { color: c.ink }]}>{t('payment.phone_number')}</Text>
             <Text style={[styles.phoneHint, { color: c.inkMuted }]}>
-              Enter the phone number linked to your {BANK_NAMES[selectedMethod] || 'bank'} account
+              {t('chapa.phone_hint', { bank: BANK_NAMES[selectedMethod] || t('paymentMethods.bank_transfer') })}
             </Text>
             <View style={[styles.phoneInputWrap, { backgroundColor: c.surface, borderColor: c.line }]}>
               <Ionicons name="call-outline" size={18} color={c.inkMuted} />
@@ -181,7 +183,7 @@ export default function ChapaCheckoutScreen() {
 
         {/* Continue Button */}
         <Button
-          title={processing ? 'Processing...' : 'Continue'}
+          title={processing ? t('common.processing') : t('common.continue')}
           variant="primary"
           onPress={handleContinue}
           disabled={processing}
@@ -191,7 +193,7 @@ export default function ChapaCheckoutScreen() {
         {processing && (
           <View style={styles.loadingRow}>
             <ActivityIndicator size="small" color={c.teal} />
-            <Text style={[styles.loadingText, { color: c.inkMuted }]}>Creating payment session...</Text>
+            <Text style={[styles.loadingText, { color: c.inkMuted }]}>{t('payment.creating_session')}</Text>
           </View>
         )}
 

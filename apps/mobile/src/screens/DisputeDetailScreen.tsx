@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +15,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList, 'DisputeDetail'>;
 type Route = RouteProp<RootStackParamList, 'DisputeDetail'>;
 
 export default function DisputeDetailScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { disputeId } = route.params;
@@ -75,12 +77,12 @@ export default function DisputeDetailScreen() {
         hitSlop={8}
         style={styles.backBtn}
         accessibilityRole="button"
-        accessibilityLabel="Go back"
+        accessibilityLabel={t('common.go_back_nav')}
       >
         <Ionicons name="arrow-back" size={22} color={c.ink} />
       </Pressable>
 
-      <Text style={styles.heading}>Dispute Detail</Text>
+      <Text style={styles.heading}>{t('disputes.detail')}</Text>
 
       {isLoading && (
         <ActivityIndicator size="large" color={c.teal} style={{ marginTop: 40 }} />
@@ -88,7 +90,7 @@ export default function DisputeDetailScreen() {
 
       {error && (
         <ErrorBox
-          message={error instanceof Error ? error.message : 'Failed to load dispute.'}
+          message={error instanceof Error ? error.message : t('errors.failed_load_disputes')}
           onRetry={refetch}
         />
       )}
@@ -96,7 +98,7 @@ export default function DisputeDetailScreen() {
       {!isLoading && !error && !dispute && (
         <View style={styles.empty}>
           <Ionicons name="alert-circle-outline" size={40} color={c.line} />
-          <Text style={styles.emptyText}>Dispute not found.</Text>
+          <Text style={styles.emptyText}>{t('disputes.not_found')}</Text>
         </View>
       )}
 
@@ -104,14 +106,14 @@ export default function DisputeDetailScreen() {
         <View style={styles.card}>
           {/* ID */}
           <View style={styles.row}>
-            <Text style={styles.label}>Dispute ID</Text>
+            <Text style={styles.label}>{t('disputes.dispute_id')}</Text>
             <Text style={styles.value} numberOfLines={1}>{dispute.id}</Text>
           </View>
 
           {/* Type */}
           {dispute.type && (
             <View style={styles.row}>
-              <Text style={styles.label}>Type</Text>
+              <Text style={styles.label}>{t('common.type')}</Text>
               <Text style={styles.value}>{dispute.type}</Text>
             </View>
           )}
@@ -119,7 +121,7 @@ export default function DisputeDetailScreen() {
           {/* Subject */}
           {dispute.subject && (
             <View style={styles.row}>
-              <Text style={styles.label}>Subject</Text>
+              <Text style={styles.label}>{t('common.subject')}</Text>
               <Text style={styles.value}>{dispute.subject}</Text>
             </View>
           )}
@@ -127,7 +129,7 @@ export default function DisputeDetailScreen() {
           {/* Status */}
           {dispute.status && (
             <View style={styles.row}>
-              <Text style={styles.label}>Status</Text>
+              <Text style={styles.label}>{t('common.status')}</Text>
               <Text style={[styles.value, styles.status]}>{dispute.status}</Text>
             </View>
           )}
@@ -135,7 +137,7 @@ export default function DisputeDetailScreen() {
           {/* Description */}
           {dispute.description && (
             <View style={styles.descRow}>
-              <Text style={styles.label}>Description</Text>
+              <Text style={styles.label}>{t('common.description')}</Text>
               <Text style={styles.desc}>{dispute.description}</Text>
             </View>
           )}
@@ -143,7 +145,7 @@ export default function DisputeDetailScreen() {
           {/* Resolution */}
           {dispute.resolution && (
             <View style={styles.descRow}>
-              <Text style={styles.label}>Resolution</Text>
+              <Text style={styles.label}>{t('disputes.resolution')}</Text>
               <Text style={styles.desc}>{dispute.resolution}</Text>
             </View>
           )}
@@ -151,7 +153,7 @@ export default function DisputeDetailScreen() {
           {/* Dates */}
           {dispute.createdAt && (
             <View style={styles.row}>
-              <Text style={styles.label}>Opened</Text>
+              <Text style={styles.label}>{t('disputes.created')}</Text>
               <Text style={styles.value}>
                 {new Date(dispute.createdAt).toLocaleDateString(undefined, {
                   year: 'numeric', month: 'short', day: 'numeric',

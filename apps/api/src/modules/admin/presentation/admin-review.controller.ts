@@ -1,4 +1,13 @@
-import { Controller, Delete, Get, Param, Post, Body, Query, Req } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Body,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Role } from '../../../generated/prisma/client';
@@ -10,7 +19,9 @@ import { AdminReviewService } from '../application/admin-review.service';
 import { AdminReviewsQueryDto } from './dto/admin.dto';
 
 class ReviewIdParamsDto extends createZodDto(reviewIdParamsSchema) {}
-class FlagReviewDto extends createZodDto(z.object({ reason: z.string().optional() })) {}
+class ReviewReasonDto extends createZodDto(
+  z.object({ reason: z.string().trim().min(1).max(500) }),
+) {}
 
 interface AuthedRequest {
   user: { sub: string; role: string };
@@ -32,7 +43,11 @@ export class AdminReviewController {
   @Post(':reviewId/flag')
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Flag a review for moderation' })
-  flag(@Param() params: ReviewIdParamsDto, @Body() dto: FlagReviewDto, @Req() req: AuthedRequest) {
+  flag(
+    @Param() params: ReviewIdParamsDto,
+    @Body() dto: ReviewReasonDto,
+    @Req() req: AuthedRequest,
+  ) {
     return this.reviews.flag(params.reviewId, dto.reason, req.user.sub);
   }
 
@@ -46,7 +61,11 @@ export class AdminReviewController {
   @Delete(':reviewId')
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Remove a review from the platform' })
-  remove(@Param() params: ReviewIdParamsDto, @Req() req: AuthedRequest) {
-    return this.reviews.remove(params.reviewId, req.user.sub);
+  remove(
+    @Param() params: ReviewIdParamsDto,
+    @Body() dto: ReviewReasonDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.reviews.remove(params.reviewId, req.user.sub, dto.reason);
   }
 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { request } from '../api';
 import { Button } from '../components/Shared';
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function VerifyEmailScreen({ token, onVerified, onError }: Props) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
 
@@ -26,11 +28,11 @@ export default function VerifyEmailScreen({ token, onVerified, onError }: Props)
       } catch (err) {
         if (cancelled) return;
         setStatus('error');
-        setMessage(err instanceof Error ? err.message : 'Something went wrong.');
+        setMessage(err instanceof Error ? err.message : t('errors.something_went_wrong'));
       }
     })();
     return () => { cancelled = true; };
-  }, [token, onVerified, onError]);
+  }, [token, onVerified, onError, t]);
 
   return (
     <View style={styles.container}>
@@ -38,24 +40,24 @@ export default function VerifyEmailScreen({ token, onVerified, onError }: Props)
         {status === 'loading' && (
           <>
             <ActivityIndicator size="large" color={colors.teal} />
-            <Text style={styles.title}>Verifying your email...</Text>
-            <Text style={styles.sub}>Please wait a moment.</Text>
+            <Text style={styles.title}>{t('verifyEmail.verifying')}</Text>
+            <Text style={styles.sub}>{t('verifyEmail.wait_moment')}</Text>
           </>
         )}
         {status === 'success' && (
           <>
             <Text style={styles.doneIcon}>✓</Text>
-            <Text style={styles.title}>Email verified</Text>
+            <Text style={styles.title}>{t('verifyEmail.verified')}</Text>
             <Text style={styles.sub}>{message}</Text>
-            <Button title="Continue to login" onPress={onVerified} />
+            <Button title={t('verifyEmail.continue_login')} onPress={onVerified} />
           </>
         )}
         {status === 'error' && (
           <>
             <Text style={styles.errorIcon}>✕</Text>
-            <Text style={styles.title}>Verification failed</Text>
+            <Text style={styles.title}>{t('verifyEmail.failed')}</Text>
             <Text style={styles.sub}>{message}</Text>
-            <Button title="Try again" onPress={onError} />
+            <Button title={t('verifyEmail.try_again')} onPress={onError} />
           </>
         )}
       </View>

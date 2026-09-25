@@ -28,6 +28,8 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { textProps } from './ScaledText';
 
 
@@ -157,11 +159,37 @@ export const STATUS_CONFIG: Record<string, StatusConfig> = {
 const getConfig = (status: string): StatusConfig =>
   STATUS_CONFIG[status] ?? STATUS_CONFIG.PENDING;
 
+const statusLabel = (status: string, t: TFunction): string => {
+  switch (status) {
+    case 'PENDING':    return t('status.pending');
+    case 'CONFIRMED':  return t('status.confirmed');
+    case 'CHECKED_IN': return t('status.checked_in');
+    case 'CHECKED_OUT':return t('status.checked_out');
+    case 'CANCELLED':  return t('status.cancelled');
+    case 'NO_SHOW':    return t('status.no_show');
+    default:           return t('status.pending');
+  }
+};
+
+const statusTitle = (status: string, t: TFunction): string => {
+  switch (status) {
+    case 'CONFIRMED':  return t('notifications.lifecycle.bookingConfirmed.title');
+    case 'CHECKED_IN': return t('status.checked_in');
+    case 'CANCELLED':  return t('notifications.lifecycle.bookingCancelled.title');
+    default:           return getConfig(status).friendlyTitle;
+  }
+};
+
+const statusDesc = (status: string, t: TFunction): string =>
+  status === 'NO_SHOW' ? t('bookingComponents.no_show') : getConfig(status).friendlyDesc;
+
 // ─── BookingStatusBadge ─────────────────────────────────────────────────────
 export function BookingStatusBadge({
   status, size = 'md',
 }: { status: string; size?: 'sm' | 'md' | 'lg' }) {
+  const { t } = useTranslation();
   const c = getConfig(status);
+  const label = statusLabel(status, t);
   const pad = size === 'sm' ? { px: 8, py: 3 } : size === 'lg' ? { px: 14, py: 7 } : { px: 10, py: 5 };
   const fs  = size === 'sm' ? 10 : size === 'lg' ? 14 : 12;
   const is  = size === 'sm' ? 11 : size === 'lg' ? 16 : 13;
@@ -176,10 +204,10 @@ export function BookingStatusBadge({
       },
     ]}
     accessibilityRole="text"
-    accessibilityLabel={`Booking status: ${c.label}`}
+    accessibilityLabel={`Booking status: ${label}`}
     >
       <Ionicons name={c.icon as any} size={is} color={c.color} />
-      <Text style={[badge.text, { color: c.color, fontSize: fs }]}>{c.label}</Text>
+      <Text style={[badge.text, { color: c.color, fontSize: fs }]}>{label}</Text>
     </View>
   );
 }
@@ -198,6 +226,7 @@ export function BookingTimeline({
   isCashAtHotel?: boolean;
   style?: ViewStyle;
 }) {
+  const { t } = useTranslation();
   // Special handling for terminal states (§20)
   const isCancelled = status === 'CANCELLED';
   const isNoShow    = status === 'NO_SHOW';
@@ -207,7 +236,7 @@ export function BookingTimeline({
         <TimelineRow
           step={{
             key: 'CONFIRMED',
-            label: 'Booking Confirmed',
+            label: t('notifications.lifecycle.bookingConfirmed.title'),
             sub: 'Reservation confirmed',
             icon: 'checkmark-circle',
           }}
@@ -217,7 +246,7 @@ export function BookingTimeline({
         <TimelineRow
           step={{
             key: status,
-            label: isCancelled ? 'Booking Cancelled' : 'No Show',
+            label: isCancelled ? t('notifications.lifecycle.bookingCancelled.title') : t('status.no_show'),
             sub: isCancelled ? 'Reservation cancelled' : 'Guest did not check in',
             icon: isCancelled ? 'close-circle' : 'person-remove-outline',
           }}
@@ -232,10 +261,10 @@ export function BookingTimeline({
   // PENDING state (§22, §14)
   if (status === 'PENDING' && !isCashAtHotel) {
     const pendingSteps: Array<{ key: string; label: string; sub: string; icon: string; state: 'done' | 'active' | 'todo' }> = [
-      { key: 'PENDING',     label: 'Booking Created',   sub: 'Payment required to confirm', icon: 'time-outline',            state: 'active' },
-      { key: 'CONFIRMED',   label: 'Booking Confirmed', sub: 'Ready for check-in',          icon: 'checkmark-circle-outline', state: 'todo'   },
-      { key: 'CHECKED_IN',  label: 'Check-in',          sub: 'From 2:00 PM',                icon: 'log-in-outline',          state: 'todo'   },
-      { key: 'CHECKED_OUT', label: 'Check-out',         sub: 'By 12:00 PM',                 icon: 'log-out-outline',         state: 'todo'   },
+      { key: 'PENDING',     label: t('bookingComponents.booking_created'),   sub: t('bookingComponents.payment_required'), icon: 'time-outline',            state: 'active' },
+      { key: 'CONFIRMED',   label: t('notifications.lifecycle.bookingConfirmed.title'), sub: t('bookingComponents.ready_checkin'), icon: 'checkmark-circle-outline', state: 'todo' },
+      { key: 'CHECKED_IN',  label: t('booking.check_in'),  sub: t('bookingComponents.from_2pm'),                icon: 'log-in-outline',          state: 'todo'   },
+      { key: 'CHECKED_OUT', label: t('booking.check_out'), sub: t('bookingComponents.by_12pm'),                 icon: 'log-out-outline',         state: 'todo'   },
     ];
     return (
       <View style={[tl.wrap, style]}>
@@ -261,21 +290,21 @@ export function BookingTimeline({
   const lifecycleSteps: Array<{ key: string; label: string; sub: string; icon: string; state: 'done' | 'active' | 'todo' }> = [
     {
       key: 'CONFIRMED',
-      label: 'Booking Confirmed',
+      label: t('notifications.lifecycle.bookingConfirmed.title'),
       sub: isCashAtHotel ? 'Pay at hotel during stay' : 'Reservation confirmed',
       icon: 'checkmark-circle',
       state: 'done',
     },
     {
       key: 'CHECKED_IN',
-      label: isCheckedIn || isCheckedOut ? 'Checked In' : 'Check-in',
+      label: isCheckedIn || isCheckedOut ? t('status.checked_in') : t('booking.check_in'),
       sub: isCheckedIn ? 'Currently staying with us' : isCheckedOut ? 'Checked in' : 'From 2:00 PM on arrival date',
       icon: isCheckedIn || isCheckedOut ? 'bed' : 'log-in-outline',
       state: isCheckedIn ? 'active' : isCheckedOut ? 'done' : 'todo',
     },
     {
       key: 'CHECKED_OUT',
-      label: isCheckedOut ? 'Checked Out' : 'Check-out',
+      label: isCheckedOut ? t('status.checked_out') : t('booking.check_out'),
       sub: isCheckedOut ? 'Stay completed' : 'By 12:00 PM on departure date',
       icon: isCheckedOut ? 'checkmark-done-circle' : 'log-out-outline',
       state: isCheckedOut ? 'done' : 'todo',
@@ -393,17 +422,20 @@ const tl = StyleSheet.create({
 // ─── StatusHero ─────────────────────────────────────────────────────────────
 // Large centered status display used at top of detail screens
 export function StatusHero({ status, bookingRef }: { status: string; bookingRef?: string }) {
+  const { t } = useTranslation();
   const c = getConfig(status);
+  const title = statusTitle(status, t);
+  const desc = statusDesc(status, t);
   return (
-    <View style={hero.wrap} accessibilityRole="text" accessibilityLabel={c.friendlyTitle}>
+    <View style={hero.wrap} accessibilityRole="text" accessibilityLabel={title}>
       <View style={[hero.iconCircle, { backgroundColor: c.bg, borderColor: c.border }]}>
         <Ionicons name={c.icon as any} size={36} color={c.color} />
       </View>
-      <Text {...textProps} style={[hero.title, { color: c.color }]}>{c.friendlyTitle}</Text>
-      <Text style={hero.desc}>{c.friendlyDesc}</Text>
+      <Text {...textProps} style={[hero.title, { color: c.color }]}>{title}</Text>
+      <Text style={hero.desc}>{desc}</Text>
       {bookingRef && (
         <View style={hero.refRow}>
-          <Text style={hero.refLabel}>Booking</Text>
+          <Text style={hero.refLabel}>{t('bookingComponents.booking')}</Text>
           <Text style={hero.ref}>{bookingRef}</Text>
         </View>
       )}
@@ -424,24 +456,25 @@ const hero = StyleSheet.create({
 export function DateStrip({
   checkIn, checkOut, nights, compact = false,
 }: { checkIn: string; checkOut: string; nights: number; compact?: boolean }) {
+  const { t } = useTranslation();
   const fmtLong  = (d: string) => new Date(d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
   const fmtShort = (d: string) => new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   const fmt = compact ? fmtShort : fmtLong;
   return (
-    <View style={ds.strip} accessibilityLabel={`Check in ${fmtLong(checkIn)}, check out ${fmtLong(checkOut)}, ${nights} nights`}>
+    <View style={ds.strip} accessibilityLabel={`Check in ${fmtLong(checkIn)}, check out ${fmtLong(checkOut)}, ${nights} ${t('booking.nights')}`}>
       <View style={ds.block}>
-        <Text style={ds.label}>CHECK-IN</Text>
+        <Text style={ds.label}>{t('common.check_in')}</Text>
         <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={[ds.date, compact && ds.dateSmall]}>{fmt(checkIn)}</Text>
       </View>
-      <View style={ds.mid} accessibilityLabel={`${nights} ${nights === 1 ? 'night' : 'nights'}`}>
+      <View style={ds.mid} accessibilityLabel={`${nights} ${nights === 1 ? 'night' : t('booking.nights')}`}>
         <View style={[ds.line, { backgroundColor: BK.border }]} />
         <View style={ds.pill}>
-          <Text numberOfLines={1} style={ds.nights}>{nights} {nights === 1 ? 'night' : 'nights'}</Text>
+          <Text numberOfLines={1} style={ds.nights}>{nights} {nights === 1 ? 'night' : t('booking.nights')}</Text>
         </View>
         <View style={[ds.line, { backgroundColor: BK.border }]} />
       </View>
       <View style={[ds.block, { alignItems: 'flex-end' }]}>
-        <Text style={ds.label}>CHECK-OUT</Text>
+        <Text style={ds.label}>{t('common.check_out')}</Text>
         <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={[ds.date, compact && ds.dateSmall]}>{fmt(checkOut)}</Text>
       </View>
     </View>
@@ -467,12 +500,13 @@ export function PriceBreakdown({
   taxAmount?: number; discount?: number; serviceFee?: number;
   total: number | string; currentRoomPrice?: number; priceLocked?: boolean; style?: ViewStyle;
 }) {
+  const { t } = useTranslation();
   const fmt = (n: number) => `ETB ${Number(n).toLocaleString('en-ET', { minimumFractionDigits: 2 })}`;
   const rows = [
-    basePrice != null && nights != null ? { label: `Room (${nights} night${nights !== 1 ? 's' : ''})`, value: fmt(basePrice * nights), neutral: true } : null,
-    discount     ? { label: 'Discount',    value: `−${fmt(discount)}`,  green: true  } : null,
-    taxAmount    ? { label: 'Tax & fees',  value: fmt(taxAmount),        neutral: true } : null,
-    serviceFee   ? { label: 'Service fee', value: fmt(serviceFee),       neutral: true } : null,
+    basePrice != null && nights != null ? { label: `${t('booking.room')} (${nights} ${nights !== 1 ? t('booking.nights') : 'night'})`, value: fmt(basePrice * nights), neutral: true } : null,
+    discount     ? { label: t('bookingFlow.discount'), value: `−${fmt(discount)}`,  green: true  } : null,
+    taxAmount    ? { label: t('bookingComponents.tax_fees'),  value: fmt(taxAmount),        neutral: true } : null,
+    serviceFee   ? { label: t('bookingComponents.service_fee'), value: fmt(serviceFee),       neutral: true } : null,
   ].filter(Boolean) as { label: string; value: string; neutral?: boolean; green?: boolean }[];
 
   const savings = priceLocked && currentRoomPrice != null && basePrice != null && nights != null
@@ -484,7 +518,7 @@ export function PriceBreakdown({
       {priceLocked && (
         <View style={pb.lockedRow}>
           <Ionicons name="lock-closed" size={13} color={BK.confirmed} />
-          <Text style={pb.lockedText}>Price locked at time of booking</Text>
+          <Text style={pb.lockedText}>{t('bookingComponents.price_locked')}</Text>
         </View>
       )}
       {rows.map((row, i) => (
@@ -494,29 +528,29 @@ export function PriceBreakdown({
         </View>
       ))}
       <View style={[pb.row, pb.totalRow]}>
-        <Text style={pb.totalLabel}>Total</Text>
+        <Text style={pb.totalLabel}>{t('common.total')}</Text>
         <Text style={pb.total}>ETB {Number(total).toLocaleString()}</Text>
       </View>
       {priceLocked && currentRoomPrice != null && basePrice != null && (
         <View style={pb.compareBlock}>
           <View style={pb.compareRow}>
-            <Text style={pb.compareLabel}>Booked at</Text>
-            <Text style={pb.compareValue}>ETB {Number(basePrice).toLocaleString()} / night</Text>
+            <Text style={pb.compareLabel}>{t('bookingComponents.booked_at')}</Text>
+            <Text style={pb.compareValue}>ETB {Number(basePrice).toLocaleString()} {t('bookingComponents.per_night')}</Text>
           </View>
           <View style={pb.compareRow}>
-            <Text style={pb.compareLabel}>Current price</Text>
-            <Text style={pb.compareValueCurrent}>ETB {Number(currentRoomPrice).toLocaleString()} / night</Text>
+            <Text style={pb.compareLabel}>{t('bookingComponents.current_price')}</Text>
+            <Text style={pb.compareValueCurrent}>ETB {Number(currentRoomPrice).toLocaleString()} {t('bookingComponents.per_night')}</Text>
           </View>
           {savings > 0 && (
             <View style={[pb.savingsBadge, { backgroundColor: BK.confirmedBg }]}>
               <Ionicons name="trending-down" size={12} color={BK.confirmed} />
-              <Text style={[pb.savingsText, { color: BK.confirmed }]}>You saved ETB {Number(savings).toLocaleString()}</Text>
+              <Text style={[pb.savingsText, { color: BK.confirmed }]}>{t('bookingComponents.you_saved', { amount: Number(savings).toLocaleString() })}</Text>
             </View>
           )}
           {savings < 0 && (
             <View style={[pb.savingsBadge, { backgroundColor: BK.pendingBg }]}>
               <Ionicons name="information-circle" size={12} color={BK.pending} />
-              <Text style={[pb.savingsText, { color: BK.pending }]}>Price has increased since booking</Text>
+              <Text style={[pb.savingsText, { color: BK.pending }]}>{t('bookingComponents.price_increased')}</Text>
             </View>
           )}
         </View>
@@ -551,6 +585,7 @@ export function RoomSummaryCard({
   imageUrl?: string | null; roomType?: string; roomNumber?: string;
   hotelName?: string; guests?: number; onPress?: () => void; style?: ViewStyle;
 }) {
+  const { t } = useTranslation();
   const FALLBACK = 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600&h=300&fit=crop';
   const inner = (
     <View style={[rm.card, SHADOW_SM, style]}>
@@ -563,15 +598,15 @@ export function RoomSummaryCard({
       />
       <View style={rm.body}>
         <View>
-          <Text style={rm.room} numberOfLines={1}>{roomType ?? 'Room'}</Text>
-          {roomNumber && <Text style={rm.sub}>Room {roomNumber}</Text>}
+          <Text style={rm.room} numberOfLines={1}>{roomType ?? t('common.room')}</Text>
+          {roomNumber && <Text style={rm.sub}>{t('common.room')} {roomNumber}</Text>}
         </View>
         <View>
           <Text style={rm.hotel} numberOfLines={1}>{hotelName}</Text>
           {guests != null && (
             <View style={rm.guestRow}>
               <Ionicons name="people-outline" size={12} color={BK.textMut} />
-              <Text style={rm.guestText}>{guests} guest{guests !== 1 ? 's' : ''}</Text>
+              <Text style={rm.guestText}>{guests} {guests !== 1 ? t('hotel.guestsPlural') : t('hotel.guestsSingle')}</Text>
             </View>
           )}
         </View>
@@ -596,9 +631,10 @@ const rm = StyleSheet.create({
 export function PaymentStatusRow({
   method, status, amount,
 }: { method: string; status: string; amount?: number | string }) {
+  const { t } = useTranslation();
   const map: Record<string, { color: string; bg: string; label: string; icon: string }> = {
     SUCCEEDED: { color: BK.confirmed, bg: BK.confirmedBg, label: 'Paid',      icon: 'checkmark-circle' },
-    PENDING:   { color: BK.pending,   bg: BK.pendingBg,   label: 'Pending',   icon: 'time-outline'     },
+    PENDING:   { color: BK.pending,   bg: BK.pendingBg,   label: t('status.pending'),   icon: 'time-outline'     },
     PENDING_AT_HOTEL: { color: BK.confirmed, bg: BK.confirmedBg, label: 'Pay at hotel', icon: 'cash-outline' },
     FAILED:    { color: BK.cancelled, bg: BK.cancelledBg, label: 'Failed',    icon: 'close-circle'     },
     REFUNDED:  { color: BK.checkedIn, bg: BK.checkedInBg, label: 'Refunded',  icon: 'return-down-back' },
@@ -658,25 +694,46 @@ export function RefundStatus({
   onContactSupport?: () => void;
   style?: ViewStyle;
 }) {
+  const { t } = useTranslation();
+  const refundLabelKey: Record<RefundState, string> = {
+    REQUESTED: 'bookingComponents.refund_requested_status',
+    PROCESSING: 'bookingComponents.refund_processing',
+    COMPLETED: 'bookingComponents.refund_completed',
+    FAILED: 'bookingComponents.refund_failed_status',
+    NOT_APPLICABLE: 'bookingComponents.no_refund_required_status',
+    NO_REFUND: 'bookingComponents.no_refund_available_status',
+    UNKNOWN: 'bookingComponents.refund_unknown_status',
+  };
+  const refundMsgKey: Record<RefundState, string> = {
+    REQUESTED: 'bookingComponents.refund_requested_msg',
+    PROCESSING: 'bookingComponents.refund_processing_msg',
+    COMPLETED: 'bookingComponents.refund_completed_msg',
+    FAILED: 'bookingComponents.refund_failed_msg',
+    NOT_APPLICABLE: 'bookingComponents.no_refund_required_msg',
+    NO_REFUND: 'bookingComponents.no_refund_available_msg',
+    UNKNOWN: 'bookingComponents.refund_unknown_msg',
+  };
   const config = REFUND_CONFIG[state];
+  const cfgLabel = t(refundLabelKey[state] ?? 'bookingComponents.refund_unknown_status');
+  const cfgMessage = t(refundMsgKey[state] ?? 'bookingComponents.refund_unknown_msg');
   return (
-    <View style={[refund.status, { backgroundColor: config.bg }, style]} accessibilityRole="text" accessibilityLabel={`${config.label}. ${config.message}`}>
+    <View style={[refund.status, { backgroundColor: config.bg }, style]} accessibilityRole="text" accessibilityLabel={`${cfgLabel}. ${cfgMessage}`}>
       <Ionicons name={config.icon as any} size={19} color={config.color} />
       <View style={refund.body}>
-        <Text style={[refund.title, { color: config.color }]}>{config.label}</Text>
-        <Text style={refund.message}>{config.message}</Text>
-        {amount != null && <Text style={refund.meta}>Refund amount: ETB {Number(amount).toLocaleString()}</Text>}
-        {method && <Text style={refund.meta}>Original payment: {method.replace(/_/g, ' ')}</Text>}
-        {reference && <Text style={refund.meta}>Reference: {reference}</Text>}
+        <Text style={[refund.title, { color: config.color }]}>{cfgLabel}</Text>
+        <Text style={refund.message}>{cfgMessage}</Text>
+        {amount != null && <Text style={refund.meta}>{t('bookingComponents.refund_amount')} ETB {Number(amount).toLocaleString()}</Text>}
+        {method && <Text style={refund.meta}>{t('bookingComponents.original_payment', { method: method.replace(/_/g, ' ') })}</Text>}
+        {reference && <Text style={refund.meta}>{t('bookingDetail.reference')}: {reference}</Text>}
         {state === 'FAILED' && onContactSupport && (
           <Pressable
             onPress={onContactSupport}
             style={refund.supportBtn}
             accessibilityRole="button"
-            accessibilityLabel="Contact Support"
+            accessibilityLabel={t('bookingComponents.contact_support')}
           >
             <Ionicons name="headset-outline" size={14} color={BK.white} />
-            <Text style={refund.supportBtnText}>Contact Support</Text>
+            <Text style={refund.supportBtnText}>{t('bookingComponents.contact_support')}</Text>
           </Pressable>
         )}
       </View>
@@ -685,23 +742,24 @@ export function RefundStatus({
 }
 
 export function RefundTimeline({ state, style }: { state: RefundState; style?: ViewStyle }) {
+  const { t } = useTranslation();
   const steps: Array<{ label: string; icon: string; state: 'done' | 'active' | 'todo' | 'terminal' }> = state === 'NOT_APPLICABLE'
-    ? [{ label: 'Cancellation confirmed', icon: 'checkmark', state: 'done' }, { label: 'No refund required', icon: 'information', state: 'terminal' }]
+    ? [{ label: t('bookingComponents.cancellation_confirmed'), icon: 'checkmark', state: 'done' }, { label: t('bookingComponents.no_refund_required_status'), icon: 'information', state: 'terminal' }]
     : state === 'NO_REFUND'
-    ? [{ label: 'Cancellation confirmed', icon: 'checkmark', state: 'done' }, { label: 'No refund available', icon: 'close', state: 'terminal' }]
+    ? [{ label: t('bookingComponents.cancellation_confirmed'), icon: 'checkmark', state: 'done' }, { label: t('bookingComponents.no_refund_available_status'), icon: 'close', state: 'terminal' }]
     : state === 'FAILED'
     ? [
-        { label: 'Cancellation confirmed', icon: 'checkmark', state: 'done' },
-        { label: 'Refund requested', icon: 'checkmark', state: 'done' },
-        { label: 'Refund processing', icon: 'sync', state: 'done' },
-        { label: 'Refund failed', icon: 'close', state: 'terminal' },
-        { label: 'Support follow-up', icon: 'headset', state: 'active' },
+        { label: t('bookingComponents.cancellation_confirmed'), icon: 'checkmark', state: 'done' },
+        { label: t('bookingComponents.refund_requested_step'), icon: 'checkmark', state: 'done' },
+        { label: t('bookingComponents.refund_processing_step'), icon: 'sync', state: 'done' },
+        { label: t('bookingComponents.refund_failed_step'), icon: 'close', state: 'terminal' },
+        { label: t('bookingComponents.support_followup'), icon: 'headset', state: 'active' },
       ]
     : [
-        { label: 'Cancellation confirmed', icon: 'checkmark', state: 'done' },
-        { label: 'Refund requested', icon: 'checkmark', state: state === 'REQUESTED' ? 'active' : 'done' },
-        { label: 'Refund processing', icon: 'sync', state: state === 'PROCESSING' ? 'active' : state === 'REQUESTED' ? 'todo' : 'done' },
-        { label: 'Refund completed', icon: 'checkmark', state: state === 'COMPLETED' ? 'active' : 'todo' },
+        { label: t('bookingComponents.cancellation_confirmed'), icon: 'checkmark', state: 'done' },
+        { label: t('bookingComponents.refund_requested_step'), icon: 'checkmark', state: state === 'REQUESTED' ? 'active' : 'done' },
+        { label: t('bookingComponents.refund_processing_step'), icon: 'sync', state: state === 'PROCESSING' ? 'active' : state === 'REQUESTED' ? 'todo' : 'done' },
+        { label: t('bookingComponents.refund_completed_step'), icon: 'checkmark', state: state === 'COMPLETED' ? 'active' : 'todo' },
       ];
 
   return (
@@ -778,6 +836,7 @@ const cp = StyleSheet.create({
 export function QRCodeCard({
   bookingRef, guestName, style,
 }: { bookingRef: string; guestName?: string; style?: ViewStyle }) {
+  const { t } = useTranslation();
   const { width: screenW } = useWindowDimensions();
   const QR_W = Math.min(screenW - 80, 240);
   const SIZE = 21; // QR Version 1 (21x21 modules)
@@ -863,7 +922,7 @@ export function QRCodeCard({
       {guestName && <Text style={qr.guest}>{guestName}</Text>}
       <View style={qr.hint}>
         <Ionicons name="information-circle-outline" size={14} color={BK.textMut} />
-        <Text style={qr.hintText}>Show this at hotel reception</Text>
+        <Text style={qr.hintText}>{t('bookingComponents.show_at_reception')}</Text>
       </View>
     </View>
   );
@@ -897,6 +956,7 @@ export const BookingCard = React.memo(function BookingCard({
   onContactReception?: () => void;
   onLeaveReview?: () => void;
 }) {
+  const { t } = useTranslation();
   const nights = Math.max(1, Math.ceil(
     (new Date(booking.checkOut).getTime() - new Date(booking.checkIn).getTime()) / 86400000,
   ));
@@ -904,10 +964,10 @@ export const BookingCard = React.memo(function BookingCard({
   const img    = booking.hotel?.images?.[0]?.url;
   const room   = booking.details?.[0]?.room;
   const guests = booking.details?.reduce((s, d) => s + (d.guestCount ?? 1), 0) ?? 1;
-  const cfg    = getConfig(booking.status);
   const isCheckedIn  = booking.status === 'CHECKED_IN';
   const isCheckedOut = booking.status === 'CHECKED_OUT';
   const isNoShow     = booking.status === 'NO_SHOW';
+  const statusText   = statusLabel(booking.status, t);
   const paymentLabel = booking.status === 'PENDING'
     ? 'Payment required'
     : booking.payment?.method === 'CASH_AT_HOTEL'
@@ -920,7 +980,7 @@ export const BookingCard = React.memo(function BookingCard({
       onPress={onPress}
       style={({ pressed }) => [bc.card, SHADOW, pressed && bc.pressed]}
       accessibilityRole="button"
-      accessibilityLabel={`Booking at ${booking.hotel?.name ?? 'Hotel'}, ${cfg.label}, check-in ${booking.checkIn}`}
+      accessibilityLabel={`Booking at ${booking.hotel?.name ?? 'Hotel'}, ${statusText}, check-in ${booking.checkIn}`}
     >
       {/* Hero image */}
       <Image
@@ -942,7 +1002,7 @@ export const BookingCard = React.memo(function BookingCard({
         <View style={bc.headerRow}>
           <View style={bc.flex}>
             <Text style={bc.hotelName} numberOfLines={1}>{booking.hotel?.name ?? 'Hotel Booking'}</Text>
-            <Text style={bc.roomName} numberOfLines={1}>{room?.type ?? 'Room'}{room?.roomNumber ? ` · ${room.roomNumber}` : ''}</Text>
+            <Text style={bc.roomName} numberOfLines={1}>{room?.type ?? t('common.room')}{room?.roomNumber ? ` · ${room.roomNumber}` : ''}</Text>
           </View>
           <View style={bc.refWrap}>
             <Text style={bc.ref}>{ref}</Text>
@@ -959,13 +1019,13 @@ export const BookingCard = React.memo(function BookingCard({
         {isCheckedOut && (
           <View style={[bc.statusMsg, { backgroundColor: BK.checkedOutBg }]}>
             <Ionicons name="checkmark-done-circle" size={13} color={BK.checkedOut} />
-            <Text style={[bc.statusMsgText, { color: BK.checkedOut }]}>Stay completed.</Text>
+            <Text style={[bc.statusMsgText, { color: BK.checkedOut }]}>{t('bookingComponents.stay_completed')}</Text>
           </View>
         )}
         {isNoShow && (
           <View style={[bc.statusMsg, { backgroundColor: BK.noShowBg }]}>
             <Ionicons name="person-remove-outline" size={13} color={BK.noShow} />
-            <Text style={[bc.statusMsgText, { color: BK.noShow }]}>Guest did not check in for this reservation.</Text>
+            <Text style={[bc.statusMsgText, { color: BK.noShow }]}>{t('bookingComponents.no_show')}</Text>
           </View>
         )}
 
@@ -981,12 +1041,12 @@ export const BookingCard = React.memo(function BookingCard({
         <View style={bc.meta}>
           <View style={bc.metaItem}>
             <Ionicons name="moon-outline" size={13} color={BK.textMut} />
-            <Text style={bc.metaText}>{nights} night{nights !== 1 ? 's' : ''}</Text>
+            <Text style={bc.metaText}>{nights} {nights !== 1 ? t('booking.nights') : 'night'}</Text>
           </View>
           <View style={bc.metaDot} />
           <View style={bc.metaItem}>
             <Ionicons name="people-outline" size={13} color={BK.textMut} />
-            <Text style={bc.metaText}>{guests} guest{guests !== 1 ? 's' : ''}</Text>
+            <Text style={bc.metaText}>{guests} {guests !== 1 ? t('hotel.guestsPlural') : t('hotel.guestsSingle')}</Text>
           </View>
         </View>
 
@@ -1003,11 +1063,11 @@ export const BookingCard = React.memo(function BookingCard({
                 onPress={onCompletePayment}
                 style={bc.payBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Complete payment"
+                accessibilityLabel={t('bookingDetail.completePayment')}
                 hitSlop={6}
               >
                 <Ionicons name="card-outline" size={13} color={BK.white} />
-                <Text style={bc.payBtnText}>Complete Payment</Text>
+                <Text style={bc.payBtnText}>{t('buttons.complete_payment')}</Text>
               </Pressable>
             )}
 
@@ -1035,7 +1095,7 @@ export const BookingCard = React.memo(function BookingCard({
                 hitSlop={6}
               >
                 <Ionicons name="call-outline" size={13} color={BK.navy} />
-                <Text style={bc.qrBtnText}>Reception</Text>
+                <Text style={bc.qrBtnText}>{t('bookingComponents.reception')}</Text>
               </Pressable>
             )}
 
@@ -1049,7 +1109,7 @@ export const BookingCard = React.memo(function BookingCard({
                 hitSlop={6}
               >
                 <Ionicons name="star-outline" size={13} color={BK.white} />
-                <Text style={bc.payBtnText}>Review</Text>
+                <Text style={bc.payBtnText}>{t('buttons.review')}</Text>
               </Pressable>
             )}
 
@@ -1058,14 +1118,14 @@ export const BookingCard = React.memo(function BookingCard({
                 onPress={onCancel}
                 style={bc.cancelBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Cancel booking"
+                accessibilityLabel={t('bookingDetail.confirmCancel')}
                 hitSlop={6}
               >
-                <Text style={bc.cancelBtnText}>Cancel</Text>
+                <Text style={bc.cancelBtnText}>{t('bookingComponents.cancel')}</Text>
               </Pressable>
             )}
             <View style={bc.viewBtn}>
-              <Text style={bc.viewBtnText}>View →</Text>
+              <Text style={bc.viewBtnText}>{t('bookingComponents.view_arrow')}</Text>
             </View>
           </View>
         </View>
@@ -1111,6 +1171,7 @@ export const RoomCard = React.memo(function RoomCard({
   onBookRoom,
   dark = false,
 }: RoomCardProps) {
+  const { t } = useTranslation();
   const isAvailable = room.status === 'AVAILABLE';
   const label = availabilityLabel ?? (isAvailable ? 'Available' : 'Sold out');
   const basePrice = Number(room.basePrice);
@@ -1171,14 +1232,14 @@ export const RoomCard = React.memo(function RoomCard({
           <View style={rc.specItem}>
             <Ionicons name="bed-outline" size={13} color={BK.navyMuted} />
             <Text style={[rc.specText, { color: textSec }]}>
-              {room.beds} {room.beds !== 1 ? 'beds' : 'bed'}
+              {room.beds} {room.beds !== 1 ? t('hotel.bedsPlural') : t('hotel.beds')}
             </Text>
           </View>
           <View style={rc.specDot} />
           <View style={rc.specItem}>
             <Ionicons name="people-outline" size={13} color={BK.navyMuted} />
             <Text style={[rc.specText, { color: textSec }]}>
-              Up to {room.capacity} guests
+              Up to {room.capacity} {t('hotel.guestsPlural')}
             </Text>
           </View>
           {roomSizeM2 ? (
@@ -1213,11 +1274,11 @@ export const RoomCard = React.memo(function RoomCard({
           <View>
             {nights > 1 && (
               <Text style={[rc.totalStay, { color: textSec }]}>
-                ETB {totalStayPrice.toLocaleString()} total ({nights} nights)
+                ETB {totalStayPrice.toLocaleString()} total ({nights} {t('booking.nights')})
               </Text>
             )}
             <Text style={[rc.roomNumber, { color: textSec }]}>
-              {room.roomNumber ? `Room #${room.roomNumber}` : 'Standard allocation'}
+              {room.roomNumber ? `${t('common.room')} #${room.roomNumber}` : 'Standard allocation'}
             </Text>
           </View>
           <View style={rc.actionsRow}>
@@ -1226,9 +1287,9 @@ export const RoomCard = React.memo(function RoomCard({
                 onPress={onViewRoom}
                 style={[rc.viewBtn, { borderColor: borderC }]}
                 accessibilityRole="button"
-                accessibilityLabel="View room details"
+                accessibilityLabel={t('bookingComponents.view')}
               >
-                <Text style={[rc.viewBtnText, { color: textPri }]}>View</Text>
+                <Text style={[rc.viewBtnText, { color: textPri }]}>{t('bookingComponents.view')}</Text>
               </Pressable>
             )}
             {onBookRoom && (
@@ -1237,7 +1298,7 @@ export const RoomCard = React.memo(function RoomCard({
                 disabled={!isAvailable}
                 style={[rc.bookBtn, !isAvailable && rc.bookBtnDisabled]}
                 accessibilityRole="button"
-                accessibilityLabel="Book this room"
+                accessibilityLabel={t('buttons.book_this_room')}
               >
                 <Text style={rc.bookBtnText}>
                   {isAvailable ? 'Book Room' : 'Sold Out'}
@@ -1391,12 +1452,13 @@ const sc = StyleSheet.create({
 export function StateTransitionBanner({
   newStatus, message,
 }: { newStatus: string; message?: string }) {
+  const { t } = useTranslation();
   const c = getConfig(newStatus);
   return (
     <View style={[stb.wrap, { backgroundColor: c.bg, borderColor: c.border }]}>
       <Ionicons name={c.icon as any} size={20} color={c.color} />
       <View>
-        <Text style={[stb.title, { color: c.color }]}>{c.friendlyTitle}</Text>
+        <Text style={[stb.title, { color: c.color }]}>{statusTitle(newStatus, t)}</Text>
         {message && <Text style={stb.msg}>{message}</Text>}
       </View>
     </View>
@@ -1455,6 +1517,7 @@ export function HoldTimer({
   onSearchAgain?: () => void;
   style?: ViewStyle;
 }) {
+  const { t } = useTranslation();
   const [remaining, setRemaining] = React.useState(Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000)));
   const expired = remaining <= 0;
 
@@ -1480,16 +1543,16 @@ export function HoldTimer({
       <View style={[ht.wrap, ht.expiredWrap, style]}>
         <Ionicons name="time-outline" size={20} color={BK.cancelled} />
         <View style={ht.content}>
-          <Text style={[ht.title, { color: BK.cancelled }]}>Your room hold has expired.</Text>
-          <Text style={ht.sub}>Rooms are temporarily held to protect availability during checkout.</Text>
+          <Text style={[ht.title, { color: BK.cancelled }]}>{t('bookingComponents.hold_expired')}</Text>
+          <Text style={ht.sub}>{t('bookingComponents.hold_expired_sub')}</Text>
           {onSearchAgain && (
             <Pressable
               onPress={onSearchAgain}
               style={ht.actionBtn}
               accessibilityRole="button"
-              accessibilityLabel="Search available rooms"
+              accessibilityLabel={t('bookingComponents.search_rooms')}
             >
-              <Text style={ht.actionBtnText}>Search Available Rooms</Text>
+              <Text style={ht.actionBtnText}>{t('bookingComponents.search_rooms')}</Text>
             </Pressable>
           )}
         </View>
@@ -1504,13 +1567,13 @@ export function HoldTimer({
       </View>
       <View style={ht.content}>
         <View style={ht.row}>
-          <Text style={[ht.title, { color: BK.navy }]}>Room held</Text>
+          <Text style={[ht.title, { color: BK.navy }]}>{t('bookingComponents.room_held')}</Text>
           <View style={ht.timePill}>
             <Ionicons name="time-outline" size={12} color={BK.confirmed} />
             <Text style={ht.timeText}>{timeStr}</Text>
           </View>
         </View>
-        <Text style={ht.sub}>Complete your booking before the hold expires.</Text>
+        <Text style={ht.sub}>{t('bookingComponents.room_held_sub')}</Text>
       </View>
     </View>
   );
@@ -1541,6 +1604,7 @@ export function AvailabilityAlert({
   onViewOtherRooms: () => void;
   onModifySearch: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={modalStyles.overlay}>
@@ -1548,7 +1612,7 @@ export function AvailabilityAlert({
           <View style={[modalStyles.iconCircle, { backgroundColor: BK.cancelledBg, borderColor: BK.cancelledBd }]}>
             <Ionicons name="alert-circle" size={32} color={BK.cancelled} />
           </View>
-          <Text style={modalStyles.title}>Sorry, this room was just booked</Text>
+          <Text style={modalStyles.title}>{t('bookingComponents.just_booked')}</Text>
           <Text style={modalStyles.desc}>
             Another guest confirmed this room. We have released the temporary hold so you can select another room.
           </Text>
@@ -1558,14 +1622,14 @@ export function AvailabilityAlert({
               style={[modalStyles.btn, modalStyles.btnPrimary]}
               accessibilityRole="button"
             >
-              <Text style={modalStyles.btnPrimaryText}>View Other Rooms</Text>
+              <Text style={modalStyles.btnPrimaryText}>{t('bookingComponents.view_other')}</Text>
             </Pressable>
             <Pressable
               onPress={onModifySearch}
               style={[modalStyles.btn, modalStyles.btnSecondary]}
               accessibilityRole="button"
             >
-              <Text style={modalStyles.btnSecondaryText}>Modify Search</Text>
+              <Text style={modalStyles.btnSecondaryText}>{t('bookingComponents.modify_search')}</Text>
             </Pressable>
           </View>
         </View>
@@ -1590,6 +1654,7 @@ export function PriceChangeAlert({
   onAccept: () => void;
   onGoBack: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={modalStyles.overlay}>
@@ -1597,21 +1662,21 @@ export function PriceChangeAlert({
           <View style={[modalStyles.iconCircle, { backgroundColor: BK.pendingBg, borderColor: BK.pendingBd }]}>
             <Ionicons name="pricetag-outline" size={30} color={BK.pending} />
           </View>
-          <Text style={modalStyles.title}>Room Price Updated</Text>
+          <Text style={modalStyles.title}>{t('bookingComponents.price_updated')}</Text>
           <Text style={modalStyles.desc}>
             Because the price changed, please review the updated total before continuing.
           </Text>
           <View style={priceChangeStyles.box}>
             <View style={priceChangeStyles.row}>
-              <Text style={priceChangeStyles.label}>Previous price</Text>
+              <Text style={priceChangeStyles.label}>{t('bookingComponents.previous_price')}</Text>
               <Text style={priceChangeStyles.prevVal}>ETB {Number(previousPrice).toLocaleString()}</Text>
             </View>
             <View style={priceChangeStyles.row}>
-              <Text style={priceChangeStyles.label}>New price</Text>
+              <Text style={priceChangeStyles.label}>{t('bookingComponents.new_price')}</Text>
               <Text style={priceChangeStyles.newVal}>ETB {Number(newPrice).toLocaleString()}</Text>
             </View>
             <View style={[priceChangeStyles.row, priceChangeStyles.totalRow]}>
-              <Text style={priceChangeStyles.totalLabel}>Updated total</Text>
+              <Text style={priceChangeStyles.totalLabel}>{t('bookingComponents.updated_total')}</Text>
               <Text style={priceChangeStyles.totalVal}>ETB {Number(updatedTotal).toLocaleString()}</Text>
             </View>
           </View>
@@ -1621,14 +1686,14 @@ export function PriceChangeAlert({
               style={[modalStyles.btn, modalStyles.btnPrimary]}
               accessibilityRole="button"
             >
-              <Text style={modalStyles.btnPrimaryText}>Accept New Price</Text>
+              <Text style={modalStyles.btnPrimaryText}>{t('bookingComponents.accept_price')}</Text>
             </Pressable>
             <Pressable
               onPress={onGoBack}
               style={[modalStyles.btn, modalStyles.btnSecondary]}
               accessibilityRole="button"
             >
-              <Text style={modalStyles.btnSecondaryText}>Go Back</Text>
+              <Text style={modalStyles.btnSecondaryText}>{t('common.go_back')}</Text>
             </Pressable>
           </View>
         </View>
@@ -1665,6 +1730,7 @@ export function CancellationDialog({
   onConfirmCancel: () => void;
   onKeepBooking: () => void;
 }) {
+  const { t } = useTranslation();
   const hoursUntil = (new Date(checkIn).getTime() - Date.now()) / 3_600_000;
   const isFree = hoursUntil > cancellationHours;
   const is50   = !isFree && hoursUntil > cancellationHours / 2;
@@ -1679,8 +1745,8 @@ export function CancellationDialog({
           <View style={[modalStyles.iconCircle, { backgroundColor: BK.cancelledBg, borderColor: BK.cancelledBd }]}>
             <Ionicons name="close-circle-outline" size={32} color={BK.cancelled} />
           </View>
-          <Text style={modalStyles.title}>Cancel Reservation</Text>
-          <Text style={modalStyles.desc}>Review cancellation eligibility and refund details before confirming.</Text>
+          <Text style={modalStyles.title}>{t('bookingComponents.cancel_reservation')}</Text>
+          <Text style={modalStyles.desc}>{t('bookingComponents.cancel_review')}</Text>
 
           <View style={cancelStyles.recap}>
             <Text style={cancelStyles.hotel} numberOfLines={1}>{hotelName}</Text>
@@ -1692,44 +1758,44 @@ export function CancellationDialog({
           <View style={[cancelStyles.tierBox, { backgroundColor: isCashAtHotel ? BK.bg : isFree ? BK.confirmedBg : is50 ? BK.pendingBg : BK.cancelledBg }]}>
             {isCashAtHotel ? (
               <>
-                <Text style={[cancelStyles.tierTitle, { color: BK.navy }]}>No Refund Required</Text>
-                <Text style={cancelStyles.tierDesc}>This was booked with Pay at Hotel. No payment was collected, so no refund is required.</Text>
+                <Text style={[cancelStyles.tierTitle, { color: BK.navy }]}>{t('bookingComponents.no_refund_required')}</Text>
+                <Text style={cancelStyles.tierDesc}>{t('bookingComponents.no_refund_required_sub')}</Text>
               </>
             ) : isFree ? (
               <>
-                <Text style={[cancelStyles.tierTitle, { color: BK.confirmed }]}>Full Refund Eligible</Text>
-                <Text style={cancelStyles.tierDesc}>Cancelled more than {cancellationHours}h before check-in.</Text>
+                <Text style={[cancelStyles.tierTitle, { color: BK.confirmed }]}>{t('bookingComponents.full_refund')}</Text>
+                <Text style={cancelStyles.tierDesc}>{t('bookingComponents.cancelled_more_than', { hours: cancellationHours })}</Text>
                 <View style={cancelStyles.calcRow}>
-                  <Text style={cancelStyles.calcKey}>Refund amount:</Text>
+                  <Text style={cancelStyles.calcKey}>{t('bookingComponents.refund_amount')}</Text>
                   <Text style={[cancelStyles.calcVal, { color: BK.confirmed }]}>ETB {refundAmount.toLocaleString()}</Text>
                 </View>
               </>
             ) : is50 ? (
               <>
-                <Text style={[cancelStyles.tierTitle, { color: BK.pending }]}>Partial Refund (50%)</Text>
-                <Text style={cancelStyles.tierDesc}>Cancelled within policy window.</Text>
+                <Text style={[cancelStyles.tierTitle, { color: BK.pending }]}>{t('bookingComponents.partial_refund')}</Text>
+                <Text style={cancelStyles.tierDesc}>{t('bookingComponents.within_policy')}</Text>
                 <View style={cancelStyles.calcRow}>
-                  <Text style={cancelStyles.calcKey}>Refund amount:</Text>
+                  <Text style={cancelStyles.calcKey}>{t('bookingComponents.refund_amount')}</Text>
                   <Text style={[cancelStyles.calcVal, { color: BK.pending }]}>ETB {refundAmount.toLocaleString()}</Text>
                 </View>
                 <View style={cancelStyles.calcRow}>
-                  <Text style={cancelStyles.calcKey}>Cancellation fee:</Text>
+                  <Text style={cancelStyles.calcKey}>{t('bookingComponents.cancel_fee')}</Text>
                   <Text style={cancelStyles.calcKey}>ETB {feeAmount.toLocaleString()}</Text>
                 </View>
               </>
             ) : (
               <>
-                <Text style={[cancelStyles.tierTitle, { color: BK.cancelled }]}>No Refund Available</Text>
-                <Text style={cancelStyles.tierDesc}>This cancellation is outside the refundable period.</Text>
+                <Text style={[cancelStyles.tierTitle, { color: BK.cancelled }]}>{t('bookingComponents.no_refund')}</Text>
+                <Text style={cancelStyles.tierDesc}>{t('bookingComponents.outside_period')}</Text>
                 <View style={cancelStyles.calcRow}>
-                  <Text style={cancelStyles.calcKey}>Refund amount:</Text>
+                  <Text style={cancelStyles.calcKey}>{t('bookingComponents.refund_amount')}</Text>
                   <Text style={[cancelStyles.calcVal, { color: BK.cancelled }]}>ETB 0</Text>
                 </View>
               </>
             )}
           </View>
 
-          <Text style={cancelStyles.confirmQuestion}>Are you sure you want to cancel?</Text>
+          <Text style={cancelStyles.confirmQuestion}>{t('bookingComponents.confirm_cancel_q')}</Text>
 
           <View style={modalStyles.btnRow}>
             <Pressable
@@ -1738,19 +1804,19 @@ export function CancellationDialog({
               style={[modalStyles.btn, modalStyles.btnSecondary]}
               accessibilityRole="button"
             >
-              <Text style={modalStyles.btnSecondaryText}>Keep Booking</Text>
+              <Text style={modalStyles.btnSecondaryText}>{t('buttons.keep_booking')}</Text>
             </Pressable>
             <Pressable
               onPress={onConfirmCancel}
               disabled={loading}
               style={[modalStyles.btn, cancelStyles.destructiveBtn]}
               accessibilityRole="button"
-              accessibilityLabel="Confirm cancellation"
+              accessibilityLabel={t('buttons.cancel_booking')}
             >
               {loading ? (
                 <ActivityIndicator size="small" color={BK.white} />
               ) : (
-                <Text style={cancelStyles.destructiveBtnText}>Cancel Booking</Text>
+                <Text style={cancelStyles.destructiveBtnText}>{t('buttons.cancel_booking')}</Text>
               )}
             </Pressable>
           </View>
@@ -1782,10 +1848,11 @@ export function QRCodeModal({
   checkOut?: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `LuxSty Booking: ${bookingRef}\nHotel: ${hotelName ?? 'Hotel'}\nRoom: ${roomType ?? ''}${roomNumber ? ` #${roomNumber}` : ''}\nDates: ${checkIn ?? ''} - ${checkOut ?? ''}\nGuest: ${guestName ?? ''}`,
+        message: `LuxSty Booking: ${bookingRef}\n${t('common.hotel')}: ${hotelName ?? 'Hotel'}\n${t('common.room')}: ${roomType ?? ''}${roomNumber ? ` #${roomNumber}` : ''}\n${t('booking.dates')}: ${checkIn ?? ''} - ${checkOut ?? ''}\nGuest: ${guestName ?? ''}`,
       });
     } catch { /* share cancelled */ }
   };
@@ -1793,7 +1860,7 @@ export function QRCodeModal({
   const handleSave = async () => {
     try {
       await Share.share({
-        message: `Booking: ${bookingRef} | ${hotelName ?? 'Hotel'} | Room: ${roomType ?? ''}${roomNumber ? ` #${roomNumber}` : ''} | ${checkIn ?? ''} → ${checkOut ?? ''} | Guest: ${guestName ?? ''}`,
+        message: `${t('bookingComponents.booking')}: ${bookingRef} | ${hotelName ?? 'Hotel'} | ${t('common.room')}: ${roomType ?? ''}${roomNumber ? ` #${roomNumber}` : ''} | ${checkIn ?? ''} → ${checkOut ?? ''} | Guest: ${guestName ?? ''}`,
       });
     } catch { /* share cancelled */ }
   };
@@ -1805,8 +1872,8 @@ export function QRCodeModal({
           <Pressable onPress={onClose} style={qrModalStyles.closeBtn} hitSlop={10}>
             <Ionicons name="close" size={22} color={BK.navy} />
           </Pressable>
-          <Text style={qrModalStyles.title}>Check-in QR Code</Text>
-          <Text style={qrModalStyles.subtitle}>Show this QR code at hotel reception to check in.</Text>
+          <Text style={qrModalStyles.title}>{t('bookingDetail.qr_title')}</Text>
+          <Text style={qrModalStyles.subtitle}>{t('bookingComponents.qr_sub')}</Text>
 
           <View style={qrModalStyles.qrCardWrap}>
             <QRCodeCard bookingRef={bookingRef} guestName={guestName} />
@@ -1816,7 +1883,7 @@ export function QRCodeModal({
             <View style={qrModalStyles.infoRow}>
               <Ionicons name="bed-outline" size={14} color={BK.navyMuted} />
               <Text style={qrModalStyles.infoText}>
-                {roomType ?? 'Room'}{roomNumber ? ` #${roomNumber}` : ''}
+                {roomType ?? t('common.room')}{roomNumber ? ` #${roomNumber}` : ''}
               </Text>
             </View>
             {(checkIn || checkOut) && (
@@ -1832,19 +1899,19 @@ export function QRCodeModal({
               onPress={handleSave}
               style={[modalStyles.btn, modalStyles.btnSecondary]}
               accessibilityRole="button"
-              accessibilityLabel="Save QR code"
+              accessibilityLabel={t('common.save')}
             >
               <Ionicons name="download-outline" size={18} color={BK.navy} />
-              <Text style={modalStyles.btnSecondaryText}>Save</Text>
+              <Text style={modalStyles.btnSecondaryText}>{t('common.save')}</Text>
             </Pressable>
             <Pressable
               onPress={handleShare}
               style={[modalStyles.btn, modalStyles.btnPrimary]}
               accessibilityRole="button"
-              accessibilityLabel="Share QR code"
+              accessibilityLabel={t('common.share')}
             >
               <Ionicons name="share-outline" size={18} color={BK.white} />
-              <Text style={modalStyles.btnPrimaryText}>Share</Text>
+              <Text style={modalStyles.btnPrimaryText}>{t('common.share')}</Text>
             </Pressable>
           </View>
         </View>
@@ -1897,6 +1964,7 @@ export function BookingSummary({
   cancellationHours?: number;
   style?: ViewStyle;
 }) {
+  const { t } = useTranslation();
   const isCash = paymentMethod === 'CASH_AT_HOTEL';
   return (
     <View style={[bs.container, style]}>
@@ -1911,31 +1979,31 @@ export function BookingSummary({
       <DateStrip checkIn={checkIn} checkOut={checkOut} nights={nights} />
 
       <View style={bs.card}>
-        <Text style={bs.cardTitle}>Guest Information</Text>
+        <Text style={bs.cardTitle}>{t('bookingComponents.guest_info')}</Text>
         <View style={bs.row}>
-          <Text style={bs.label}>Lead Guest</Text>
+          <Text style={bs.label}>{t('bookingFlow.lead_guest')}</Text>
           <Text style={bs.val}>{leadGuestName}</Text>
         </View>
         {leadGuestEmail ? (
           <View style={bs.row}>
-            <Text style={bs.label}>Email</Text>
+            <Text style={bs.label}>{t('common.email')}</Text>
             <Text style={bs.val}>{leadGuestEmail}</Text>
           </View>
         ) : null}
         {leadGuestPhone ? (
           <View style={bs.row}>
-            <Text style={bs.label}>Phone</Text>
+            <Text style={bs.label}>{t('common.phone')}</Text>
             <Text style={bs.val}>{leadGuestPhone}</Text>
           </View>
         ) : null}
         <View style={bs.row}>
-          <Text style={bs.label}>Party</Text>
-          <Text style={bs.val}>{adults} Adult{adults !== 1 ? 's' : ''}{children > 0 ? `, ${children} Child${children !== 1 ? 'ren' : ''}` : ''}</Text>
+          <Text style={bs.label}>{t('bookingComponents.party')}</Text>
+          <Text style={bs.val}>{adults} {adults !== 1 ? t('bookingFlow.adults') : 'Adult'}{children > 0 ? `, ${children} ${children !== 1 ? t('bookingFlow.children') : 'Child'}` : ''}</Text>
         </View>
       </View>
 
       <View style={bs.card}>
-        <Text style={bs.cardTitle}>Price Breakdown</Text>
+        <Text style={bs.cardTitle}>{t('bookingComponents.price_breakdown')}</Text>
         <PriceBreakdown
           basePrice={nights > 0 ? subtotal / nights : subtotal}
           nights={nights}
@@ -1946,13 +2014,13 @@ export function BookingSummary({
         {promoCode ? (
           <View style={bs.promoRow}>
             <Ionicons name="pricetag-outline" size={13} color={BK.confirmed} />
-            <Text style={bs.promoText}>Promo applied: {promoCode}</Text>
+            <Text style={bs.promoText}>{t('bookingComponents.promo_applied_code', { code: promoCode })}</Text>
           </View>
         ) : null}
       </View>
 
       <View style={bs.card}>
-        <Text style={bs.cardTitle}>Payment Selection</Text>
+        <Text style={bs.cardTitle}>{t('bookingComponents.payment_selection')}</Text>
         <View style={bs.row}>
           <View style={bs.payMethod}>
             <Ionicons name={isCash ? 'cash-outline' : 'card-outline'} size={18} color={BK.navy} />
@@ -1960,12 +2028,12 @@ export function BookingSummary({
           </View>
           <View style={[bs.payBadge, { backgroundColor: isCash ? BK.confirmedBg : BK.checkedInBg }]}>
             <Text style={[bs.payBadgeText, { color: isCash ? BK.confirmed : BK.checkedIn }]}>
-              {isCash ? 'PAY AT HOTEL' : 'ONLINE PAYMENT'}
+              {isCash ? t('payment.pay_at_hotel') : t('payment.online_payment')}
             </Text>
           </View>
         </View>
         {isCash && (
-          <Text style={bs.cashNote}>You can pay at the hotel reception during your stay.</Text>
+          <Text style={bs.cashNote}>{t('payment.pay_at_reception')}</Text>
         )}
       </View>
 
@@ -2063,7 +2131,7 @@ export function NotificationItem({
   date,
   isUnread,
   onPress,
-  viewLabel = 'View booking →',
+  viewLabel,
   style,
 }: {
   icon?: string;
@@ -2076,6 +2144,7 @@ export function NotificationItem({
   viewLabel?: string;
   style?: ViewStyle;
 }) {
+  const { t } = useTranslation();
   return (
     <Pressable
       onPress={onPress}
@@ -2097,7 +2166,7 @@ export function NotificationItem({
           </View>
           <Text style={ni.text} numberOfLines={2}>{body}</Text>
           {onPress && (
-            <Text style={ni.link}>{viewLabel}</Text>
+            <Text style={ni.link}>{viewLabel ?? t('buttons.view_booking_arrow')}</Text>
           )}
         </View>
       </View>

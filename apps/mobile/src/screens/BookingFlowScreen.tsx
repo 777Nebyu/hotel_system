@@ -81,7 +81,7 @@ export default function BookingFlowScreen() {
     quoteData, quoteTotal, bookingId, bookingRef,
     hotelName: flowHotelName, idempotencyKey, holdExpiresAt,
   } = useAppSelector((s) => s.bookingFlow);
-  const hotelName = flowHotelName || route.params.hotelName || 'Hotel';
+  const hotelName = flowHotelName || route.params.hotelName || t('common.hotel');
   const token = session?.accessToken ?? '';
 
   const { hotelId, roomId, roomType, roomCapacity: routeCapacity, checkIn: routeCheckIn, checkOut: routeCheckOut, promoCode: routePromoCode } = route.params;
@@ -142,7 +142,7 @@ export default function BookingFlowScreen() {
             dispatch(setBookingId(pendingId));
             fetchAndStoreBookingRef(pendingId);
             hapticError();
-            Alert.alert(t('bookingFlow.paymentFailed'), 'Payment was not approved.', [
+            Alert.alert(t('bookingFlow.paymentFailed'), t('bookingFlow.payment_not_approved'), [
               { text: t('bookingFlow.retryPayment'), onPress: () => retryPayment(pendingId) },
               { text: t('bookingFlow.changeMethod'), onPress: () => { setPaymentFailed(false); dispatch(setStep('payment')); } },
               { text: t('bookingFlow.cancel'), style: 'cancel' },
@@ -220,11 +220,11 @@ export default function BookingFlowScreen() {
       dispatch(setQuoteData(data));
       dispatch(setQuote({ total: data.total, subtotal: data.subtotal, discount: data.discount }));
       const discountPct = data.discount > 0 ? ` — ETB ${Number(data.discount).toLocaleString()} off` : '';
-      Alert.alert(t('bookingFlow.applied'), `${code} applied${discountPct}. Total: ETB ${Number(data.total).toLocaleString()}`);
+      Alert.alert(t('bookingFlow.applied'), t('bookingFlow.applied_total', { code, discount: discountPct, total: Number(data.total).toLocaleString() }));
     } catch (err: any) {
       const classified = classifyAndAnnounce(err);
-      const msg = (err instanceof ApiError ? err.message : '') || classified.title || 'This promo code is not valid or has expired.';
-      Alert.alert('Invalid Promo Code', msg);
+      const msg = (err instanceof ApiError ? err.message : '') || classified.title || t('errors.something_went_wrong');
+      Alert.alert(t('bookingFlow.invalid_promo'), msg);
     } finally {
       setPromoLoading(false);
     }
@@ -311,7 +311,7 @@ export default function BookingFlowScreen() {
     const totalGuests = (parseInt(adults) || 1) + (parseInt(childrenCount) || 0);
     if (roomCapacity > 0 && totalGuests > roomCapacity) {
       Alert.alert(
-        'Capacity Exceeded',
+        t('roomDetail.capacity_exceeded'),
         `This room cannot accommodate the selected guests (${totalGuests} guests for a room capacity of ${roomCapacity}). Please reduce the guest count.`,
       );
       return;
@@ -377,14 +377,14 @@ export default function BookingFlowScreen() {
       const errors: Record<string, string | undefined> = {};
       err.errors?.forEach((e: any) => { errors[e.path?.[0]] = e.message; });
       setFieldErrors(errors);
-      const msg = err.errors?.[0]?.message ?? 'Please fill in all required fields.';
+      const msg = err.errors?.[0]?.message ?? t('errors.missing_details');
       return Alert.alert(t('bookingFlow.guestRequired'), msg);
     }
 
     const totalGuests = (parseInt(adults) || 1) + (parseInt(childrenCount) || 0);
     if (roomCapacity > 0 && totalGuests > roomCapacity) {
       return Alert.alert(
-        'Capacity Exceeded',
+        t('roomDetail.capacity_exceeded'),
         'This room cannot accommodate the selected guests. Please reduce the guest count.',
       );
     }
@@ -402,10 +402,10 @@ export default function BookingFlowScreen() {
   // Create Booking with Concurrency & Cash-at-Hotel handling (§13, §14, §15)
   const createBooking = async () => {
     if (isOffline) {
-      return Alert.alert('Offline', 'Cannot complete booking while offline. Please connect to the internet.');
+      return Alert.alert(t('common.offline'), t('errors.check_connection'));
     }
     if (!session?.user) {
-      return Alert.alert('Sign In Required', 'Please sign in to complete your booking.');
+      return Alert.alert(t('common.sign_in_required'), t('bookingFlow.signin_booking'));
     }
 
     setLoading(true);
@@ -429,7 +429,7 @@ export default function BookingFlowScreen() {
             idNumber: guestIdNumber.trim() || undefined,
           }],
           specialRequests: specialRequests.trim() || undefined,
-          paymentMethod,
+          paymentMethod: paymentMethod === 'CASH_AT_HOTEL' ? 'CASH' : paymentMethod,
           idempotencyKey,
         };
         if (promoToConfirm) body.promoCode = promoToConfirm;
@@ -448,7 +448,7 @@ export default function BookingFlowScreen() {
             idNumber: guestIdNumber.trim() || undefined,
           }],
           specialRequests: specialRequests.trim() || undefined,
-          paymentMethod,
+          paymentMethod: paymentMethod === 'CASH_AT_HOTEL' ? 'CASH' : paymentMethod,
           idempotencyKey,
         };
         if (promoToConfirm) body.promoCode = promoToConfirm;
@@ -542,7 +542,7 @@ export default function BookingFlowScreen() {
       }
 
       const classified = classifyAndAnnounce(err);
-      const errorMsg = (err instanceof ApiError ? err.message : '') || classified.title || 'Could not complete booking. Please try again.';
+      const errorMsg = (err instanceof ApiError ? err.message : '') || classified.title || t('errors.something_went_wrong');
       setPaymentFailed(true);
       setPaymentError(errorMsg);
       Alert.alert(t('bookingFlow.bookingFailed'), errorMsg);
@@ -622,15 +622,15 @@ export default function BookingFlowScreen() {
         if (await Sharing.isAvailableAsync()) {
           await Sharing.shareAsync(file.uri, {
             mimeType: 'application/pdf',
-            dialogTitle: 'Download Invoice',
+            dialogTitle: t('bookingDetail.downloadInvoice'),
           });
         } else {
-          Alert.alert('Invoice Saved', `Saved to ${file.uri}`);
+          Alert.alert(t('bookingFlow.invoice_saved'), `${t('bookingDetail.invoiceSaved')} ${file.uri}`);
         }
       };
       reader.readAsDataURL(blob);
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'Could not download invoice.');
+      Alert.alert(t('common.error'), err?.message ?? t('bookingDetail.download_failed'));
     } finally {
       setDownloadingInvoice(false);
     }
@@ -649,10 +649,10 @@ export default function BookingFlowScreen() {
       notes: `Booking reference: ${bookingRef ?? bookingId ?? ''}\nRoom: ${roomType ?? ''}`,
     });
     if (ok) {
-      Alert.alert('Added to Calendar', 'Reservation has been added to your calendar.');
+      Alert.alert(t('bookingFlow.added_calendar'), t('bookingFlow.calendar_msg'));
     } else {
       Alert.alert(
-        'Added to Calendar',
+        t('bookingFlow.added_calendar'),
         `Reservation added:\nHotel: ${hotelName}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}`,
       );
     }
@@ -690,7 +690,7 @@ export default function BookingFlowScreen() {
     >
       <StatusBar barStyle={dark ? 'light-content' : 'dark-content'} />
       <Pressable onPress={navigateBack} style={styles.backTouch} hitSlop={8}>
-        <Text style={[styles.backText, { color: c.teal }]}>{'< Back'}</Text>
+        <Text style={[styles.backText, { color: c.teal }]}>{'< '}{t('common.back')}</Text>
       </Pressable>
 
       <Text {...textProps} style={[styles.title, { color: c.ink }]}>{t('bookingFlow.title')}</Text>
@@ -752,7 +752,7 @@ export default function BookingFlowScreen() {
             <TextInput
               value={promoCode}
               onChangeText={(v) => dispatch(setPromoCode(v))}
-              placeholder="e.g. YAYE10"
+              placeholder={t('bookingFlow.promo_placeholder')}
               placeholderTextColor={c.inkMuted}
               style={[styles.input, styles.promoInput, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink }]}
               autoCapitalize="characters"
@@ -797,7 +797,7 @@ export default function BookingFlowScreen() {
           <TextInput
             value={guestFullName}
             onChangeText={(v) => { dispatch(setGuestFullName(v)); setFieldErrors((p) => ({ ...p, guestFullName: undefined })); }}
-            placeholder="John Doe"
+            placeholder={t('bookingFlow.name_placeholder')}
             placeholderTextColor={c.inkMuted}
             style={[styles.input, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink }, fieldErrors.guestFullName && styles.inputError]}
           />
@@ -807,7 +807,7 @@ export default function BookingFlowScreen() {
           <TextInput
             value={guestPhone}
             onChangeText={(v) => { dispatch(setGuestPhone(v)); setFieldErrors((p) => ({ ...p, guestPhone: undefined })); }}
-            placeholder="+251 9XX XXX XXX"
+            placeholder={t('bookingFlow.phone_placeholder')}
             placeholderTextColor={c.inkMuted}
             style={[styles.input, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink }, fieldErrors.guestPhone && styles.inputError]}
             keyboardType="phone-pad"
@@ -819,7 +819,7 @@ export default function BookingFlowScreen() {
           <TextInput
             value={guestEmail}
             onChangeText={(v) => { dispatch(setGuestEmail(v)); setFieldErrors((p) => ({ ...p, guestEmail: undefined })); }}
-            placeholder="john@example.com"
+            placeholder={t('bookingFlow.email_placeholder')}
             placeholderTextColor={c.inkMuted}
             style={[styles.input, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink }, fieldErrors.guestEmail && styles.inputError]}
             keyboardType="email-address"
@@ -831,12 +831,12 @@ export default function BookingFlowScreen() {
           <TextInput
             value={guestNationality}
             onChangeText={(v) => dispatch(setGuestNationality(v))}
-            placeholder="Ethiopian"
+            placeholder={t('bookingFlow.nationality_placeholder')}
             placeholderTextColor={c.inkMuted}
             style={[styles.input, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink }]}
           />
 
-          <Text style={[styles.label, { color: c.inkSoft }]}>ID Type</Text>
+          <Text style={[styles.label, { color: c.inkSoft }]}>{t('bookingFlow.id_type')}</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
             {['PASSPORT', 'NATIONAL_ID', 'DRIVERS_LICENSE'].map((t2) => (
               <TouchableOpacity
@@ -856,11 +856,11 @@ export default function BookingFlowScreen() {
             ))}
           </View>
 
-          <Text style={[styles.label, { color: c.inkSoft }]}>ID Number</Text>
+          <Text style={[styles.label, { color: c.inkSoft }]}>{t('bookingFlow.id_number')}</Text>
           <TextInput
             value={guestIdNumber}
             onChangeText={(v) => dispatch(setGuestIdNumber(v))}
-            placeholder="Enter ID number"
+            placeholder={t('bookingFlow.id_placeholder')}
             placeholderTextColor={c.inkMuted}
             style={[styles.input, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink }]}
             autoCapitalize="characters"
@@ -870,7 +870,7 @@ export default function BookingFlowScreen() {
           <TextInput
             value={specialRequests}
             onChangeText={(v) => dispatch(setSpecialRequests(v))}
-            placeholder="Quiet room, extra pillow, late arrival..."
+            placeholder={t('bookingFlow.special_placeholder')}
             placeholderTextColor={c.inkMuted}
             style={[styles.input, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink, minHeight: 70 }]}
             multiline
@@ -885,13 +885,13 @@ export default function BookingFlowScreen() {
           </Pressable>
 
           <Button
-            title="Continue to Payment"
+            title={t('bookingFlow.continue_payment')}
             onPress={continueToPayment}
             disabled={!houseRulesAccepted || isOffline}
           />
           <Button
             variant="secondary"
-            title="Back to Dates"
+            title={t('bookingFlow.back_dates')}
             onPress={() => dispatch(setStep('dates'))}
           />
         </Card>
@@ -905,8 +905,8 @@ export default function BookingFlowScreen() {
             <View style={[styles.securingBanner, { backgroundColor: BK.pendingBg, borderColor: BK.pendingBd }]}>
               <ActivityIndicator size="small" color={BK.pending} />
               <View style={styles.securingContent}>
-                <Text style={[styles.securingTitle, { color: BK.pending }]}>Securing your room...</Text>
-                <Text style={[styles.securingSub, { color: BK.textSec }]}>Please wait while we reserve your room.</Text>
+                <Text style={[styles.securingTitle, { color: BK.pending }]}>{t('payment.securing_room')}</Text>
+                <Text style={[styles.securingSub, { color: BK.textSec }]}>{t('payment.securing_room_sub')}</Text>
               </View>
             </View>
           ) : holdExpiresAt ? (
@@ -921,9 +921,9 @@ export default function BookingFlowScreen() {
 
           <Card style={[styles.card, { backgroundColor: c.surface }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <Text style={[styles.sectionTitle, { color: c.ink, marginBottom: 0 }]}>Select Payment Method</Text>
+              <Text style={[styles.sectionTitle, { color: c.ink, marginBottom: 0 }]}>{t('bookingFlow.select_payment')}</Text>
               <Text style={{ fontSize: 15, fontWeight: '700', color: c.teal }}>
-                Total: ETB {Number(quoteTotal ?? quoteData.total).toLocaleString()}
+                {t('common.total')}: ETB {Number(quoteTotal ?? quoteData.total).toLocaleString()}
               </Text>
             </View>
             <PaymentMethodSelector
@@ -934,7 +934,7 @@ export default function BookingFlowScreen() {
 
           {paymentFailed && (
             <Card style={[styles.paymentErrorCard, { backgroundColor: BK.cancelledBg, borderColor: BK.cancelledBd }]}>
-              <Text style={[styles.paymentErrorTitle, { color: BK.cancelled }]}>⚠️ Payment Unsuccessful</Text>
+              <Text style={[styles.paymentErrorTitle, { color: BK.cancelled }]}>⚠️ {t('payment.payment_failed')}</Text>
               <Text style={[styles.paymentErrorDesc, { color: BK.cancelled }]}>
                 {paymentError || t('bookingFlow.paymentFailedReason')}
               </Text>
@@ -943,13 +943,13 @@ export default function BookingFlowScreen() {
 
           <View style={styles.ctaGroup}>
             <Button
-              title="Review Reservation"
+              title={t('bookingFlow.review_reservation')}
               onPress={() => dispatch(setStep('review'))}
               disabled={isOffline}
             />
             <Button
               variant="secondary"
-              title="Back to Guest Details"
+              title={t('bookingFlow.back_guest')}
               onPress={() => dispatch(setStep('guests'))}
             />
           </View>
@@ -972,7 +972,7 @@ export default function BookingFlowScreen() {
 
           {paymentFailed && (
             <Card style={[styles.paymentErrorCard, { backgroundColor: BK.cancelledBg, borderColor: BK.cancelledBd }]}>
-              <Text style={[styles.paymentErrorTitle, { color: BK.cancelled }]}>⚠️ Booking / Payment Unsuccessful</Text>
+              <Text style={[styles.paymentErrorTitle, { color: BK.cancelled }]}>⚠️ {t('payment.payment_failed')}</Text>
               <Text style={[styles.paymentErrorDesc, { color: BK.cancelled }]}>
                 {paymentError || t('bookingFlow.paymentFailedReason')}
               </Text>
@@ -1007,46 +1007,46 @@ export default function BookingFlowScreen() {
             <Text style={styles.doneCheck}>✓</Text>
           </View>
           <Text {...textProps} style={[styles.doneTitle, { color: c.ink }]}>
-            Booking Confirmed
+            {t('bookingFlow.confirmed')}
           </Text>
           <Text style={[styles.doneSubtitle, { color: c.inkMuted }]}>
             {paymentMethod === 'CASH_AT_HOTEL'
               ? 'Your reservation is ready. Settle the full amount at hotel reception during check-in.'
-              : 'Your payment was successfully completed. We look forward to welcoming you.'}
+              : t('bookingFlow.payment_success_msg')}
           </Text>
 
           {/* Details summary */}
           <View style={styles.doneDetails}>
             <View style={styles.doneRow}>
-              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>Booking Reference</Text>
+              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>{t('bookingFlow.booking_ref')}</Text>
               <Text style={[styles.doneValueBold, { color: BK.navy }]}>{bookingRef || bookingId?.slice(0, 8).toUpperCase() || ''}</Text>
             </View>
             <View style={styles.doneRow}>
-              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>Hotel</Text>
+              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>{t('common.hotel')}</Text>
               <Text style={[styles.doneValue, { color: c.ink }]}>{hotelName}</Text>
             </View>
             <View style={styles.doneRow}>
-              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>Check-in</Text>
+              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>{t('booking.check_in')}</Text>
               <Text style={[styles.doneValue, { color: c.ink }]}>{checkIn}</Text>
             </View>
             <View style={styles.doneRow}>
-              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>Check-out</Text>
+              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>{t('booking.check_out')}</Text>
               <Text style={[styles.doneValue, { color: c.ink }]}>{checkOut}</Text>
             </View>
             <View style={styles.doneRow}>
-              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>Lead Guest</Text>
+              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>{t('bookingFlow.lead_guest')}</Text>
               <Text style={[styles.doneValue, { color: c.ink }]}>{guestFullName}</Text>
             </View>
             <View style={styles.doneRow}>
-              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>Total (Locked Price)</Text>
+              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>{t('bookingFlow.total_locked')}</Text>
               <Text style={[styles.doneValueBold, { color: BK.confirmed }]}>
                 ETB {quoteTotal != null ? Number(quoteTotal).toLocaleString() : '0'}
               </Text>
             </View>
             <View style={styles.doneRow}>
-              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>Payment Status</Text>
+              <Text style={[styles.doneLabel, { color: c.inkMuted }]}>{t('bookingFlow.payment_status')}</Text>
               <Text style={[styles.doneValueBold, { color: paymentMethod === 'CASH_AT_HOTEL' ? BK.navy : BK.confirmed }]}>
-                {paymentMethod === 'CASH_AT_HOTEL' ? 'Pay at Hotel' : 'Paid'}
+                {paymentMethod === 'CASH_AT_HOTEL' ? t('payment.pay_at_hotel_banner') : t('bookingFlow.paid')}
               </Text>
             </View>
           </View>
@@ -1062,7 +1062,7 @@ export default function BookingFlowScreen() {
           {/* Actions (§18) */}
           <View style={styles.doneActions}>
             <Button
-              title="View Booking"
+              title={t('buttons.view_booking')}
               onPress={() => {
                 dispatch(resetBooking());
                 navigation.navigate('BookingDetail', { bookingId: bookingId ?? '' });
@@ -1070,17 +1070,17 @@ export default function BookingFlowScreen() {
             />
             <Button
               variant="secondary"
-              title="Show Full QR Code"
+              title={t('buttons.show_full_qr')}
               onPress={() => setShowQRModal(true)}
             />
             <Button
               variant="secondary"
-              title="Add to Calendar"
+              title={t('buttons.add_to_calendar')}
               onPress={addToCalendar}
             />
             <Button
               variant="secondary"
-              title={downloadingInvoice ? 'Downloading…' : 'Download Invoice'}
+              title={t('bookingDetail.downloadInvoice')}
               onPress={downloadInvoice}
               loading={downloadingInvoice}
             />
@@ -1093,7 +1093,7 @@ export default function BookingFlowScreen() {
             }}
             style={styles.keepExploringBtn}
           >
-            <Text style={[styles.keepExploring, { color: c.teal }]}>Keep Exploring</Text>
+            <Text style={[styles.keepExploring, { color: c.teal }]}>{t('bookingFlow.keep_exploring')}</Text>
           </Pressable>
         </Card>
       )}
@@ -1140,7 +1140,7 @@ export default function BookingFlowScreen() {
         <View style={stickyStyles.bar}>
           <View style={stickyStyles.inner}>
             <View style={stickyStyles.priceInfo}>
-              <Text style={stickyStyles.totalLabel}>Total</Text>
+              <Text style={stickyStyles.totalLabel}>{t('common.total')}</Text>
               <Text style={stickyStyles.totalValue}>
                 ETB {quoteTotal != null ? Number(quoteTotal).toLocaleString() : '0'}
               </Text>
@@ -1148,12 +1148,12 @@ export default function BookingFlowScreen() {
             <PrimaryButton
               label={
                 paymentProcessing
-                  ? 'Processing…'
+                  ? t('bookingDetail.processing')
                   : loading
-                  ? 'Confirming…'
+                  ? t('bookingDetail.processing')
                   : paymentMethod === 'CASH_AT_HOTEL'
-                  ? 'Confirm Booking'
-                  : `Confirm & Pay ETB ${quoteTotal != null ? Number(quoteTotal).toLocaleString() : '0'}`
+                  ? t('bookingFlow.confirmBooking')
+                  : `${t('buttons.confirm')} & Pay ETB ${quoteTotal != null ? Number(quoteTotal).toLocaleString() : '0'}`
               }
               onPress={createBooking}
               loading={loading || paymentProcessing}
@@ -1166,7 +1166,7 @@ export default function BookingFlowScreen() {
             disabled={loading || paymentProcessing}
             style={stickyStyles.changeMethod}
           >
-            <Text style={stickyStyles.changeMethodText}>Change Payment Method</Text>
+            <Text style={stickyStyles.changeMethodText}>{t('buttons.change_payment_method')}</Text>
           </Pressable>
         </View>
       )}

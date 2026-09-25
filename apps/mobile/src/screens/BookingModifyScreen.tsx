@@ -89,7 +89,7 @@ export default function BookingModifyScreen() {
   useEffect(() => { void fetchNewQuote(); }, [fetchNewQuote]);
 
   const saveChanges = async () => {
-    if (isOffline) return Alert.alert('Offline', 'Cannot modify booking while offline. Please connect to the internet.');
+    if (isOffline) return       Alert.alert(t('bookingModify.offline'), t('bookingModify.offline_msg'));
     if (!checkIn || !checkOut) {
       const errs: Record<string, string | undefined> = {};
       if (!checkIn) errs.checkIn = 'Check-in date is required.';
@@ -100,14 +100,14 @@ export default function BookingModifyScreen() {
     // BOOKMOD-001: New check-in < new check-out
     if (new Date(checkIn) >= new Date(checkOut)) {
       setFieldErrors({ checkOut: 'Check-out must be after check-in.' });
-      return Alert.alert(t('bookingModify.error'), 'Check-out must be after check-in.');
+      return Alert.alert(t('bookingModify.error'), t('bookingModify.checkout_after_checkin'));
     }
     // BOOKMOD-001: New dates are today or in the future
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (new Date(checkIn) < today) {
       setFieldErrors({ checkIn: 'Check-in date must be today or in the future.' });
-      return Alert.alert(t('bookingModify.error'), 'Check-in date must be today or in the future.');
+      return Alert.alert(t('bookingModify.error'), t('bookingModify.checkin_future'));
     }
     setFieldErrors({});
     setSaving(true);
@@ -182,7 +182,7 @@ export default function BookingModifyScreen() {
           <Text style={styles.currentTotal}>Current total: ETB {booking.totalPrice}</Text>
           {newQuote && (
             <>
-              <Text style={styles.newTotal}>New total: ETB {newQuote.total}</Text>
+              <Text style={styles.newTotal}>{t('bookingModify.newTotal')}: ETB {newQuote.total}</Text>
               {newQuote.total !== Number(booking.totalPrice) && (
                 <Text style={[styles.priceDiff, { color: newQuote.total > Number(booking.totalPrice) ? colors.brick : colors.teal }]}>
                   {newQuote.total > Number(booking.totalPrice) ? 'Additional: ' : 'Savings: '}ETB {Math.abs(newQuote.total - Number(booking.totalPrice)).toFixed(2)}
@@ -190,7 +190,7 @@ export default function BookingModifyScreen() {
               )}
             </>
           )}
-          {quoteLoading && <Text style={styles.quoteLoading}>Fetching new quote…</Text>}
+          {quoteLoading && <Text style={styles.quoteLoading}>{t('bookingModify.fetching_quote')}</Text>}
         </View>
       </Card>
 

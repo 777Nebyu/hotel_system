@@ -544,7 +544,7 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
             { icon: 'person-add-outline', color: GOLD,    bg: GOLD_LIGHT,    label: 'Walk-in Guest',    screen: 'WalkInBooking',                    roles: ['MANAGER','STAFF','ADMIN'] },
             { icon: 'bed-outline',        color: BLUE,    bg: BLUE_BG,       label: 'Room Mgmt',        screen: 'ManagerRooms',                     roles: ['MANAGER','ADMIN'] },
             { icon: 'key-outline',        color: SUCCESS, bg: SUCCESS_BG,    label: 'Check-in',         screen: 'ManagerBookings',                  roles: ['MANAGER','STAFF','ADMIN'] },
-            { icon: 'receipt-outline',    color: WARNING, bg: WARNING_BG,    label: 'Billing',          screen: 'ManagerBilling',                   roles: ['MANAGER'] },
+            { icon: 'receipt-outline',    color: WARNING, bg: WARNING_BG,    label: 'Billing',          screen: 'ManagerBilling',                   roles: ['MANAGER','STAFF'] },
             { icon: 'stats-chart',        color: EMERALD, bg: EMERALD_LIGHT, label: 'Reports',          screen: 'ManagerReports',                   roles: ['MANAGER'] },
           ]
             .filter(a => a.roles.includes(userRole))
@@ -722,7 +722,7 @@ export default function ManagerOverviewScreen({ onBack, onNavigate }: Props) {
           { icon: 'grid',              activeIcon: 'grid',              label: 'Dashboard', screen: 'ManagerOverview',  active: true  },
           { icon: 'calendar-outline',  activeIcon: 'calendar',          label: 'Bookings',  screen: 'ManagerBookings',  active: false },
           ...(userRole !== 'STAFF' ? [{ icon: 'bed-outline', activeIcon: 'bed', label: 'Rooms', screen: 'ManagerRooms', active: false }] : []),
-          { icon: 'people-outline',    activeIcon: 'people',            label: 'Guests',    screen: 'ManagerBookings',  active: false },
+          { icon: 'people-outline',    activeIcon: 'people',            label: 'Guests',    screen: 'ManagerGuests',  active: false },
           { icon: 'ellipsis-horizontal-outline', activeIcon: 'ellipsis-horizontal', label: 'More', screen: 'ManagerMore', active: false },
         ].map((tab, i) => (
           <Pressable

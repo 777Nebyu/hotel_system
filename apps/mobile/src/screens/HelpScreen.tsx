@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Linking,
   Pressable,
@@ -45,6 +46,7 @@ const FAQS: FAQ[] = [
 ];
 
 export default function HelpScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const { colors: themeColors } = useTheme();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -61,39 +63,39 @@ export default function HelpScreen() {
     <ScrollView style={[styles.container, { backgroundColor: themeColors.paper }]} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back">
-          <Text style={[styles.backText, { color: themeColors.teal }]}>← Back</Text>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('common.go_back_nav')}>
+          <Text style={[styles.backText, { color: themeColors.teal }]}>← {t('common.back')}</Text>
         </Pressable>
-        <Text style={[styles.title, { color: themeColors.ink }]}>Help & Support</Text>
-        <Text style={[styles.subtitle, { color: themeColors.inkMuted }]}>We are here 24/7 to assist with your stay</Text>
+        <Text style={[styles.title, { color: themeColors.ink }]}>{t('help.title')}</Text>
+        <Text style={[styles.subtitle, { color: themeColors.inkMuted }]}>{t('help.subtitle')}</Text>
       </View>
 
       {/* Emergency & Quick Contact */}
       <Card style={[styles.quickCard, { backgroundColor: themeColors.tealTint, borderColor: themeColors.teal }]}>
-        <Text style={[styles.quickTitle, { color: themeColors.tealDeep }]}>Need Immediate Assistance?</Text>
+        <Text style={[styles.quickTitle, { color: themeColors.tealDeep }]}>{t('help.immediate')}</Text>
         <Text style={[styles.quickSub, { color: themeColors.tealDeep }]}>
           Speak with our 24/7 concierge & guest support team.
         </Text>
         <View style={styles.btnRow}>
           <Button
-            title="📞 Call Support"
+            title={t('buttons.call_support')}
             size="sm"
             variant="primary"
             onPress={callHotline}
-            accessibilityLabel="Call support hotline"
+            accessibilityLabel={t('help.call_a11y')}
           />
           <Button
-            title="✉️ Send Message"
+            title={t('buttons.send_message')}
             size="sm"
             variant="secondary"
             onPress={() => navigation.navigate('ContactNew' as any, {})}
-            accessibilityLabel="Send message to support"
+            accessibilityLabel={t('help.send_a11y')}
           />
         </View>
       </Card>
 
       {/* FAQs */}
-      <Text style={[styles.sectionTitle, { color: themeColors.ink }]}>Frequently Asked Questions</Text>
+      <Text style={[styles.sectionTitle, { color: themeColors.ink }]}>{t('help.faq')}</Text>
       <View style={styles.faqList}>
         {FAQS.map((faq, idx) => {
           const isOpen = expandedIndex === idx;

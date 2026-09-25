@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { font, radius } from '../theme';
 import { useTheme } from '../hooks/useTheme';
@@ -78,6 +79,7 @@ export default function AvailabilityCalendar({
   onChange,
   onMonthChange,
 }: Props) {
+  const { t } = useTranslation();
   const { colors: c, colorScheme } = useTheme();
   const dark = colorScheme === 'dark';
 
@@ -107,7 +109,7 @@ export default function AvailabilityCalendar({
 
   const firstDow = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const t = today();
+  const todayDate = today();
   const nights = value.checkIn && value.checkOut ? nightsBetween(value.checkIn, value.checkOut) : 0;
 
   // Quick Preset Handlers
@@ -144,7 +146,7 @@ export default function AvailabilityCalendar({
     <View style={[styles.container, { backgroundColor: c.surface, borderColor: c.line }]}>
       {/* ── Quick Date Presets ── */}
       <View style={styles.presetsWrap}>
-        <Text style={[styles.presetHeader, { color: c.inkSoft }]}>Quick dates:</Text>
+        <Text style={[styles.presetHeader, { color: c.inkSoft }]}>{t('calendar.quick_dates')}</Text>
         <View style={styles.presetsRow}>
           <Pressable
             onPress={() => applyPreset(0, 1)}
@@ -154,7 +156,7 @@ export default function AvailabilityCalendar({
               pressed && { opacity: 0.7 },
             ]}
           >
-            <Text style={[styles.presetChipText, { color: c.teal }]}>Tonight (1 night)</Text>
+            <Text style={[styles.presetChipText, { color: c.teal }]}>{t('calendar.tonight')}</Text>
           </Pressable>
 
           <Pressable
@@ -165,7 +167,7 @@ export default function AvailabilityCalendar({
               pressed && { opacity: 0.7 },
             ]}
           >
-            <Text style={[styles.presetChipText, { color: c.ink }]}>Tomorrow (1 night)</Text>
+            <Text style={[styles.presetChipText, { color: c.ink }]}>{t('calendar.tomorrow')}</Text>
           </Pressable>
 
           <Pressable
@@ -187,7 +189,7 @@ export default function AvailabilityCalendar({
               pressed && { opacity: 0.7 },
             ]}
           >
-            <Text style={[styles.presetChipText, { color: c.goldDeep }]}>Weekend</Text>
+            <Text style={[styles.presetChipText, { color: c.goldDeep }]}>{t('calendar.weekend')}</Text>
           </Pressable>
         </View>
       </View>
@@ -199,7 +201,7 @@ export default function AvailabilityCalendar({
           disabled={isPastMonth}
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Previous month"
+          accessibilityLabel={t('common.previous_month')}
           style={[styles.navBtn, isPastMonth && { opacity: 0.3 }]}
         >
           <Ionicons name="chevron-back" size={20} color={c.ink} />
@@ -213,7 +215,7 @@ export default function AvailabilityCalendar({
           onPress={() => nav(1)}
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Next month"
+          accessibilityLabel={t('common.next_month')}
           style={styles.navBtn}
         >
           <Ionicons name="chevron-forward" size={20} color={c.ink} />
@@ -239,7 +241,7 @@ export default function AvailabilityCalendar({
           const mm = String(month + 1).padStart(2, '0');
           const date = `${year}-${mm}-${dd}`;
           const day = data.find((d) => d.date === date);
-          const past = date < t;
+          const past = date < todayDate;
           // Only mark unavailable if past OR explicitly false in backend overrides
           const unavailable = past || (day ? !day.available : false);
           const inRange = Boolean(
@@ -319,14 +321,14 @@ export default function AvailabilityCalendar({
             hitSlop={8}
             style={styles.clearBtn}
           >
-            <Text style={[styles.clearBtnText, { color: c.brick }]}>Reset</Text>
+            <Text style={[styles.clearBtnText, { color: c.brick }]}>{t('calendar.reset')}</Text>
           </Pressable>
         )}
       </View>
 
       {loading && (
         <View pointerEvents="none" style={[styles.loadingOverlay, { backgroundColor: c.surface + '99' }]}>
-          <Text style={[styles.loadingText, { color: c.inkSoft }]}>Checking room availability…</Text>
+          <Text style={[styles.loadingText, { color: c.inkSoft }]}>{t('calendar.checking')}</Text>
         </View>
       )}
     </View>

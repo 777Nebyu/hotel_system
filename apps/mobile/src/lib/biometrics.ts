@@ -1,5 +1,5 @@
 import * as LocalAuthentication from 'expo-local-authentication';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from './secureStorage';
 
 const BIOMETRIC_KEY = 'luxsty.biometric.enabled';
 const REFRESH_TOKEN_KEY = 'luxsty.biometric.refreshToken';

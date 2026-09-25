@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Animated, Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Button } from './Shared';
 import { font, radius } from '../theme';
 import { useTheme } from '../hooks/useTheme';
@@ -8,10 +9,10 @@ import { useTheme } from '../hooks/useTheme';
 const ROOM_TYPES = ['STANDARD', 'DELUXE', 'SUITE', 'FAMILY', 'EXECUTIVE'];
 const AMENITIES = ['Wi-Fi', 'Pool', 'Spa', 'Restaurant', 'Gym', 'Parking', 'Breakfast', 'Airport Shuttle', 'Pet Friendly', 'A/C'];
 const SORT_OPTIONS = [
-  { key: 'popularity', label: 'Popularity' },
-  { key: 'rating_desc', label: 'Highest rated' },
-  { key: 'price_asc', label: 'Price low–high' },
-  { key: 'price_desc', label: 'Price high–low' },
+  { key: 'popularity', labelKey: 'filters.popularity' },
+  { key: 'rating_desc', labelKey: 'filters.highest_rated' },
+  { key: 'price_asc', labelKey: 'filters.price_low' },
+  { key: 'price_desc', labelKey: 'filters.price_high' },
 ];
 
 export interface FilterValues {
@@ -39,6 +40,7 @@ type Props = {
 };
 
 export default function FilterPanel({ visible, onClose, values, onChange, onApply }: Props) {
+  const { t } = useTranslation();
   const { colors: c } = useTheme();
   const translateY = useRef(new Animated.Value(0)).current;
   const panResponder = useRef(
@@ -88,14 +90,14 @@ export default function FilterPanel({ visible, onClose, values, onChange, onAppl
             <View style={[fp.dragHandle, { backgroundColor: c.lineStrong }]} />
           </View>
           <View style={fp.header}>
-            <Text style={[fp.title, { color: c.ink }]}>Filters</Text>
+            <Text style={[fp.title, { color: c.ink }]}>{t('filters.title')}</Text>
             <Pressable onPress={onClose} hitSlop={8}><Text style={[fp.closeBtn, { color: c.inkMuted }]}>✕</Text></Pressable>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={fp.scrollContent}>
             {/* Sort by — horizontal scroll (OT.md §13) */}
             <View style={fp.section}>
-              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>Sort by</Text>
+              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>{t('filters.sort_by')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={fp.chipScroll}>
                 {SORT_OPTIONS.map((s) => (
                   <Pressable
@@ -104,33 +106,33 @@ export default function FilterPanel({ visible, onClose, values, onChange, onAppl
                     style={[fp.chip, { borderColor: c.line, backgroundColor: c.surface }, values.sort === s.key && [fp.chipActive, { borderColor: c.teal, backgroundColor: c.tealTint }]]}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: values.sort === s.key }}
-                    accessibilityLabel={s.label}
-                  >
-                    <Text style={[fp.chipText, { color: c.inkSoft }, values.sort === s.key && [fp.chipTextActive, { color: c.tealDeep }]]}>{s.label}</Text>
+                    accessibilityLabel={t(s.labelKey)}
+                    >
+                    <Text style={[fp.chipText, { color: c.inkSoft }, values.sort === s.key && [fp.chipTextActive, { color: c.tealDeep }]]}>{t(s.labelKey)}</Text>
                   </Pressable>
                 ))}
               </ScrollView>
             </View>
 
             <View style={fp.section}>
-              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>Country</Text>
+              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>{t('filters.country')}</Text>
               <TextInput
                 value={values.country}
-                onChangeText={(t) => onChange({ ...values, country: t })}
-                placeholder="Any country"
+                onChangeText={(t2) => onChange({ ...values, country: t2 })}
+                placeholder={t('filters.any_country')}
                 placeholderTextColor={c.inkMuted}
                 style={[fp.priceInput, { backgroundColor: c.surface, borderColor: c.lineStrong, color: c.ink }]}
               />
             </View>
 
             <View style={fp.section}>
-              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>Price per night (ETB)</Text>
+              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>{t('filters.price_night')}</Text>
               <View style={fp.priceRow}>
                 <View style={fp.priceField}>
-                  <Text style={[fp.fieldHint, { color: c.inkMuted }]}>Min</Text>
+                  <Text style={[fp.fieldHint, { color: c.inkMuted }]}>{t('filters.min')}</Text>
                   <TextInput
                     value={values.priceMin}
-                    onChangeText={(t) => onChange({ ...values, priceMin: t.replace(/\D/g, '') })}
+                    onChangeText={(t2) => onChange({ ...values, priceMin: t2.replace(/\D/g, '') })}
                     keyboardType="numeric"
                     placeholder="—"
                     placeholderTextColor={c.inkMuted}
@@ -139,10 +141,10 @@ export default function FilterPanel({ visible, onClose, values, onChange, onAppl
                 </View>
                 <Text style={[fp.priceDash, { color: c.inkMuted }]}>–</Text>
                 <View style={fp.priceField}>
-                  <Text style={[fp.fieldHint, { color: c.inkMuted }]}>Max</Text>
+                  <Text style={[fp.fieldHint, { color: c.inkMuted }]}>{t('filters.max')}</Text>
                   <TextInput
                     value={values.priceMax}
-                    onChangeText={(t) => onChange({ ...values, priceMax: t.replace(/\D/g, '') })}
+                    onChangeText={(t2) => onChange({ ...values, priceMax: t2.replace(/\D/g, '') })}
                     keyboardType="numeric"
                     placeholder="—"
                     placeholderTextColor={c.inkMuted}
@@ -153,7 +155,7 @@ export default function FilterPanel({ visible, onClose, values, onChange, onAppl
             </View>
 
             <View style={fp.section}>
-              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>Guest rating</Text>
+              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>{t('filters.guest_rating')}</Text>
               <View style={fp.ratingRow}>
                 {['4.5', '4', '3'].map((r) => (
                   <Pressable
@@ -172,7 +174,7 @@ export default function FilterPanel({ visible, onClose, values, onChange, onAppl
 
             {/* Guests — horizontal scroll (OT.md §13) */}
             <View style={fp.section}>
-              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>Guests</Text>
+              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>{t('filters.guests')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={fp.chipScroll}>
                 {['1', '2', '3', '4', '5+'].map((g) => (
                   <Pressable
@@ -191,7 +193,7 @@ export default function FilterPanel({ visible, onClose, values, onChange, onAppl
 
             {/* Room type — horizontal scroll (OT.md §13) */}
             <View style={fp.section}>
-              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>Room type</Text>
+              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>{t('filters.room_type')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={fp.chipScroll}>
                 {ROOM_TYPES.map((t) => (
                   <Pressable
@@ -211,7 +213,7 @@ export default function FilterPanel({ visible, onClose, values, onChange, onAppl
             </View>
 
             <View style={fp.section}>
-              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>Facilities</Text>
+              <Text style={[fp.sectionLabel, { color: c.inkSoft }]}>{t('filters.facilities')}</Text>
               {AMENITIES.map((a) => {
                 const checked = values.amenities.includes(a);
                 return (
@@ -227,9 +229,9 @@ export default function FilterPanel({ visible, onClose, values, onChange, onAppl
           </ScrollView>
 
           <View style={[fp.footer, { borderTopColor: c.line }]}>
-            <Button variant="secondary" size="sm" title="Clear all" onPress={() => onChange(EMPTY_FILTERS)} />
+            <Button variant="secondary" size="sm" title={t('filters.clear_all')} onPress={() => onChange(EMPTY_FILTERS)} />
             <View style={{ flex: 1 }} />
-            <Button size="sm" title="Apply filters" onPress={() => { onApply(); onClose(); }} />
+            <Button size="sm" title={t('filters.apply')} onPress={() => { onApply(); onClose(); }} />
           </View>
         </Animated.View>
       </View>

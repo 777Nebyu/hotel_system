@@ -20,6 +20,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Pressable,
@@ -36,13 +37,14 @@ import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useAppSelector } from '../store/hooks';
-import { request, requestBlob, refundPayment } from '../api';
+import { request, requestBlob, refundPayment, NetworkError } from '../api';
 import { classifyAndAnnounce } from '../errors';
 import { ErrorBox } from '../components/Shared';
 import { SkeletonDetail } from '../components/Skeleton';
 import type { Booking, Review } from '../types';
 import { hapticSuccess, hapticError, hapticMedium } from '../hooks/useHaptics';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { cacheQuery, getCachedQuery } from '../store/offlineCache';
 import { addBookingToCalendar } from '../lib/calendar';
 import { useTheme } from '../hooks/useTheme';
 import { useToast } from '../components/Toast';
@@ -73,23 +75,23 @@ type Nav   = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'BookingDetail'>;
 
 // ─── State-aware action map ──────────────────────────────────────────────────
-function getActions(status: string, canCancel: boolean): {
+function getActions(status: string, canCancel: boolean, t: (key: string) => string): {
   key: string; label: string; icon: string;
   variant: 'primary' | 'secondary' | 'danger' | 'ghost';
 }[] {
   switch (status) {
     case 'PENDING':
       return [
-        { key: 'payment', label: 'Complete Payment', icon: 'card-outline', variant: 'primary' },
-        ...(canCancel ? [{ key: 'cancel', label: 'Cancel Booking', icon: 'close-circle-outline', variant: 'danger' as const }] : []),
+        { key: 'payment', label: t('buttons.complete_payment'), icon: 'card-outline', variant: 'primary' },
+        ...(canCancel ? [{ key: 'cancel', label: t('buttons.cancel_booking'), icon: 'close-circle-outline', variant: 'danger' as const }] : []),
       ];
     case 'CONFIRMED':
       return [
         { key: 'qr',      label: 'Show QR Code',    icon: 'qr-code-outline',    variant: 'primary'   },
         { key: 'modify',  label: 'Modify Booking',   icon: 'create-outline',     variant: 'secondary' },
-        { key: 'calendar',label: 'Add to Calendar',  icon: 'calendar-outline',   variant: 'secondary' },
+        { key: 'calendar',label: t('buttons.add_to_calendar'),  icon: 'calendar-outline',   variant: 'secondary' },
         { key: 'contact', label: 'Contact Hotel',    icon: 'chatbubble-outline', variant: 'secondary' },
-        ...(canCancel ? [{ key: 'cancel', label: 'Cancel Booking', icon: 'close-circle-outline', variant: 'danger' as const }] : []),
+        ...(canCancel ? [{ key: 'cancel', label: t('buttons.cancel_booking'), icon: 'close-circle-outline', variant: 'danger' as const }] : []),
       ];
     case 'CHECKED_IN':
       return [
@@ -99,7 +101,7 @@ function getActions(status: string, canCancel: boolean): {
     case 'CHECKED_OUT':
       return [
         { key: 'receipt', label: 'View Receipt',     icon: 'receipt-outline',  variant: 'primary'   },
-        { key: 'invoice', label: 'Download Invoice', icon: 'download-outline', variant: 'secondary' },
+        { key: 'invoice', label: t('bookingDetail.downloadInvoice'), icon: 'download-outline', variant: 'secondary' },
         { key: 'review',  label: 'Leave a Review',   icon: 'star-outline',     variant: 'secondary' },
       ];
     case 'CANCELLED':
@@ -109,7 +111,7 @@ function getActions(status: string, canCancel: boolean): {
     case 'NO_SHOW':
       return [
         { key: 'dispute', label: 'Dispute No-Show', icon: 'alert-circle-outline', variant: 'secondary' },
-        { key: 'contact', label: 'Contact Support', icon: 'chatbubble-outline', variant: 'secondary' },
+        { key: 'contact', label: t('buttons.contact_support'), icon: 'chatbubble-outline', variant: 'secondary' },
       ];
     default:
       return [];
@@ -118,6 +120,7 @@ function getActions(status: string, canCancel: boolean): {
 
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function BookingDetailScreen() {
+  const { t } = useTranslation();
   const navigation    = useNavigation<Nav>();
   const route         = useRoute<Route>();
   const bookingId     = route.params.bookingId;
@@ -150,12 +153,19 @@ export default function BookingDetailScreen() {
       let b: Booking | null = null;
       try {
         b = await request<Booking>(`/bookings/${bookingId}`, { token });
-      } catch {
-        const res = await request<{ data: Booking[] }>('/bookings/my', { token });
-        b = (res.data ?? []).find((x) => x.id === bookingId) ?? null;
+        void cacheQuery(`booking-detail:${bookingId}`, b).catch(() => {});
+      } catch (err) {
+        if (!(err instanceof NetworkError)) throw err;
+        try {
+          const res = await request<{ data: Booking[] }>('/bookings/my', { token });
+          b = (res.data ?? []).find((x) => x.id === bookingId) ?? null;
+        } catch (fallbackErr) {
+          if (!(fallbackErr instanceof NetworkError)) throw fallbackErr;
+          b = await getCachedQuery<Booking>(`booking-detail:${bookingId}`, Number.MAX_SAFE_INTEGER);
+        }
       }
       setBooking(b);
-      if (!b) { setError('Booking not found.'); return; }
+      if (!b) { setError(t('bookingDetail.bookingNotFound')); return; }
 
       // Status history — non-blocking
       request<{ data: typeof statusHistory }>(
@@ -171,11 +181,11 @@ export default function BookingDetailScreen() {
           .catch(() => {});
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load booking.');
+      setError(err instanceof Error ? err.message : t('bookingDetail.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [bookingId, token, session]);
+  }, [bookingId, token, session, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -230,7 +240,7 @@ export default function BookingDetailScreen() {
       void load();
     } catch (err) {
       hapticError();
-      Alert.alert('Could not cancel', classifyAndAnnounce(err).title);
+      Alert.alert(t('bookingDetail.could_not_cancel'), classifyAndAnnounce(err).title);
     } finally {
       setBusy(null);
     }
@@ -247,7 +257,7 @@ export default function BookingDetailScreen() {
       void load();
     } catch (err) {
       hapticError();
-      Alert.alert('Refund Failed', classifyAndAnnounce(err).title);
+      Alert.alert(t('bookingDetail.refund_failed'), classifyAndAnnounce(err).title);
     } finally {
       setBusy(null);
     }
@@ -260,7 +270,7 @@ export default function BookingDetailScreen() {
     if (key === 'cancel') {
       hapticMedium();
       if (isOffline) {
-        Alert.alert('Offline', 'Cannot cancel while offline. Please connect and try again.');
+        Alert.alert(t('bookingDetail.offline'), t('bookingDetail.offline_msg'));
         return;
       }
       setShowCancelDialog(true);
@@ -285,11 +295,11 @@ export default function BookingDetailScreen() {
         notes: `Booking: ${bookingRef}\nRoom: ${firstRoom?.type ?? ''}`,
       });
       if (ok) {
-        Alert.alert('Added to Calendar', 'Reservation has been added to your calendar.');
+        Alert.alert(t('bookingDetail.added_calendar'), t('bookingDetail.calendar_msg'));
       } else {
         Alert.alert(
-          'Added to Calendar',
-          `Reservation added:\nHotel: ${booking.hotel?.name ?? 'Hotel'}\nCheck-in: ${booking.checkIn.slice(0, 10)}\nCheck-out: ${booking.checkOut.slice(0, 10)}`,
+          t('bookingDetail.added_calendar'),
+          `${t('bookingDetail.reservation_added')}\n${t('bookingDetail.hotel_label')} ${booking.hotel?.name ?? t('common.hotel')}\n${t('bookingDetail.check_in_label')} ${booking.checkIn.slice(0, 10)}\n${t('bookingDetail.check_out_label')} ${booking.checkOut.slice(0, 10)}`,
         );
       }
       return;
@@ -312,7 +322,7 @@ export default function BookingDetailScreen() {
           if (await Sharing.isAvailableAsync()) {
             await Sharing.shareAsync(file.uri, {
               mimeType: 'application/pdf',
-              dialogTitle: 'View Receipt',
+              dialogTitle: t('bookingDetail.view_receipt'),
               UTI: 'com.adobe.pdf',
             });
           }
@@ -321,7 +331,7 @@ export default function BookingDetailScreen() {
         hapticSuccess();
       } catch (err) {
         hapticError();
-        Alert.alert('Download Failed', classifyAndAnnounce(err).title);
+        Alert.alert(t('bookingDetail.download_failed'), classifyAndAnnounce(err).title);
       } finally {
         setBusy(null);
       }
@@ -353,17 +363,17 @@ export default function BookingDetailScreen() {
               dialogTitle: 'Download Invoice',
             });
           } else {
-            Alert.alert('Downloaded', `Saved to ${file.uri}`);
+            Alert.alert(t('bookingDetail.downloaded'), `${t('bookingDetail.saved_to')} ${file.uri}`);
           }
         };
         reader.readAsDataURL(blob);
       } catch (err) {
-        Alert.alert('Error', err instanceof Error ? err.message : 'Failed to download.');
+        Alert.alert(t('bookingDetail.error'), err instanceof Error ? err.message : t('bookingDetail.download_failed_msg'));
       } finally { setBusy(null); }
       return;
     }
 
-    Alert.alert('Coming Soon', 'This feature is coming in a future update.');
+    Alert.alert(t('bookingDetail.coming_soon'), t('bookingDetail.coming_soon_msg'));
   };
 
   const completePayment = async (overrideMethod?: string) => {
@@ -386,17 +396,17 @@ export default function BookingDetailScreen() {
       });
     } catch (err) {
       hapticError();
-      Alert.alert('Payment Failed', classifyAndAnnounce(err).title);
+      Alert.alert(t('payment.payment_failed'), classifyAndAnnounce(err).title);
     } finally { setBusy(null); }
   };
 
   const handleRetryWithMethodChange = () => {
-    Alert.alert('Select Payment Method', 'Choose a payment method to complete this booking:', [
-      { text: 'Credit / Debit Card', onPress: () => void completePayment('CREDIT_CARD') },
-      { text: 'Telebirr', onPress: () => void completePayment('TELEBIRR') },
-      { text: 'CBE Birr', onPress: () => void completePayment('CBE_BIRR') },
-      { text: 'PayPal', onPress: () => void completePayment('PAYPAL') },
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('payment.select_method'), t('bookingDetail.select_method_msg'), [
+      { text: t('payment.card'), onPress: () => void completePayment('CREDIT_CARD') },
+      { text: t('payment.telebirr'), onPress: () => void completePayment('TELEBIRR') },
+      { text: t('payment.cbe_birr'), onPress: () => void completePayment('CBE_BIRR') },
+      { text: t('payment.paypal'), onPress: () => void completePayment('PAYPAL') },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
   };
 
@@ -408,7 +418,7 @@ export default function BookingDetailScreen() {
         <Pressable onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={8}>
           <Ionicons name="arrow-back" size={20} color={textPri} />
         </Pressable>
-        <Text style={[s.navTitle, { color: textPri }]}>Booking Details</Text>
+        <Text style={[s.navTitle, { color: textPri }]}>{t('bookingDetail.title')}</Text>
         <View style={s.backBtn} />
       </View>
       <View style={s.center}><SkeletonDetail /></View>
@@ -423,16 +433,16 @@ export default function BookingDetailScreen() {
         <Pressable onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={8}>
           <Ionicons name="arrow-back" size={20} color={textPri} />
         </Pressable>
-        <Text style={[s.navTitle, { color: textPri }]}>Booking Details</Text>
+        <Text style={[s.navTitle, { color: textPri }]}>{t('bookingDetail.title')}</Text>
         <View style={s.backBtn} />
       </View>
       <View style={s.center}>
-        <ErrorBox message={error ?? 'Booking not found.'} onRetry={load} />
+        <ErrorBox message={error ?? t('bookingDetail.bookingNotFound')} onRetry={load} />
       </View>
     </View>
   );
 
-  const actions = getActions(booking.status, canCancel);
+  const actions = getActions(booking.status, canCancel, t);
 
   // ── Main render ───────────────────────────────────────────────────────────
   return (
@@ -448,18 +458,18 @@ export default function BookingDetailScreen() {
         <Pressable
           onPress={() => navigation.goBack()}
           style={s.backBtn} hitSlop={8}
-          accessibilityRole="button" accessibilityLabel="Go back"
+          accessibilityRole="button" accessibilityLabel={t('common.go_back_nav')}
         >
           <Ionicons name="arrow-back" size={20} color={textPri} />
         </Pressable>
         <View style={s.navCenter}>
-          <Text style={[s.navTitle, { color: textPri }]}>Booking Details</Text>
+          <Text style={[s.navTitle, { color: textPri }]}>{t('bookingDetail.title')}</Text>
           <BookingStatusBadge status={booking.status} size="sm" />
         </View>
         <Pressable
           onPress={load}
           style={s.backBtn} hitSlop={8}
-          accessibilityRole="button" accessibilityLabel="Refresh"
+          accessibilityRole="button" accessibilityLabel={t('common.refresh')}
         >
           <Ionicons name="refresh-outline" size={20} color={textPri} />
         </Pressable>
@@ -482,7 +492,7 @@ export default function BookingDetailScreen() {
           <View style={[s.infoBanner, { backgroundColor: BK.confirmedBg, borderColor: BK.confirmedBd }]}>
             <Ionicons name="cash-outline" size={18} color={BK.confirmed} />
             <View style={s.flex}>
-              <Text style={[s.bannerTitle, { color: BK.confirmed }]}>Pay at Hotel</Text>
+              <Text style={[s.bannerTitle, { color: BK.confirmed }]}>{t('payment.pay_at_hotel_banner')}</Text>
               <Text style={[s.bannerSub, { color: textSec }]}>
                 Your booking is confirmed. Pay at the reception during your stay.
               </Text>
@@ -495,7 +505,7 @@ export default function BookingDetailScreen() {
           <View style={[s.infoBanner, { backgroundColor: BK.pendingBg, borderColor: BK.pendingBd }]}>
             <Ionicons name="time-outline" size={18} color={BK.pending} />
             <View style={s.flex}>
-              <Text style={[s.bannerTitle, { color: BK.pending }]}>Payment Required</Text>
+              <Text style={[s.bannerTitle, { color: BK.pending }]}>{t('payment.payment_required')}</Text>
               <Text style={[s.bannerSub, { color: textSec }]}>
                 Complete your payment to confirm this booking. Your room is being held temporarily.
               </Text>
@@ -514,7 +524,7 @@ export default function BookingDetailScreen() {
           <View style={[s.infoBanner, { backgroundColor: BK.pendingBg, borderColor: BK.pendingBd }]}>
             <Ionicons name="build-outline" size={18} color={BK.pending} />
             <View style={s.flex}>
-              <Text style={[s.bannerTitle, { color: BK.pending }]}>Your reserved room requires maintenance.</Text>
+              <Text style={[s.bannerTitle, { color: BK.pending }]}>{t('bookingDetail.maintenance_msg')}</Text>
               <Text style={[s.bannerSub, { color: textSec }]}>
                 Our team is arranging a complimentary upgrade or room reassignment. Please contact reception upon arrival.
               </Text>
@@ -527,7 +537,7 @@ export default function BookingDetailScreen() {
           <View style={[s.infoBanner, { backgroundColor: BK.cancelledBg, borderColor: BK.cancelledBd }]}>
             <Ionicons name="close-circle-outline" size={18} color={BK.cancelled} />
             <View style={s.flex}>
-              <Text style={[s.bannerTitle, { color: BK.cancelled }]}>Reservation Cancelled</Text>
+              <Text style={[s.bannerTitle, { color: BK.cancelled }]}>{t('bookingDetail.reservation_cancelled')}</Text>
               <Text style={[s.bannerSub, { color: textSec }]}>
                 Your reservation has been cancelled and room availability has been released.
               </Text>
@@ -536,7 +546,7 @@ export default function BookingDetailScreen() {
         )}
 
         {/* 4. Room summary ─────────────────────────────────────────────── */}
-        <SectionCard title="Your Room" style={{ backgroundColor: cardBg, borderColor: borderC }}>
+        <SectionCard title={t('bookingDetail.your_room')} style={{ backgroundColor: cardBg, borderColor: borderC }}>
           <RoomSummaryCard
             imageUrl={hotelImage}
             roomType={firstRoom?.type}
@@ -547,14 +557,14 @@ export default function BookingDetailScreen() {
           {guestInfo?.fullName && (
             <View style={[s.guestRow, { borderTopColor: borderC }]}>
               <Ionicons name="person-outline" size={14} color={BK.navyMuted} />
-              <Text style={[s.guestLabel, { color: textSec }]}>Lead guest</Text>
+              <Text style={[s.guestLabel, { color: textSec }]}>{t('bookingDetail.leadGuest')}</Text>
               <Text style={[s.guestName, { color: textPri }]}>{guestInfo.fullName}</Text>
             </View>
           )}
         </SectionCard>
 
         {/* 5. Stay dates ───────────────────────────────────────────────── */}
-        <SectionCard title="Stay Dates" style={{ backgroundColor: cardBg, borderColor: borderC }}>
+        <SectionCard title={t('bookingDetail.stay_dates')} style={{ backgroundColor: cardBg, borderColor: borderC }}>
           <DateStrip checkIn={booking.checkIn} checkOut={booking.checkOut} nights={nights} />
           <View style={s.timesRow}>
             <View style={s.timeItem}>
@@ -577,7 +587,7 @@ export default function BookingDetailScreen() {
         </SectionCard>
 
         {/* 6. Booking timeline ─────────────────────────────────────────── */}
-        <SectionCard title="Booking Journey" style={{ backgroundColor: cardBg, borderColor: borderC }}>
+        <SectionCard title={t('bookingDetail.booking_journey')} style={{ backgroundColor: cardBg, borderColor: borderC }}>
           <BookingTimeline
             status={booking.status}
             isCashAtHotel={isCash}
@@ -586,7 +596,7 @@ export default function BookingDetailScreen() {
 
         {/* 7. QR code — CONFIRMED only, toggled by action button ──────── */}
         {booking.status === 'CONFIRMED' && showQR && (
-          <SectionCard title="Check-in QR Code" style={{ backgroundColor: cardBg, borderColor: borderC }}>
+          <SectionCard title={t('bookingDetail.qr_title')} style={{ backgroundColor: cardBg, borderColor: borderC }}>
             <View style={s.qrWrap}>
               <QRCodeCard
                 bookingRef={bookingRef}
@@ -600,7 +610,7 @@ export default function BookingDetailScreen() {
         )}
 
         {/* 8. Price breakdown ──────────────────────────────────────────── */}
-        <SectionCard title="Price Breakdown" style={{ backgroundColor: cardBg, borderColor: borderC }}>
+        <SectionCard title={t('bookingDetail.price_breakdown')} style={{ backgroundColor: cardBg, borderColor: borderC }}>
           <PriceBreakdown
             basePrice={booking.totalPrice ? Math.round(Number(booking.totalPrice) / nights) : undefined}
             nights={nights}
@@ -612,7 +622,7 @@ export default function BookingDetailScreen() {
 
         {/* 9. Payment ──────────────────────────────────────────────────── */}
         {booking.payment && (
-          <SectionCard title="Payment" style={{ backgroundColor: cardBg, borderColor: borderC }}>
+          <SectionCard title={t('bookingDetail.payment')} style={{ backgroundColor: cardBg, borderColor: borderC }}>
             <PaymentStatusRow
               method={booking.payment.method}
               status={booking.payment.status}
@@ -621,7 +631,7 @@ export default function BookingDetailScreen() {
             {/* Payment date & transaction ref */}
             {booking.payment.createdAt && (
               <View style={[s.paymentMeta, { borderBottomColor: borderC }]}>
-                <Text style={[s.paymentMetaLabel, { color: textSec }]}>Paid on</Text>
+                <Text style={[s.paymentMetaLabel, { color: textSec }]}>{t('payment.paid_on')}</Text>
                 <Text style={[s.paymentMetaValue, { color: textPri }]}>
                   {new Date(booking.payment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </Text>
@@ -629,7 +639,7 @@ export default function BookingDetailScreen() {
             )}
             {booking.payment.providerRef && (
               <View style={[s.paymentMeta, { borderBottomColor: borderC }]}>
-                <Text style={[s.paymentMetaLabel, { color: textSec }]}>Transaction Ref</Text>
+                <Text style={[s.paymentMetaLabel, { color: textSec }]}>{t('payment.transaction_ref')}</Text>
                 <Text style={[s.paymentMetaValue, { color: textPri, fontFamily: 'Menlo' }]}>{booking.payment.providerRef}</Text>
               </View>
             )}
@@ -643,7 +653,7 @@ export default function BookingDetailScreen() {
             )}
             {booking.payment.status === 'PENDING' && !isCash && (
               <ActionButton
-                label={busy === 'payment' ? 'Processing' : 'Complete Payment'}
+                label={busy === 'payment' ? t('bookingDetail.processing') : t('buttons.complete_payment')}
                 icon="card-outline"
                 variant="primary"
                 onPress={() => void completePayment()}
@@ -654,7 +664,7 @@ export default function BookingDetailScreen() {
             {booking.payment.status === 'FAILED' && !isCash && (
               <View style={{ gap: 8 }}>
                 <ActionButton
-                  label={busy === 'payment' ? 'Retrying...' : 'Retry Payment'}
+                  label={busy === 'payment' ? t('common.processing') : t('bookingFlow.retryPayment')}
                   icon="refresh-outline"
                   variant="primary"
                   onPress={() => void completePayment()}
@@ -662,7 +672,7 @@ export default function BookingDetailScreen() {
                   disabled={!!busy || isOffline}
                 />
                 <ActionButton
-                  label="Change Payment Method"
+                  label={t('buttons.change_payment_method')}
                   icon="swap-horizontal-outline"
                   variant="secondary"
                   onPress={handleRetryWithMethodChange}
@@ -674,7 +684,7 @@ export default function BookingDetailScreen() {
         )}
 
         {refundState && (
-          <SectionCard title="Refund" style={{ backgroundColor: cardBg, borderColor: borderC }}>
+          <SectionCard title={t('bookingDetail.refund')} style={{ backgroundColor: cardBg, borderColor: borderC }}>
             <RefundStatus
               state={refundState}
               amount={
@@ -689,9 +699,9 @@ export default function BookingDetailScreen() {
               onContactSupport={() => navigation.navigate('ContactNew' as any)}
             />
             {booking.status === 'CANCELLED' && booking.payment?.status === 'SUCCEEDED' && refundState !== 'COMPLETED' && (
-              <ActionButton
-                label={busy === 'refund' ? 'Requesting…' : 'Request Refund'}
-                icon="wallet-outline"
+                <ActionButton
+                  label={busy === 'refund' ? t('bookingDetail.request_refund') : t('refund.request')}
+                  icon="wallet-outline"
                 variant="secondary"
                 onPress={() => setShowRefundDialog(true)}
                 loading={busy === 'refund'}
@@ -704,7 +714,7 @@ export default function BookingDetailScreen() {
 
         {/* 10. Cancellation policy ─────────────────────────────────────── */}
         {canCancel && (
-          <SectionCard title="Cancellation Policy" style={{ backgroundColor: cardBg, borderColor: borderC }}>
+          <SectionCard title={t('bookingDetail.cancellation_policy')} style={{ backgroundColor: cardBg, borderColor: borderC }}>
             <CancellationPolicy
               cancellationHours={booking.cancellationHours ?? 48}
               checkIn={booking.checkIn}
@@ -715,7 +725,7 @@ export default function BookingDetailScreen() {
         {/* 11. Review (CHECKED_OUT) ────────────────────────────────────── */}
         {booking.status === 'CHECKED_OUT' && (
           <SectionCard
-            title={myReview ? 'Your Review' : 'How Was Your Stay?'}
+            title={myReview ? t('bookingDetail.your_review') : t('bookingDetail.how_was_stay')}
             style={{ backgroundColor: cardBg, borderColor: borderC }}
           >
             {myReview ? (
@@ -733,7 +743,7 @@ export default function BookingDetailScreen() {
                   {myReview.comment}
                 </Text>
                 <ActionButton
-                  label="Edit Review"
+                  label={t('bookingDetail.editReview')}
                   icon="pencil-outline"
                   variant="secondary"
                   onPress={() => navigation.navigate('Review', {
@@ -750,7 +760,7 @@ export default function BookingDetailScreen() {
                   Share your experience and help other travellers choose wisely.
                 </Text>
                 <ActionButton
-                  label="Write a Review"
+                  label={t('bookingDetail.writeReview')}
                   icon="star-outline"
                   variant="primary"
                   onPress={() => navigation.navigate('Review', {
@@ -773,7 +783,7 @@ export default function BookingDetailScreen() {
               accessibilityLabel={historyOpen ? 'Hide status history' : 'Show status history'}
             >
               <Ionicons name="time-outline" size={16} color={BK.navyMuted} />
-              <Text style={[s.historyToggleText, { color: textPri }]}>Status History</Text>
+              <Text style={[s.historyToggleText, { color: textPri }]}>{t('bookingDetail.status_history')}</Text>
               <Ionicons
                 name={historyOpen ? 'chevron-up' : 'chevron-down'}
                 size={16} color={BK.navyMuted}

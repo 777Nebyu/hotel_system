@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { colors, font, radius } from "../theme";
 
 interface ConfirmDialogProps {
@@ -20,11 +21,14 @@ export function ConfirmDialog({
   onConfirm,
   title,
   body,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   danger = false,
   busy = false,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
+  const cancelText = cancelLabel ?? t("common.cancel");
+  const confirmText = confirmLabel ?? t("buttons.confirm");
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
@@ -38,7 +42,7 @@ export function ConfirmDialog({
               onPress={onClose}
               disabled={busy}
             >
-              <Text style={styles.btnSecondaryText}>{cancelLabel}</Text>
+              <Text style={styles.btnSecondaryText}>{cancelText}</Text>
             </Pressable>
             <Pressable
               style={[
@@ -50,7 +54,7 @@ export function ConfirmDialog({
               disabled={busy}
             >
               <Text style={styles.btnPrimaryText}>
-                {busy ? "Working…" : confirmLabel}
+                {busy ? "Working…" : confirmText}
               </Text>
             </Pressable>
           </View>

@@ -1,5 +1,9 @@
 import { ManagerCatalogService, CatalogActor } from './manager-catalog.service';
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 
 describe('ManagerCatalogService - Seasonal Pricing & Validation', () => {
   let service: ManagerCatalogService;
@@ -13,7 +17,9 @@ describe('ManagerCatalogService - Seasonal Pricing & Validation', () => {
   beforeEach(() => {
     db = {
       room: {
-        findUnique: jest.fn().mockResolvedValue({ id: 'room-1', hotelId: 'hotel-1' }),
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ id: 'room-1', hotelId: 'hotel-1' }),
       },
       seasonalPricing: {
         findFirst: jest.fn(),
@@ -31,8 +37,21 @@ describe('ManagerCatalogService - Seasonal Pricing & Validation', () => {
       upload: jest.fn(),
       remove: jest.fn(),
     };
+    const cache = {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn().mockResolvedValue(undefined),
+      del: jest.fn().mockResolvedValue(undefined),
+      delPattern: jest.fn().mockResolvedValue(undefined),
+      onModuleDestroy: jest.fn(),
+    };
 
-    service = new ManagerCatalogService(db, scope, audit, storage);
+    service = new ManagerCatalogService(
+      db,
+      scope,
+      audit,
+      cache as never,
+      storage,
+    );
   });
 
   describe('upsertSeasonalPricing', () => {
@@ -133,7 +152,11 @@ describe('ManagerCatalogService - Seasonal Pricing & Validation', () => {
     it('deletes seasonal pricing rule for room', async () => {
       db.seasonalPricing.delete.mockResolvedValue({});
 
-      const res = await service.removeSeasonalPricing('room-1', 'season-1', actor);
+      const res = await service.removeSeasonalPricing(
+        'room-1',
+        'season-1',
+        actor,
+      );
       expect(res).toEqual({ deleted: true });
       expect(db.seasonalPricing.delete).toHaveBeenCalledWith({
         where: { id: 'season-1', roomId: 'room-1' },

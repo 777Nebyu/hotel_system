@@ -44,10 +44,12 @@ export type RootStackParamList = {
   AdminAuditLog: undefined;
   ManagerOverview: undefined;
   ManagerBookings: undefined;
+  ManagerGuests: undefined;
   ManagerBilling: undefined;
   ManagerHotel: undefined;
   ManagerRooms: undefined;
   ManagerReports: undefined;
+  ManagerDisputes: undefined;
   ManagerMore: undefined;
   ManagerBookingDetail: { bookingId: string };
   BookingModify: { bookingId: string };
