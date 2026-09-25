@@ -110,6 +110,7 @@ export default function NavBar() {
         <div className="hidden md:flex items-center gap-1">
           <Link
             href="/"
+            prefetch={true}
             className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
               pathname === '/'
                 ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
@@ -120,6 +121,7 @@ export default function NavBar() {
           </Link>
           <Link
             href="/search"
+            prefetch={true}
             className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
               pathname.startsWith('/search')
                 ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
@@ -133,6 +135,7 @@ export default function NavBar() {
           {user && (
             <Link
               href={dashboardPath}
+              prefetch={true}
               className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
                 pathname.startsWith('/dashboard') ||
                 pathname.startsWith('/admin') ||
@@ -201,6 +204,7 @@ export default function NavBar() {
 
                   <Link
                     href={dashboardPath}
+                    prefetch={true}
                     onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/85 hover:bg-white/10 hover:text-white rounded-xl transition-colors"
                   >
@@ -222,12 +226,14 @@ export default function NavBar() {
             <div className="flex items-center gap-2.5">
               <Link
                 href="/auth?mode=login"
+                prefetch={true}
                 className="inline-flex items-center justify-center text-xs sm:text-sm font-medium h-9 px-4 rounded-xl border border-white/25 bg-white/5 backdrop-blur-sm text-white hover:text-white hover:bg-white/15 active:scale-[0.98] transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
               >
                 Sign In
               </Link>
               <Link
                 href="/auth?mode=register"
+                prefetch={true}
                 className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold h-9 px-4.5 rounded-xl bg-[#D4AF37] text-[#0B0F17] hover:bg-[#C5A028] shadow-md shadow-[#D4AF37]/25 active:scale-[0.98] transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
               >
                 Register

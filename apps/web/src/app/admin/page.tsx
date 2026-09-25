@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { adminApi, reviewApi } from '@/lib/services'
+import { adminApi, reviewApi, hotelApi } from '@/lib/services'
 import { useAuth } from '@/lib/auth-store'
 import AuthGate from '@/components/AuthGate'
 import type { Booking, Coupon, Hotel, Payment, PlatformSetting, Review, User } from '@/lib/types'
@@ -40,6 +40,9 @@ import {
   Check,
   RotateCcw,
   Info,
+  Upload,
+  MapPin,
+  ExternalLink,
 } from 'lucide-react'
 
 
@@ -55,6 +58,7 @@ type Tab =
   | 'Audit Logs'
   | 'Reports'
 
+type Country = { id: string; name: string; code: string; cities?: Array<{ id: string; name: string }> }
 type AdminUser = User & { _count?: { bookings: number; reviews: number; favorites: number } }
 type AuditEntry = {
   id: string
@@ -183,6 +187,20 @@ function AdminDashboard() {
     return () => clearTimeout(timer)
   }, [error])
 
+  // Load countries and cities for hotel provisioning
+  useEffect(() => {
+    hotelApi
+      .countries()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCountries(data)
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load countries for admin hotel creation:', err)
+      })
+  }, [])
+
   // Reject Hotel Modal
   const [rejectHotelTarget, setRejectHotelTarget] = useState<Hotel | null>(null)
   const [rejectReason, setRejectReason] = useState('')
@@ -237,6 +255,33 @@ function AdminDashboard() {
   const [assignManagerHotel, setAssignManagerHotel] = useState<Hotel | null>(null)
   const [selectedManagerUserId, setSelectedManagerUserId] = useState('')
   const [assigningManager, setAssigningManager] = useState(false)
+
+  // Create Hotel Modal & Hotel Filter State
+  const [createHotelModalOpen, setCreateHotelModalOpen] = useState(false)
+  const [countries, setCountries] = useState<Country[]>([])
+  const [createHotelForm, setCreateHotelForm] = useState({
+    name: '',
+    description: '',
+    countryId: '',
+    cityId: '',
+    address: '',
+    starRating: 4,
+    status: 'ACTIVE' as 'ACTIVE' | 'PENDING_APPROVAL',
+    managerId: '',
+  })
+  const [hotelImagesFiles, setHotelImagesFiles] = useState<File[]>([])
+  const [createHotelError, setCreateHotelError] = useState('')
+  const [creatingHotel, setCreatingHotel] = useState(false)
+  const [hotelSearch, setHotelSearch] = useState('')
+  const [hotelStatusFilter, setHotelStatusFilter] = useState<'ALL' | 'PENDING' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'>('ALL')
+  const [hotelManagerMode, setHotelManagerMode] = useState<'EXISTING' | 'CREATE_NEW'>('EXISTING')
+  const [newHotelManagerForm, setNewHotelManagerForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    phone: '',
+  })
+  const [showNewHotelManagerPassword, setShowNewHotelManagerPassword] = useState(false)
 
   // Platform Reports State
   const [reportType, setReportType] = useState<
@@ -476,6 +521,162 @@ function AdminDashboard() {
       setActing(null)
     }
   }
+
+  const handleCountryChange = (countryId: string) => {
+    const selected = countries.find((c) => c.id === countryId)
+    const firstCityId = selected?.cities?.[0]?.id || ''
+    setCreateHotelForm((prev) => ({
+      ...prev,
+      countryId,
+      cityId: firstCityId,
+    }))
+  }
+
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*'
+    let pwd = ''
+    for (let i = 0; i < 12; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    setNewHotelManagerForm((prev) => ({ ...prev, password: pwd }))
+    setShowNewHotelManagerPassword(true)
+  }
+
+  const handleCreateHotelSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCreateHotelError('')
+
+    const trimmedName = createHotelForm.name.trim()
+    const trimmedAddress = createHotelForm.address.trim()
+    const trimmedDesc = createHotelForm.description.trim()
+
+    if (!trimmedName || trimmedName.length < 2) {
+      setCreateHotelError('Hotel name must be at least 2 characters.')
+      return
+    }
+    if (!createHotelForm.cityId) {
+      setCreateHotelError('Please select a valid city for the hotel location.')
+      return
+    }
+    if (!trimmedAddress || trimmedAddress.length < 3) {
+      setCreateHotelError('Street address must be at least 3 characters.')
+      return
+    }
+    if (!trimmedDesc || trimmedDesc.length < 10) {
+      setCreateHotelError('Please provide a descriptive overview of at least 10 characters.')
+      return
+    }
+
+    if (hotelManagerMode === 'CREATE_NEW') {
+      const mgrName = newHotelManagerForm.fullName.trim()
+      const mgrEmail = newHotelManagerForm.email.trim().toLowerCase()
+      const mgrPassword = newHotelManagerForm.password
+
+      if (!mgrName || mgrName.length < 2) {
+        setCreateHotelError('New manager full name must be at least 2 characters.')
+        return
+      }
+      if (!mgrEmail || !/^\S+@\S+\.\S+$/.test(mgrEmail)) {
+        setCreateHotelError('Please provide a valid work email address for the new manager.')
+        return
+      }
+      if (!mgrPassword || mgrPassword.length < 8) {
+        setCreateHotelError('Manager account password must be at least 8 characters.')
+        return
+      }
+    }
+
+    setCreatingHotel(true)
+    try {
+      let assignedManagerId: string | undefined = undefined
+
+      if (hotelManagerMode === 'CREATE_NEW') {
+        const newMgr = await adminApi.createUser({
+          fullName: newHotelManagerForm.fullName.trim(),
+          email: newHotelManagerForm.email.trim().toLowerCase(),
+          password: newHotelManagerForm.password,
+          phone: newHotelManagerForm.phone.trim() || undefined,
+          role: 'MANAGER',
+        })
+        assignedManagerId = newMgr.id
+      } else if (createHotelForm.managerId) {
+        assignedManagerId = createHotelForm.managerId
+      }
+
+      const payload: Record<string, unknown> = {
+        name: trimmedName,
+        description: trimmedDesc,
+        cityId: createHotelForm.cityId,
+        address: trimmedAddress,
+        starRating: Number(createHotelForm.starRating),
+        status: createHotelForm.status,
+      }
+      if (assignedManagerId) {
+        payload.managerId = assignedManagerId
+      }
+
+      const created = await adminApi.createHotel(payload)
+
+      if (hotelImagesFiles.length > 0 && created?.id) {
+        try {
+          await adminApi.addHotelImages(created.id, hotelImagesFiles)
+        } catch (imgErr) {
+          console.warn('Hotel created but image upload encountered an issue:', imgErr)
+        }
+      }
+
+      const successMsg =
+        hotelManagerMode === 'CREATE_NEW'
+          ? `Hotel "${trimmedName}" created and new Manager account provisioned for "${newHotelManagerForm.fullName.trim()}" (${newHotelManagerForm.email.trim().toLowerCase()})!`
+          : `Hotel property "${trimmedName}" created and listed successfully!`
+
+      setSuccessBanner(successMsg)
+      setCreateHotelModalOpen(false)
+      setHotelImagesFiles([])
+      setHotelManagerMode('EXISTING')
+      setNewHotelManagerForm({
+        fullName: '',
+        email: '',
+        password: '',
+        phone: '',
+      })
+      setShowNewHotelManagerPassword(false)
+      const defaultCountry = countries[0]
+      setCreateHotelForm({
+        name: '',
+        description: '',
+        countryId: defaultCountry?.id || '',
+        cityId: defaultCountry?.cities?.[0]?.id || '',
+        address: '',
+        starRating: 4,
+        status: 'ACTIVE',
+        managerId: '',
+      })
+      await load()
+    } catch (err) {
+      setCreateHotelError(err instanceof Error ? err.message : 'Failed to create hotel property.')
+    } finally {
+      setCreatingHotel(false)
+    }
+  }
+
+  const filteredHotels = hotels.filter((h) => {
+    const q = hotelSearch.toLowerCase().trim()
+    const matchesSearch =
+      !q ||
+      h.name.toLowerCase().includes(q) ||
+      (h.city?.name && h.city.name.toLowerCase().includes(q)) ||
+      h.address.toLowerCase().includes(q) ||
+      h.id.toLowerCase().includes(q)
+
+    if (!matchesSearch) return false
+
+    if (hotelStatusFilter === 'ALL') return true
+    if (hotelStatusFilter === 'PENDING') {
+      return h.status === 'PENDING' || h.status === 'PENDING_APPROVAL'
+    }
+    return h.status === hotelStatusFilter
+  })
 
   const removeReview = async (target: Review) => {
     setActing(target.id)
@@ -953,8 +1154,123 @@ function AdminDashboard() {
         {/* Tab 3: Hotels Approval Workflow */}
         {tab === 'Hotels' && (
           <div>
-            <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Hotel Properties & Approvals</h1>
-            <p className="text-[#64748B] text-sm mb-6">Review pending hotel submissions, approve, or reject listings.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Hotel Properties & Approvals</h1>
+                <p className="text-[#64748B] text-sm">
+                  Review pending hotel submissions, approve, reject, or provision new properties.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setCreateHotelError('')
+                  const defaultCountry = countries[0]
+                  setCreateHotelForm({
+                    name: '',
+                    description: '',
+                    countryId: defaultCountry?.id || '',
+                    cityId: defaultCountry?.cities?.[0]?.id || '',
+                    address: '',
+                    starRating: 4,
+                    status: 'ACTIVE',
+                    managerId: '',
+                  })
+                  setHotelImagesFiles([])
+                  setHotelManagerMode('EXISTING')
+                  setNewHotelManagerForm({
+                    fullName: '',
+                    email: '',
+                    password: '',
+                    phone: '',
+                  })
+                  setShowNewHotelManagerPassword(false)
+                  setCreateHotelModalOpen(true)
+                }}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm transition-colors shrink-0 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Hotel</span>
+              </button>
+            </div>
+
+            {/* Filter and Search Bar for Hotels */}
+            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+                {(
+                  [
+                    { id: 'ALL', label: 'All Hotels', count: hotels.length },
+                    {
+                      id: 'PENDING',
+                      label: 'Pending',
+                      count: hotels.filter(
+                        (h) => h.status === 'PENDING' || h.status === 'PENDING_APPROVAL'
+                      ).length,
+                    },
+                    {
+                      id: 'ACTIVE',
+                      label: 'Active',
+                      count: hotels.filter((h) => h.status === 'ACTIVE').length,
+                    },
+                    {
+                      id: 'INACTIVE',
+                      label: 'Inactive',
+                      count: hotels.filter((h) => h.status === 'INACTIVE').length,
+                    },
+                    {
+                      id: 'SUSPENDED',
+                      label: 'Suspended',
+                      count: hotels.filter((h) => h.status === 'SUSPENDED').length,
+                    },
+                  ] as const
+                ).map((item) => {
+                  const active = hotelStatusFilter === item.id
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setHotelStatusFilter(item.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        active
+                          ? 'bg-white text-[#2563EB] shadow-xs'
+                          : 'text-[#64748B] hover:text-[#0F172A]'
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                          active
+                            ? 'bg-blue-50 text-[#2563EB]'
+                            : 'bg-slate-200 text-slate-600'
+                        }`}
+                      >
+                        {item.count}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="relative min-w-[260px]">
+                <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search hotels by name, city, address..."
+                  value={hotelSearch}
+                  onChange={(e) => setHotelSearch(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 border border-[#E2E8F0] rounded-xl text-xs bg-white text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                />
+                {hotelSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setHotelSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
 
             <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-x-auto">
               <table className="w-full text-left">
@@ -969,13 +1285,48 @@ function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {hotels.map((hotel) => (
-                    <tr key={hotel.id} className="hover:bg-slate-50">
+                  {filteredHotels.map((hotel) => (
+                    <tr key={hotel.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-5 py-3">
-                        <div className="font-semibold text-[#0F172A] text-sm">{hotel.name}</div>
-                        <div className="text-xs text-[#94A3B8] font-mono">{hotel.id}</div>
+                        <div className="flex items-center gap-3">
+                          {hotel.images && hotel.images.length > 0 ? (
+                            <img
+                              src={hotel.images[0]?.url}
+                              alt={hotel.name}
+                              className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold text-sm shrink-0">
+                              <Building2 className="w-5 h-5" />
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-semibold text-[#0F172A] text-sm flex items-center gap-1.5">
+                              <span>{hotel.name}</span>
+                              <a
+                                href={`/hotel/${hotel.id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Preview hotel page"
+                                className="text-slate-400 hover:text-[#2563EB] transition-colors"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            </div>
+                            <div className="text-xs text-[#94A3B8] font-mono">{hotel.id}</div>
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-5 py-3 text-sm text-[#64748B]">{hotel.city?.name || hotel.address}</td>
+                      <td className="px-5 py-3 text-sm text-[#64748B]">
+                        <div className="flex items-center gap-1 text-slate-700 font-medium">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>{hotel.city?.name || 'City'}</span>
+                          {hotel.city?.country && (
+                            <span className="text-slate-400 text-xs">({hotel.city.country.name})</span>
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-500 truncate max-w-xs">{hotel.address}</div>
+                      </td>
                       <td className="px-5 py-3 text-sm">
                         <div className="flex items-center gap-1 text-amber-600 font-semibold">
                           <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
@@ -1017,7 +1368,7 @@ function AdminDashboard() {
                       <td className="px-5 py-3">
                         <StatusBadge status={hotel.status} size="sm" />
                       </td>
-                      <td className="px-5 py-3 text-right space-x-2">
+                      <td className="px-5 py-3 text-right space-x-2 whitespace-nowrap">
                         {hotel.status === 'PENDING' || hotel.status === 'PENDING_APPROVAL' ? (
                           <>
                             <button
@@ -1050,6 +1401,58 @@ function AdminDashboard() {
                       </td>
                     </tr>
                   ))}
+                  {!filteredHotels.length && (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-12 text-center text-[#64748B]">
+                        <div className="max-w-sm mx-auto flex flex-col items-center">
+                          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mb-3">
+                            <Building2 className="w-6 h-6" />
+                          </div>
+                          <h4 className="font-semibold text-slate-800 text-base mb-1">
+                            {hotelSearch || hotelStatusFilter !== 'ALL'
+                              ? 'No hotels match your filters'
+                              : 'No hotel properties listed'}
+                          </h4>
+                          <p className="text-xs text-slate-500 mb-4 text-center">
+                            {hotelSearch || hotelStatusFilter !== 'ALL'
+                              ? 'Try adjusting your search query or switching the status filter tab.'
+                              : 'Get started by creating and onboarding the first hotel listing.'}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCreateHotelError('')
+                              const defaultCountry = countries[0]
+                              setCreateHotelForm({
+                                name: '',
+                                description: '',
+                                countryId: defaultCountry?.id || '',
+                                cityId: defaultCountry?.cities?.[0]?.id || '',
+                                address: '',
+                                starRating: 4,
+                                status: 'ACTIVE',
+                                managerId: '',
+                              })
+                              setHotelImagesFiles([])
+                              setHotelManagerMode('EXISTING')
+                              setNewHotelManagerForm({
+                                fullName: '',
+                                email: '',
+                                password: '',
+                                phone: '',
+                              })
+                              setShowNewHotelManagerPassword(false)
+                              setCreateHotelModalOpen(true)
+                            }}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Add New Hotel</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -2741,6 +3144,396 @@ function AdminDashboard() {
                       </>
                     ) : (
                       <span>Save Assignment</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        {/* Modal: Create Hotel Property */}
+        {createHotelModalOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 border border-slate-100">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0">
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg text-[#0F172A]">Add New Hotel Property</h3>
+                    <p className="text-xs text-[#64748B]">Provision and publish a new hotel listing on the platform</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreateHotelModalOpen(false)
+                    setCreateHotelError('')
+                  }}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateHotelSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
+                {createHotelError && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                    <span>{createHotelError}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    Hotel Name *
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    value={createHotelForm.name}
+                    onChange={(e) => setCreateHotelForm((p) => ({ ...p, name: e.target.value }))}
+                    placeholder="e.g. Ethiopian Skylight Hotel"
+                    className="w-full border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      Country *
+                    </label>
+                    <select
+                      required
+                      value={createHotelForm.countryId}
+                      onChange={(e) => handleCountryChange(e.target.value)}
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    >
+                      {countries.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} ({c.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      City *
+                    </label>
+                    <select
+                      required
+                      value={createHotelForm.cityId}
+                      onChange={(e) => setCreateHotelForm((p) => ({ ...p, cityId: e.target.value }))}
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    >
+                      <option value="">-- Select City --</option>
+                      {(
+                        countries.find((c) => c.id === createHotelForm.countryId)?.cities || []
+                      ).map((city) => (
+                        <option key={city.id} value={city.id}>
+                          {city.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      Street Address *
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      value={createHotelForm.address}
+                      onChange={(e) => setCreateHotelForm((p) => ({ ...p, address: e.target.value }))}
+                      placeholder="e.g. Airport Road, Bole Sub-City"
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      Star Rating
+                    </label>
+                    <select
+                      value={createHotelForm.starRating}
+                      onChange={(e) => setCreateHotelForm((p) => ({ ...p, starRating: Number(e.target.value) }))}
+                      className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                    >
+                      <option value={5}>5 Stars ★★★★★</option>
+                      <option value={4}>4 Stars ★★★★</option>
+                      <option value={3}>3 Stars ★★★</option>
+                      <option value={2}>2 Stars ★★</option>
+                      <option value={1}>1 Star ★</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    Initial Status
+                  </label>
+                  <select
+                    value={createHotelForm.status}
+                    onChange={(e) =>
+                      setCreateHotelForm((p) => ({
+                        ...p,
+                        status: e.target.value as 'ACTIVE' | 'PENDING_APPROVAL',
+                      }))
+                    }
+                    className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                  >
+                    <option value="ACTIVE">ACTIVE (Published Immediately & Bookable)</option>
+                    <option value="PENDING_APPROVAL">PENDING_APPROVAL (Pending Verification)</option>
+                  </select>
+                </div>
+
+                {/* General Manager Assignment & Credential Creation */}
+                <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50/80 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/80">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-[#2563EB]" />
+                      <label className="text-xs font-bold text-[#0F172A] tracking-tight">
+                        General Manager & Access Credentials
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-1 p-0.5 bg-slate-200/90 rounded-lg text-xs font-semibold shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setHotelManagerMode('EXISTING')}
+                        className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                          hotelManagerMode === 'EXISTING'
+                            ? 'bg-white text-[#2563EB] shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Existing Account
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHotelManagerMode('CREATE_NEW')}
+                        className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                          hotelManagerMode === 'CREATE_NEW'
+                            ? 'bg-white text-[#2563EB] shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        + Create New Manager
+                      </button>
+                    </div>
+                  </div>
+
+                  {hotelManagerMode === 'EXISTING' ? (
+                    <div>
+                      <label className="block text-xs font-semibold text-[#334155] mb-1">
+                        Select Registered Manager
+                      </label>
+                      <select
+                        value={createHotelForm.managerId}
+                        onChange={(e) => setCreateHotelForm((p) => ({ ...p, managerId: e.target.value }))}
+                        className="w-full border border-[#CBD5E1] rounded-xl px-3.5 py-2.5 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      >
+                        <option value="">-- Unassigned (Assign Later) --</option>
+                        {users
+                          .filter((u) => u.isActive && (u.role === 'MANAGER' || u.role === 'ADMIN'))
+                          .map((u) => (
+                            <option key={u.id} value={u.id}>
+                              {u.fullName} ({u.email}) [{u.role}]
+                            </option>
+                          ))}
+                      </select>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Choose an existing manager account or leave unassigned to link a manager later.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 animate-in fade-in duration-150">
+                      <p className="text-[11px] text-slate-600">
+                        Provision brand-new login credentials for this hotel's General Manager. The account will be activated and assigned immediately.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-[#334155] mb-1">
+                            Manager Full Name *
+                          </label>
+                          <input
+                            required={hotelManagerMode === 'CREATE_NEW'}
+                            type="text"
+                            value={newHotelManagerForm.fullName}
+                            onChange={(e) => setNewHotelManagerForm((p) => ({ ...p, fullName: e.target.value }))}
+                            placeholder="e.g. Dawit Haile"
+                            className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-[#334155] mb-1">
+                            Manager Work Email *
+                          </label>
+                          <input
+                            required={hotelManagerMode === 'CREATE_NEW'}
+                            type="email"
+                            value={newHotelManagerForm.email}
+                            onChange={(e) => setNewHotelManagerForm((p) => ({ ...p, email: e.target.value }))}
+                            placeholder="manager@hotel.com"
+                            className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <div className="flex justify-between items-center mb-1">
+                            <label className="block text-xs font-semibold text-[#334155]">
+                              Account Password *
+                            </label>
+                            <button
+                              type="button"
+                              onClick={generateRandomPassword}
+                              className="text-[11px] font-semibold text-[#2563EB] hover:underline cursor-pointer"
+                            >
+                              Generate Password
+                            </button>
+                          </div>
+                          <div className="relative">
+                            <input
+                              required={hotelManagerMode === 'CREATE_NEW'}
+                              type={showNewHotelManagerPassword ? 'text' : 'password'}
+                              value={newHotelManagerForm.password}
+                              onChange={(e) => setNewHotelManagerForm((p) => ({ ...p, password: e.target.value }))}
+                              placeholder="Min. 8 characters"
+                              className="w-full border border-[#CBD5E1] rounded-xl pl-3 pr-10 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewHotelManagerPassword((prev) => !prev)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                              aria-label={showNewHotelManagerPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showNewHotelManagerPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-[#334155] mb-1">
+                            Phone Number (Optional)
+                          </label>
+                          <input
+                            type="tel"
+                            value={newHotelManagerForm.phone}
+                            onChange={(e) => setNewHotelManagerForm((p) => ({ ...p, phone: e.target.value }))}
+                            placeholder="+251 91 123 4567"
+                            className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm text-[#0F172A] bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-xs font-semibold text-[#334155]">
+                      Description & Overview *
+                    </label>
+                    <span className="text-[11px] text-slate-400">
+                      {createHotelForm.description.length} / 2000 chars (min 10)
+                    </span>
+                  </div>
+                  <textarea
+                    required
+                    rows={3}
+                    value={createHotelForm.description}
+                    onChange={(e) => setCreateHotelForm((p) => ({ ...p, description: e.target.value }))}
+                    placeholder="Enter an inviting description of the hotel property, key amenities, and surrounding highlights..."
+                    className="w-full border border-[#CBD5E1] rounded-xl p-3 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    Property Photos (Optional)
+                  </label>
+                  <div className="border-2 border-dashed border-[#CBD5E1] hover:border-[#2563EB] rounded-2xl p-4 text-center transition-colors">
+                    <input
+                      type="file"
+                      id="admin-hotel-photos"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.length) {
+                          const newFiles = Array.from(e.target.files)
+                          setHotelImagesFiles((prev) => [...prev, ...newFiles])
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="admin-hotel-photos"
+                      className="cursor-pointer flex flex-col items-center justify-center gap-1.5"
+                    >
+                      <Upload className="w-6 h-6 text-[#2563EB]" />
+                      <span className="text-xs font-semibold text-slate-700">
+                        Click to select hotel images or drag and drop
+                      </span>
+                      <span className="text-[11px] text-slate-400">PNG, JPG, WEBP up to 10MB each</span>
+                    </label>
+
+                    {hotelImagesFiles.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2 justify-center">
+                        {hotelImagesFiles.map((file, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800"
+                          >
+                            <span className="truncate max-w-[150px]">{file.name}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setHotelImagesFiles((prev) => prev.filter((_, i) => i !== idx))
+                              }
+                              className="text-blue-500 hover:text-blue-800 font-bold ml-1 cursor-pointer"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreateHotelModalOpen(false)
+                      setCreateHotelError('')
+                    }}
+                    className="px-4 py-2.5 text-sm text-[#64748B] font-semibold hover:text-slate-900 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={creatingHotel}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-sm transition-colors cursor-pointer"
+                  >
+                    {creatingHotel ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Creating Property…</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4" />
+                        <span>Create Hotel</span>
+                      </>
                     )}
                   </button>
                 </div>

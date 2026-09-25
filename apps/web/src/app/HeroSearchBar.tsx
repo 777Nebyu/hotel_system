@@ -8,6 +8,7 @@ import { GuestSelector, GuestCount } from '@/components/forms/GuestSelector'
 
 export default function HeroSearchBar() {
   const router = useRouter()
+  const [isPending, startTransition] = React.useTransition()
   const [destination, setDestination] = React.useState('')
   const [checkIn, setCheckIn] = React.useState('')
   const [checkOut, setCheckOut] = React.useState('')
@@ -23,7 +24,9 @@ export default function HeroSearchBar() {
     if (checkIn) query.set('checkIn', checkIn)
     if (checkOut) query.set('checkOut', checkOut)
     query.set('guests', String(guests.adults + guests.children))
-    router.push(`/search?${query.toString()}`)
+    startTransition(() => {
+      router.push(`/search?${query.toString()}`)
+    })
   }
 
   return (
@@ -116,10 +119,11 @@ export default function HeroSearchBar() {
           type="submit"
           variant="gold"
           size="md"
+          loading={isPending}
           className="w-full sm:w-auto ml-auto px-8"
           leftIcon={<Search className="w-4 h-4" />}
         >
-          Find Luxury Stays
+          {isPending ? 'Searching...' : 'Find Luxury Stays'}
         </Button>
       </div>
     </form>
