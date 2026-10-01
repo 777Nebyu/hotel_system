@@ -7,6 +7,8 @@ const monorepoRoot = path.resolve(projectRoot, '../..');
 
 const defaultConfig = getDefaultConfig(projectRoot);
 const config = defaultConfig;
+// Defer module evaluation until a screen actually needs it to reduce startup work.
+config.transformer = { ...config.transformer, inlineRequires: true };
 
 config.watchFolders = [
   ...(defaultConfig.watchFolders ?? [projectRoot]),

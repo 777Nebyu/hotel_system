@@ -31,7 +31,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { signOut as signOutAction, saveSessionToStorage } from '../store/authSlice';
+import { signOut as signOutAction, saveSessionToStorage, updateUser } from '../store/authSlice';
 import { request } from '../api';
 import { getStoredPushToken, deregisterPushToken } from '../lib/notifications';
 import { hapticLight, hapticMedium, hapticSuccess, hapticError } from '../hooks/useHaptics';
@@ -83,8 +83,11 @@ export default function AccountSecurityScreen() {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [twoFactor, setTwoFactor] = useState(true);
   const [loginNotifs, setLoginNotifs] = useState(true);
+  const [mfaSecret, setMfaSecret] = useState<string | null>(null);
+  const [mfaOtpUri, setMfaOtpUri] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaBusy, setMfaBusy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
 
@@ -165,6 +168,45 @@ export default function AccountSecurityScreen() {
     }
   };
 
+  const handleMfaEnroll = async () => {
+    if (!session?.accessToken) return;
+    setMfaBusy(true);
+    try {
+      const result = await request<{ secret: string; otpauthUrl: string }>('/auth/mfa/enroll', { method: 'POST', token: session.accessToken });
+      setMfaSecret(result.secret);
+      setMfaOtpUri(result.otpauthUrl);
+      Alert.alert('MFA enrollment started', 'Add the displayed secret to an authenticator app, then enter its 6-digit code.');
+    } catch (err) {
+      Alert.alert('MFA setup failed', err instanceof Error ? err.message : 'Unable to start MFA setup.');
+    } finally { setMfaBusy(false); }
+  };
+
+  const handleMfaEnable = async () => {
+    if (!session?.accessToken || !/^\d{6}$/.test(mfaCode)) { Alert.alert('Invalid code', 'Enter the 6-digit authenticator code.'); return; }
+    setMfaBusy(true);
+    try {
+      await request('/auth/mfa/enable', { method: 'POST', token: session.accessToken, body: { code: mfaCode } });
+      dispatch(updateUser({ mfaEnabled: true }));
+      await saveSessionToStorage({ ...session, user: { ...session.user, mfaEnabled: true } });
+      setMfaSecret(null); setMfaOtpUri(null); setMfaCode('');
+      Alert.alert('MFA enabled', 'Authenticator verification is now required for admin sign-ins.');
+    } catch (err) { Alert.alert('MFA verification failed', err instanceof Error ? err.message : 'The code is invalid.'); }
+    finally { setMfaBusy(false); }
+  };
+
+  const handleMfaDisable = async () => {
+    if (!session?.accessToken || !/^\d{6}$/.test(mfaCode)) { Alert.alert('Invalid code', 'Enter the current 6-digit authenticator code.'); return; }
+    setMfaBusy(true);
+    try {
+      await request('/auth/mfa/disable', { method: 'POST', token: session.accessToken, body: { code: mfaCode } });
+      dispatch(updateUser({ mfaEnabled: false }));
+      await saveSessionToStorage({ ...session, user: { ...session.user, mfaEnabled: false } });
+      setMfaCode('');
+      Alert.alert('MFA disabled', 'Authenticator verification has been removed from admin sign-in.');
+    } catch (err) { Alert.alert('MFA disable failed', err instanceof Error ? err.message : 'The code is invalid.'); }
+    finally { setMfaBusy(false); }
+  };
+
   const handleSignOut = () => {
     hapticMedium();
     Alert.alert(
@@ -205,7 +247,7 @@ export default function AccountSecurityScreen() {
         navigation.navigate('Search');
         break;
       case 'Trips':
-        navigation.navigate('MainTabs' as any, { screen: 'BookingsTab' });
+        navigation.navigate('Trips');
         break;
       case 'Saved':
         navigation.navigate('MainTabs' as any, { screen: 'FavoritesTab' });
@@ -605,34 +647,53 @@ export default function AccountSecurityScreen() {
           {/* Divider */}
           <View style={[styles.innerDivider, { backgroundColor: c.line }]} />
 
-          {/* Two-Factor Authentication */}
-          <View style={styles.toggleRow}>
-            <View style={styles.toggleMeta}>
-              <View style={styles.toggleHeader}>
-                <Text style={[styles.toggleTitle, { color: c.textPri }]}>
-                  {t('accountSecurity.two_factor')}
-                </Text>
-                <View style={[styles.recBadge, { backgroundColor: c.goldLight, borderColor: c.goldBorder }]}>
-                  <Text style={[styles.recBadgeText, { color: c.gold }]}>{t('accountSecurity.recommended')}</Text>
+          {/* Admin MFA status — this reflects the server policy; it is not a
+              client-side security toggle. Enrollment is performed through the
+              authenticated admin security flow and login is challenged by the API. */}
+          {role === 'ADMIN' && (
+            <View style={styles.toggleRow}>
+              <View style={styles.toggleMeta}>
+                <View style={styles.toggleHeader}>
+                  <Text style={[styles.toggleTitle, { color: c.textPri }]}>Authenticator MFA</Text>
+                  <View style={[styles.recBadge, { backgroundColor: c.goldLight, borderColor: c.goldBorder }]}>
+                    <Text style={[styles.recBadgeText, { color: c.gold }]}>Required</Text>
+                  </View>
                 </View>
+                <Text style={[styles.toggleDesc, { color: c.textSec }]}>
+                  {session?.user.mfaEnabled ? 'Enabled. An authenticator code is required at every admin sign-in.' : 'Not enabled yet. Ask a system administrator to enroll MFA before production use.'}
+                </Text>
               </View>
-              <Text style={[styles.toggleDesc, { color: c.textSec }]}>
-                {t('accountSecurity.two_factor_desc')}
-              </Text>
+              <Ionicons name={session?.user.mfaEnabled ? 'shield-checkmark' : 'warning-outline'} size={24} color={session?.user.mfaEnabled ? c.teal : c.gold} />
             </View>
-            <Switch
-              value={twoFactor}
-              onValueChange={(val) => {
-                hapticLight();
-                setTwoFactor(val);
-              }}
-              trackColor={{ true: c.teal, false: dark ? '#2B394E' : '#CBD5E1' }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
+          )}
 
-          {/* Divider */}
-          <View style={[styles.innerDivider, { backgroundColor: c.line }]} />
+          {role === 'ADMIN' && <View style={[styles.innerDivider, { backgroundColor: c.line }]} />}
+
+          {role === 'ADMIN' && !session?.user.mfaEnabled && !mfaSecret && (
+            <Pressable onPress={() => void handleMfaEnroll()} disabled={mfaBusy} style={[styles.primaryBtn, { backgroundColor: c.teal }, mfaBusy && { opacity: 0.65 }]}>
+              {mfaBusy ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryBtnText}>Set up authenticator MFA</Text>}
+            </Pressable>
+          )}
+
+          {role === 'ADMIN' && mfaSecret && (
+            <View style={[styles.mfaSetupBox, { backgroundColor: c.cardSubtle, borderColor: c.cardBorder }]}>
+              <Text style={[styles.toggleTitle, { color: c.textPri }]}>Authenticator secret</Text>
+              <Text selectable style={[styles.mfaSecret, { color: c.textPri }]}>{mfaSecret}</Text>
+              <Text selectable style={[styles.toggleDesc, { color: c.textSec }]}>{mfaOtpUri}</Text>
+              <TextInput value={mfaCode} onChangeText={(value) => setMfaCode(value.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" maxLength={6} placeholder="6-digit code" placeholderTextColor={c.textMuted} style={[styles.mfaInput, { color: c.textPri, borderColor: c.cardBorder }]} />
+              <Pressable onPress={() => void handleMfaEnable()} disabled={mfaBusy} style={[styles.primaryBtn, { backgroundColor: c.teal }, mfaBusy && { opacity: 0.65 }]}>
+                {mfaBusy ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryBtnText}>Confirm and enable MFA</Text>}
+              </Pressable>
+            </View>
+          )}
+
+          {role === 'ADMIN' && session?.user.mfaEnabled && (
+            <View style={[styles.mfaSetupBox, { backgroundColor: c.cardSubtle, borderColor: c.cardBorder }]}>
+              <Text style={[styles.toggleDesc, { color: c.textSec }]}>Enter your current authenticator code to disable MFA.</Text>
+              <TextInput value={mfaCode} onChangeText={(value) => setMfaCode(value.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" maxLength={6} placeholder="6-digit code" placeholderTextColor={c.textMuted} style={[styles.mfaInput, { color: c.textPri, borderColor: c.cardBorder }]} />
+              <Pressable onPress={() => void handleMfaDisable()} disabled={mfaBusy} style={[styles.secondaryBtn, { borderColor: c.redBorder }, mfaBusy && { opacity: 0.65 }]}><Text style={[styles.secondaryBtnText, { color: c.red }]}>Disable MFA</Text></Pressable>
+            </View>
+          )}
 
           {/* Login Notifications */}
           <View style={styles.toggleRow}>
@@ -1187,6 +1248,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.2,
   },
+  secondaryBtn: { minHeight: 48, borderWidth: 1, borderRadius: 12, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
+  secondaryBtnText: { fontSize: 14, fontWeight: '700' },
+  mfaSetupBox: { borderWidth: 1, borderRadius: 14, padding: 14, gap: 10 },
+  mfaSecret: { fontSize: 16, fontWeight: '800', letterSpacing: 1.2 },
+  mfaInput: { borderWidth: 1, borderRadius: 10, padding: 12, fontSize: 20, letterSpacing: 6, textAlign: 'center' },
 
   /* ─── Toggles ─── */
   innerDivider: {

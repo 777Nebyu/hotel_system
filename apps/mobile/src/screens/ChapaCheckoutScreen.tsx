@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
 import type { RootStackParamList } from '../navigation/types';
 import { useAppSelector } from '../store/hooks';
 import { request, ApiError } from '../api';
@@ -53,9 +54,10 @@ export default function ChapaCheckoutScreen() {
 
   const { bookingId, method: initialMethod, amount, currency = 'ETB', hotelName, roomType, phone: defaultPhone } = route.params;
 
-  const [selectedMethod] = useState<string>(initialMethod);
+  const selectedMethod = initialMethod;
   const [processing, setProcessing] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState(defaultPhone || '');
+  const navigatedRef = React.useRef(false);
 
   const isBankMethod = selectedMethod !== 'TELEBIRR' && selectedMethod !== 'CASH';
 
@@ -86,6 +88,47 @@ export default function ChapaCheckoutScreen() {
 
       hapticSuccess();
 
+      if ((response as any)?.checkoutUrl) {
+        const checkoutUrl = (response as any).checkoutUrl as string;
+        const paymentId = (response as any).paymentId as string;
+
+        await WebBrowser.openBrowserAsync(checkoutUrl);
+
+        const txRef = ((response as any)?.txRef || (response as any)?.paymentReference || bookingId) as string;
+
+        try {
+          const statusRes = await request<{ status: string }>(`/payments/${paymentId}/status`, { token });
+          if (statusRes.status === 'SUCCEEDED') {
+            navigatedRef.current = true;
+            navigation.navigate('PaymentResult', {
+              bookingId,
+              status: 'SUCCEEDED',
+              amount,
+              currency,
+              method: selectedMethod,
+              hotelName,
+              reference: txRef,
+            });
+            return;
+          }
+        } catch {
+          // ignore status polling error
+        }
+
+        navigatedRef.current = true;
+        navigation.navigate('PaymentResult', {
+          bookingId,
+          status: 'PROCESSING',
+          amount,
+          currency,
+          method: selectedMethod,
+          hotelName,
+          reference: txRef,
+        });
+        return;
+      }
+
+      navigatedRef.current = true;
       if (selectedMethod === 'TELEBIRR') {
         navigation.navigate('TelebirrOtp', {
           bookingId,
@@ -115,7 +158,11 @@ export default function ChapaCheckoutScreen() {
         { text: t('common.go_back'), style: 'cancel', onPress: () => navigation.goBack() },
       ]);
     } finally {
-      setProcessing(false);
+      // Only reset processing state if we haven't navigated away — avoids a
+      // state update on an unmounted component and the resulting React warning.
+      if (!navigatedRef.current) {
+        setProcessing(false);
+      }
     }
   };
 

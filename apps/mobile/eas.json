@@ -8,7 +8,9 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.1.12:3001"
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.10:3001",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "442177023997-0ubrnm0tbl28mp8iun7k9cq29sdrmoll.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "442177023997-ql6acdlsu1pe34q99rii9g1p09h2lkum.apps.googleusercontent.com"
       }
     },
     "preview": {
@@ -17,7 +19,9 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.yayetech.com"
+        "EXPO_PUBLIC_API_URL": "https://api.yayetech.com",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "442177023997-0ubrnm0tbl28mp8iun7k9cq29sdrmoll.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "442177023997-ql6acdlsu1pe34q99rii9g1p09h2lkum.apps.googleusercontent.com"
       }
     },
     "production": {
@@ -25,7 +29,9 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.yayetech.com"
+        "EXPO_PUBLIC_API_URL": "https://api.yayetech.com",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "442177023997-0ubrnm0tbl28mp8iun7k9cq29sdrmoll.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "442177023997-ql6acdlsu1pe34q99rii9g1p09h2lkum.apps.googleusercontent.com"
       }
     }
   },

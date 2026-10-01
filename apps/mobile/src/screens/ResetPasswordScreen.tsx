@@ -40,6 +40,7 @@ export default function ResetPasswordScreen({ token, onReset, onError }: Props) 
     const errs: Record<string, string | undefined> = {};
     if (!password) errs.password = 'Enter a new password.';
     else if (password.length < 8) errs.password = t('errors.weak_password');
+    else if (!/[0-9]/.test(password)) errs.password = 'Password must contain a number.';
     if (!confirmPassword) errs.confirmPassword = 'Please confirm your password.';
     else if (password !== confirmPassword) errs.confirmPassword = t('errors.password_mismatch');
     if (Object.keys(errs).length > 0) { setFieldErrors(errs); return; }

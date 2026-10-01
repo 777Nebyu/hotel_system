@@ -4,6 +4,7 @@ import {
   Alert,
   AppState,
   AppStateStatus,
+  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
@@ -683,10 +684,16 @@ export default function BookingFlowScreen() {
   const isOverCapacity = roomCapacity > 0 && totalGuests > roomCapacity;
 
   return (
-    <View style={[styles.container, { backgroundColor: c.paper }]}> 
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: c.paper }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
     <ScrollView
       style={{ flex: 1 }}
       contentContainerStyle={[styles.content, { paddingHorizontal: pad }]}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
     >
       <StatusBar barStyle={dark ? 'light-content' : 'dark-content'} />
       <Pressable onPress={navigateBack} style={styles.backTouch} hitSlop={8}>
@@ -1170,7 +1177,7 @@ export default function BookingFlowScreen() {
           </Pressable>
         </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -48,7 +48,8 @@
       "permissions": [
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT"
-      ]
+      ],
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "bundler": "metro",
@@ -84,13 +85,23 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "@react-native-community/datetimepicker"
+      "@react-native-google-signin/google-signin",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow LuxSty Hotel to use your microphone for voice assistance.",
+          "recordAudioAndroid": true
+        }
+      ]
     ],
     "extra": {
       "eas": {
         "projectId": "a36cb467-d6a2-49e9-9702-fa3fbec91578"
       }
     },
-    "owner": "kibruyisfa"
+    "owner": "kibruyisfa",
+    "newArchEnabled": true,
+    "jsEngine": "hermes"
   }
 }

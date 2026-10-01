@@ -9,18 +9,27 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const navigation = useNavigation<Nav>();
   const session = useAppSelector((s) => s.auth.session);
+  const lastRole = useAppSelector((s) => s.auth.lastRole);
   const isAuthenticated = !!session?.accessToken;
   // SESSION-002: Deactivated accounts lose access immediately
   const isActive = session?.user?.isActive !== false;
 
   useEffect(() => {
     if (!isAuthenticated || !isActive) {
+      const portalByRole: Record<string, 'Auth' | 'StaffAuth' | 'AdminAuth'> = {
+        ADMIN: 'AdminAuth',
+        MANAGER: 'StaffAuth',
+        STAFF: 'StaffAuth',
+      };
+      const authRoute = portalByRole[lastRole ?? ''] ?? 'Auth';
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Auth', params: { initialMode: 'login' } }],
+        routes: authRoute === 'Auth'
+          ? [{ name: 'Auth', params: { initialMode: 'login' } }]
+          : [{ name: authRoute, params: { initialMode: 'login' } }],
       });
     }
-  }, [isAuthenticated, isActive, navigation]);
+  }, [isAuthenticated, isActive, lastRole, navigation]);
 
   if (!isAuthenticated || !isActive) {
     return null;

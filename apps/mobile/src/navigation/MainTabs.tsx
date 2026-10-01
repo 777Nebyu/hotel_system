@@ -28,6 +28,7 @@ import { useNotificationUnreadCount } from '../hooks/useQueries';
 const Tab = createBottomTabNavigator<TabParamList>();
 
 const HomeScreen = React.lazy(() => import('../screens/HomeScreen'));
+const DiscoverScreen = React.lazy(() => import('../screens/DiscoverScreen'));
 const BookingHistoryScreen = React.lazy(() => import('../screens/BookingHistoryScreen'));
 const FavoritesScreen = React.lazy(() => import('../screens/FavoritesScreen'));
 const ProfileEditScreen = React.lazy(() => import('../screens/ProfileEditScreen'));
@@ -41,6 +42,7 @@ const TAB_CONFIG: {
   iconActive:   IoniconName;
 }[] = [
   { name: 'HomeTab',      labelKey: 'tabs.home',      labelCompactKey: 'tabs.home',      icon: 'home-outline',          iconActive: 'home' },
+  { name: 'DiscoverTab',  labelKey: 'tabs.discover',  labelCompactKey: 'tabs.discover',  icon: 'compass-outline',       iconActive: 'compass' },
   { name: 'BookingsTab',  labelKey: 'tabs.bookings',  labelCompactKey: 'tabs.bookings',  icon: 'calendar-outline',      iconActive: 'calendar' },
   { name: 'FavoritesTab', labelKey: 'tabs.saved',     labelCompactKey: 'tabs.saved',     icon: 'heart-outline',         iconActive: 'heart' },
   { name: 'ProfileTab',   labelKey: 'tabs.profile',   labelCompactKey: 'tabs.profile',   icon: 'person-circle-outline', iconActive: 'person-circle' },
@@ -136,6 +138,7 @@ export default function MainTabs() {
       )}
     >
       <Tab.Screen name="HomeTab"      component={HomeScreen} />
+      <Tab.Screen name="DiscoverTab"  component={DiscoverScreen} />
       <Tab.Screen name="BookingsTab"  component={BookingHistoryScreen} />
       {session?.user?.role !== 'STAFF' && (
         <Tab.Screen name="FavoritesTab" component={FavoritesScreen} />

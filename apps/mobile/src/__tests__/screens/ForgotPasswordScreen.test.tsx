@@ -32,7 +32,7 @@ describe('ForgotPasswordScreen', () => {
     const input = getByPlaceholderText('Email address');
     fireEvent.changeText(input, 'notanemail');
     fireEvent(input, 'blur');
-    expect(getByText('Invalid email')).toBeTruthy();
+    expect(getByText('Invalid email address format')).toBeTruthy();
   });
 
   it('clears error when user types', () => {

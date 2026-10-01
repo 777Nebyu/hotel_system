@@ -100,11 +100,15 @@ describe('AccountSecurityScreen', () => {
     expect(getByText('Update password')).toBeTruthy();
   });
 
-  it('renders two-factor authentication and login notifications toggles', () => {
+  it('renders the login notifications toggle', () => {
     const { getByText } = render(<AccountSecurityScreen />);
-    expect(getByText('Two-factor authentication')).toBeTruthy();
     expect(getByText('Login notifications')).toBeTruthy();
-    expect(getByText('RECOMMENDED')).toBeTruthy();
+  });
+
+  it('keeps the authenticator MFA panel out of a non-admin session', () => {
+    const { queryByText } = render(<AccountSecurityScreen />);
+    expect(queryByText('Authenticator MFA')).toBeNull();
+    expect(queryByText('Set up authenticator MFA')).toBeNull();
   });
 
   it('renders payment method cards: Visa ****4832, Telebirr, and Add payment method', () => {

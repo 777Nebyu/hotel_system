@@ -17,6 +17,7 @@ const MENU_ITEMS = [
   { icon: 'alert-circle-outline', label: 'Customer Disputes', screen: 'ManagerDisputes', description: 'Review customer booking issues' },
   { icon: 'walk-outline', label: 'Walk-in Booking', screen: 'WalkInBooking', description: 'Create a walk-in reservation' },
   { icon: 'notifications-outline', label: 'Notifications', screen: 'Notifications', description: 'View all notifications' },
+  { icon: 'sparkles-outline', label: 'AI Assistant', screen: 'AIChat', description: 'Ask about hotel operations' },
   { icon: 'shield-checkmark-outline', label: 'Account Security', screen: 'AccountSecurity', description: 'Password & security settings' },
   { icon: 'settings-outline', label: 'App Settings', screen: 'Settings', description: 'Theme, language & preferences' },
   { icon: 'help-circle-outline', label: 'Help & Support', screen: 'Help', description: 'FAQs and contact support' },

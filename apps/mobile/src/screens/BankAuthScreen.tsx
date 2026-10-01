@@ -121,7 +121,7 @@ export default function BankAuthScreen() {
           {/* Payment Reference */}
           <Text style={[styles.sectionTitle, { color: c.ink }]}>{t('payment.payment_reference')}</Text>
           <Text style={[styles.refHint, { color: c.inkMuted }]}>
-            Use this reference when paying through the {bankName} mobile app.
+            {t('payment.reference_hint', { bankName })}
           </Text>
 
           <View style={[styles.refCard, { backgroundColor: c.teal + '10', borderColor: c.teal }]}>
@@ -181,7 +181,7 @@ export default function BankAuthScreen() {
 
           {/* Continue Button */}
           <Button
-            title="I've made the payment → Confirm"
+            title={t('payment.confirm_payment_done')}
             variant="primary"
             onPress={() => setStep('cbe-app')}
             fullWidth

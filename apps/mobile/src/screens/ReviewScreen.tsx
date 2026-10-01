@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
+import { File } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -129,12 +130,16 @@ export default function ReviewScreen() {
       }
       for (const photo of photos) {
         const compressedUri = await compressImage(photo.uri);
-        const formData = new FormData();
-        const filename = photo.uri.split('/').pop() ?? 'photo.jpg';
-        const ext = filename.split('.').pop()?.toLowerCase() ?? 'jpg';
-        const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
-        formData.append('photo', { uri: compressedUri, name: filename, type: mimeType } as any);
-        await requestFormData(`/reviews/${reviewId}/photos`, formData, token);
+        try {
+          const formData = new FormData();
+          const filename = photo.uri.split('/').pop() ?? 'photo.jpg';
+          const ext = filename.split('.').pop()?.toLowerCase() ?? 'jpg';
+          const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
+          formData.append('photo', { uri: compressedUri, name: filename, type: mimeType } as any);
+          await requestFormData(`/reviews/${reviewId}/photos`, formData, token);
+        } finally {
+          try { new File(compressedUri).delete(); } catch { /* cache cleanup is best effort */ }
+        }
       }
       Alert.alert(mode === 'edit' ? t('review.updated') : t('review.submitted'), t('review.thanks'), [{ text: t('review.ok'), onPress: () => navigation.goBack() }]);
     } catch (err) {

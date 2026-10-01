@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { File } from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as SecureStore from '../lib/secureStorage';
@@ -130,11 +131,15 @@ export default function ProfileEditScreen() {
     const asset = result.assets[0];
     try {
       const compressedUri = await compressImage(asset.uri);
-      const formData = new FormData();
-      formData.append('photo', { uri: compressedUri, name: 'photo.jpg', type: 'image/jpeg' } as any);
-      const res = await requestFormData<{ profilePhotoUrl: string }>('/auth/me/photo', formData, session?.accessToken);
-      dispatch(updateUser({ profilePhotoUrl: res.profilePhotoUrl }));
-      Alert.alert(t('profile.updated'), t('profile.profileUpdated'));
+      try {
+        const formData = new FormData();
+        formData.append('photo', { uri: compressedUri, name: 'photo.jpg', type: 'image/jpeg' } as any);
+        const res = await requestFormData<{ profilePhotoUrl: string }>('/auth/me/photo', formData, session?.accessToken);
+        dispatch(updateUser({ profilePhotoUrl: res.profilePhotoUrl }));
+        Alert.alert(t('profile.updated'), t('profile.profileUpdated'));
+      } finally {
+        try { new File(compressedUri).delete(); } catch { /* cache cleanup is best effort */ }
+      }
     } catch (err) {
       Alert.alert(t('profile.error'), err instanceof Error ? err.message : t('errors.something_went_wrong'));
     }
@@ -538,6 +543,7 @@ export default function ProfileEditScreen() {
             )}
             <MenuItem label={t('profile.support_inbox')} icon="chatbubbles" onPress={() => navigate('ContactInbox')} dark={dark} />
             <MenuItem label={t('common.notifications')} icon="notifications" onPress={() => navigate('Notifications')} dark={dark} />
+            <MenuItem label="AI Assistant" icon="sparkles" onPress={() => navigate('AIChat')} dark={dark} />
             <MenuItem label={t('buttons.app_settings')} icon="settings" onPress={() => navigate('Settings')} dark={dark} />
             <MenuItem label={t('buttons.help_faqs')} icon="help-circle" onPress={() => navigate('Help')} dark={dark} />
           </Card>

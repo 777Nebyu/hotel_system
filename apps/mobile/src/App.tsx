@@ -35,6 +35,9 @@ const linking: LinkingOptions<RootStackParamList> = {
     screens: {
       VerifyEmail: 'verify/:token',
       ResetPassword: 'reset/:token',
+      CustomerAuth: 'auth/customer',
+      StaffAuth: 'auth/staff',
+      AdminAuth: 'auth/admin',
       HotelDetail: 'hotel/:hotelId',
       BookingDetail: 'booking/:bookingId',
       MainTabs: {

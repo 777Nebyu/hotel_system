@@ -12,6 +12,7 @@ const AuthScreen = lazy(() => import('../screens/AuthScreen'));
 const ForgotPasswordScreen = lazy(() => import('../screens/ForgotPasswordScreen'));
 const VerifyEmailScreen = lazy(() => import('../screens/VerifyEmailScreen'));
 const ResetPasswordScreen = lazy(() => import('../screens/ResetPasswordScreen'));
+const MfaVerifyScreen = lazy(() => import('../screens/MfaVerifyScreen'));
 
 const HotelDetailScreen = lazy(() => import('../screens/HotelDetailScreen'));
 const SearchScreen = lazy(() => import('../screens/SearchScreen'));
@@ -20,6 +21,9 @@ const BookingFlowScreen = lazy(() => import('../screens/BookingFlowScreen'));
 const BookingDetailScreen = lazy(() => import('../screens/BookingDetailScreen'));
 const ReviewScreen = lazy(() => import('../screens/ReviewScreen'));
 const NotificationsScreen = lazy(() => import('../screens/NotificationsScreen'));
+const DiscoverScreen = lazy(() => import('../screens/DiscoverScreen'));
+const TripsScreen = lazy(() => import('../screens/TripsScreen'));
+const DiscoverPlaceDetailsScreen = lazy(() => import('../screens/DiscoverPlaceDetailsScreen'));
 
 const AdminOverviewScreen = lazy(() => import('../screens/admin/AdminOverviewScreen'));
 const AdminUsersScreen = lazy(() => import('../screens/admin/AdminUsersScreen'));
@@ -63,6 +67,7 @@ const TelebirrOtpScreen = lazy(() => import('../screens/TelebirrOtpScreen'));
 const BankAuthScreen = lazy(() => import('../screens/BankAuthScreen'));
 const PaymentResultScreen = lazy(() => import('../screens/PaymentResultScreen'));
 const MockSmsInboxScreen = lazy(() => import('../screens/MockSmsInboxScreen'));
+const AIChatScreen = lazy(() => import('../screens/AIChatScreen'));
 
 const ScreenLoader = () => <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" /></View>;
 
@@ -151,6 +156,13 @@ const TelebirrOtpWrapped = withProtected(TelebirrOtpScreen, ['CUSTOMER']);
 const BankAuthWrapped = withProtected(BankAuthScreen, ['CUSTOMER']);
 const PaymentResultWrapped = withProtected(PaymentResultScreen, ['CUSTOMER']);
 const MockSmsInboxWrapped = withProtected(MockSmsInboxScreen, ['CUSTOMER']);
+const AIChatWrapped = withProtected(AIChatScreen);
+const TripsWrapped = withProtected(TripsScreen, ['CUSTOMER']);
+const DiscoverPlaceDetailsWrapped = ({ route }: any) => (
+  <WithSuspense>
+    <DiscoverPlaceDetailsScreen placeId={route.params.placeId} onBack={goBack} />
+  </WithSuspense>
+);
 
 const SplashWrapped = withSuspense(SplashScreen);
 const SettingsWrapped = withSuspense(SettingsScreen);
@@ -223,11 +235,18 @@ export default function RootNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen name="Auth" component={withSuspense(AuthScreen as any)} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="CustomerAuth" component={withSuspense(AuthScreen as any)} initialParams={{ portal: 'customer' } as any} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="StaffAuth" component={withSuspense(AuthScreen as any)} initialParams={{ portal: 'staff' } as any} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="AdminAuth" component={withSuspense(AuthScreen as any)} initialParams={{ portal: 'admin' } as any} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="ForgotPassword" component={withSuspense(ForgotPasswordScreen as any)} />
       <Stack.Screen name="VerifyEmail" component={VerifyEmailWrapped} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordWrapped} />
+      <Stack.Screen name="MfaVerify" component={withSuspense(MfaVerifyScreen as any)} />
       <Stack.Screen name="HotelDetail" component={HotelDetailWrapped} />
       <Stack.Screen name="Search" component={SearchWrapped} />
+      <Stack.Screen name="Discover" component={withSuspense(DiscoverScreen as any)} />
+      <Stack.Screen name="Trips" component={TripsWrapped} />
+      <Stack.Screen name="DiscoverPlaceDetails" component={DiscoverPlaceDetailsWrapped} />
       <Stack.Screen name="RoomDetail" component={RoomDetailWrapped} />
       <Stack.Screen name="MockAuth" component={MockAuthWrapped} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="PaymentHistory" component={PaymentHistoryWrapped} />
@@ -236,6 +255,7 @@ export default function RootNavigator() {
       <Stack.Screen name="BankAuth" component={BankAuthWrapped} />
       <Stack.Screen name="PaymentResult" component={PaymentResultWrapped} />
       <Stack.Screen name="MockSmsInbox" component={MockSmsInboxWrapped} />
+      <Stack.Screen name="AIChat" component={AIChatWrapped} />
       <Stack.Screen name="BookingFlow" component={BookingFlowWrapped} />
       <Stack.Screen name="BookingDetail" component={BookingDetailWrapped} />
       <Stack.Screen name="Review" component={ReviewWrapped} />

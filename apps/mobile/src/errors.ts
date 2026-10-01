@@ -45,6 +45,10 @@ export const ERROR_MESSAGES: Record<ErrorCategory, Record<string, { title: strin
     expired: { title: 'Your session has expired. Please sign in again.', action: 'Sign In' },
     invalid: { title: 'Incorrect email or password.' },
     unverified: { title: 'Please verify your email first.' },
+    googleConfig: { title: 'Google sign-in is not configured for this app.' },
+    googleStateMismatch: { title: 'Google sign-in could not be verified. Please try again.' },
+    googleNonceMismatch: { title: 'Google sign-in response was rejected. Please try again.' },
+    googleProviderError: { title: 'Google sign-in was denied or failed. Please try again.' },
   },
   permission: {
     default: { title: 'This account is not active.' },
@@ -106,6 +110,17 @@ export interface ClassifiedError {
 }
 
 export function classifyError(err: unknown): ClassifiedError {
+  if (err instanceof Error && err.name === 'GoogleAuthError') {
+    const code = (err as Error & { code?: string }).code ?? 'default';
+    return {
+      category: 'auth',
+      code,
+      ...getErrorMessage('auth', code),
+      retryable: false,
+      raw: err,
+    };
+  }
+
   if (err instanceof Error && err.name === 'NetworkError') {
     return {
       category: 'network',

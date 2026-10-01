@@ -75,6 +75,7 @@
     "notifications": "Alerts",
     "profile": "Profile",
     "saved": "Saved",
+    "discover": "Discover",
     "sign_in_short": "In",
     "sign_in": "Sign In"
   },
@@ -266,7 +267,9 @@
     "processing_msg": "Your payment is being processed by the provider.",
     "unknown": "Payment Status Unknown",
     "history_empty": "Your payment history will appear here.",
-    "payment_with": "Payment with {{method}}"
+    "payment_with": "Payment with {{method}}",
+    "reference_hint": "Use this reference when paying through the {{bankName}} mobile app.",
+    "confirm_payment_done": "I've made the payment → Confirm"
   },
   "home": {
     "hero_eyebrow": "Hotels across Ethiopia · ኢትዮጵያ",
@@ -1328,7 +1331,10 @@
   },
   "telebirr": {
     "resend_failed": "Could not resend OTP code.",
-    "verifying": "Verifying..."
+    "verifying": "Verifying...",
+    "resend_cooldown": "Resend code in {{seconds}}s",
+    "resend_code": "Resend verification code",
+    "sms_hint": "Check the mock SMS inbox for the verification code."
   },
   "myReviews": {
     "could_not_delete": "Could not delete review.",
@@ -1359,5 +1365,22 @@
     "partial": "Partial Refund",
     "none": "No Refund",
     "near_checkin": "The check-in date is less than 3 days away. No refund is available under the cancellation policy."
+  },
+  "ai": {
+    "title": "YayeTech Assistant",
+    "subtitle": "Secure hotel support",
+    "emptyTitle": "How can I help?",
+    "emptyText": "Ask about your bookings, room availability, hotel policies, or account.",
+    "placeholder": "Ask the hotel assistant...",
+    "thinking": "Thinking…",
+    "goBack": "Go back",
+    "startVoice": "Start voice assistance",
+    "stopVoice": "Stop recording",
+    "microphoneRequired": "Microphone permission is required for voice assistance.",
+    "noRecording": "No recording was captured.",
+    "voiceUnavailable": "Voice assistance is temporarily unavailable.",
+    "recordingUnavailable": "Unable to start recording.",
+    "serviceUnavailable": "The assistant is temporarily unavailable.",
+    "recordingTooLong": "Recording is too long. Please keep voice messages under one minute."
   }
 }

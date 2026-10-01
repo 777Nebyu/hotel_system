@@ -1,7 +1,12 @@
 import type { Room } from '../types';
 
+export type AuthPortal = 'customer' | 'staff' | 'admin';
+
 export type RootStackParamList = {
-  Auth: { initialMode?: 'login' | 'register' } | undefined;
+  Auth: { initialMode?: 'login' | 'register'; portal?: AuthPortal } | undefined;
+  CustomerAuth: { initialMode?: 'login' } | undefined;
+  StaffAuth: { initialMode?: 'login' } | undefined;
+  AdminAuth: { initialMode?: 'login' } | undefined;
   MainTabs: undefined;
   Search: undefined;
   HotelDetail: { hotelId: string };
@@ -30,6 +35,7 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   VerifyEmail: { token: string };
   ResetPassword: { token: string };
+  MfaVerify: { challengeToken: string; portal?: AuthPortal };
   Notifications: undefined;
   MyReviews: undefined;
   AdminOverview: undefined;
@@ -106,10 +112,15 @@ export type RootStackParamList = {
   Help: undefined;
   Onboarding: undefined;
   AccountSecurity: undefined;
+  AIChat: { hotelId?: string; conversationId?: string } | undefined;
+  Discover: undefined;
+  Trips: undefined;
+  DiscoverPlaceDetails: { placeId: string };
 };
 
 export type TabParamList = {
   HomeTab: undefined;
+  DiscoverTab: undefined;
   BookingsTab: undefined;
   FavoritesTab: undefined;
   ProfileTab: undefined;

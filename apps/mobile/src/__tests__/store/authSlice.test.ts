@@ -9,7 +9,7 @@ const mockSession: Session = {
 describe('authSlice', () => {
   it('should return the initial state', () => {
     const state = authReducer(undefined, { type: 'unknown' });
-    expect(state).toEqual({ session: null, isRestoring: true });
+    expect(state).toEqual({ session: null, isRestoring: true, lastRole: null });
   });
 
   it('setSession stores session and clears isRestoring', () => {

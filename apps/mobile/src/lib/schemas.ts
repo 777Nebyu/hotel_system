@@ -1,5 +1,8 @@
 import { z } from 'zod'
-import { registerSchema as baseRegisterSchema } from '@repo/shared-types'
+import {
+  registerSchema as baseRegisterSchema,
+  emailFieldSchema,
+} from '@repo/shared-types'
 export {
   loginSchema,
   forgotPasswordSchema,
@@ -8,6 +11,8 @@ export {
   reviewSchema,
   createCouponSchema,
   updateCouponSchema,
+  emailFieldSchema,
+  resendVerificationSchema,
 } from '@repo/shared-types'
 export type {
   LoginInput,
@@ -15,6 +20,7 @@ export type {
   UpdateProfileInput,
   ReviewInput,
   CreateCouponInput,
+  ResendVerificationInput,
 } from '@repo/shared-types'
 
 export const registerSchema = baseRegisterSchema
@@ -30,7 +36,7 @@ export type RegisterInput = z.infer<typeof registerSchema>
 
 export const guestInfoSchema = z.object({
   guestFullName: z.string().min(2, 'Guest name is required (min 2 characters)'),
-  guestEmail: z.string().email('Please enter a valid email address'),
+  guestEmail: emailFieldSchema,
   guestPhone: z.string().min(3, 'Phone number is required (min 3 characters)'),
 })
 

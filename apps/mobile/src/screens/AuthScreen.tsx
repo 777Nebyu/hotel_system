@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../navigation/types';
+import type { AuthPortal, RootStackParamList } from '../navigation/types';
 import { useAppDispatch } from '../store/hooks';
 import { setSession, saveSessionToStorage, type Session } from '../store/authSlice';
 import { request } from '../api';
@@ -31,10 +31,12 @@ import { loginSchema, registerSchema } from '../lib/schemas';
 import { getExpoPushToken, registerPushToken } from '../lib/notifications';
 import { isBiometricEnabled, getStoredRefreshToken, enableBiometric, disableBiometric } from '../lib/biometrics';
 
-type Nav   = NativeStackNavigationProp<RootStackParamList, 'Auth'>;
-type Route = RouteProp<RootStackParamList, 'Auth'>;
+type Nav = NativeStackNavigationProp<RootStackParamList>;
+type AuthRouteName = 'Auth' | 'CustomerAuth' | 'StaffAuth' | 'AdminAuth';
+type Route = RouteProp<RootStackParamList, AuthRouteName>;
 
 type Mode = 'login' | 'register';
+type AuthResponse = Session & { mfaRequired?: boolean; challengeToken?: string };
 
 const TERMS_URL = 'https://yayetech.com/terms';
 const PRIVACY_URL = 'https://yayetech.com/privacy';
@@ -140,7 +142,14 @@ export default function AuthScreen() {
   const route      = useRoute<Route>();
   const dispatch   = useAppDispatch();
   const insets     = useSafeAreaInsets();
-  const initialMode = route.params?.initialMode ?? 'login';
+  const routeParams = route.params as { initialMode?: Mode; portal?: AuthPortal } | undefined;
+  const portal: AuthPortal = routeParams?.portal ?? (
+    route.name === 'StaffAuth' ? 'staff' : route.name === 'AdminAuth' ? 'admin' : 'customer'
+  );
+  const isCustomerPortal = portal === 'customer';
+  const portalLabel = portal === 'admin' ? 'System Admin' : portal === 'staff' ? 'Hotel Manager / Staff' : 'Customer';
+  const initialMode: Mode = isCustomerPortal ? (routeParams?.initialMode ?? 'login') : 'login';
+  const portalClaim = portal.toUpperCase() as 'CUSTOMER' | 'STAFF' | 'ADMIN';
 
   const [mode,            setMode]            = useState<Mode>(initialMode);
   const [fullName,        setFullName]        = useState('');
@@ -192,6 +201,7 @@ export default function AuthScreen() {
     googleBtnPressed: { opacity: 0.88, transform: [{ scale: 0.985 }] },
     googleBtnText: { color: c.ink, fontSize: 15, fontWeight: '600' },
     switchText: { fontSize: 14, color: c.inkMuted, textAlign: 'center' },
+    portalBadge: { fontSize: 12, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase' },
     switchLink: { color: c.teal, fontWeight: '700' },
   }), [c]);
 
@@ -286,13 +296,14 @@ export default function AuthScreen() {
         setGoogleLoading(false);
         return;
       }
-      const idToken = (result as any).authentication?.idToken ?? (result as any).params?.id_token;
-      if (!idToken) {
-        setGoogleLoading(false);
+      const idToken = result.idToken;
+
+      if (!isCustomerPortal) return;
+      const session = await handleGoogleAuth(idToken);
+      if (session.mfaRequired && session.challengeToken) {
+        navigation.navigate('MfaVerify', { challengeToken: session.challengeToken, portal });
         return;
       }
-
-      const session = await handleGoogleAuth(idToken);
       await saveSessionToStorage(session);
       dispatch(setSession(session));
       hapticSuccess();
@@ -387,10 +398,14 @@ export default function AuthScreen() {
         return;
       }
 
-      const session = await request<Session>('/auth/login', {
+      const session = await request<AuthResponse>('/auth/login', {
         method: 'POST',
-        body: { email: email.trim(), password },
+        body: { email: email.trim(), password, portal: portalClaim },
       });
+      if (session.mfaRequired && session.challengeToken) {
+        navigation.navigate('MfaVerify', { challengeToken: session.challengeToken, portal });
+        return;
+      }
       await saveSessionToStorage(session);
       dispatch(setSession(session));
       hapticSuccess();
@@ -478,6 +493,7 @@ export default function AuthScreen() {
           <Text style={styles.logoWord}>LuxSty</Text>
         </View>
 
+        <Text style={[styles.portalBadge, { color: c.teal }]}>{portalLabel}</Text>
         <Text style={styles.heading}>
           {mode === 'login' ? t('auth.welcome_back') : t('auth.create_account')}
         </Text>
@@ -488,7 +504,7 @@ export default function AuthScreen() {
         </Text>
 
         {/* ── Mode toggle pills ─────────────────────────────────────────── */}
-        <View style={styles.modePills}>
+        {isCustomerPortal && <View style={styles.modePills}>
           {(['login', 'register'] as Mode[]).map((m) => (
             <Pressable
               key={m}
@@ -502,7 +518,7 @@ export default function AuthScreen() {
               </Text>
             </Pressable>
           ))}
-        </View>
+        </View>}
 
         {/* ── Form ─────────────────────────────────────────────────────── */}
         <View style={styles.form}>
@@ -678,6 +694,9 @@ export default function AuthScreen() {
             )}
           </Pressable>
 
+          {/* OAuth is available only in the customer portal. Staff and admin
+              identities are provisioned by the platform and use password/MFA. */}
+          {isCustomerPortal && <>
           {/* ── Divider ──────────────────────────────────────────────────── */}
           <View style={staticStyles.dividerRow}>
             <View style={[staticStyles.dividerLine, { backgroundColor: c.line }]} />
@@ -707,11 +726,12 @@ export default function AuthScreen() {
               </View>
             )}
           </Pressable>
+          </>}
 
         </View>
 
         {/* ── Switch mode ────────────────────────────────────────────────── */}
-        <Pressable
+        {isCustomerPortal && <Pressable
           onPress={() => switchMode(mode === 'login' ? 'register' : 'login')}
           style={staticStyles.switchRow}
           accessibilityRole="button"
@@ -722,7 +742,7 @@ export default function AuthScreen() {
               {mode === 'login' ? t('auth.sign_up_free') : t('buttons.sign_in')}
             </Text>
           </Text>
-        </Pressable>
+        </Pressable>}
 
       </ScrollView>
     </KeyboardAvoidingView>

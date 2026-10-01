@@ -206,7 +206,7 @@ export default function TelebirrOtpScreen() {
           style={styles.resendRow}
         >
           <Text style={[styles.resendText, { color: resendCooldown > 0 ? c.inkMuted : c.teal }]}>
-            {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend verification code'}
+            {resendCooldown > 0 ? t('telebirr.resend_cooldown', { seconds: resendCooldown }) : t('telebirr.resend_code')}
           </Text>
         </Pressable>
 
@@ -214,7 +214,7 @@ export default function TelebirrOtpScreen() {
         <View style={[styles.smsHint, { backgroundColor: c.paperDeep, borderColor: c.line }]}>
           <Ionicons name="information-circle-outline" size={16} color={c.inkMuted} />
           <Text style={[styles.smsHintText, { color: c.inkMuted }]}>
-            Check the mock SMS inbox for the verification code
+            {t('telebirr.sms_hint')}
           </Text>
         </View>
 

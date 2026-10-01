@@ -23,7 +23,9 @@ export type {
 export interface User {
   id: string; email: string; fullName: string; phone?: string | null;
   role: UserRole; profilePhotoUrl?: string | null; isActive?: boolean;
+  emailVerified?: boolean;
   emailVerifiedAt?: string | null;
+  mfaEnabled?: boolean;
   hotelId?: string;
   hotelName?: string;
   googleId?: string;

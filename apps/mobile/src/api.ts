@@ -48,7 +48,7 @@ export function setAuthExpiredCallback(cb: () => void) { onAuthExpired = cb; }
 let onTokenRefreshed: ((session: { accessToken: string; refreshToken?: string }) => void) | null = null;
 export function setTokenRefreshedCallback(cb: (session: { accessToken: string; refreshToken?: string }) => void) { onTokenRefreshed = cb; }
 
-type RequestOptions = Omit<RequestInit, 'body'> & { body?: unknown; token?: string | null };
+type RequestOptions = Omit<RequestInit, 'body'> & { body?: unknown; token?: string | null; timeoutMs?: number };
 
 let isRefreshing = false;
 let refreshPromise: Promise<string> | null = null;
@@ -124,10 +124,10 @@ function extractErrorMessage(payload: unknown, status: number): string {
 }
 
 async function performRequest<T>(path: string, options: RequestOptions = {}, retryCount = 0): Promise<T> {
-  const { body, token, headers, signal, ...init } = options;
+  const { body, token, headers, signal, timeoutMs = 20_000, ...init } = options;
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   let response: Response;
   try {

@@ -75,6 +75,7 @@
     "notifications": "ማሳወቂያዎች",
     "profile": "መገለጫ",
     "saved": "ተቀምጧቸው",
+    "discover": "አስስ",
     "sign_in_short": "ግባ",
     "sign_in": "ግባ"
   },
@@ -266,7 +267,9 @@
     "processing_msg": "አቅራቢው ክፍያውን በማረጋገጥ ላይ ነው.",
     "unknown": "የክፍያ ሁኔታ አልታወቀም",
     "history_empty": "የክፍያ ታሪክዎ እዚህ ይታያል.",
-    "payment_with": "ክፍያ በ{{method}}"
+    "payment_with": "ክፍያ በ{{method}}",
+    "reference_hint": "ይህን ማጣቀሻ በ{{bankName}} ሞባይል አፕ ሲከፍሉ ይጠቀሙ።",
+    "confirm_payment_done": "ክፍያ ፈጸምኩ → አረጋግጥ"
   },
   "home": {
     "hero_eyebrow": "በኢትዮጵያ ውስጥ ሆቴሎች · ኢትዮጵያ",
@@ -1328,7 +1331,10 @@
   },
   "telebirr": {
     "resend_failed": "OTP ቁጥር እንደገና መላክ አልተሳካም.",
-    "verifying": "በማረጋገጥ ላይ…"
+    "verifying": "በማረጋገጥ ላይ…",
+    "resend_cooldown": "ኮዱን ሁገና ላክ ({{seconds}} ሰ)",
+    "resend_code": "የማረጋገጫ ኮዱን ሁገና ላክ",
+    "sms_hint": "የማረጋገጫ ኮዱን በሞክ ኤስኤምኤስ ሳጥን ይፈልጉ።"
   },
   "myReviews": {
     "could_not_delete": "ግምገማ መሰረዝ አልተሳካም.",
@@ -1359,5 +1365,22 @@
     "partial": "ከፊል ተመላሽ",
     "none": "ተመላሽ የለም",
     "near_checkin": "የግባት ቀን ከ3 ቀናት በታች ነው። በስረዛ ፖሊሲ ተመላሽ አይገኝም."
+  },
+  "ai": {
+    "title": "የYayeTech ረዳት",
+    "subtitle": "የተጠበቀ የሆቴል ድጋፍ",
+    "emptyTitle": "እንዴት ልርዳዎት?",
+    "emptyText": "ስለ ቦታ ማስያዝዎ፣ የክፍል መገኘት፣ የሆቴል መመሪያዎች ወይም መለያዎ ይጠይቁ።",
+    "placeholder": "የሆቴል ረዳቱን ይጠይቁ...",
+    "thinking": "በማሰብ ላይ…",
+    "goBack": "ተመለስ",
+    "startVoice": "የድምጽ ረዳት ጀምር",
+    "stopVoice": "ቀረጻ አቁም",
+    "microphoneRequired": "ለድምጽ ረዳት የማይክሮፎን ፈቃድ ያስፈልጋል።",
+    "noRecording": "ምንም ቀረጻ አልተገኘም።",
+    "voiceUnavailable": "የድምጽ ረዳቱ ለጊዜው አይገኝም።",
+    "recordingUnavailable": "ቀረጻ መጀመር አልተቻለም።",
+    "serviceUnavailable": "ረዳቱ ለጊዜው አይገኝም።",
+    "recordingTooLong": "ቀረጻው በጣም ረጅም ነው። እባክዎ የድምጽ መልዕክቶችን ከአንድ ደቂቃ በታች ያድርጉ።"
   }
 }
