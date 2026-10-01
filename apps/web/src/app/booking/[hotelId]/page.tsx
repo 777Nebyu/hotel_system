@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useAuth } from '@/lib/auth-store'
 import { useHotelQuery, useHotelRoomsQuery } from '@/hooks/use-catalog'
 import {
@@ -19,7 +20,10 @@ import {
 import { CountdownTimer } from '@/components/domain/CountdownTimer'
 import { PriceBreakdownCard } from '@/components/domain/PriceBreakdownCard'
 import { ConfirmationPanel } from '@/components/domain/ConfirmationPanel'
+import { toast } from '@/components/ui/Toast'
 import { formatEthiopianBirr } from '@/lib/currency'
+import { useLanguage } from '@/lib/i18n'
+import { discoverApi, tripApi, type PlaceItem } from '@/lib/services'
 import type { Booking, RoomAvailability } from '@/lib/types'
 import type { PaymentMethod } from '@repo/shared-types'
 import {
@@ -30,6 +34,8 @@ import {
   Banknote,
   CheckCircle,
   AlertCircle,
+  MapPin,
+  Navigation,
   Loader2,
   ArrowLeft,
   ArrowRight,
@@ -39,14 +45,14 @@ import {
 } from 'lucide-react'
 
 const STEPS = [
-  { id: 0, title: 'Choose Suite' },
-  { id: 1, title: 'Guest Information' },
-  { id: 2, title: 'Payment & Confirm' },
-  { id: 3, title: 'Confirmation' },
+  { id: 0, titleKey: 'chooseSuite' },
+  { id: 1, titleKey: 'guestInformation' },
+  { id: 2, titleKey: 'stepPaymentConfirm' },
+  { id: 3, titleKey: 'stepConfirmation' },
 ]
 
 const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format'
+  'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Swimming_pool_and_main_building_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg/960px-Swimming_pool_and_main_building_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg'
 
 function dayOffset(offset: number) {
   const date = new Date()
@@ -65,6 +71,7 @@ type PaymentStateMachine =
 
 function BookingWizardContent() {
   const params = useParams()
+  const { t } = useLanguage()
   const hotelId = typeof params.hotelId === 'string' ? params.hotelId : ''
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -81,6 +88,10 @@ function BookingWizardContent() {
   const [selectedRoomId, setSelectedRoomId] = useState(searchParams.get('room') ?? '')
   const [promoCodeInput, setPromoCodeInput] = useState('')
   const [appliedPromo, setAppliedPromo] = useState('')
+  const [nearbyPlaces, setNearbyPlaces] = useState<PlaceItem[]>([])
+  const [nearbyLoading, setNearbyLoading] = useState(false)
+  const [nearbyError, setNearbyError] = useState<string | null>(null)
+  const [savingNearbyPlaceId, setSavingNearbyPlaceId] = useState<string | null>(null)
 
   // Guest Information (preserved on 409 conflict)
   const [guestName, setGuestName] = useState(user?.fullName ?? '')
@@ -124,6 +135,32 @@ function BookingWizardContent() {
 
   // Query: Hotel Details
   const { data: hotel, isLoading: isHotelLoading } = useHotelQuery(hotelId)
+
+  useEffect(() => {
+    if (hotel?.lat == null || hotel?.lng == null) {
+      setNearbyPlaces([])
+      return
+    }
+    let active = true
+    setNearbyLoading(true)
+    setNearbyError(null)
+    discoverApi.nearby({ lat: hotel.lat, lng: hotel.lng, radiusKm: 10, limit: 6 })
+      .then((response) => {
+        if (active) setNearbyPlaces(response.data)
+      })
+      .catch((err) => {
+        if (active) {
+          setNearbyPlaces([])
+          setNearbyError(err instanceof Error ? err.message : t('hotel', 'nearbyUnavailable'))
+        }
+      })
+      .finally(() => {
+        if (active) setNearbyLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [hotel?.lat, hotel?.lng])
 
   // Query: Rooms Availability for given dates
   const {
@@ -199,10 +236,10 @@ function BookingWizardContent() {
         setStep(3)
       } else if (pollingPayment.status === 'FAILED') {
         setPaymentStatus('failed')
-        setErrorMessage('Payment failed or was declined by the mobile network. Please try again.')
+        setErrorMessage(t('hotel', 'paymentFailedMobile'))
       }
     }
-  }, [isPollingPayment, pollingPayment])
+  }, [isPollingPayment, pollingPayment, t])
 
   // Auth Guard
   useEffect(() => {
@@ -219,7 +256,7 @@ function BookingWizardContent() {
   // Room Hold handlers
   const handleHoldExpire = () => {
     setHoldExpired(true)
-    setErrorMessage('Your 15-minute room hold has expired. Please re-check room hold to continue.')
+    setErrorMessage(t('hotel', 'holdExpiredMessage'))
   }
 
   const handleRefreshHold = async () => {
@@ -248,7 +285,7 @@ function BookingWizardContent() {
   // Step 0 -> Step 1
   const proceedToGuestInfo = async () => {
     if (!selectedRoomId) {
-      setErrorMessage('Please select an available suite to continue.')
+      setErrorMessage(t('hotel', 'selectSuiteToContinue'))
       return
     }
     setErrorMessage(null)
@@ -273,11 +310,11 @@ function BookingWizardContent() {
   // Step 1 -> Step 2
   const proceedToPayment = () => {
     if (!guestName.trim()) {
-      setErrorMessage('Guest full name is required.')
+      setErrorMessage(t('hotel', 'guestNameRequired'))
       return
     }
     if (!guestEmail.trim() || !guestEmail.includes('@')) {
-      setErrorMessage('A valid guest email address is required.')
+      setErrorMessage(t('hotel', 'guestEmailRequired'))
       return
     }
     setErrorMessage(null)
@@ -297,7 +334,7 @@ function BookingWizardContent() {
   const handleFinalPayment = async () => {
     if (paymentStatus === 'processing' || paymentStatus === 'validating') return
     if (holdExpired) {
-      setErrorMessage('Hold expired. Please refresh your room hold before confirming payment.')
+      setErrorMessage(t('hotel', 'holdExpiredPayment'))
       return
     }
 
@@ -361,18 +398,55 @@ function BookingWizardContent() {
       // "If inventory is taken by another user during checkout, display conflict alert,
       // preserve non-sensitive guest fields (fullName, email, phone), and return to Step 1"
       if (err?.status === 409 || err?.response?.status === 409) {
-        setConflictMessage(
-          'Room Unavailable: Another traveler just secured this suite for the selected dates. Your guest details have been safely preserved. Please choose an alternative suite below.',
-        )
+        setConflictMessage(t('hotel', 'conflictRoomUnavailable'))
         // Refetch fresh rooms
         void refetchRooms()
         // Send user back to suite selection
         setStep(0)
       } else {
         setErrorMessage(
-          err?.message || 'Payment authorization failed. Please verify your details and try again.',
+          err?.message || t('hotel', 'paymentAuthFailed'),
         )
       }
+    }
+  }
+
+  const handleSaveNearbyPlace = async (place: PlaceItem) => {
+    if (!user) {
+      toast.info(t('hotel', 'signInRequiredTitle'), t('hotel', 'signInRequiredTripMsg'))
+      return
+    }
+    setSavingNearbyPlaceId(place.id)
+    try {
+      const trips = await tripApi.list()
+      const trip = trips.data[0]
+      if (!trip) {
+        toast.info(t('hotel', 'createTripFirstTitle'), t('hotel', 'createTripFirstMsg'))
+        router.push('/trips')
+        return
+      }
+      const tripStart = trip.startDate.slice(0, 10)
+      const tripEnd = trip.endDate.slice(0, 10)
+      const dayDate = checkIn >= tripStart && checkIn <= tripEnd ? checkIn : tripStart
+      const result = await tripApi.addItem(trip.id, {
+        itemType: 'PLACE',
+        placeId: place.id,
+        title: t('hotel', 'visitPlace', { name: place.name }),
+        dayDate,
+        startTime: '10:00',
+        durationMin: 90,
+        currency: 'ETB',
+      })
+      toast.success(
+        result.hasConflict ? t('hotel', 'savedWithConflict') : t('hotel', 'savedToMyTrip'),
+        result.hasConflict
+          ? t('hotel', 'reviewConflictMsg')
+          : t('hotel', 'placeAddedToTripMsg', { name: place.name, trip: trip.title }),
+      )
+    } catch (err) {
+      toast.error(t('hotel', 'unableToSavePlace'), err instanceof Error ? err.message : t('hotel', 'pleaseTryAgain'))
+    } finally {
+      setSavingNearbyPlaceId(null)
     }
   }
 
@@ -441,7 +515,7 @@ function BookingWizardContent() {
                           : 'text-slate-400'
                     }`}
                   >
-                    {s.title}
+                    {t('hotel', s.titleKey)}
                   </span>
                 </div>
                 {idx < STEPS.length - 1 && (
@@ -474,7 +548,7 @@ function BookingWizardContent() {
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <div className="font-bold">Inventory Conflict Detected</div>
+                <div className="font-bold">{t('hotel', 'inventoryConflictTitle')}</div>
                 <p className="mt-0.5 text-xs text-amber-800">{conflictMessage}</p>
               </div>
             </div>
@@ -482,7 +556,7 @@ function BookingWizardContent() {
               type="button"
               onClick={() => setConflictMessage(null)}
               className="text-amber-700 hover:text-amber-950 p-1 rounded-lg hover:bg-amber-100/60 transition-colors shrink-0"
-              aria-label="Dismiss notification"
+              aria-label={t('hotel', 'dismissNotification')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -500,7 +574,7 @@ function BookingWizardContent() {
               type="button"
               onClick={() => setErrorMessage(null)}
               className="text-rose-700 hover:text-rose-900 p-1 rounded-lg hover:bg-rose-100/60 transition-colors shrink-0"
-              aria-label="Dismiss notification"
+              aria-label={t('hotel', 'dismissNotification')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -524,10 +598,10 @@ function BookingWizardContent() {
                 <div className="space-y-6">
                   <div>
                     <h1 className="font-serif text-3xl font-bold text-[#0F2942] mb-1">
-                      Choose Your Suite
+                      {t('hotel', 'chooseYourSuite')}
                     </h1>
                     <p className="text-sm text-slate-600">
-                      Select an available room at {hotel?.name || 'this property'} for your stay dates.
+                      {t('hotel', 'selectRoomAt', { name: hotel?.name || t('hotel', 'thisProperty') })}
                     </p>
                   </div>
 
@@ -535,7 +609,7 @@ function BookingWizardContent() {
                   <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-                        Check-in
+                        {t('hotel', 'checkInLabel')}
                       </label>
                       <input
                         type="date"
@@ -547,7 +621,7 @@ function BookingWizardContent() {
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-                        Check-out
+                        {t('hotel', 'checkOutLabel')}
                       </label>
                       <input
                         type="date"
@@ -559,7 +633,7 @@ function BookingWizardContent() {
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-                        Adults
+                        {t('hotel', 'adultsLabel')}
                       </label>
                       <input
                         type="number"
@@ -572,7 +646,7 @@ function BookingWizardContent() {
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-                        Children
+                        {t('hotel', 'childrenLabel')}
                       </label>
                       <input
                         type="number"
@@ -591,7 +665,7 @@ function BookingWizardContent() {
                       <Tag className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                       <input
                         type="text"
-                        placeholder="Enter Promo Code (e.g. LUXSTAY20)"
+                        placeholder={t('hotel', 'promoPlaceholder')}
                         value={promoCodeInput}
                         onChange={(e) => setPromoCodeInput(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm uppercase focus:outline-none focus:border-[#0F2942]"
@@ -602,7 +676,7 @@ function BookingWizardContent() {
                       onClick={handleApplyPromo}
                       className="px-5 py-2 bg-[#0F2942] hover:bg-[#163859] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shrink-0"
                     >
-                      Apply Code
+                      {t('hotel', 'applyCode')}
                     </button>
                   </div>
 
@@ -645,14 +719,14 @@ function BookingWizardContent() {
                                     {room.type.replace(/_/g, ' ')}
                                   </h3>
                                   <div className="text-xs text-slate-500 mt-0.5">
-                                    Room #{room.roomNumber} · {room.beds} {room.beds === 1 ? 'bed' : 'beds'} · Up to {room.capacity} guests
+                                    {t('hotel', room.beds === 1 ? 'roomSpecsSingleBed' : 'roomSpecsMultiBed', { number: room.roomNumber, beds: room.beds, guests: room.capacity })}
                                   </div>
                                 </div>
                                 <div className="text-right">
                                   <div className="text-base font-bold text-[#0F2942]">
                                     {formatEthiopianBirr(room.basePrice)}
                                   </div>
-                                  <div className="text-[11px] text-slate-400">per night</div>
+                                  <div className="text-[11px] text-slate-400">{t('hotel', 'perNight')}</div>
                                 </div>
                               </div>
 
@@ -672,11 +746,81 @@ function BookingWizardContent() {
                       })
                     ) : (
                       <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-                        No suites available for the selected dates. Please adjust your check-in or check-out dates.
+                        {t('hotel', 'noSuitesSelectedDates')}
                       </div>
                     )}
                   </div>
                 </div>
+              )}
+
+              {/* What's around this hotel? */}
+              {(nearbyLoading || nearbyError || nearbyPlaces.length > 0) && (
+                <section className="mt-8 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm" aria-labelledby="booking-nearby-title">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#D4AF37]">{t('hotel', 'stayExplore')}</p>
+                      <h2 id="booking-nearby-title" className="mt-1 font-serif text-xl font-bold text-[#0F2942]">{t('hotel', 'whatsAroundHotel')}</h2>
+                      <p className="mt-1 text-xs text-slate-500">{t('hotel', 'whatsAroundDesc')}</p>
+                    </div>
+                    <Link href="/discover" className="text-xs font-bold text-[#2563EB] hover:underline">{t('hotel', 'browseAll')}</Link>
+                  </div>
+
+                  {nearbyLoading && (
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {[1, 2].map((item) => <div key={item} className="h-28 animate-pulse rounded-xl bg-slate-100" />)}
+                    </div>
+                  )}
+
+                  {!nearbyLoading && nearbyError && (
+                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+                      {t('hotel', 'nearbyErrorSuffix', { error: nearbyError })}
+                    </div>
+                  )}
+
+                  {!nearbyLoading && !nearbyError && nearbyPlaces.length > 0 && (
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {nearbyPlaces.map((place) => {
+                        const distance = place.distanceKm ?? 0
+                        const distanceLabel = distance < 1 ? Math.round(distance * 1000) + 'm' : distance.toFixed(1) + ' km'
+                        const navigationUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + place.lat + ',' + place.lng
+                        return (
+                          <article key={place.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                            <div className="flex items-start gap-3">
+                              <div className="mt-0.5 rounded-lg bg-[#0F2942]/5 p-2 text-[#0F2942]">
+                                <MapPin className="h-4 w-4" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <Link href={'/discover/' + place.id} className="truncate text-sm font-bold text-[#0F2942] hover:text-[#2563EB]">
+                                  {place.name}
+                                </Link>
+                                <p className="mt-1 text-[11px] text-slate-500">{place.category} · {distanceLabel} · {place.source?.name || t('hotel', 'verifiedSource')}</p>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex items-center gap-2 border-t border-slate-200 pt-3">
+                              <button
+                                type="button"
+                                onClick={() => void handleSaveNearbyPlace(place)}
+                                disabled={savingNearbyPlaceId === place.id}
+                                className="inline-flex flex-1 items-center justify-center rounded-lg bg-[#0F2942] px-2.5 py-2 text-[11px] font-bold text-white hover:bg-[#1E3A5F] disabled:opacity-50"
+                              >
+                                {savingNearbyPlaceId === place.id ? t('hotel', 'savingEllipsis') : t('hotel', 'saveToTrip')}
+                              </button>
+                              <a
+                                href={navigationUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                aria-label={t('hotel', 'navigateTo', { name: place.name })}
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-[11px] font-bold text-slate-700 hover:bg-slate-100"
+                              >
+                                <Navigation className="mr-1 h-3.5 w-3.5 text-[#D4AF37]" /> {t('hotel', 'goLabel')}
+                              </a>
+                            </div>
+                          </article>
+                        )
+                      })}
+                    </div>
+                  )}
+                </section>
               )}
 
               {/* STEP 1: GUEST INFORMATION */}
@@ -684,52 +828,52 @@ function BookingWizardContent() {
                 <div className="space-y-6">
                   <div>
                     <h1 className="font-serif text-3xl font-bold text-[#0F2942] mb-1">
-                      Guest Information
+                      {t('hotel', 'guestInformation')}
                     </h1>
                     <p className="text-sm text-slate-600">
-                      Enter details corresponding to government-issued identification for hotel registration.
+                      {t('hotel', 'guestInfoSubtitle')}
                     </p>
                   </div>
 
                   <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
-                        Full Name *
+                        {t('hotel', 'fullNameLabel')}
                       </label>
                       <input
                         type="text"
                         value={guestName}
                         onChange={(e) => setGuestName(e.target.value)}
-                        placeholder="Legal First and Last Name"
+                        placeholder={t('hotel', 'fullNamePlaceholder')}
                         className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0F2942]"
                       />
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
-                        Email Address *
+                        {t('hotel', 'emailLabel')}
                       </label>
                       <input
                         type="email"
                         value={guestEmail}
                         onChange={(e) => setGuestEmail(e.target.value)}
-                        placeholder="guest@example.com"
+                        placeholder={t('hotel', 'emailPlaceholder')}
                         className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0F2942]"
                       />
                       <p className="text-[11px] text-slate-400 mt-1">
-                        Your booking confirmation receipt and PDF invoice will be routed here.
+                        {t('hotel', 'emailHelper')}
                       </p>
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
-                        Phone Number (Optional)
+                        {t('hotel', 'phoneLabel')}
                       </label>
                       <input
                         type="tel"
                         value={guestPhone}
                         onChange={(e) => setGuestPhone(e.target.value)}
-                        placeholder="+251 91 123 4567"
+                        placeholder={t('hotel', 'phonePlaceholder')}
                         className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0F2942]"
                       />
                     </div>
@@ -742,21 +886,21 @@ function BookingWizardContent() {
                 <div className="space-y-6">
                   <div>
                     <h1 className="font-serif text-3xl font-bold text-[#0F2942] mb-1">
-                      Payment Method
+                      {t('hotel', 'paymentMethodLabel')}
                     </h1>
                     <p className="text-sm text-slate-600">
-                      Select your preferred payment gateway. Instant authorization is secured via 256-bit encryption.
+                      {t('hotel', 'paymentMethodSubtitle')}
                     </p>
                   </div>
 
                   {/* Payment Gateway Selector */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {[
-                      { id: 'CREDIT_CARD', label: 'Credit Card', icon: CreditCard },
-                      { id: 'TELEBIRR', label: 'Telebirr', icon: Smartphone },
-                      { id: 'CBE_BIRR', label: 'CBE Birr', icon: Landmark },
-                      { id: 'PAYPAL', label: 'PayPal', icon: CircleDollarSign },
-                      { id: 'CASH', label: 'Cash at Hotel', icon: Banknote },
+                      { id: 'CREDIT_CARD', label: t('hotel', 'creditCardLabel'), icon: CreditCard },
+                      { id: 'TELEBIRR', label: t('hotel', 'telebirrLabel'), icon: Smartphone },
+                      { id: 'CBE_BIRR', label: t('hotel', 'cbeBirrLabel'), icon: Landmark },
+                      { id: 'PAYPAL', label: t('hotel', 'paypalLabel'), icon: CircleDollarSign },
+                      { id: 'CASH', label: t('hotel', 'cashAtHotelLabel'), icon: Banknote },
                     ].map((method) => {
                       const Icon = method.icon
                       const isSelected = paymentMethod === method.id
@@ -787,10 +931,10 @@ function BookingWizardContent() {
                     {paymentMethod === 'CREDIT_CARD' && (
                       <div className="space-y-4">
                         <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                          Cardholder Details
+                          {t('hotel', 'cardholderDetails')}
                         </div>
                         <div>
-                          <label className="block text-xs text-slate-500 mb-1">Card Number</label>
+                          <label className="block text-xs text-slate-500 mb-1">{t('hotel', 'cardNumberLabel')}</label>
                           <input
                             type="text"
                             value={cardNumber}
@@ -800,7 +944,7 @@ function BookingWizardContent() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-xs text-slate-500 mb-1">Expiry</label>
+                            <label className="block text-xs text-slate-500 mb-1">{t('hotel', 'expiryLabel')}</label>
                             <input
                               type="text"
                               value={cardExpiry}
@@ -809,7 +953,7 @@ function BookingWizardContent() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-slate-500 mb-1">CVC</label>
+                            <label className="block text-xs text-slate-500 mb-1">{t('hotel', 'cvcLabel')}</label>
                             <input
                               type="text"
                               value={cardCvc}
@@ -824,14 +968,14 @@ function BookingWizardContent() {
                     {paymentMethod === 'TELEBIRR' && (
                       <div className="space-y-3">
                         <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                          Telebirr Mobile Payment
+                          {t('hotel', 'telebirrMobilePayment')}
                         </div>
                         <p className="text-xs text-slate-500">
-                          A payment push request will be sent to your registered Telebirr number.
+                          {t('hotel', 'telebirrDesc')}
                         </p>
                         <div>
                           <label className="block text-xs text-slate-500 mb-1">
-                            Telebirr Phone Number
+                            {t('hotel', 'telebirrPhoneLabel')}
                           </label>
                           <input
                             type="tel"
@@ -846,11 +990,11 @@ function BookingWizardContent() {
                     {paymentMethod === 'CBE_BIRR' && (
                       <div className="space-y-3">
                         <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                          Commercial Bank of Ethiopia (CBE Birr)
+                          {t('hotel', 'cbeBirrTitle')}
                         </div>
                         <div>
                           <label className="block text-xs text-slate-500 mb-1">
-                            CBE Account or Phone Number
+                            {t('hotel', 'cbeAccountLabel')}
                           </label>
                           <input
                             type="text"
@@ -865,10 +1009,10 @@ function BookingWizardContent() {
                     {paymentMethod === 'PAYPAL' && (
                       <div className="space-y-3">
                         <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                          PayPal Account
+                          {t('hotel', 'paypalAccountTitle')}
                         </div>
                         <div>
-                          <label className="block text-xs text-slate-500 mb-1">PayPal Email</label>
+                          <label className="block text-xs text-slate-500 mb-1">{t('hotel', 'paypalEmailLabel')}</label>
                           <input
                             type="email"
                             value={paypalEmail}
@@ -881,8 +1025,8 @@ function BookingWizardContent() {
 
                     {paymentMethod === 'CASH' && (
                       <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed">
-                        <div className="font-bold mb-1">Pay at Hotel Front Desk</div>
-                        Your suite will be reserved upon confirmation. Payment must be presented in cash upon check-in at the front desk.
+                        <div className="font-bold mb-1">{t('hotel', 'payAtFrontDesk')}</div>
+                        {t('hotel', 'cashNotice')}
                       </div>
                     )}
                   </div>
@@ -894,17 +1038,17 @@ function BookingWizardContent() {
                         <Loader2 className="w-5 h-5 animate-spin text-[#D4AF37]" />
                       </div>
                       <div className="font-semibold text-sm text-[#0F2942]">
-                        Awaiting Confirmation from Mobile Gateway
+                        {t('hotel', 'awaitingMobileConfirmation')}
                       </div>
                       <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                        We have dispatched the transaction to your mobile wallet. Polling status automatically...
+                        {t('hotel', 'pollingStatusMsg')}
                       </p>
                       <button
                         type="button"
                         onClick={handleSimulateMobileApproval}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
                       >
-                        Simulate Instant Mobile Approval
+                        {t('hotel', 'simulateApproval')}
                       </button>
                     </div>
                   )}
@@ -923,7 +1067,7 @@ function BookingWizardContent() {
                     disabled={paymentStatus === 'processing'}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    <ArrowLeft className="w-4 h-4" /> Back
+                    <ArrowLeft className="w-4 h-4" /> {t('hotel', 'backLabel')}
                   </button>
                 ) : (
                   <div />
@@ -936,7 +1080,7 @@ function BookingWizardContent() {
                     disabled={!selectedRoomId || isQuoteLoading}
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0F2942] hover:bg-[#163859] text-white text-sm font-bold transition-colors shadow-sm cursor-pointer disabled:opacity-50"
                   >
-                    Continue to Guest Info <ArrowRight className="w-4 h-4" />
+                    {t('hotel', 'continueToGuestInfo')} <ArrowRight className="w-4 h-4" />
                   </button>
                 )}
 
@@ -946,7 +1090,7 @@ function BookingWizardContent() {
                     onClick={proceedToPayment}
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0F2942] hover:bg-[#163859] text-white text-sm font-bold transition-colors shadow-sm cursor-pointer"
                   >
-                    Continue to Payment <ArrowRight className="w-4 h-4" />
+                    {t('hotel', 'continueToPayment')} <ArrowRight className="w-4 h-4" />
                   </button>
                 )}
 
@@ -964,11 +1108,11 @@ function BookingWizardContent() {
                     {paymentStatus === 'processing' ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
-                        Authorizing Payment...
+                        {t('hotel', 'authorizingPayment')}
                       </>
                     ) : (
                       <>
-                        Confirm & Pay {quote?.total ? formatEthiopianBirr(quote.total) : ''}
+                        {t('hotel', 'confirmAndPay', { amount: quote?.total ? formatEthiopianBirr(quote.total) : '' })}
                         <ShieldCheck className="w-4 h-4 text-[#D4AF37]" />
                       </>
                     )}
@@ -997,13 +1141,14 @@ function BookingWizardContent() {
 }
 
 export default function BookingFlowPage() {
+  const { t } = useLanguage()
   return (
     <Suspense
       fallback={
         <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="w-8 h-8 text-[#0F2942] animate-spin" />
-            <span className="text-slate-500 text-sm">Preparing checkout wizard...</span>
+            <span className="text-slate-500 text-sm">{t('hotel', 'preparingCheckout')}</span>
           </div>
         </div>
       }

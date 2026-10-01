@@ -197,3 +197,16 @@ h1, h2, h3, .font-serif {
     scroll-behavior: auto !important;
   }
 }
+
+@media print {
+  @page { size: A5 portrait; margin: 8mm; }
+  body { background: #fff !important; color: #000 !important; }
+  nav, [data-testid='ai-chat'], .print\:hidden { display: none !important; }
+  .print\:block { display: block !important; }
+  a { color: #000 !important; text-decoration: none !important; }
+}
+
+html[lang='am'] body { font-family: var(--font-ethiopic), var(--font-sans); }
+html[lang='am'] h1, html[lang='am'] h2, html[lang='am'] h3, html[lang='am'] .font-serif {
+  font-family: var(--font-ethiopic), var(--font-serif);
+}

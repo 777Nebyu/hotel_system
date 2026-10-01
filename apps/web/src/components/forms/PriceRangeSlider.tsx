@@ -1,5 +1,8 @@
+'use client'
+
 import * as React from 'react'
 import { formatEthiopianBirr } from '@/lib/currency'
+import { useLanguage } from '@/lib/i18n'
 
 export interface PriceRangeSliderProps {
   min?: number
@@ -18,6 +21,7 @@ export function PriceRangeSlider({
   onChange,
   className = '',
 }: PriceRangeSliderProps) {
+  const { t } = useLanguage()
   const [minVal, maxVal] = value
 
   const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +44,7 @@ export function PriceRangeSlider({
         <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
           {formatEthiopianBirr(minVal)}
         </span>
-        <span className="text-slate-400 font-normal">to</span>
+        <span className="text-slate-400 font-normal">{t('hotel', 'toLabel')}</span>
         <span className="bg-[#FEF9E7] text-[#92400E] px-2.5 py-1 rounded-lg border border-[#D4AF37]/35 font-bold">
           {formatEthiopianBirr(maxVal)}{maxVal >= max ? '+' : ''}
         </span>
@@ -48,7 +52,7 @@ export function PriceRangeSlider({
 
       <div className="space-y-1">
         <label htmlFor="price-slider-max" className="sr-only">
-          Maximum price per night
+          {t('hotel', 'maxPricePerNight')}
         </label>
         <input
           id="price-slider-max"

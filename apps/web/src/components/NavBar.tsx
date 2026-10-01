@@ -2,8 +2,10 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-store'
+import { useLanguage } from '@/lib/i18n'
 import {
   Hotel,
   Search,
@@ -18,6 +20,7 @@ import {
   Briefcase,
   Sliders,
   ChevronDown,
+  Compass,
 } from 'lucide-react'
 import { Button } from './ui/Button'
 import { StatusBadge } from './ui/StatusBadge'
@@ -26,6 +29,7 @@ export default function NavBar() {
   const router = useRouter()
   const pathname = usePathname()
   const { user, logout } = useAuth()
+  const { language, setLanguage, t } = useLanguage()
 
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const [userMenuOpen, setUserMenuOpen] = React.useState(false)
@@ -70,11 +74,11 @@ export default function NavBar() {
 
   const roleLabel = React.useMemo(() => {
     if (!user) return ''
-    if (user.role === 'ADMIN') return 'System Admin'
-    if (user.role === 'MANAGER') return 'Hotel Manager'
-    if (user.role === 'STAFF') return 'Front Desk Staff'
-    return 'Customer'
-  }, [user])
+    if (user.role === 'ADMIN') return t('common', 'roleSystemAdmin')
+    if (user.role === 'MANAGER') return t('common', 'roleHotelManager')
+    if (user.role === 'STAFF') return t('common', 'roleFrontDeskStaff')
+    return t('common', 'roleCustomer')
+  }, [user, t])
 
   const handleSignOut = () => {
     logout()
@@ -86,7 +90,7 @@ export default function NavBar() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${navBackground}`}
-      aria-label="Primary navigation"
+      aria-label={t('common', 'primaryNavLabel')}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between">
         {/* Brand Logo */}
@@ -101,7 +105,7 @@ export default function NavBar() {
               LuxStay
             </span>
             <span className="text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] -mt-1">
-              Luxury Stays
+              {t('common', 'luxuryStays')}
             </span>
           </div>
         </Link>
@@ -116,7 +120,7 @@ export default function NavBar() {
                 : ''
             }`}
           >
-            Home
+            {t('common', 'home')}
           </Link>
           <Link
             href="/search"
@@ -126,11 +130,41 @@ export default function NavBar() {
                 : ''
             }`}
           >
-            Explore Hotels
+            {t('common', 'explore')}
+          </Link>
+          <Link
+            href="/discover"
+            className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
+              pathname.startsWith('/discover')
+                ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
+                : ''
+            }`}
+          >
+            {t('common', 'discover')}
+          </Link>
+          <Link
+            href="/trips"
+            className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
+              pathname.startsWith('/trips')
+                ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
+                : ''
+            }`}
+          >
+            {t('common', 'myTrips')}
+          </Link>
+          <Link
+            href="/emergency"
+            className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
+              pathname.startsWith('/emergency')
+                ? 'bg-white/15 text-white font-semibold shadow-sm border border-white/10'
+                : ''
+            }`}
+          >
+            {t('common', 'safety')}
           </Link>
 
           {/* Role-scoped Portal Links */}
-          {user && (
+          {user && user.role !== 'CUSTOMER' && (
             <Link
               href={dashboardPath}
               className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${linkTextColor} ${
@@ -143,18 +177,27 @@ export default function NavBar() {
               }`}
             >
               {user.role === 'ADMIN'
-                ? 'Admin Portal'
+                ? t('common', 'adminPortal')
                 : user.role === 'MANAGER'
-                ? 'Manager Console'
-                : user.role === 'STAFF'
-                ? 'Staff Desk'
-                : 'My Trips'}
+                ? t('common', 'managerConsole')
+                : t('common', 'staffDesk')}
             </Link>
           )}
         </div>
 
         {/* Desktop User Section */}
         <div className="hidden md:flex items-center gap-3">
+          {/* Language Switcher Toggle */}
+          <button
+            onClick={() => setLanguage(language === 'am' ? 'en' : 'am')}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-white/20 bg-white/10 text-xs font-bold text-white hover:bg-white/15 backdrop-blur-md transition cursor-pointer"
+            title={t('common', 'switchLanguageTitle')}
+          >
+            <span className={language === 'en' ? 'text-[#D4AF37]' : 'text-white/60'}>EN</span>
+            <span className="text-white/40">|</span>
+            <span className={language === 'am' ? 'text-[#D4AF37]' : 'text-white/60'}>አማ</span>
+          </button>
+
           {user ? (
             <div className="relative" ref={userMenuRef}>
               <button
@@ -165,11 +208,12 @@ export default function NavBar() {
               >
                 <div className="w-8 h-8 rounded-lg bg-[#D4AF37] text-[#0F2942] flex items-center justify-center font-bold text-xs overflow-hidden shrink-0">
                   {user.profilePhotoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={user.profilePhotoUrl}
-                      alt={user.fullName || 'User'}
-                      className="w-full h-full object-cover"
+                      alt={user.fullName || t('common', 'userFallback')}
+                      width={32}
+                      height={32}
+                      className="h-full w-full object-cover"
                     />
                   ) : (
                     user.fullName ? user.fullName[0].toUpperCase() : 'U'
@@ -205,7 +249,7 @@ export default function NavBar() {
                     className="flex items-center gap-2.5 px-3 py-2 text-sm text-white/85 hover:bg-white/10 hover:text-white rounded-xl transition-colors"
                   >
                     <LayoutDashboard className="w-4 h-4 text-[#D4AF37]" />
-                    <span>Dashboard</span>
+                    <span>{t('common', 'dashboard')}</span>
                   </Link>
 
                   <button
@@ -213,7 +257,7 @@ export default function NavBar() {
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-300 hover:bg-red-500/15 rounded-xl transition-colors mt-1 cursor-pointer"
                   >
                     <LogOut className="w-4 h-4 text-red-300" />
-                    <span>Sign Out</span>
+                    <span>{t('common', 'signOut')}</span>
                   </button>
                 </div>
               )}
@@ -222,15 +266,15 @@ export default function NavBar() {
             <div className="flex items-center gap-2.5">
               <Link
                 href="/auth?mode=login"
-                className="inline-flex items-center justify-center text-xs sm:text-sm font-medium h-9 px-4 rounded-xl border border-white/25 bg-white/5 backdrop-blur-sm text-white hover:text-white hover:bg-white/15 active:scale-[0.98] transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+                className="inline-flex items-center justify-center text-xs sm:text-sm font-medium h-9 px-4 rounded-xl border border-white/25 bg-white/5 backdrop-blur-sm text-white hover:text-white hover:bg-white/15 active:scale-[0.98] transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2                 focus-visible:ring-[#D4AF37]"
               >
-                Sign In
+                {t('common', 'signIn')}
               </Link>
               <Link
                 href="/auth?mode=register"
-                className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold h-9 px-4.5 rounded-xl bg-[#D4AF37] text-[#0B0F17] hover:bg-[#C5A028] shadow-md shadow-[#D4AF37]/25 active:scale-[0.98] transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+                className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold h-9 px-4.5 rounded-xl bg-[#D4AF37] text-[#0B0F17] hover:bg-[#C5A028] shadow-md shadow-[#D4AF37]/25 active:scale-[0.98] transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2                 focus-visible:ring-[#D4AF37]"
               >
-                Register
+                {t('common', 'register')}
               </Link>
             </div>
           )}
@@ -240,7 +284,7 @@ export default function NavBar() {
         <div className="flex md:hidden items-center gap-2">
           <button
             onClick={() => setMobileOpen((prev) => !prev)}
-            aria-label="Toggle navigation menu"
+            aria-label={t('common', 'toggleNavMenu')}
             className="p-2.5 rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/15 transition-colors cursor-pointer"
           >
             {mobileOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
@@ -262,7 +306,7 @@ export default function NavBar() {
               }`}
             >
               <Home className="w-5 h-5 text-[#D4AF37]" />
-              <span>Home</span>
+              <span>{t('common', 'home')}</span>
             </Link>
             <Link
               href="/search"
@@ -274,7 +318,43 @@ export default function NavBar() {
               }`}
             >
               <Search className="w-5 h-5 text-[#D4AF37]" />
-              <span>Explore Hotels</span>
+              <span>{t('common', 'explore')}</span>
+            </Link>
+            <Link
+              href="/discover"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                pathname.startsWith('/discover')
+                  ? 'bg-white/15 text-white font-semibold border border-white/10'
+                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <Compass className="w-5 h-5 text-[#D4AF37]" />
+              <span>{t('common', 'discover')}</span>
+            </Link>
+            <Link
+              href="/trips"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                pathname.startsWith('/trips')
+                  ? 'bg-white/15 text-white font-semibold border border-white/10'
+                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <CalendarCheck className="w-5 h-5 text-[#D4AF37]" />
+              <span>{t('common', 'myTrips')}</span>
+            </Link>
+            <Link
+              href="/emergency"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                pathname.startsWith('/emergency')
+                  ? 'bg-white/15 text-white font-semibold border border-white/10'
+                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <Shield className="w-5 h-5 text-[#D4AF37]" />
+              <span>{t('common', 'safety')}</span>
             </Link>
 
             {user && (
@@ -314,7 +394,7 @@ export default function NavBar() {
                   className="w-full text-red-300 border-red-400/30 bg-red-500/10 hover:bg-red-500/20"
                   leftIcon={<LogOut className="w-4 h-4 text-red-300" />}
                 >
-                  Sign Out
+                  {t('common', 'signOut')}
                 </Button>
               </div>
             ) : (
@@ -324,14 +404,14 @@ export default function NavBar() {
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center justify-center h-11 px-4 rounded-xl text-sm font-medium text-white border border-white/20 bg-white/10 hover:bg-white/15 active:scale-[0.98] transition-all text-center cursor-pointer"
                 >
-                  Sign In
+                  {t('common', 'signIn')}
                 </Link>
                 <Link
                   href="/auth?mode=register"
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center justify-center h-11 px-4 rounded-xl text-sm font-semibold bg-[#D4AF37] text-[#0B0F17] hover:bg-[#C5A028] shadow-md shadow-[#D4AF37]/25 active:scale-[0.98] transition-all text-center cursor-pointer"
                 >
-                  Register
+                  {t('common', 'register')}
                 </Link>
               </div>
             )}

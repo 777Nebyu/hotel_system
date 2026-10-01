@@ -16,9 +16,11 @@ import {
   X,
 } from 'lucide-react'
 import { authApi } from '@/lib/services'
+import { useLanguage } from '@/lib/i18n'
 
 function ResetPasswordContent() {
   const router = useRouter()
+  const { t } = useLanguage()
   const searchParams = useSearchParams()
   const token = searchParams.get('token') || ''
 
@@ -47,13 +49,16 @@ function ResetPasswordContent() {
     setError('')
 
     if (!token) {
-      return setError('No reset token was found in the link. Please request a new password reset.')
+      return setError(t('auth', 'noResetTokenError'))
     }
     if (password.length < 8) {
-      return setError('Password must be at least 8 characters long.')
+      return setError(t('auth', 'passwordTooShort8'))
+    }
+    if (!/\d/.test(password)) {
+      return setError(t('auth', 'passwordNeedsNumber'))
     }
     if (password !== confirmPassword) {
-      return setError('Passwords do not match.')
+      return setError(t('auth', 'passwordsDoNotMatch'))
     }
 
     setLoading(true)
@@ -64,7 +69,7 @@ function ResetPasswordContent() {
       setError(
         caught instanceof Error
           ? caught.message
-          : 'Unable to reset your password. The link may have expired or is invalid.',
+          : t('auth', 'resetPasswordFailed'),
       )
     } finally {
       setLoading(false)
@@ -79,8 +84,8 @@ function ResetPasswordContent() {
           <div className="w-12 h-12 rounded-2xl bg-[#0F2942] text-[#D4AF37] flex items-center justify-center mx-auto mb-4">
             <KeyRound className="w-6 h-6 animate-pulse" />
           </div>
-          <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">Set New Password</h1>
-          <p className="text-sm text-[#64748B]">Preparing secure form...</p>
+          <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">{t('auth', 'setNewPasswordTitle')}</h1>
+          <p className="text-sm text-[#64748B]">{t('auth', 'preparingSecureForm')}</p>
         </div>
       </div>
     )
@@ -102,9 +107,9 @@ function ResetPasswordContent() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-50 text-[#996515] mb-3">
             <KeyRound className="w-6 h-6" />
           </div>
-          <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-1.5">Set New Password</h1>
+          <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-1.5">{t('auth', 'setNewPasswordTitle')}</h1>
           <p className="text-sm text-[#64748B]">
-            Create a strong, secure password for your LuxStay account.
+            {t('auth', 'createStrongPassword')}
           </p>
         </div>
 
@@ -114,10 +119,10 @@ function ResetPasswordContent() {
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h2 className="font-serif text-xl font-bold text-[#0F2942] mb-2">
-              Password Reset Successful
+              {t('auth', 'passwordResetSuccessful')}
             </h2>
             <p className="text-sm text-[#64748B] mb-6 leading-relaxed">
-              Your password has been updated securely. You can now sign in using your new credentials.
+              {t('auth', 'passwordUpdatedMessage')}
             </p>
             <button
               type="button"
@@ -125,7 +130,7 @@ function ResetPasswordContent() {
               suppressHydrationWarning
               className="w-full py-3.5 bg-[#0F2942] hover:bg-[#163859] text-white rounded-xl font-semibold transition-colors shadow-md flex items-center justify-center gap-2"
             >
-              <span>Sign In to Your Account</span>
+              <span>{t('auth', 'signInToYourAccount')}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -141,7 +146,7 @@ function ResetPasswordContent() {
                   type="button"
                   onClick={() => setError('')}
                   className="text-rose-500 hover:text-rose-800 p-1 -mr-1 rounded-lg hover:bg-rose-100/60 transition-colors shrink-0"
-                  aria-label="Dismiss notification"
+                  aria-label={t('auth', 'dismissNotification')}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -151,14 +156,14 @@ function ResetPasswordContent() {
             {!token && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-sm text-amber-800 flex items-start gap-2.5">
                 <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
-                <span>Missing reset token. Please verify you clicked the complete link in your email.</span>
+                <span>{t('auth', 'missingResetTokenNotice')}</span>
               </div>
             )}
 
             {/* New Password */}
             <div>
               <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
-                New Password *
+                {t('auth', 'newPasswordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
@@ -168,7 +173,7 @@ function ResetPasswordContent() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="8+ characters"
+                  placeholder={t('auth', 'passwordLengthPlaceholder')}
                   autoComplete="new-password"
                   required
                   suppressHydrationWarning
@@ -177,7 +182,7 @@ function ResetPasswordContent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? t('auth', 'hidePassword') : t('auth', 'showPassword')}
                   suppressHydrationWarning
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                 >
@@ -189,7 +194,7 @@ function ResetPasswordContent() {
             {/* Confirm New Password */}
             <div>
               <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
-                Confirm New Password *
+                {t('auth', 'confirmNewPasswordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
@@ -199,7 +204,7 @@ function ResetPasswordContent() {
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repeat your new password"
+                  placeholder={t('auth', 'repeatPasswordPlaceholder')}
                   autoComplete="new-password"
                   required
                   suppressHydrationWarning
@@ -208,7 +213,7 @@ function ResetPasswordContent() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  aria-label={showConfirmPassword ? t('auth', 'hideConfirmPassword') : t('auth', 'showConfirmPassword')}
                   suppressHydrationWarning
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                 >
@@ -227,11 +232,11 @@ function ResetPasswordContent() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Updating Password...</span>
+                  <span>{t('auth', 'updatingPassword')}</span>
                 </>
               ) : (
                 <>
-                  <span>Update Password</span>
+                  <span>{t('auth', 'updatePassword')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -239,7 +244,7 @@ function ResetPasswordContent() {
 
             <div className="text-center pt-2">
               <Link href="/auth" className="text-xs text-[#64748B] hover:text-[#0F2942] transition-colors">
-                Remembered your password? <span className="text-[#0F2942] font-semibold underline underline-offset-2">Sign in</span>
+                {t('auth', 'rememberedPasswordPrompt')} <span className="text-[#0F2942] font-semibold underline underline-offset-2">{t('auth', 'signInLink')}</span>
               </Link>
             </div>
           </form>
@@ -262,4 +267,3 @@ export default function ResetPasswordPage() {
     </Suspense>
   )
 }
-

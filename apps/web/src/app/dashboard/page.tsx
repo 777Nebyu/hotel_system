@@ -18,6 +18,7 @@ import { useMyReviewsQuery, useCreateReviewMutation, useDeleteReviewMutation } f
 import { useUpdateProfileMutation, useUploadProfilePhotoMutation } from '@/hooks/use-auth'
 import { bookingService } from '@/services/booking.service'
 import { formatEthiopianBirr } from '@/lib/currency'
+import { useLanguage } from '@/lib/i18n'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import type { Booking, FavoriteHotel, Payment } from '@/lib/types'
 import {
@@ -53,7 +54,7 @@ import {
 } from 'lucide-react'
 
 const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format'
+  'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Swimming_pool_and_main_building_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg/960px-Swimming_pool_and_main_building_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg'
 
 type DashboardTab = 'overview' | 'bookings' | 'wishlist' | 'payments' | 'reviews' | 'profile'
 type BookingFilter = 'all' | 'upcoming' | 'completed' | 'cancelled'
@@ -81,29 +82,30 @@ function calculateRefundEligibility(checkInStr: string, totalAmount: number | st
     return {
       percentage: 100,
       refundAmount: num,
-      badge: 'Full Refund (100%)',
-      description: 'Stays cancelled at least 7 days in advance are 100% refundable.',
+      badge: 'refundFullBadge',
+      description: 'refundFullDescription',
     }
   }
   if (daysUntil >= 3) {
     return {
       percentage: 50,
       refundAmount: num * 0.5,
-      badge: 'Partial Refund (50%)',
-      description: 'Stays cancelled 3 to 6 days prior to check-in are eligible for a 50% refund.',
+      badge: 'refundPartialBadge',
+      description: 'refundPartialDescription',
     }
   }
   return {
     percentage: 0,
     refundAmount: 0,
-    badge: 'Non-Refundable',
-    description: 'Cancellations within 48 hours of check-in are non-refundable under standard policy.',
+    badge: 'refundNonRefundableBadge',
+    description: 'refundNonRefundableDescription',
   }
 }
 
 function CustomerDashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const currentTab = (searchParams.get('tab') as DashboardTab) || 'overview'
 
   const user = useAuth((s) => s.user)
@@ -112,6 +114,13 @@ function CustomerDashboardContent() {
   const [bookingFilter, setBookingFilter] = useState<BookingFilter>('all')
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const bookingFilterLabels: Record<BookingFilter, string> = {
+    all: t('account', 'allStays'),
+    upcoming: t('account', 'upcomingFilter'),
+    completed: t('account', 'completedFilter'),
+    cancelled: t('account', 'cancelledFilter'),
+  }
 
   // Auto-dismiss notification banners
   useEffect(() => {
@@ -208,7 +217,7 @@ function CustomerDashboardContent() {
     if (file.size > 5 * 1024 * 1024) {
       setPhotoFeedback({
         type: 'error',
-        message: 'Image size exceeds 5MB limit. Please choose a smaller file.',
+        message: t('account', 'photoTooLarge'),
       })
       return
     }
@@ -216,7 +225,7 @@ function CustomerDashboardContent() {
     if (!file.type.startsWith('image/')) {
       setPhotoFeedback({
         type: 'error',
-        message: 'Only image files (JPG, PNG, WebP) are allowed.',
+        message: t('account', 'photoTypeNotAllowed'),
       })
       return
     }
@@ -225,13 +234,13 @@ function CustomerDashboardContent() {
       await uploadProfilePhotoMutation.mutateAsync(file)
       setPhotoFeedback({
         type: 'success',
-        message: 'Profile photo uploaded and updated successfully!',
+        message: t('account', 'photoUploadSuccess'),
       })
     } catch (err: unknown) {
       const errorMsg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         (err as Error)?.message ||
-        'Failed to upload photo'
+        t('account', 'photoUploadFailed')
       setPhotoFeedback({
         type: 'error',
         message: errorMsg,
@@ -248,7 +257,7 @@ function CustomerDashboardContent() {
     if (profileFullName.trim().length < 2) {
       setProfileFeedback({
         type: 'error',
-        message: 'Full name must be at least 2 characters long.',
+        message: t('account', 'fullNameTooShort'),
       })
       return
     }
@@ -260,13 +269,13 @@ function CustomerDashboardContent() {
       })
       setProfileFeedback({
         type: 'success',
-        message: 'Personal details updated successfully!',
+        message: t('account', 'profileUpdateSuccess'),
       })
     } catch (err: unknown) {
       const errorMsg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         (err as Error)?.message ||
-        'Failed to update profile'
+        t('account', 'profileUpdateFailed')
       setProfileFeedback({
         type: 'error',
         message: errorMsg,
@@ -281,7 +290,7 @@ function CustomerDashboardContent() {
     if (newPassword.length < 8) {
       setPasswordFeedback({
         type: 'error',
-        message: 'New password must be at least 8 characters long.',
+        message: t('account', 'newPasswordTooShort'),
       })
       return
     }
@@ -289,7 +298,7 @@ function CustomerDashboardContent() {
     if (newPassword !== confirmPassword) {
       setPasswordFeedback({
         type: 'error',
-        message: 'New passwords do not match.',
+        message: t('account', 'passwordsDoNotMatch'),
       })
       return
     }
@@ -301,7 +310,7 @@ function CustomerDashboardContent() {
       })
       setPasswordFeedback({
         type: 'success',
-        message: 'Password changed successfully!',
+        message: t('account', 'passwordChangeSuccess'),
       })
       setCurrentPassword('')
       setNewPassword('')
@@ -310,7 +319,7 @@ function CustomerDashboardContent() {
       const errorMsg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         (err as Error)?.message ||
-        'Failed to update password'
+        t('account', 'passwordUpdateFailed')
       setPasswordFeedback({
         type: 'error',
         message: errorMsg,
@@ -353,10 +362,10 @@ function CustomerDashboardContent() {
     setErrorMessage(null)
     try {
       await cancelBookingMutation.mutateAsync(cancellingBooking.id)
-      setSuccessMessage('Reservation cancelled successfully. Refund processing has been initiated.')
+      setSuccessMessage(t('account', 'cancelSuccess'))
       setCancellingBooking(null)
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to cancel reservation.')
+      setErrorMessage(err?.message || t('account', 'cancelFailed'))
     }
   }
 
@@ -370,10 +379,10 @@ function CustomerDashboardContent() {
         type: stayRequestType,
         requestedTime: stayRequestTime,
       })
-      setSuccessMessage('Stay request submitted to the hotel concierge.')
+      setSuccessMessage(t('account', 'stayRequestSuccess'))
       setStayRequestBooking(null)
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Unable to submit request.')
+      setErrorMessage(err?.message || t('account', 'stayRequestFailed'))
     }
   }
 
@@ -388,10 +397,10 @@ function CustomerDashboardContent() {
         checkOut: modCheckOut,
         reason: modReason.trim() || undefined,
       })
-      setSuccessMessage('Stay dates modified successfully.')
+      setSuccessMessage(t('account', 'modifyDatesSuccess'))
       setModifyingBooking(null)
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to modify reservation dates.')
+      setErrorMessage(err?.message || t('account', 'modifyDatesFailed'))
     }
   }
 
@@ -406,12 +415,12 @@ function CustomerDashboardContent() {
         rating: reviewRating,
         comment: reviewComment.trim(),
       })
-      setSuccessMessage('Thank you! Your verified review has been published.')
+      setSuccessMessage(t('account', 'reviewPublishSuccess'))
       setReviewBooking(null)
       setReviewComment('')
       setReviewRating(5)
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Unable to submit review.')
+      setErrorMessage(err?.message || t('account', 'reviewSubmitFailed'))
     }
   }
 
@@ -428,14 +437,16 @@ function CustomerDashboardContent() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight">
-                  Welcome, {user?.fullName?.split(' ')[0] || 'Valued Guest'}
+                  {t('account', 'welcomeUser', {
+                    name: user?.fullName?.split(' ')[0] || t('account', 'valuedGuest'),
+                  })}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] text-[11px] font-bold uppercase tracking-wider">
-                  Luxury Member
+                  {t('account', 'luxuryMember')}
                 </span>
               </div>
               <p className="text-slate-300 text-xs sm:text-sm mt-1">
-                {user?.email} · Manage your verified bookings, wishlist, and payments.
+                {user?.email} · {t('account', 'headerSubtitle')}
               </p>
             </div>
           </div>
@@ -446,19 +457,19 @@ function CustomerDashboardContent() {
               <div className="text-lg sm:text-xl font-serif font-bold text-[#D4AF37]">
                 {upcomingBookings.length}
               </div>
-              <div className="text-[11px] text-slate-300">Upcoming</div>
+              <div className="text-[11px] text-slate-300">{t('account', 'statUpcoming')}</div>
             </div>
             <div className="text-center px-3 py-1 border-x border-white/10">
               <div className="text-lg sm:text-xl font-serif font-bold text-white">
                 {bookings.length}
               </div>
-              <div className="text-[11px] text-slate-300">Total Stays</div>
+              <div className="text-[11px] text-slate-300">{t('account', 'statTotalStays')}</div>
             </div>
             <div className="text-center px-3 py-1">
               <div className="text-lg sm:text-xl font-serif font-bold text-[#D4AF37]">
                 {favorites.length}
               </div>
-              <div className="text-[11px] text-slate-300">Saved</div>
+              <div className="text-[11px] text-slate-300">{t('account', 'statSaved')}</div>
             </div>
           </div>
         </div>
@@ -469,12 +480,12 @@ function CustomerDashboardContent() {
         {/* Navigation Tabs Bar */}
         <div className="bg-white rounded-2xl p-2 border border-slate-200/80 shadow-sm flex items-center gap-1 overflow-x-auto mb-8">
           {[
-            { id: 'overview', label: 'Overview', icon: Building },
-            { id: 'bookings', label: 'My Bookings', icon: Calendar, badge: upcomingBookings.length },
-            { id: 'wishlist', label: 'Saved Stays', icon: Heart, badge: favorites.length },
-            { id: 'payments', label: 'Payment Ledger', icon: CreditCard },
-            { id: 'reviews', label: 'Verified Reviews', icon: Star, badge: reviews.length },
-            { id: 'profile', label: 'Profile & Security', icon: UserCheck },
+            { id: 'overview', label: t('account', 'tabOverview'), icon: Building },
+            { id: 'bookings', label: t('account', 'tabMyBookings'), icon: Calendar, badge: upcomingBookings.length },
+            { id: 'wishlist', label: t('account', 'tabSavedStays'), icon: Heart, badge: favorites.length },
+            { id: 'payments', label: t('account', 'tabPaymentLedger'), icon: CreditCard },
+            { id: 'reviews', label: t('account', 'tabVerifiedReviews'), icon: Star, badge: reviews.length },
+            { id: 'profile', label: t('account', 'tabProfileSecurity'), icon: UserCheck },
           ].map((item) => {
             const Icon = item.icon
             const isActive = currentTab === item.id
@@ -515,7 +526,7 @@ function CustomerDashboardContent() {
               type="button"
               onClick={() => setSuccessMessage(null)}
               className="text-emerald-700 hover:text-emerald-900 p-1 rounded-lg hover:bg-emerald-100/60 transition-colors"
-              aria-label="Dismiss notification"
+              aria-label={t('account', 'dismissNotification')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -533,7 +544,7 @@ function CustomerDashboardContent() {
               type="button"
               onClick={() => setErrorMessage(null)}
               className="text-rose-700 hover:text-rose-900 p-1 rounded-lg hover:bg-rose-100/60 transition-colors"
-              aria-label="Dismiss notification"
+              aria-label={t('account', 'dismissNotification')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -546,12 +557,12 @@ function CustomerDashboardContent() {
             {/* Upcoming Hero Card */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-serif text-xl font-bold text-[#0F2942]">Upcoming Reservation</h2>
+                <h2 className="font-serif text-xl font-bold text-[#0F2942]">{t('account', 'upcomingReservation')}</h2>
                 <button
                   onClick={() => router.push('/dashboard?tab=bookings')}
                   className="text-xs font-semibold text-[#0F2942] hover:text-[#D4AF37] flex items-center gap-1 transition-colors"
                 >
-                  View All Stays <ChevronRight className="w-3.5 h-3.5" />
+                  {t('account', 'viewAllStays')} <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
@@ -560,7 +571,7 @@ function CustomerDashboardContent() {
                   <div className="relative w-full md:w-72 h-48 md:h-auto bg-slate-100 shrink-0">
                     <Image
                       src={upcomingBookings[0].hotel?.images?.[0]?.url || FALLBACK_IMAGE}
-                      alt={upcomingBookings[0].hotel?.name || 'Hotel'}
+                      alt={upcomingBookings[0].hotel?.name || t('account', 'hotelAltFallback')}
                       fill
                       className="object-cover"
                     />
@@ -570,13 +581,13 @@ function CustomerDashboardContent() {
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <span className="font-mono text-xs text-slate-400 block mb-1">
-                            Reference #{upcomingBookings[0].id.slice(-8)}
+                            {t('account', 'referenceNumber', { id: upcomingBookings[0].id.slice(-8) })}
                           </span>
                           <h3 className="font-serif text-xl font-bold text-[#0F2942]">
-                            {upcomingBookings[0].hotel?.name || 'Luxury Hotel Stay'}
+                            {upcomingBookings[0].hotel?.name || t('account', 'fallbackHotelStay')}
                           </h3>
                           <p className="text-xs text-slate-500 mt-0.5">
-                            {upcomingBookings[0].hotel?.address || 'Ethiopia'}
+                            {upcomingBookings[0].hotel?.address || t('account', 'ethiopiaFallback')}
                           </p>
                         </div>
                         <StatusBadge status={upcomingBookings[0].status} />
@@ -584,19 +595,19 @@ function CustomerDashboardContent() {
 
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6 pt-4 border-t border-slate-100 text-xs">
                         <div>
-                          <span className="text-slate-400 block">Check-in</span>
+                          <span className="text-slate-400 block">{t('account', 'checkIn')}</span>
                           <span className="font-semibold text-slate-900">
                             {formatDate(upcomingBookings[0].checkIn)}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block">Check-out</span>
+                          <span className="text-slate-400 block">{t('account', 'checkOut')}</span>
                           <span className="font-semibold text-slate-900">
                             {formatDate(upcomingBookings[0].checkOut)}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block">Total Amount</span>
+                          <span className="text-slate-400 block">{t('account', 'totalAmount')}</span>
                           <span className="font-bold text-[#0F2942] text-sm">
                             {formatEthiopianBirr(upcomingBookings[0].totalPrice)}
                           </span>
@@ -616,7 +627,7 @@ function CustomerDashboardContent() {
                         ) : (
                           <FileDown className="w-3.5 h-3.5 text-[#D4AF37]" />
                         )}
-                        <span>PDF Invoice</span>
+                        <span>{t('account', 'pdfInvoice')}</span>
                       </button>
                       <button
                         onClick={() => {
@@ -626,29 +637,29 @@ function CustomerDashboardContent() {
                         }}
                         className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
                       >
-                        <Clock className="w-3.5 h-3.5 text-[#0F2942]" /> Concierge Request
+                        <Clock className="w-3.5 h-3.5 text-[#0F2942]" /> {t('account', 'conciergeRequest')}
                       </button>
                       <button
                         onClick={() => setCancellingBooking(upcomingBookings[0])}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-colors ml-auto"
-                      >
-                        Cancel Stay
-                      </button>
+                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-colors ml-auto"
+                              >
+                                {t('account', 'cancelStay')}
+                              </button>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="bg-white rounded-2xl p-10 border border-slate-200 text-center">
                   <Building className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <h3 className="font-serif text-lg font-bold text-slate-800">No Upcoming Reservations</h3>
+                  <h3 className="font-serif text-lg font-bold text-slate-800">{t('account', 'noUpcomingReservations')}</h3>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-6">
-                    You have no active stays scheduled. Explore our handpicked collection of luxury suites across Ethiopia.
+                    {t('account', 'noUpcomingReservationsDesc')}
                   </p>
                   <Link
                     href="/search"
                     className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#0F2942] hover:bg-[#163859] text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
                   >
-                    Discover Stays <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    {t('account', 'discoverStays')} <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
                   </Link>
                 </div>
               )}
@@ -658,12 +669,12 @@ function CustomerDashboardContent() {
             {favorites.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-serif text-xl font-bold text-[#0F2942]">Saved Stays</h2>
+                  <h2 className="font-serif text-xl font-bold text-[#0F2942]">{t('account', 'savedStays')}</h2>
                   <button
                     onClick={() => router.push('/dashboard?tab=wishlist')}
                     className="text-xs font-semibold text-[#0F2942] hover:text-[#D4AF37] flex items-center gap-1 transition-colors"
                   >
-                    View All ({favorites.length}) <ChevronRight className="w-3.5 h-3.5" />
+                    {t('account', 'viewAllCount', { count: favorites.length })} <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
@@ -701,13 +712,13 @@ function CustomerDashboardContent() {
                             <span className="font-serif font-bold text-[#0F2942] text-sm">
                               {formatEthiopianBirr(hotel.minPricePerNight ?? 0)}
                             </span>
-                            <span className="text-[10px] text-slate-400">/night</span>
+                            <span className="text-[10px] text-slate-400">{t('account', 'perNight')}</span>
                           </div>
                           <Link
                             href={`/hotel/${hotel.id}`}
                             className="px-3 py-1.5 bg-[#0F2942] text-white rounded-lg text-xs font-semibold hover:bg-[#163859] transition-colors"
                           >
-                            Book Stay
+                            {t('account', 'bookStay')}
                           </Link>
                         </div>
                       </div>
@@ -724,9 +735,9 @@ function CustomerDashboardContent() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="font-serif text-2xl font-bold text-[#0F2942]">Reservation History</h2>
+                <h2 className="font-serif text-2xl font-bold text-[#0F2942]">{t('account', 'reservationHistory')}</h2>
                 <p className="text-xs text-slate-500">
-                  Track and manage all your confirmed, completed, and cancelled reservations.
+                  {t('account', 'reservationHistoryDesc')}
                 </p>
               </div>
 
@@ -734,10 +745,10 @@ function CustomerDashboardContent() {
               <div className="bg-white rounded-xl p-1 border border-slate-200 shadow-sm flex items-center gap-1">
                 {(
                   [
-                    { id: 'all', label: 'All Stays' },
-                    { id: 'upcoming', label: 'Upcoming' },
-                    { id: 'completed', label: 'Completed' },
-                    { id: 'cancelled', label: 'Cancelled' },
+                    { id: 'all' },
+                    { id: 'upcoming' },
+                    { id: 'completed' },
+                    { id: 'cancelled' },
                   ] as const
                 ).map((f) => (
                   <button
@@ -749,7 +760,7 @@ function CustomerDashboardContent() {
                         : 'text-slate-600 hover:bg-slate-100'
                     }`}
                   >
-                    {f.label}
+                    {bookingFilterLabels[f.id]}
                   </button>
                 ))}
               </div>
@@ -777,7 +788,7 @@ function CustomerDashboardContent() {
                       <div className="relative w-full md:w-56 h-40 md:h-auto bg-slate-100 shrink-0">
                         <Image
                           src={b.hotel?.images?.[0]?.url || FALLBACK_IMAGE}
-                          alt={b.hotel?.name || 'Hotel'}
+                          alt={b.hotel?.name || t('account', 'hotelAltFallback')}
                           fill
                           className="object-cover"
                         />
@@ -788,12 +799,12 @@ function CustomerDashboardContent() {
                           <div className="flex items-start justify-between gap-4">
                             <div>
                               <span className="font-mono text-[11px] text-slate-400 block mb-0.5">
-                                Booking #{b.id.slice(-8)}
+                                {t('account', 'bookingNumber', { id: b.id.slice(-8) })}
                               </span>
                               <h3 className="font-serif text-lg font-bold text-[#0F2942]">
-                                {b.hotel?.name || 'Luxury Hotel Reservation'}
+                                {b.hotel?.name || t('account', 'fallbackHotelReservation')}
                               </h3>
-                              <p className="text-xs text-slate-500">{b.hotel?.address || 'Ethiopia'}</p>
+                              <p className="text-xs text-slate-500">{b.hotel?.address || t('account', 'ethiopiaFallback')}</p>
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
@@ -812,7 +823,7 @@ function CustomerDashboardContent() {
                             </span>
                             <span className="flex items-center gap-1.5">
                               <Bed className="w-3.5 h-3.5 text-[#D4AF37]" />
-                              {b.details?.[0]?.room?.type?.replace(/_/g, ' ') || 'Luxury Suite'}
+                              {b.details?.[0]?.room?.type?.replace(/_/g, ' ') || t('account', 'fallbackSuite')}
                             </span>
                             <span className="font-bold text-[#0F2942]">
                               {formatEthiopianBirr(b.totalPrice)}
@@ -833,7 +844,7 @@ function CustomerDashboardContent() {
                             ) : (
                               <FileDown className="w-3.5 h-3.5 text-[#D4AF37]" />
                             )}
-                            <span>PDF Invoice</span>
+                            <span>{t('account', 'pdfInvoice')}</span>
                           </button>
 
                           {isUpcoming && (
@@ -846,7 +857,7 @@ function CustomerDashboardContent() {
                                 }}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
                               >
-                                <Clock className="w-3.5 h-3.5 text-[#0F2942]" /> Concierge Request
+                                <Clock className="w-3.5 h-3.5 text-[#0F2942]" /> {t('account', 'conciergeRequest')}
                               </button>
 
                               <button
@@ -858,14 +869,14 @@ function CustomerDashboardContent() {
                                 }}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-colors"
                               >
-                                Modify Dates
+                                {t('account', 'modifyDates')}
                               </button>
 
                               <button
                                 onClick={() => setCancellingBooking(b)}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-colors ml-auto"
                               >
-                                Cancel Stay
+                                {t('account', 'cancelStay')}
                               </button>
                             </>
                           )}
@@ -879,7 +890,7 @@ function CustomerDashboardContent() {
                               }}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0F2942] text-white hover:bg-[#163859] text-xs font-semibold transition-colors ml-auto"
                             >
-                              <Star className="w-3.5 h-3.5 text-[#D4AF37]" /> Leave Review
+                              <Star className="w-3.5 h-3.5 text-[#D4AF37]" /> {t('account', 'leaveReview')}
                             </button>
                           )}
 
@@ -888,7 +899,7 @@ function CustomerDashboardContent() {
                               href="/search"
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors ml-auto"
                             >
-                              Book New Stay
+                              {t('account', 'bookNewStay')}
                             </Link>
                           )}
                         </div>
@@ -900,17 +911,19 @@ function CustomerDashboardContent() {
             ) : (
               <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center">
                 <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <h3 className="font-serif text-lg font-bold text-slate-800">No Reservations Found</h3>
+                <h3 className="font-serif text-lg font-bold text-slate-800">{t('account', 'noReservationsFound')}</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-6">
                   {bookingFilter === 'all'
-                    ? 'You have not booked any stays yet.'
-                    : `No ${bookingFilter} reservations found in your account.`}
+                    ? t('account', 'noBookingsYet')
+                    : t('account', 'noReservationsForFilter', {
+                        filter: bookingFilterLabels[bookingFilter],
+                      })}
                 </p>
                 <Link
                   href="/search"
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#0F2942] hover:bg-[#163859] text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
                 >
-                  Explore Hotels
+                  {t('account', 'exploreHotels')}
                 </Link>
               </div>
             )}
@@ -921,9 +934,9 @@ function CustomerDashboardContent() {
         {currentTab === 'wishlist' && (
           <div className="space-y-6">
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0F2942]">Saved Stays</h2>
+              <h2 className="font-serif text-2xl font-bold text-[#0F2942]">{t('account', 'savedStays')}</h2>
               <p className="text-xs text-slate-500">
-                Your curated collection of preferred luxury properties.
+                {t('account', 'savedStaysDesc')}
               </p>
             </div>
 
@@ -952,7 +965,7 @@ function CustomerDashboardContent() {
                           toggleFavoriteMutation.mutate({ hotelId: hotel.id, isFavorite: true })
                         }
                         className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 text-rose-500 shadow-sm flex items-center justify-center hover:bg-white cursor-pointer"
-                        title="Remove from saved"
+                        title={t('account', 'removeFromSaved')}
                       >
                         <Heart className="w-4 h-4 fill-current" />
                       </button>
@@ -969,13 +982,13 @@ function CustomerDashboardContent() {
                           <span className="font-serif font-bold text-[#0F2942] text-base">
                             {formatEthiopianBirr(hotel.minPricePerNight ?? 0)}
                           </span>
-                          <span className="text-[10px] text-slate-400">/night</span>
+                          <span className="text-[10px] text-slate-400">{t('account', 'perNight')}</span>
                         </div>
                         <Link
                           href={`/hotel/${hotel.id}`}
                           className="px-3.5 py-1.5 bg-[#0F2942] hover:bg-[#163859] text-white rounded-lg text-xs font-semibold transition-colors"
                         >
-                          Book Stay
+                          {t('account', 'bookStay')}
                         </Link>
                       </div>
                     </div>
@@ -985,15 +998,15 @@ function CustomerDashboardContent() {
             ) : (
               <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center">
                 <Heart className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <h3 className="font-serif text-lg font-bold text-slate-800">No Saved Stays</h3>
+                <h3 className="font-serif text-lg font-bold text-slate-800">{t('account', 'noSavedStays')}</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-6">
-                  Save your favorite properties while searching to quickly revisit and compare them here.
+                  {t('account', 'noSavedStaysDesc')}
                 </p>
                 <Link
                   href="/search"
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#0F2942] hover:bg-[#163859] text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
                 >
-                  Explore Hotels
+                  {t('account', 'exploreHotels')}
                 </Link>
               </div>
             )}
@@ -1004,18 +1017,18 @@ function CustomerDashboardContent() {
         {currentTab === 'payments' && (
           <div className="space-y-6">
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0F2942]">Payment Ledger</h2>
+              <h2 className="font-serif text-2xl font-bold text-[#0F2942]">{t('account', 'paymentLedger')}</h2>
               <p className="text-xs text-slate-500">
-                Complete transactional history with provider references and status records.
+                {t('account', 'paymentLedgerDesc')}
               </p>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="p-4 bg-slate-50/70 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider grid grid-cols-12 gap-2">
-                <div className="col-span-5 sm:col-span-4">Transaction / Hotel</div>
-                <div className="col-span-3 sm:col-span-3">Method</div>
-                <div className="col-span-4 sm:col-span-3 text-right">Amount</div>
-                <div className="hidden sm:block sm:col-span-2 text-right">Status</div>
+                <div className="col-span-5 sm:col-span-4">{t('account', 'colTransactionHotel')}</div>
+                <div className="col-span-3 sm:col-span-3">{t('account', 'colMethod')}</div>
+                <div className="col-span-4 sm:col-span-3 text-right">{t('account', 'colAmount')}</div>
+                <div className="hidden sm:block sm:col-span-2 text-right">{t('account', 'colStatus')}</div>
               </div>
 
               {isPaymentsLoading ? (
@@ -1030,10 +1043,10 @@ function CustomerDashboardContent() {
                     <div key={p.id} className="p-4 grid grid-cols-12 gap-2 items-center text-xs">
                       <div className="col-span-5 sm:col-span-4">
                         <div className="font-semibold text-slate-900 line-clamp-1">
-                          {p.booking?.hotel?.name || 'Hotel Stay Reservation'}
+                          {p.booking?.hotel?.name || t('account', 'fallbackPaymentHotel')}
                         </div>
                         <div className="text-[11px] text-slate-400 font-mono">
-                          {formatDate(p.createdAt)} · Ref: {p.providerRef || p.id.slice(-8)}
+                          {formatDate(p.createdAt)} · {t('account', 'referenceShort')}: {p.providerRef || p.id.slice(-8)}
                         </div>
                       </div>
 
@@ -1053,7 +1066,7 @@ function CustomerDashboardContent() {
                 </div>
               ) : (
                 <div className="p-10 text-center text-slate-500 text-xs">
-                  No payment transactions recorded on your account yet.
+                  {t('account', 'noPaymentsYet')}
                 </div>
               )}
             </div>
@@ -1064,9 +1077,9 @@ function CustomerDashboardContent() {
         {currentTab === 'reviews' && (
           <div className="space-y-6">
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0F2942]">My Verified Reviews</h2>
+              <h2 className="font-serif text-2xl font-bold text-[#0F2942]">{t('account', 'myVerifiedReviews')}</h2>
               <p className="text-xs text-slate-500">
-                Reviews you have shared with the luxury hospitality community.
+                {t('account', 'myVerifiedReviewsDesc')}
               </p>
             </div>
 
@@ -1086,7 +1099,7 @@ function CustomerDashboardContent() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-serif font-bold text-slate-900">
-                          {r.hotel?.name || 'Hotel Stay'}
+                          {r.hotel?.name || t('account', 'hotelStay')}
                         </span>
                         <div className="flex items-center text-amber-400 text-xs">
                           {Array.from({ length: 5 }).map((_, idx) => (
@@ -1101,7 +1114,7 @@ function CustomerDashboardContent() {
                       </div>
                       <p className="text-xs text-slate-600 leading-relaxed max-w-xl">{r.comment}</p>
                       <span className="text-[10px] text-slate-400 mt-2 block">
-                        Published {formatDate(r.createdAt)}
+                        {t('account', 'publishedOn', { date: formatDate(r.createdAt) })}
                       </span>
                     </div>
 
@@ -1109,7 +1122,7 @@ function CustomerDashboardContent() {
                       onClick={() => deleteReviewMutation.mutate(r.id)}
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold self-start transition-colors cursor-pointer"
                     >
-                      <Trash2 className="w-3.5 h-3.5" /> Delete
+                      <Trash2 className="w-3.5 h-3.5" /> {t('account', 'deleteLabel')}
                     </button>
                   </div>
                 ))}
@@ -1117,9 +1130,9 @@ function CustomerDashboardContent() {
             ) : (
               <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center">
                 <Star className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <h3 className="font-serif text-lg font-bold text-slate-800">No Reviews Published</h3>
+                <h3 className="font-serif text-lg font-bold text-slate-800">{t('account', 'noReviewsPublished')}</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-                  Once you complete a stay at any of our hotels, you can leave a verified review to help fellow travelers.
+                  {t('account', 'noReviewsPublishedDesc')}
                 </p>
               </div>
             )}
@@ -1130,9 +1143,9 @@ function CustomerDashboardContent() {
         {currentTab === 'profile' && (
           <div className="max-w-3xl space-y-6">
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#0F2942]">Profile & Identity</h2>
+              <h2 className="font-serif text-2xl font-bold text-[#0F2942]">{t('account', 'profileIdentity')}</h2>
               <p className="text-xs text-slate-500">
-                Manage your personal guest profile information, profile photo, and account security.
+                {t('account', 'profileIdentityDesc')}
               </p>
             </div>
 
@@ -1143,11 +1156,12 @@ function CustomerDashboardContent() {
                 <div className="relative group shrink-0">
                   <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#0F2942] to-[#163859] text-white flex items-center justify-center font-serif text-3xl font-bold overflow-hidden shadow-md ring-4 ring-slate-100/80">
                     {user?.profilePhotoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={user.profilePhotoUrl}
-                        alt={user.fullName || 'Guest Profile'}
-                        className="w-full h-full object-cover"
+                        alt={user.fullName || t('account', 'guestProfileAlt')}
+                        width={96}
+                        height={96}
+                        className="h-full w-full object-cover"
                       />
                     ) : (
                       user?.fullName?.charAt(0).toUpperCase() || 'G'
@@ -1159,7 +1173,7 @@ function CustomerDashboardContent() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadProfilePhotoMutation.isPending}
-                    aria-label="Upload new profile photo"
+                    aria-label={t('account', 'uploadPhotoAria')}
                     className="absolute inset-0 rounded-2xl bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px] cursor-pointer disabled:cursor-not-allowed"
                   >
                     {uploadProfilePhotoMutation.isPending ? (
@@ -1167,7 +1181,7 @@ function CustomerDashboardContent() {
                     ) : (
                       <>
                         <Camera className="w-6 h-6 mb-1 text-[#D4AF37]" />
-                        <span className="text-[10px] font-bold tracking-wide uppercase">Change</span>
+                        <span className="text-[10px] font-bold tracking-wide uppercase">{t('account', 'changeLabel')}</span>
                       </>
                     )}
                   </button>
@@ -1183,16 +1197,16 @@ function CustomerDashboardContent() {
 
                 <div className="space-y-2 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-serif font-bold text-slate-900 text-xl">{user?.fullName || 'Guest'}</h3>
+                    <h3 className="font-serif font-bold text-slate-900 text-xl">{user?.fullName || t('account', 'guestFallback')}</h3>
                     <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#917215] border border-[#D4AF37]/30 uppercase tracking-wider">
-                      {user?.role || 'CUSTOMER'} Account
+                      {t('account', 'accountRoleBadge', { role: user?.role || 'CUSTOMER' })}
                     </span>
                     <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 inline-flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Guest
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> {t('account', 'verifiedGuest')}
                     </span>
                   </div>
                   <p className="text-xs text-slate-500">
-                    Member since {formatDate(user?.createdAt || '')} · High-resolution profile photo is visible on your stay bookings & reviews.
+                    {t('account', 'memberSince', { date: formatDate(user?.createdAt || '') })} · {t('account', 'profilePhotoNote')}
                   </p>
 
                   <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -1205,16 +1219,16 @@ function CustomerDashboardContent() {
                       {uploadProfilePhotoMutation.isPending ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0F2942]" />
-                          Uploading to Cloudinary...
+                          {t('account', 'uploadingCloudinary')}
                         </>
                       ) : (
                         <>
                           <Camera className="w-3.5 h-3.5 text-[#D4AF37]" />
-                          Upload New Photo
+                          {t('account', 'uploadNewPhoto')}
                         </>
                       )}
                     </button>
-                    <span className="text-[11px] text-slate-400">JPG, PNG or WebP · Max 5MB</span>
+                    <span className="text-[11px] text-slate-400">{t('account', 'fileFormatsHint')}</span>
                   </div>
                 </div>
               </div>
@@ -1248,23 +1262,23 @@ function CustomerDashboardContent() {
               <form onSubmit={handleSaveProfile} className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                    Personal Information
+                    {t('account', 'personalInformation')}
                   </h4>
-                  <span className="text-[11px] text-slate-400">Keep your details up to date</span>
+                  <span className="text-[11px] text-slate-400">{t('account', 'keepDetailsUpdated')}</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                       <UserIcon className="w-3.5 h-3.5 text-slate-400" />
-                      Full Legal Name <span className="text-rose-500">*</span>
+                      {t('account', 'fullLegalName')} <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={profileFullName}
                       onChange={(e) => setProfileFullName(e.target.value)}
-                      placeholder="e.g. Samuel Bekele"
+                      placeholder={t('account', 'fullNamePlaceholder')}
                       className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all bg-white"
                     />
                   </div>
@@ -1272,13 +1286,13 @@ function CustomerDashboardContent() {
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      Phone Number
+                      {t('account', 'phoneNumber')}
                     </label>
                     <input
                       type="tel"
                       value={profilePhone}
                       onChange={(e) => setProfilePhone(e.target.value)}
-                      placeholder="e.g. +251 91 123 4567"
+                      placeholder={t('account', 'phonePlaceholder')}
                       className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 focus:border-[#D4AF37] transition-all bg-white"
                     />
                   </div>
@@ -1288,10 +1302,10 @@ function CustomerDashboardContent() {
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      Email Address
+                      {t('account', 'emailAddress')}
                     </span>
                     <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">
-                      Verified Identity
+                      {t('account', 'verifiedIdentity')}
                     </span>
                   </label>
                   <input
@@ -1301,7 +1315,7 @@ function CustomerDashboardContent() {
                     className="w-full border border-slate-200 bg-slate-50/80 rounded-xl px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed"
                   />
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Your email is verified and connected to your booking notifications and active security tokens.
+                    {t('account', 'emailVerifiedNote')}
                   </p>
                 </div>
 
@@ -1344,7 +1358,7 @@ function CustomerDashboardContent() {
                     }
                     className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Reset Changes
+                    {t('account', 'resetChanges')}
                   </button>
                   <button
                     type="submit"
@@ -1358,12 +1372,12 @@ function CustomerDashboardContent() {
                     {updateProfileMutation.isPending ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
-                        Saving Profile...
+                        {t('account', 'savingProfile')}
                       </>
                     ) : (
                       <>
                         <Check className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        Save Profile Changes
+                        {t('account', 'saveProfileChanges')}
                       </>
                     )}
                   </button>
@@ -1379,8 +1393,8 @@ function CustomerDashboardContent() {
                     <KeyRound className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-serif font-bold text-slate-900 text-base">Account Password</h3>
-                    <p className="text-xs text-slate-500">Update your secret credentials to keep your reservations protected.</p>
+                    <h3 className="font-serif font-bold text-slate-900 text-base">{t('account', 'accountPassword')}</h3>
+                    <p className="text-xs text-slate-500">{t('account', 'accountPasswordDesc')}</p>
                   </div>
                 </div>
                 <button
@@ -1391,7 +1405,7 @@ function CustomerDashboardContent() {
                   }}
                   className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
                 >
-                  {showPasswordSection ? 'Hide' : 'Change Password'}
+                  {showPasswordSection ? t('account', 'hideLabel') : t('account', 'changePassword')}
                 </button>
               </div>
 
@@ -1400,7 +1414,7 @@ function CustomerDashboardContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Current Password
+                        {t('account', 'currentPasswordLabel')}
                       </label>
                       <div className="relative">
                         <input
@@ -1423,7 +1437,7 @@ function CustomerDashboardContent() {
 
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                        New Password (min. 8 characters)
+                        {t('account', 'newPasswordLabel')}
                       </label>
                       <div className="relative">
                         <input
@@ -1447,7 +1461,7 @@ function CustomerDashboardContent() {
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                      Confirm New Password
+                      {t('account', 'confirmPasswordLabel')}
                     </label>
                     <input
                       type="password"
@@ -1485,12 +1499,12 @@ function CustomerDashboardContent() {
                       {updateProfileMutation.isPending ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
-                          Updating Password...
+                          {t('account', 'updatingPassword')}
                         </>
                       ) : (
                         <>
                           <Lock className="w-3.5 h-3.5 text-[#D4AF37]" />
-                          Update Password
+                          {t('account', 'updatePassword')}
                         </>
                       )}
                     </button>
@@ -1502,8 +1516,8 @@ function CustomerDashboardContent() {
             {/* Session Management & Sign Out */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex items-center justify-between">
               <div>
-                <div className="text-sm font-semibold text-slate-900">Sign Out of Session</div>
-                <div className="text-xs text-slate-500 mt-0.5">Safely terminate active browser access on this device.</div>
+                <div className="text-sm font-semibold text-slate-900">{t('account', 'signOutOfSession')}</div>
+                <div className="text-xs text-slate-500 mt-0.5">{t('account', 'signOutSessionDesc')}</div>
               </div>
               <button
                 type="button"
@@ -1513,7 +1527,7 @@ function CustomerDashboardContent() {
                 }}
                 className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors cursor-pointer border border-rose-200/60"
               >
-                Sign Out
+                {t('account', 'signOut')}
               </button>
             </div>
           </div>
@@ -1526,7 +1540,7 @@ function CustomerDashboardContent() {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2 text-rose-600 font-bold text-base">
-                <ShieldAlert className="w-5 h-5" /> Cancel Reservation
+                <ShieldAlert className="w-5 h-5" /> {t('account', 'cancelReservation')}
               </div>
               <button
                 onClick={() => setCancellingBooking(null)}
@@ -1537,8 +1551,9 @@ function CustomerDashboardContent() {
             </div>
 
             <p className="text-xs text-slate-600 mb-4">
-              Are you sure you want to cancel your stay at{' '}
-              <strong>{cancellingBooking.hotel?.name || 'this hotel'}</strong>?
+              {t('account', 'cancelConfirmPrefix')}{' '}
+              <strong>{cancellingBooking.hotel?.name || t('account', 'thisHotel')}</strong>
+              {t('account', 'cancelConfirmSuffix')}
             </p>
 
             {/* Authoritative Refund Disclosure (Section 1 & Contract 2.D) */}
@@ -1551,15 +1566,15 @@ function CustomerDashboardContent() {
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 mb-6">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">
-                      Refund Policy Eligibility
+                      {t('account', 'refundPolicyEligibility')}
                     </span>
                     <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
-                      {refund.badge}
+                      {t('account', refund.badge)}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600">{refund.description}</p>
+                  <p className="text-xs text-slate-600">{t('account', refund.description)}</p>
                   <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
-                    <span className="text-slate-500">Estimated Refund:</span>
+                    <span className="text-slate-500">{t('account', 'estimatedRefund')}</span>
                     <span className="font-serif font-bold text-[#0F2942] text-sm">
                       {formatEthiopianBirr(refund.refundAmount)}
                     </span>
@@ -1574,7 +1589,7 @@ function CustomerDashboardContent() {
                 onClick={() => setCancellingBooking(null)}
                 className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50"
               >
-                Keep Stay
+                {t('account', 'keepStay')}
               </button>
               <button
                 type="button"
@@ -1584,10 +1599,10 @@ function CustomerDashboardContent() {
               >
                 {cancelBookingMutation.isPending ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Cancelling...
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> {t('account', 'cancelling')}
                   </>
                 ) : (
-                  'Confirm Cancellation'
+                  t('account', 'confirmCancellation')
                 )}
               </button>
             </div>
@@ -1600,7 +1615,7 @@ function CustomerDashboardContent() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <h3 className="font-serif text-lg font-bold text-[#0F2942]">Special Stay Request</h3>
+              <h3 className="font-serif text-lg font-bold text-[#0F2942]">{t('account', 'specialStayRequest')}</h3>
               <button
                 onClick={() => setStayRequestBooking(null)}
                 className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200"
@@ -1612,21 +1627,21 @@ function CustomerDashboardContent() {
             <form onSubmit={handleStayRequestSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Request Type
+                  {t('account', 'requestType')}
                 </label>
                 <select
                   value={stayRequestType}
                   onChange={(e) => setStayRequestType(e.target.value as any)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0F2942]"
                 >
-                  <option value="EARLY_CHECK_IN">Early Check-In</option>
-                  <option value="LATE_CHECK_OUT">Late Check-Out</option>
+                  <option value="EARLY_CHECK_IN">{t('account', 'earlyCheckIn')}</option>
+                  <option value="LATE_CHECK_OUT">{t('account', 'lateCheckOut')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Requested Time
+                  {t('account', 'requestedTime')}
                 </label>
                 <input
                   type="time"
@@ -1638,7 +1653,7 @@ function CustomerDashboardContent() {
               </div>
 
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
-                Special stay adjustments are subject to room housekeeping turnover and hotel manager approval.
+                {t('account', 'stayRequestNotice')}
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
@@ -1647,14 +1662,16 @@ function CustomerDashboardContent() {
                   onClick={() => setStayRequestBooking(null)}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold"
                 >
-                  Cancel
+                  {t('account', 'cancelLabel')}
                 </button>
                 <button
                   type="submit"
                   disabled={createStayRequestMutation.isPending}
                   className="px-5 py-2 rounded-xl bg-[#0F2942] hover:bg-[#163859] text-white text-xs font-bold"
                 >
-                  {createStayRequestMutation.isPending ? 'Submitting...' : 'Submit Request'}
+                  {createStayRequestMutation.isPending
+                    ? t('account', 'submitting')
+                    : t('account', 'submitRequest')}
                 </button>
               </div>
             </form>
@@ -1667,7 +1684,7 @@ function CustomerDashboardContent() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <h3 className="font-serif text-lg font-bold text-[#0F2942]">Modify Stay Dates</h3>
+              <h3 className="font-serif text-lg font-bold text-[#0F2942]">{t('account', 'modifyStayDates')}</h3>
               <button
                 onClick={() => setModifyingBooking(null)}
                 className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200"
@@ -1679,7 +1696,7 @@ function CustomerDashboardContent() {
             <form onSubmit={handleModifySubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  New Check-In Date
+                  {t('account', 'newCheckInDate')}
                 </label>
                 <input
                   type="date"
@@ -1692,7 +1709,7 @@ function CustomerDashboardContent() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  New Check-Out Date
+                  {t('account', 'newCheckOutDate')}
                 </label>
                 <input
                   type="date"
@@ -1706,11 +1723,11 @@ function CustomerDashboardContent() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Reason for Modification (Optional)
+                  {t('account', 'reasonForModification')}
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. Schedule adjustment"
+                  placeholder={t('account', 'reasonPlaceholder')}
                   value={modReason}
                   onChange={(e) => setModReason(e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0F2942] resize-none"
@@ -1723,14 +1740,16 @@ function CustomerDashboardContent() {
                   onClick={() => setModifyingBooking(null)}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold"
                 >
-                  Cancel
+                  {t('account', 'cancelLabel')}
                 </button>
                 <button
                   type="submit"
                   disabled={modifyBookingMutation.isPending}
                   className="px-5 py-2 rounded-xl bg-[#0F2942] hover:bg-[#163859] text-white text-xs font-bold"
                 >
-                  {modifyBookingMutation.isPending ? 'Saving...' : 'Apply Date Changes'}
+                  {modifyBookingMutation.isPending
+                    ? t('account', 'saving')
+                    : t('account', 'applyDateChanges')}
                 </button>
               </div>
             </form>
@@ -1743,7 +1762,7 @@ function CustomerDashboardContent() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-              <h3 className="font-serif text-lg font-bold text-[#0F2942]">Verified Guest Review</h3>
+              <h3 className="font-serif text-lg font-bold text-[#0F2942]">{t('account', 'verifiedGuestReview')}</h3>
               <button
                 onClick={() => setReviewBooking(null)}
                 className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200"
@@ -1753,13 +1772,15 @@ function CustomerDashboardContent() {
             </div>
 
             <p className="text-xs text-slate-500 mb-4">
-              Share your experience for your completed stay at <strong>{reviewBooking.hotel?.name}</strong>.
+              {t('account', 'reviewIntroPrefix')}{' '}
+              <strong>{reviewBooking.hotel?.name}</strong>
+              {t('account', 'reviewIntroSuffix')}
             </p>
 
             <form onSubmit={handleReviewSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                  Rating
+                  {t('account', 'rating')}
                 </label>
                 <div className="flex items-center gap-1.5">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -1781,12 +1802,12 @@ function CustomerDashboardContent() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                  Your Review Comments
+                  {t('account', 'reviewCommentsLabel')}
                 </label>
                 <textarea
                   rows={4}
                   required
-                  placeholder="Describe your hospitality experience, suite comfort, and cleanliness..."
+                  placeholder={t('account', 'reviewPlaceholder')}
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                   className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-[#0F2942] resize-none"
@@ -1799,14 +1820,16 @@ function CustomerDashboardContent() {
                   onClick={() => setReviewBooking(null)}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold"
                 >
-                  Cancel
+                  {t('account', 'cancelLabel')}
                 </button>
                 <button
                   type="submit"
                   disabled={createReviewMutation.isPending || !reviewComment.trim()}
                   className="px-5 py-2 rounded-xl bg-[#0F2942] hover:bg-[#163859] text-white text-xs font-bold disabled:opacity-50 cursor-pointer"
                 >
-                  {createReviewMutation.isPending ? 'Publishing...' : 'Publish Review'}
+                  {createReviewMutation.isPending
+                    ? t('account', 'publishing')
+                    : t('account', 'publishReview')}
                 </button>
               </div>
             </form>
@@ -1818,6 +1841,7 @@ function CustomerDashboardContent() {
 }
 
 export default function CustomerDashboardPage() {
+  const { t } = useLanguage()
   return (
     <AuthGate roles={['CUSTOMER', 'ADMIN']}>
 
@@ -1826,7 +1850,7 @@ export default function CustomerDashboardPage() {
           <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="w-8 h-8 text-[#0F2942] animate-spin" />
-              <span className="text-slate-500 text-sm">Loading guest dashboard...</span>
+              <span className="text-slate-500 text-sm">{t('account', 'loadingDashboard')}</span>
             </div>
           </div>
         }

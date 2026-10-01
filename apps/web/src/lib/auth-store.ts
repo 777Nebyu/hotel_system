@@ -6,6 +6,9 @@ export interface AuthResponse {
   user: User
   accessToken: string
   refreshToken: string
+  /** Present only when an administrator must complete TOTP verification. */
+  mfaRequired?: boolean
+  challengeToken?: string
 }
 
 const STORAGE_KEY = 'yayetech.session'
@@ -95,6 +98,12 @@ export const useAuth = create<AuthState>((set, get) => {
 
         if (!['ADMIN', 'MANAGER', 'CUSTOMER', 'STAFF'].includes(data.user.role)) {
           throw new ApiError('This portal is available to registered accounts only.', 403, 'FORBIDDEN')
+        }
+
+        // An MFA challenge is not an authenticated session; the OTP screen must verify it first.
+        if (data.mfaRequired) {
+          set({ loading: false, isInitialized: true })
+          return data
         }
 
         set({

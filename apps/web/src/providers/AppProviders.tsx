@@ -7,7 +7,8 @@ import { useAuth } from '@/lib/auth-store'
 import { ToastContainer } from '@/components/ui/Toast'
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
-  const queryClient = getQueryClient()
+  // useState initialiser runs once — prevents creating a new client on every render.
+  const [queryClient] = React.useState(() => getQueryClient())
   const loadFromStorage = useAuth((s) => s.loadFromStorage)
   const refreshAuth = useAuth((s) => s.refreshAuth)
 

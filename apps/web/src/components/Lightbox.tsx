@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 interface LightboxProps {
   images: string[]
@@ -11,7 +13,9 @@ interface LightboxProps {
   onClose: () => void
 }
 
-export default function Lightbox({ images, startIndex = 0, alt = 'Hotel image', onClose }: LightboxProps) {
+export default function Lightbox({ images, startIndex = 0, alt, onClose }: LightboxProps) {
+  const { t } = useLanguage()
+  const altText = alt ?? t('common', 'hotelImageAlt')
   const [current, setCurrent] = useState(startIndex)
   const [direction, setDirection] = useState(0)
 
@@ -66,7 +70,7 @@ export default function Lightbox({ images, startIndex = 0, alt = 'Hotel image', 
           <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-            aria-label="Close lightbox"
+            aria-label={t('common', 'closeLightbox')}
           >
             <X className="w-5 h-5" />
           </button>
@@ -87,7 +91,7 @@ export default function Lightbox({ images, startIndex = 0, alt = 'Hotel image', 
               exit="exit"
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               src={images[current]}
-              alt={`${alt} ${current + 1}`}
+              alt={t('common', 'imageAltWithNumber', { alt: altText, number: current + 1 })}
               className="max-h-[75vh] max-w-[90vw] object-contain rounded-lg select-none"
               draggable={false}
             />
@@ -99,14 +103,14 @@ export default function Lightbox({ images, startIndex = 0, alt = 'Hotel image', 
               <button
                 onClick={prev}
                 className="absolute left-4 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white backdrop-blur-sm transition-all cursor-pointer"
-                aria-label="Previous image"
+                aria-label={t('common', 'previousImage')}
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <button
                 onClick={next}
                 className="absolute right-4 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white backdrop-blur-sm transition-all cursor-pointer"
-                aria-label="Next image"
+                aria-label={t('common', 'nextImage')}
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
@@ -130,7 +134,7 @@ export default function Lightbox({ images, startIndex = 0, alt = 'Hotel image', 
                     : 'opacity-50 hover:opacity-80'
                 }`}
               >
-                <img src={src} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+                <Image src={src} alt={t('common', 'thumbnailAlt', { number: i + 1 })} width={56} height={40} className="h-full w-full object-cover" />
               </button>
             ))}
           </div>

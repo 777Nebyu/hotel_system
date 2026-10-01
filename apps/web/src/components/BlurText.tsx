@@ -94,7 +94,7 @@ export default function BlurText({
             animate={inView ? animateKeyframes : defaultFrom}
             transition={spanTransition}
             onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
-            style={{ display: 'inline-block', willChange: 'transform, filter, opacity' }}
+            style={{ display: 'inline-block' }}
           >
             {segment === ' ' ? '\u00A0' : segment}
             {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}

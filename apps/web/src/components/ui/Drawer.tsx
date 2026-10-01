@@ -1,5 +1,8 @@
+'use client'
+
 import * as React from 'react'
 import { X } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 export interface DrawerProps {
   isOpen: boolean
@@ -16,6 +19,7 @@ export function Drawer({
   children,
   position = 'bottom',
 }: DrawerProps) {
+  const { t } = useLanguage()
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -62,7 +66,7 @@ export function Drawer({
           <div className="font-serif text-lg font-bold text-[#0F2942]">{title}</div>
           <button
             onClick={onClose}
-            aria-label="Close drawer"
+            aria-label={t('common', 'closeDrawer')}
             className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />

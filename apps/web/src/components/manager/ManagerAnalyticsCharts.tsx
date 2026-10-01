@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import type { MonthlyRevenueItem, DailyBookingTrendItem, Room } from '@/lib/types'
 import { formatEthiopianBirr } from '@/lib/currency'
+import { useLanguage } from '@/lib/i18n'
 
 interface ManagerAnalyticsChartsProps {
   hotelName?: string
@@ -23,13 +24,31 @@ interface ManagerAnalyticsChartsProps {
   occupiedToday?: number
 }
 
+const monthShortKeys = [
+  'monthJan',
+  'monthFeb',
+  'monthMar',
+  'monthApr',
+  'monthMay',
+  'monthJun',
+  'monthJul',
+  'monthAug',
+  'monthSep',
+  'monthOct',
+  'monthNov',
+  'monthDec',
+] as const
+
+
 export function ManagerAnalyticsCharts({
-  hotelName = 'Hotel',
+  hotelName,
   monthlyRevenue = [],
   bookingTrends = [],
   rooms = [],
   occupiedToday = 0,
 }: ManagerAnalyticsChartsProps) {
+  const { t } = useLanguage()
+  const hotelLabel = hotelName || t('manager', 'chartHotelFallback')
   const [revenueTimeframe, setRevenueTimeframe] = useState<'6M' | '12M'>('6M')
   const [hoveredMonthIndex, setHoveredMonthIndex] = useState<number | null>(null)
   const [hoveredTrendIndex, setHoveredTrendIndex] = useState<number | null>(null)
@@ -38,7 +57,7 @@ export function ManagerAnalyticsCharts({
   const revenueData = useMemo(() => {
     if (!monthlyRevenue || monthlyRevenue.length === 0) {
       // Default placeholder series if no data yet
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      const months = monthShortKeys.map((key) => t('manager', key))
       return months.slice(-6).map((m) => ({ month: m, revenue: 0, rawMonth: m }))
     }
     const count = revenueTimeframe === '6M' ? 6 : 12
@@ -48,7 +67,8 @@ export function ManagerAnalyticsCharts({
         const parts = item.month.split('-')
         const monthNum = parseInt(parts[1], 10)
         const dateObj = new Date(parseInt(parts[0], 10), monthNum - 1, 1)
-        label = dateObj.toLocaleString('en-US', { month: 'short' })
+        const monthKey = monthShortKeys[monthNum - 1]
+        label = monthKey ? t('manager', monthKey) : dateObj.toLocaleString('en-US', { month: 'short' })
       }
       return {
         month: label,
@@ -56,7 +76,7 @@ export function ManagerAnalyticsCharts({
         rawMonth: item.month,
       }
     })
-  }, [monthlyRevenue, revenueTimeframe])
+  }, [monthlyRevenue, revenueTimeframe, t])
 
   const maxRevenue = useMemo(() => {
     const maxVal = Math.max(...revenueData.map((d) => d.revenue), 1000)
@@ -122,8 +142,8 @@ export function ManagerAnalyticsCharts({
   const trendsData = useMemo(() => {
     if (!bookingTrends || bookingTrends.length === 0) {
       return Array.from({ length: 14 }).map((_, i) => ({
-        date: `Day ${i + 1}`,
-        fullDate: `Day ${i + 1}`,
+        date: t('manager', 'chartDay', { n: i + 1 }),
+        fullDate: t('manager', 'chartDay', { n: i + 1 }),
         bookings: 0,
       }))
     }
@@ -132,7 +152,7 @@ export function ManagerAnalyticsCharts({
       fullDate: t.date,
       bookings: t.bookings ?? t.count ?? 0,
     }))
-  }, [bookingTrends])
+  }, [bookingTrends, t])
 
   const maxBookings = useMemo(() => {
     const maxVal = Math.max(...trendsData.map((d) => d.bookings), 5)
@@ -177,9 +197,9 @@ export function ManagerAnalyticsCharts({
                   <DollarSign className="w-4 h-4 text-[#D4AF37]" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#0F172A] text-base">Revenue Performance Curve</h3>
+                  <h3 className="font-bold text-[#0F172A] text-base">{t('manager', 'chartRevenueTitle')}</h3>
                   <p className="text-xs text-[#64748B]">
-                    Monthly collected revenue stream for {hotelName}
+                    {t('manager', 'chartRevenueSubtitle', { hotel: hotelLabel })}
                   </p>
                 </div>
               </div>
@@ -196,7 +216,7 @@ export function ManagerAnalyticsCharts({
                       : 'text-[#64748B] hover:text-[#0F172A]'
                   }`}
                 >
-                  Past 6M
+                  {t('manager', 'chartPast6M')}
                 </button>
                 <button
                   type="button"
@@ -207,7 +227,7 @@ export function ManagerAnalyticsCharts({
                       : 'text-[#64748B] hover:text-[#0F172A]'
                   }`}
                 >
-                  Past 12M
+                  {t('manager', 'chartPast12M')}
                 </button>
               </div>
             </div>
@@ -216,19 +236,19 @@ export function ManagerAnalyticsCharts({
           {/* Quick Metrics Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 p-3.5 bg-[#F8FAFC] border border-[#E2E8F0]/60 rounded-xl">
             <div>
-              <span className="text-[11px] font-medium text-[#64748B]">Period Revenue</span>
+              <span className="text-[11px] font-medium text-[#64748B]">{t('manager', 'chartPeriodRevenue')}</span>
               <p className="text-base font-bold text-[#0F172A] mt-0.5">
                 {formatEthiopianBirr(totalRevenueSum)}
               </p>
             </div>
             <div>
-              <span className="text-[11px] font-medium text-[#64748B]">Peak Month</span>
+              <span className="text-[11px] font-medium text-[#64748B]">{t('manager', 'chartPeakMonth')}</span>
               <p className="text-base font-bold text-[#2563EB] mt-0.5">
                 {peakMonth.month} ({formatEthiopianBirr(peakMonth.revenue)})
               </p>
             </div>
             <div className="hidden sm:block">
-              <span className="text-[11px] font-medium text-[#64748B]">Monthly Average</span>
+              <span className="text-[11px] font-medium text-[#64748B]">{t('manager', 'chartMonthlyAverage')}</span>
               <p className="text-base font-bold text-emerald-600 mt-0.5">
                 {formatEthiopianBirr(revenueData.length > 0 ? totalRevenueSum / revenueData.length : 0)}
               </p>
@@ -374,12 +394,12 @@ export function ManagerAnalyticsCharts({
                   <Activity className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#0F172A] text-base">Booking Velocity</h3>
-                  <p className="text-xs text-[#64748B]">Daily reservations (Past 30 Days)</p>
+                  <h3 className="font-bold text-[#0F172A] text-base">{t('manager', 'chartBookingVelocity')}</h3>
+                  <p className="text-xs text-[#64748B]">{t('manager', 'chartBookingVelocitySubtitle')}</p>
                 </div>
               </div>
               <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-[#2563EB]">
-                {totalBookingsVelocity} Total
+                {t('manager', 'chartTotalBookings', { count: totalBookingsVelocity })}
               </span>
             </div>
 
@@ -399,7 +419,11 @@ export function ManagerAnalyticsCharts({
                     {isHovered && (
                       <div className="absolute -top-10 bg-[#0F2942] text-white text-[10px] px-2 py-1 rounded-md shadow-md whitespace-nowrap z-20 pointer-events-none">
                         <div className="font-bold">{d.fullDate || d.date}</div>
-                        <div className="text-[#D4AF37] font-semibold">{d.bookings} booking{d.bookings === 1 ? '' : 's'}</div>
+                        <div className="text-[#D4AF37] font-semibold">
+                          {d.bookings === 1
+                            ? t('manager', 'chartBookingOne', { count: d.bookings })
+                            : t('manager', 'chartBookingOther', { count: d.bookings })}
+                        </div>
                       </div>
                     )}
 
@@ -419,19 +443,21 @@ export function ManagerAnalyticsCharts({
             </div>
 
             <div className="flex justify-between items-center text-[10px] text-[#94A3B8] font-mono mt-2">
-              <span>{trendsData[0]?.date || 'Day 1'}</span>
-              <span>30 Days Activity</span>
-              <span>{trendsData[trendsData.length - 1]?.date || 'Today'}</span>
+              <span>{trendsData[0]?.date || t('manager', 'chartDay', { n: 1 })}</span>
+              <span>{t('manager', 'chart30DaysActivity')}</span>
+              <span>{trendsData[trendsData.length - 1]?.date || t('manager', 'today')}</span>
             </div>
           </div>
 
           <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
             <div className="flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Real-time Guest Velocity</span>
+              <span>{t('manager', 'chartRealtimeVelocity')}</span>
             </div>
             <span className="font-semibold text-[#0F172A]">
-              {(totalBookingsVelocity / Math.max(trendsData.length, 1)).toFixed(1)} bookings / day
+              {t('manager', 'chartBookingsPerDay', {
+                value: (totalBookingsVelocity / Math.max(trendsData.length, 1)).toFixed(1),
+              })}
             </span>
           </div>
         </div>
@@ -445,9 +471,9 @@ export function ManagerAnalyticsCharts({
               <BedDouble className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-[#0F172A] text-base">Room Inventory &amp; Operational Status</h3>
+              <h3 className="font-bold text-[#0F172A] text-base">{t('manager', 'chartRoomInventoryTitle')}</h3>
               <p className="text-xs text-[#64748B]">
-                Current room readiness across {roomMetrics.total} configured units
+                {t('manager', 'chartRoomInventorySubtitle', { count: roomMetrics.total })}
               </p>
             </div>
           </div>
@@ -455,7 +481,7 @@ export function ManagerAnalyticsCharts({
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200 flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>{roomMetrics.available} Ready for Check-in</span>
+              <span>{t('manager', 'chartReadyForCheckin', { count: roomMetrics.available })}</span>
             </span>
           </div>
         </div>
@@ -465,22 +491,34 @@ export function ManagerAnalyticsCharts({
           <div
             className="bg-emerald-500 h-full transition-all duration-500 hover:opacity-90"
             style={{ width: `${roomMetrics.availablePct}%` }}
-            title={`Available: ${roomMetrics.available} (${roomMetrics.availablePct}%)`}
+            title={t('manager', 'chartBarAvailable', {
+              count: roomMetrics.available,
+              percent: roomMetrics.availablePct,
+            })}
           />
           <div
             className="bg-[#2563EB] h-full transition-all duration-500 hover:opacity-90"
             style={{ width: `${roomMetrics.occupiedPct}%` }}
-            title={`Occupied: ${roomMetrics.occupied} (${roomMetrics.occupiedPct}%)`}
+            title={t('manager', 'chartBarOccupied', {
+              count: roomMetrics.occupied,
+              percent: roomMetrics.occupiedPct,
+            })}
           />
           <div
             className="bg-amber-400 h-full transition-all duration-500 hover:opacity-90"
             style={{ width: `${roomMetrics.cleaningPct}%` }}
-            title={`Cleaning: ${roomMetrics.cleaning} (${roomMetrics.cleaningPct}%)`}
+            title={t('manager', 'chartBarCleaning', {
+              count: roomMetrics.cleaning,
+              percent: roomMetrics.cleaningPct,
+            })}
           />
           <div
             className="bg-rose-500 h-full transition-all duration-500 hover:opacity-90"
             style={{ width: `${roomMetrics.maintenancePct}%` }}
-            title={`Maintenance: ${roomMetrics.maintenance} (${roomMetrics.maintenancePct}%)`}
+            title={t('manager', 'chartBarMaintenance', {
+              count: roomMetrics.maintenance,
+              percent: roomMetrics.maintenancePct,
+            })}
           />
         </div>
 
@@ -489,37 +527,45 @@ export function ManagerAnalyticsCharts({
           <div className="p-3.5 bg-emerald-50/50 border border-emerald-100 rounded-xl">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <span className="text-xs font-semibold text-emerald-900">Available</span>
+              <span className="text-xs font-semibold text-emerald-900">{t('manager', 'chartBadgeAvailable')}</span>
             </div>
             <div className="text-xl font-bold text-[#0F172A]">{roomMetrics.available}</div>
-            <span className="text-[11px] text-emerald-700">{roomMetrics.availablePct}% of total inventory</span>
+            <span className="text-[11px] text-emerald-700">
+              {t('manager', 'chartPctOfInventory', { percent: roomMetrics.availablePct })}
+            </span>
           </div>
 
           <div className="p-3.5 bg-blue-50/50 border border-blue-100 rounded-xl">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-2.5 h-2.5 rounded-full bg-[#2563EB]" />
-              <span className="text-xs font-semibold text-blue-900">Occupied Today</span>
+              <span className="text-xs font-semibold text-blue-900">{t('manager', 'chartBadgeOccupiedToday')}</span>
             </div>
             <div className="text-xl font-bold text-[#0F172A]">{roomMetrics.occupied}</div>
-            <span className="text-[11px] text-blue-700">{roomMetrics.occupiedPct}% occupancy rate</span>
+            <span className="text-[11px] text-blue-700">
+              {t('manager', 'chartPctOccupancyRate', { percent: roomMetrics.occupiedPct })}
+            </span>
           </div>
 
           <div className="p-3.5 bg-amber-50/50 border border-amber-100 rounded-xl">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-              <span className="text-xs font-semibold text-amber-900">Housekeeping</span>
+              <span className="text-xs font-semibold text-amber-900">{t('manager', 'chartBadgeHousekeeping')}</span>
             </div>
             <div className="text-xl font-bold text-[#0F172A]">{roomMetrics.cleaning}</div>
-            <span className="text-[11px] text-amber-700">{roomMetrics.cleaningPct}% undergoing turnover</span>
+            <span className="text-[11px] text-amber-700">
+              {t('manager', 'chartPctTurnover', { percent: roomMetrics.cleaningPct })}
+            </span>
           </div>
 
           <div className="p-3.5 bg-rose-50/50 border border-rose-100 rounded-xl">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-              <span className="text-xs font-semibold text-rose-900">Maintenance</span>
+              <span className="text-xs font-semibold text-rose-900">{t('manager', 'chartBadgeMaintenance')}</span>
             </div>
             <div className="text-xl font-bold text-[#0F172A]">{roomMetrics.maintenance}</div>
-            <span className="text-[11px] text-rose-700">{roomMetrics.maintenancePct}% blocked out-of-service</span>
+            <span className="text-[11px] text-rose-700">
+              {t('manager', 'chartPctBlocked', { percent: roomMetrics.maintenancePct })}
+            </span>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { create } from 'zustand'
 import { CheckCircle2, AlertTriangle, AlertCircle, Info, X } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 export type ToastType = 'success' | 'warning' | 'error' | 'info'
 
@@ -54,6 +55,7 @@ export const toast = {
 
 export function ToastContainer() {
   const { toasts, removeToast } = useToastStore()
+  const { t } = useLanguage()
 
   if (toasts.length === 0) return null
 
@@ -103,7 +105,7 @@ export function ToastContainer() {
             <button
               onClick={() => removeToast(item.id)}
               className="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
-              aria-label="Dismiss toast"
+              aria-label={t('common', 'dismissToast')}
             >
               <X className="w-4 h-4" />
             </button>

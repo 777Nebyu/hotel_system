@@ -2,8 +2,10 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import HeroAnimated from './HeroAnimated'
-import { useHotelSearchQuery } from '@/hooks/use-catalog'
+import { useFavoritesQuery, useHotelSearchQuery } from '@/hooks/use-catalog'
+import { useLanguage } from '@/lib/i18n'
 import { HotelCard } from '@/components/domain/HotelCard'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -23,79 +25,83 @@ import {
 const DESTINATIONS = [
   {
     city: 'Addis Ababa',
-    country: 'Ethiopia',
-    hotels: '12 Luxury Properties',
-    img: 'https://images.unsplash.com/photo-1549294413-26f195200c16?w=600&h=400&fit=crop&auto=format',
+    cityKey: 'destAddisCity',
+    countryKey: 'countryEthiopia',
+    hotelsKey: 'destAddisHotels',
+    img: 'https://upload.wikimedia.org/wikipedia/commons/6/63/Night_view_of_Meskel_Square.jpg',
   },
   {
     city: 'Dubai',
-    country: 'UAE',
-    hotels: '48 Grand Resorts',
-    img: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600&h=400&fit=crop&auto=format',
+    cityKey: 'destDubaiCity',
+    countryKey: 'countryUae',
+    hotelsKey: 'destDubaiHotels',
+    img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Dubai_Skyline_and_Burj_Khalifa_-_25072008.jpg/960px-Dubai_Skyline_and_Burj_Khalifa_-_25072008.jpg',
   },
   {
     city: 'Paris',
-    country: 'France',
-    hotels: '34 Boutique Stays',
-    img: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600&h=400&fit=crop&auto=format',
+    cityKey: 'destParisCity',
+    countryKey: 'countryFrance',
+    hotelsKey: 'destParisHotels',
+    img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Eiffel_Tower_sunset_skyline_%28Unsplash%29.jpg/960px-Eiffel_Tower_sunset_skyline_%28Unsplash%29.jpg',
   },
   {
     city: 'Santorini',
-    country: 'Greece',
-    hotels: '19 Cliffside Villas',
-    img: 'https://images.unsplash.com/photo-1623718649591-311775a30c43?w=600&h=400&fit=crop&auto=format',
+    cityKey: 'destSantoriniCity',
+    countryKey: 'countryGreece',
+    hotelsKey: 'destSantoriniHotels',
+    img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Oia_-_Santorini_-_Greece_-_11.jpg/960px-Oia_-_Santorini_-_Greece_-_11.jpg',
   },
 ]
 
 const VALUE_PROPS = [
   {
     icon: Building2,
-    title: 'Curated Five-Star Stays',
-    desc: 'Each hotel and private residence undergoes rigorous 150-point quality inspections before listing.',
+    titleKey: 'valueOneTitle',
+    descKey: 'valueOneDesc',
   },
   {
     icon: ShieldCheck,
-    title: 'Authoritative Reservation Hold',
-    desc: 'Inventory is locked in atomic transactions directly with property systems. Zero double bookings.',
+    titleKey: 'valueTwoTitle',
+    descKey: 'valueTwoDesc',
   },
   {
     icon: BadgeDollarSign,
-    title: 'Transparent Pricing Guarantee',
-    desc: 'No hidden resort fees or checkout surprises. The price you see is the authoritative total.',
+    titleKey: 'valueThreeTitle',
+    descKey: 'valueThreeDesc',
   },
   {
     icon: Headphones,
-    title: '24/7 Dedicated Concierge',
-    desc: 'Direct front-desk messaging and 24/7 elite guest assistance for modifications and requests.',
+    titleKey: 'valueFourTitle',
+    descKey: 'valueFourDesc',
   },
 ]
 
 const TESTIMONIALS = [
   {
-    quote:
-      'The smoothest booking experience in luxury travel. Arrived at the suite and key assignment was instantaneous.',
-    author: 'Eleanor Vance',
-    role: 'Global Traveler',
+    quoteKey: 'testimonialOneQuote',
+    authorKey: 'testimonialOneAuthor',
+    roleKey: 'testimonialOneRole',
     rating: 5,
   },
   {
-    quote:
-      'The transparent pricing and seamless Telebirr checkout made reserving our vacation villa effortless.',
-    author: 'Kassahun Bekele',
-    role: 'Executive Member',
+    quoteKey: 'testimonialTwoQuote',
+    authorKey: 'testimonialTwoAuthor',
+    roleKey: 'testimonialTwoRole',
     rating: 5,
   },
   {
-    quote:
-      'Exceptional properties. Every hotel on LuxStay feels hand-selected with unmatched architectural poise.',
-    author: 'Marcus Chen',
-    role: 'Architectural Director',
+    quoteKey: 'testimonialThreeQuote',
+    authorKey: 'testimonialThreeAuthor',
+    roleKey: 'testimonialThreeRole',
     rating: 5,
   },
 ]
 
 export default function HomePage() {
+  const { t } = useLanguage()
   const { data: searchResult, isLoading, isError } = useHotelSearchQuery({ pageSize: 6 })
+  const { data: favorites } = useFavoritesQuery()
+  const favoriteIds = React.useMemo(() => new Set((favorites ?? []).map((favorite) => favorite.id)), [favorites])
   const hotels = searchResult?.data || []
 
   return (
@@ -109,19 +115,19 @@ export default function HomePage() {
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FEF9E7] text-[#92400E] border border-[#D4AF37]/30 text-xs font-bold uppercase tracking-wider mb-2">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Hand-Picked Selections</span>
+              <span>{t('home', 'featuredBadge')}</span>
             </div>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#0F2942]">
-              Featured Luxury Stays
+              {t('home', 'featuredTitle')}
             </h2>
             <p className="text-sm text-slate-500 mt-2">
-              Extraordinary hotels, architectural boutique lodges, and premier grand resorts.
+              {t('home', 'featuredSubtitle')}
             </p>
           </div>
 
           <Link href="/search">
             <Button variant="outline" rightIcon={<ArrowRight className="w-4 h-4" />}>
-              Explore All Properties
+              {t('home', 'exploreAllProperties')}
             </Button>
           </Link>
         </div>
@@ -147,7 +153,7 @@ export default function HomePage() {
         {!isLoading && hotels.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {hotels.map((hotel) => (
-              <HotelCard key={hotel.id} hotel={hotel} />
+              <HotelCard key={hotel.id} hotel={hotel} isFavorite={favoriteIds.has(hotel.id)} />
             ))}
           </div>
         )}
@@ -155,9 +161,9 @@ export default function HomePage() {
         {/* Empty State */}
         {!isLoading && hotels.length === 0 && !isError && (
           <EmptyState
-            title="Properties coming soon"
-            description="Our curators are verifying new luxury properties. Check back shortly or search our full global catalog."
-            actionLabel="Search Global Catalog"
+            title={t('home', 'emptyTitle')}
+            description={t('home', 'emptyDescription')}
+            actionLabel={t('home', 'emptyActionLabel')}
             onAction={() => (window.location.href = '/search')}
           />
         )}
@@ -167,13 +173,13 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-xs font-bold uppercase tracking-widest text-[#D4AF37]">
-            Global Escapes
+            {t('home', 'destinationsBadge')}
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#0F2942] mt-2">
-            Signature Destinations
+            {t('home', 'destinationsTitle')}
           </h2>
           <p className="text-sm text-slate-500 mt-2">
-            Immerse yourself in world-renowned cities and scenic retreat landscapes.
+            {t('home', 'destinationsSubtitle')}
           </p>
         </div>
 
@@ -184,19 +190,20 @@ export default function HomePage() {
               href={`/search?city=${encodeURIComponent(dest.city)}`}
               className="group relative rounded-3xl overflow-hidden aspect-[4/5] shadow-md hover:shadow-2xl transition-all duration-300 block"
             >
-              <img
+              <Image
                 src={dest.img}
-                alt={`${dest.city}, ${dest.country}`}
-                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
-                loading="lazy"
+                alt={`${t('home', dest.cityKey)}, ${t('home', dest.countryKey)}`}
+                fill
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                className="object-cover group-hover:scale-108 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F17]/90 via-[#0B0F17]/25 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6 text-white">
                 <span className="text-xs uppercase tracking-wider text-[#D4AF37] font-semibold">
-                  {dest.country}
+                  {t('home', dest.countryKey)}
                 </span>
-                <h3 className="font-serif text-2xl font-bold mt-0.5">{dest.city}</h3>
-                <p className="text-xs text-white/80 mt-1">{dest.hotels}</p>
+                <h3 className="font-serif text-2xl font-bold mt-0.5">{t('home', dest.cityKey)}</h3>
+                <p className="text-xs text-white/80 mt-1">{t('home', dest.hotelsKey)}</p>
               </div>
             </Link>
           ))}
@@ -208,27 +215,27 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-bold uppercase tracking-widest text-[#D4AF37]">
-              The LuxStay Guarantee
+              {t('home', 'valueBadge')}
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white mt-2">
-              Uncompromising Hospitality Standards
+              {t('home', 'valueTitle')}
             </h2>
             <p className="text-sm text-slate-300 mt-2">
-              Enterprise reliability meets white-glove bespoke luxury.
+              {t('home', 'valueSubtitle')}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {VALUE_PROPS.map(({ icon: Icon, title, desc }) => (
+            {VALUE_PROPS.map(({ icon: Icon, titleKey, descKey }) => (
               <div
-                key={title}
+                key={titleKey}
                 className="rounded-3xl bg-white/5 border border-white/10 p-8 backdrop-blur-md hover:bg-white/8 transition-colors"
               >
                 <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/15 border border-[#D4AF37]/30 flex items-center justify-center mb-5 text-[#D4AF37]">
                   <Icon className="w-6 h-6" />
                 </div>
-                <h3 className="font-serif text-lg font-bold mb-2">{title}</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">{desc}</p>
+                <h3 className="font-serif text-lg font-bold mb-2">{t('home', titleKey)}</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">{t('home', descKey)}</p>
               </div>
             ))}
           </div>
@@ -239,33 +246,33 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-xs font-bold uppercase tracking-widest text-[#D4AF37]">
-            Guest Impressions
+            {t('home', 'testimonialsBadge')}
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#0F2942] mt-2">
-            Stories from Our Distinguished Guests
+            {t('home', 'testimonialsTitle')}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {TESTIMONIALS.map((t) => (
+          {TESTIMONIALS.map((item) => (
             <div
-              key={t.author}
+              key={item.authorKey}
               className="rounded-3xl bg-white border border-slate-200/80 p-8 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="flex gap-1 text-amber-400 mb-4">
-                  {Array.from({ length: t.rating }).map((_, i) => (
+                  {Array.from({ length: item.rating }).map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-amber-400" />
                   ))}
                 </div>
                 <Quote className="w-8 h-8 text-[#D4AF37]/30 mb-2" />
                 <p className="text-sm text-slate-600 leading-relaxed italic">
-                  &ldquo;{t.quote}&rdquo;
+                  &ldquo;{t('home', item.quoteKey)}&rdquo;
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-slate-100">
-                <p className="text-sm font-bold text-[#0F2942]">{t.author}</p>
-                <p className="text-xs text-slate-400">{t.role}</p>
+                <p className="text-sm font-bold text-[#0F2942]">{t('home', item.authorKey)}</p>
+                <p className="text-xs text-slate-400">{t('home', item.roleKey)}</p>
               </div>
             </div>
           ))}
@@ -277,17 +284,17 @@ export default function HomePage() {
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#0F2942] to-[#1E3A8A] text-white p-10 sm:p-16 shadow-2xl border border-white/10">
           <div className="max-w-xl">
             <span className="text-xs uppercase font-bold tracking-widest text-[#D4AF37]">
-              Start Your Journey
+              {t('home', 'ctaBadge')}
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white mt-2 mb-4">
-              Reserve Your Next Extraordinary Escape Today
+              {t('home', 'ctaTitle')}
             </h2>
             <p className="text-sm text-slate-200 leading-relaxed mb-8">
-              Join thousands of travelers who book exclusively with LuxStay for verified five-star hospitality.
+              {t('home', 'ctaDescription')}
             </p>
             <Link href="/search">
               <Button variant="gold" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                Explore All Suites & Resorts
+                {t('home', 'ctaButton')}
               </Button>
             </Link>
           </div>

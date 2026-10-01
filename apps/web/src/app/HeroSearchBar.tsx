@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Search, MapPin, Calendar, Users } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { GuestSelector, GuestCount } from '@/components/forms/GuestSelector'
+import { useLanguage } from '@/lib/i18n'
 
 export default function HeroSearchBar() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [destination, setDestination] = React.useState('')
   const [checkIn, setCheckIn] = React.useState('')
   const [checkOut, setCheckOut] = React.useState('')
@@ -38,7 +40,7 @@ export default function HeroSearchBar() {
             htmlFor="hero-destination"
             className="block text-[11px] font-bold uppercase tracking-wider text-[#0F2942] mb-1"
           >
-            Destination / City
+            {t('home', 'searchDestinationLabel')}
           </label>
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-[#D4AF37] shrink-0" />
@@ -46,7 +48,7 @@ export default function HeroSearchBar() {
               id="hero-destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              placeholder="e.g. Addis Ababa, Paris, Dubai"
+              placeholder={t('home', 'searchDestinationPlaceholder')}
               className="w-full text-sm font-semibold text-[#0F172A] placeholder:text-slate-400 placeholder:font-normal focus:outline-none bg-transparent"
             />
           </div>
@@ -58,7 +60,7 @@ export default function HeroSearchBar() {
             htmlFor="hero-checkin"
             className="block text-[11px] font-bold uppercase tracking-wider text-[#0F2942] mb-1"
           >
-            Check-in Date
+            {t('home', 'searchCheckInLabel')}
           </label>
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#D4AF37] shrink-0" />
@@ -84,7 +86,7 @@ export default function HeroSearchBar() {
             htmlFor="hero-checkout"
             className="block text-[11px] font-bold uppercase tracking-wider text-[#0F2942] mb-1"
           >
-            Check-out Date
+            {t('home', 'searchCheckOutLabel')}
           </label>
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#D4AF37] shrink-0" />
@@ -102,7 +104,7 @@ export default function HeroSearchBar() {
         {/* Guests */}
         <div className="px-3 sm:px-4 py-2">
           <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0F2942] mb-1">
-            Guests
+            {t('home', 'searchGuestsLabel')}
           </label>
           <GuestSelector value={guests} onChange={setGuests} />
         </div>
@@ -110,7 +112,7 @@ export default function HeroSearchBar() {
 
       <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
         <span className="hidden sm:inline-block text-xs text-slate-400 font-medium">
-          Best Rate Guarantee • Instant Confirmation • Verified Properties
+          {t('home', 'searchGuaranteeNote')}
         </span>
         <Button
           type="submit"
@@ -119,7 +121,7 @@ export default function HeroSearchBar() {
           className="w-full sm:w-auto ml-auto px-8"
           leftIcon={<Search className="w-4 h-4" />}
         >
-          Find Luxury Stays
+          {t('home', 'searchButton')}
         </Button>
       </div>
     </form>

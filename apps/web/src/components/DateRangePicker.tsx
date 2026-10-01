@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 interface DateRangePickerProps {
   checkIn?: string   // ISO date yyyy-mm-dd
@@ -35,7 +36,20 @@ function isBetween(d: Date, start: Date, end: Date) {
 }
 
 const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const MONTH_KEYS = [
+  'monthJanuary',
+  'monthFebruary',
+  'monthMarch',
+  'monthApril',
+  'monthMay',
+  'monthJune',
+  'monthJuly',
+  'monthAugust',
+  'monthSeptember',
+  'monthOctober',
+  'monthNovember',
+  'monthDecember',
+]
 
 export default function DateRangePicker({
   checkIn,
@@ -44,6 +58,7 @@ export default function DateRangePicker({
   minDate,
   className = '',
 }: DateRangePickerProps) {
+  const { t } = useLanguage()
   const today = useMemo(() => {
     const d = new Date()
     d.setHours(0, 0, 0, 0)
@@ -124,18 +139,18 @@ export default function DateRangePicker({
           onClick={() => setSelecting('checkin')}
           className={`px-4 py-3 text-left cursor-pointer transition-colors ${selecting === 'checkin' ? 'bg-[#EFF6FF]' : 'hover:bg-[#F8FAFC]'}`}
         >
-          <div className="text-xs font-semibold text-[#1E3A8A] uppercase tracking-wider mb-0.5">Check-in</div>
+          <div className="text-xs font-semibold text-[#1E3A8A] uppercase tracking-wider mb-0.5">{t('common', 'checkIn')}</div>
           <div className={`text-sm font-semibold ${ciDate ? 'text-[#0F172A]' : 'text-[#94A3B8]'}`}>
-            {ciDate ? formatDisplay(ciDate) : 'Select date'}
+            {ciDate ? formatDisplay(ciDate) : t('common', 'selectDate')}
           </div>
         </button>
         <button
           onClick={() => setSelecting('checkout')}
           className={`px-4 py-3 text-left cursor-pointer transition-colors ${selecting === 'checkout' ? 'bg-[#EFF6FF]' : 'hover:bg-[#F8FAFC]'}`}
         >
-          <div className="text-xs font-semibold text-[#1E3A8A] uppercase tracking-wider mb-0.5">Check-out</div>
+          <div className="text-xs font-semibold text-[#1E3A8A] uppercase tracking-wider mb-0.5">{t('common', 'checkOut')}</div>
           <div className={`text-sm font-semibold ${coDate ? 'text-[#0F172A]' : 'text-[#94A3B8]'}`}>
-            {coDate ? formatDisplay(coDate) : 'Select date'}
+            {coDate ? formatDisplay(coDate) : t('common', 'selectDate')}
           </div>
         </button>
       </div>
@@ -150,7 +165,7 @@ export default function DateRangePicker({
           <ChevronLeft className="w-4 h-4" />
         </button>
         <span className="font-bold text-[#0F172A] text-sm">
-          {MONTHS[viewMonth]} {viewYear}
+          {t('common', MONTH_KEYS[viewMonth])} {viewYear}
         </span>
         <button
           onClick={nextMonth}
@@ -163,7 +178,7 @@ export default function DateRangePicker({
       {/* Day labels */}
       <div className="grid grid-cols-7 px-3 mb-1">
         {DAYS.map(d => (
-          <div key={d} className="text-center text-[10px] font-semibold text-[#94A3B8] uppercase py-1">{d}</div>
+          <div key={d} className="text-center text-[10px] font-semibold text-[#94A3B8] uppercase py-1">{t('common', `day${d}`)}</div>
         ))}
       </div>
 
@@ -212,16 +227,16 @@ export default function DateRangePicker({
       {/* Nights summary */}
       {nights > 0 && (
         <div className="mx-4 mb-4 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] px-4 py-2.5 flex items-center justify-between">
-          <span className="text-xs text-[#3B82F6]">Total stay</span>
+          <span className="text-xs text-[#3B82F6]">{t('common', 'totalStay')}</span>
           <span className="text-sm font-bold text-[#1E3A8A]">
-            {nights} night{nights !== 1 ? 's' : ''}
+            {nights === 1 ? t('common', 'nightSingular', { count: nights }) : t('common', 'nightPlural', { count: nights })}
           </span>
         </div>
       )}
 
       {/* Instruction */}
       <div className="px-4 pb-3 text-xs text-[#94A3B8] text-center">
-        {selecting === 'checkin' ? 'Select your check-in date' : 'Now select your check-out date'}
+        {selecting === 'checkin' ? t('common', 'selectCheckInDate') : t('common', 'selectCheckOutDate')}
       </div>
     </div>
   )

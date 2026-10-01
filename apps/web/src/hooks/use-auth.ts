@@ -11,6 +11,21 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: (dto: LoginInput) => authService.login(dto),
     onSuccess: (data) => {
+      // MFA challenges deliberately do not create a session yet.
+      if (data.mfaRequired) return
+      setSession(data)
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    },
+  })
+}
+
+export function useVerifyMfaMutation() {
+  const queryClient = useQueryClient()
+  const setSession = useAuth((s) => s.setSession)
+
+  return useMutation({
+    mutationFn: (dto: { challengeToken: string; code: string }) => authService.verifyMfa(dto),
+    onSuccess: (data) => {
       setSession(data)
       queryClient.invalidateQueries({ queryKey: ['profile'] })
     },

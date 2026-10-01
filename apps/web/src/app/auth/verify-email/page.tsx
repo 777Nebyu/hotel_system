@@ -5,9 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2, XCircle, ArrowRight, Loader2, MailCheck } from 'lucide-react'
 import { authApi } from '@/lib/services'
+import { useLanguage } from '@/lib/i18n'
 
 function VerifyEmailContent() {
   const router = useRouter()
+  const { t } = useLanguage()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
   const [mounted, setMounted] = useState(false)
@@ -21,7 +23,7 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     if (!token) {
-      setError('No verification token was provided in the link.')
+      setError(t('auth', 'noVerificationToken'))
       setLoading(false)
       return
     }
@@ -32,7 +34,7 @@ function VerifyEmailContent() {
         setSuccess(true)
       })
       .catch((caught) => {
-        setError(caught instanceof Error ? caught.message : 'Invalid or expired verification link.')
+        setError(caught instanceof Error ? caught.message : t('auth', 'invalidVerificationLink'))
       })
       .finally(() => {
         setLoading(false)
@@ -46,8 +48,8 @@ function VerifyEmailContent() {
           <div className="w-12 h-12 rounded-2xl bg-[#0F2942] text-[#D4AF37] flex items-center justify-center mx-auto mb-4">
             <MailCheck className="w-6 h-6 animate-pulse" />
           </div>
-          <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">Verifying Your Email</h1>
-          <p className="text-sm text-[#64748B]">Please wait...</p>
+          <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">{t('auth', 'verifyingYourEmailTitle')}</h1>
+          <p className="text-sm text-[#64748B]">{t('auth', 'pleaseWait')}</p>
         </div>
       </div>
     )
@@ -70,17 +72,17 @@ function VerifyEmailContent() {
             <div className="w-14 h-14 rounded-2xl bg-amber-50 text-[#996515] flex items-center justify-center mx-auto mb-4">
               <Loader2 className="w-7 h-7 animate-spin" />
             </div>
-            <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">Verifying Your Email</h1>
-            <p className="text-sm text-[#64748B]">Please wait while we verify your LuxStay account...</p>
+            <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">{t('auth', 'verifyingYourEmailTitle')}</h1>
+            <p className="text-sm text-[#64748B]">{t('auth', 'verifyingAccountPleaseWait')}</p>
           </div>
         ) : success ? (
           <div className="py-2">
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-emerald-100">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">Email Verified</h1>
+            <h1 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">{t('auth', 'emailVerifiedTitle')}</h1>
             <p className="text-sm text-[#64748B] mb-6 leading-relaxed">
-              Your email address has been confirmed. Your account is now fully active and ready to book luxury stays across Ethiopia.
+              {t('auth', 'emailVerifiedMessage')}
             </p>
             <button
               type="button"
@@ -88,7 +90,7 @@ function VerifyEmailContent() {
               suppressHydrationWarning
               className="w-full py-3.5 bg-[#0F2942] hover:bg-[#163859] text-white rounded-xl font-semibold transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Sign In to Your Account</span>
+              <span>{t('auth', 'signInToYourAccount')}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -97,7 +99,7 @@ function VerifyEmailContent() {
             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-rose-100">
               <XCircle className="w-8 h-8" />
             </div>
-            <h1 className="font-serif text-2xl font-bold text-[#0F172A] mb-2">Verification Failed</h1>
+            <h1 className="font-serif text-2xl font-bold text-[#0F172A] mb-2">{t('auth', 'verificationFailedTitle')}</h1>
             <p className="text-sm text-rose-600 mb-6">{error}</p>
             <button
               type="button"
@@ -105,7 +107,7 @@ function VerifyEmailContent() {
               suppressHydrationWarning
               className="w-full py-3.5 bg-[#0F172A] hover:bg-slate-800 text-white rounded-xl font-semibold transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Back to Sign In</span>
+              <span>{t('auth', 'backToSignInCta')}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -128,4 +130,3 @@ export default function VerifyEmailPage() {
     </Suspense>
   )
 }
-

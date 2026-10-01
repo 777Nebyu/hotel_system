@@ -5,6 +5,8 @@ export interface User {
   phone?: string | null
   role: 'CUSTOMER' | 'STAFF' | 'MANAGER' | 'ADMIN'
   isActive: boolean
+  emailVerified?: boolean
+  emailVerifiedAt?: string | null
   profilePhotoUrl?: string | null
   createdAt: string
 }

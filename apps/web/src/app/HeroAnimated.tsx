@@ -1,21 +1,22 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import HeroSearchBar from './HeroSearchBar'
 import CountUp from '@/components/CountUp'
+import { useLanguage } from '@/lib/i18n'
 import { motion, type Variants } from 'framer-motion'
 import { Check } from 'lucide-react'
 
 // Aurora uses WebGL — load client-only
 const Aurora = dynamic(() => import('@/components/Aurora'), { ssr: false })
 
-const HERO_IMG =
-  'https://images.unsplash.com/photo-1677129667171-92abd8740fa3?w=1600&h=900&fit=crop&auto=format'
+const HERO_IMG = '/images/hero-pool.jpg'
 
 const STATS = [
-  { value: 50000, suffix: '+', label: 'Properties' },
-  { value: 120, suffix: '', label: 'Countries' },
-  { value: 2, suffix: 'M+', label: 'Happy guests' },
+  { value: 50000, suffix: '+', label: 'statProperties' },
+  { value: 120, suffix: '', label: 'statCountries' },
+  { value: 2, suffix: 'M+', label: 'statHappyGuests' },
 ]
 
 const badge: Variants = {
@@ -48,13 +49,17 @@ const statsRow: Variants = {
 }
 
 export default function HeroAnimated() {
+  const { t } = useLanguage()
   return (
     <section className="relative -mt-18 pt-18 h-[92vh] min-h-[660px] flex items-center overflow-hidden bg-[#0B1528]">
       {/* Background photo */}
-      <img
+      <Image
         src={HERO_IMG}
-        alt="Luxury hotel lobby"
-        className="absolute inset-0 w-full h-full object-cover"
+        alt={t('home', 'heroImageAlt')}
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
       />
       {/* Dark gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/65 via-[#0F172A]/40 to-[#0F172A]/75" />
@@ -80,7 +85,7 @@ export default function HeroAnimated() {
             className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6"
           >
             <span className="w-2 h-2 bg-[#A16207] rounded-full animate-pulse" />
-            <span className="text-white/90 text-sm font-medium">50,000+ properties worldwide</span>
+            <span className="text-white/90 text-sm font-medium">{t('home', 'heroBadge')}</span>
           </motion.div>
 
           {/* Animated headline — line 1 */}
@@ -89,9 +94,8 @@ export default function HeroAnimated() {
             initial="hidden"
             animate="visible"
             className="font-serif text-5xl md:text-7xl text-white leading-tight mb-2"
-            style={{ willChange: 'transform, filter, opacity' }}
           >
-            Find Your Perfect
+            {t('home', 'heroHeadline1')}
           </motion.h1>
 
           {/* Animated headline — line 2 with gold accent */}
@@ -100,7 +104,6 @@ export default function HeroAnimated() {
             initial="hidden"
             animate="visible"
             className="mb-4"
-            style={{ willChange: 'transform, filter, opacity' }}
           >
             <span
               className="font-serif text-5xl md:text-7xl leading-tight"
@@ -111,7 +114,7 @@ export default function HeroAnimated() {
                 backgroundClip: 'text',
               }}
             >
-              Stay
+              {t('home', 'heroHeadline2')}
             </span>
           </motion.div>
 
@@ -122,7 +125,7 @@ export default function HeroAnimated() {
             animate="visible"
             className="text-white/80 text-lg md:text-xl font-light"
           >
-            Discover curated luxury hotels, boutique hideaways, and resort escapes — all in one place.
+            {t('home', 'heroSubtitle')}
           </motion.p>
         </div>
 
@@ -139,13 +142,13 @@ export default function HeroAnimated() {
           className="flex flex-wrap items-center gap-6 mt-6 text-white/70 text-sm"
         >
           <span className="flex items-center gap-1.5">
-            <Check className="w-4 h-4 text-[#D4AF37] shrink-0" /> Free cancellation
+            <Check className="w-4 h-4 text-[#D4AF37] shrink-0" /> {t('home', 'trustFreeCancellation')}
           </span>
           <span className="flex items-center gap-1.5">
-            <Check className="w-4 h-4 text-[#D4AF37] shrink-0" /> Best price guarantee
+            <Check className="w-4 h-4 text-[#D4AF37] shrink-0" /> {t('home', 'trustBestPrice')}
           </span>
           <span className="flex items-center gap-1.5">
-            <Check className="w-4 h-4 text-[#D4AF37] shrink-0" /> No booking fees
+            <Check className="w-4 h-4 text-[#D4AF37] shrink-0" /> {t('home', 'trustNoFees')}
           </span>
         </motion.div>
 
@@ -168,7 +171,7 @@ export default function HeroAnimated() {
                   className="tabular-nums"
                 />
               </div>
-              <div className="text-white/55 text-xs mt-0.5">{stat.label}</div>
+              <div className="text-white/55 text-xs mt-0.5">{t('home', stat.label)}</div>
             </div>
           ))}
         </motion.div>

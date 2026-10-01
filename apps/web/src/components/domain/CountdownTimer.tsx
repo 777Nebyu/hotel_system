@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Timer, AlertTriangle, RefreshCw } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 interface CountdownTimerProps {
   initialSeconds: number
@@ -16,6 +17,7 @@ export function CountdownTimer({
   onRefresh,
   isRefreshing = false,
 }: CountdownTimerProps) {
+  const { t } = useLanguage()
   const [secondsLeft, setSecondsLeft] = useState(initialSeconds)
 
   useEffect(() => {
@@ -78,15 +80,15 @@ export function CountdownTimer({
         <div>
           <div className="font-semibold text-sm">
             {isExpired
-              ? 'Room Hold Expired'
+              ? t('hotel', 'roomHoldExpired')
               : isUrgent
-                ? 'Hold Expiring Soon'
-                : 'Room Locked for Reservation'}
+                ? t('hotel', 'holdExpiringSoon')
+                : t('hotel', 'roomLocked')}
           </div>
           <p className="text-xs opacity-75">
             {isExpired
-              ? 'Your 15-minute room hold has lapsed. Please recheck room availability to continue.'
-              : 'This room is reserved exclusively for you while you complete your details.'}
+              ? t('hotel', 'holdExpiredDescription')
+              : t('hotel', 'roomReservedForYou')}
           </p>
         </div>
       </div>
@@ -110,7 +112,7 @@ export function CountdownTimer({
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Re-check Hold
+            {t('hotel', 'recheckHold')}
           </button>
         ) : null}
       </div>

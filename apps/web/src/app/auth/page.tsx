@@ -8,11 +8,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, registerSchema, forgotPasswordSchema } from '@repo/shared-types'
 import type { LoginInput, RegisterInput, ForgotPasswordInput } from '@repo/shared-types'
 import { useAuth } from '@/lib/auth-store'
+import { useLanguage } from '@/lib/i18n'
 import {
   useLoginMutation,
   useRegisterMutation,
   useForgotPasswordMutation,
   useGoogleLoginMutation,
+  useVerifyMfaMutation,
 } from '@/hooks/use-auth'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -60,6 +62,7 @@ function GoogleIcon({ className = 'w-5 h-5' }: { className?: string }) {
 
 function AuthForm() {
   const router = useRouter()
+  const { t } = useLanguage()
   const searchParams = useSearchParams()
   const returnTo = searchParams.get('returnTo')
   const modeParam = searchParams.get('mode') as AuthMode | null
@@ -72,6 +75,11 @@ function AuthForm() {
   const [registerSuccess, setRegisterSuccess] = React.useState(false)
   const [registeredEmail, setRegisteredEmail] = React.useState('')
   const [googleLoading, setGoogleLoading] = React.useState(false)
+  const [googleReady, setGoogleReady] = React.useState(false)
+  const [showGoogleButtonFallback, setShowGoogleButtonFallback] = React.useState(false)
+  const googleButtonRef = React.useRef<HTMLDivElement>(null)
+  const [mfaChallengeToken, setMfaChallengeToken] = React.useState<string | null>(null)
+  const [mfaCode, setMfaCode] = React.useState('')
 
   // Auto-dismiss apiError banner after 7 seconds
   React.useEffect(() => {
@@ -79,11 +87,6 @@ function AuthForm() {
     const timer = setTimeout(() => setApiError(null), 7000)
     return () => clearTimeout(timer)
   }, [apiError])
-
-  // Google account dialog state for seamless fallback / testing
-  const [showGoogleModal, setShowGoogleModal] = React.useState(false)
-  const [customGoogleEmail, setCustomGoogleEmail] = React.useState('nebusami20@gmail.com')
-  const [customGoogleName, setCustomGoogleName] = React.useState('Nebyu Sami')
 
   // Reactively synchronize form mode whenever URL search params change
   React.useEffect(() => {
@@ -151,88 +154,129 @@ function AuthForm() {
   const registerMutation = useRegisterMutation()
   const forgotMutation = useForgotPasswordMutation()
   const googleMutation = useGoogleLoginMutation()
+  const mfaMutation = useVerifyMfaMutation()
 
-  // Initialize Google Identity Services if available
+  // Initialize Google Identity Services if available. One Tap is convenient but
+  // browsers frequently suppress it (especially on LAN URLs), so the official
+  // rendered button is used as a fallback below.
   React.useEffect(() => {
     const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     if (!googleClientId) return
 
-    const existingScript = document.getElementById('google-gsi-client')
-    if (existingScript) return
+    const initializeGoogle = () => {
+      const google = (window as any).google
+      if (!google?.accounts?.id) return false
+
+      google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (response: any) => {
+          if (response.credential) {
+            setGoogleLoading(true)
+            setApiError(null)
+            try {
+              await googleMutation.mutateAsync({ credential: response.credential })
+              toast.success(t('auth', 'googleSignInSuccess'), t('auth', 'welcomeToLuxStay'))
+            } catch (err: any) {
+              setApiError(err?.message || t('auth', 'googleSignInFailed'))
+            } finally {
+              setGoogleLoading(false)
+            }
+          }
+        },
+      })
+      setGoogleReady(true)
+      return true
+    }
+
+    if (initializeGoogle()) return
+
+    const existingScript = document.getElementById('google-gsi-client') as HTMLScriptElement | null
+    if (existingScript) {
+      existingScript.addEventListener('load', initializeGoogle)
+      return () => existingScript.removeEventListener('load', initializeGoogle)
+    }
 
     const script = document.createElement('script')
     script.id = 'google-gsi-client'
     script.src = 'https://accounts.google.com/gsi/client'
     script.async = true
     script.defer = true
-    script.onload = () => {
-      if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
-        ;(window as any).google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: async (response: any) => {
-            if (response.credential) {
-              setGoogleLoading(true)
-              setApiError(null)
-              try {
-                await googleMutation.mutateAsync({ credential: response.credential })
-                toast.success('Signed in with Google', 'Welcome to LuxStay.')
-              } catch (err: any) {
-                setApiError(err?.message || 'Google sign-in could not be completed.')
-              } finally {
-                setGoogleLoading(false)
-              }
-            }
-          },
-        })
-      }
-    }
+    script.onload = initializeGoogle
+    script.onerror = () => setApiError(t('auth', 'googleSignInUnavailable'))
     document.body.appendChild(script)
-  }, [googleMutation])
+    return () => script.removeEventListener('load', initializeGoogle)
+  }, [googleMutation, t])
+
+  React.useEffect(() => {
+    if (!showGoogleButtonFallback || !googleReady || !googleButtonRef.current) return
+    const google = (window as any).google
+    if (!google?.accounts?.id) return
+
+    googleButtonRef.current.replaceChildren()
+    const buttonWidth = Math.max(200, Math.min(380, googleButtonRef.current.clientWidth))
+    google.accounts.id.renderButton(googleButtonRef.current, {
+      theme: 'outline',
+      size: 'large',
+      text: 'continue_with',
+      shape: 'pill',
+      width: buttonWidth,
+    })
+  }, [showGoogleButtonFallback, googleReady])
 
   const handleGoogleClick = () => {
     setApiError(null)
     const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
+    // The API only accepts a Google ID token as proof of mailbox ownership,
+    // so there is no email/password fallback form behind this button.
+    const unavailable = () =>
+      setApiError(t('auth', 'googleSignInUnavailable'))
+
     if (typeof window !== 'undefined' && (window as any).google?.accounts?.id && googleClientId) {
       try {
         ;(window as any).google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            setShowGoogleModal(true)
+          if (notification.isNotDisplayed?.() || notification.isSkippedMoment?.()) {
+            setShowGoogleButtonFallback(true)
+            setApiError(t('auth', 'googleSignInBrowserFallback'))
           }
         })
       } catch {
-        setShowGoogleModal(true)
+        setShowGoogleButtonFallback(true)
+        setApiError(t('auth', 'googleSignInBrowserFallback'))
       }
     } else {
-      setShowGoogleModal(true)
-    }
-  }
-
-  const handleCustomGoogleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setGoogleLoading(true)
-    setApiError(null)
-    try {
-      await googleMutation.mutateAsync({
-        email: customGoogleEmail,
-        fullName: customGoogleName,
-      })
-      setShowGoogleModal(false)
-      toast.success('Signed in with Google', `Welcome, ${customGoogleName}!`)
-    } catch (err: any) {
-      setApiError(err?.message || 'Google authentication failed.')
-    } finally {
-      setGoogleLoading(false)
+      unavailable()
     }
   }
 
   const onLoginSubmit = async (data: LoginInput) => {
     setApiError(null)
     try {
-      await loginMutation.mutateAsync(data)
-      toast.success('Welcome back', 'You have signed in successfully.')
+      const result = await loginMutation.mutateAsync(data)
+      if (result.mfaRequired && result.challengeToken) {
+        setMfaChallengeToken(result.challengeToken)
+        setMfaCode('')
+        toast.info(t('auth', 'verificationRequired'), t('auth', 'mfaCodePrompt'))
+        return
+      }
+      toast.success(t('auth', 'welcomeBackToast'), t('auth', 'signInSuccessMessage'))
     } catch (err: any) {
-      setApiError(err?.message || 'Invalid email or password. Please try again.')
+      setApiError(err?.message || t('auth', 'invalidCredentials'))
+    }
+  }
+
+
+  const onMfaSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!mfaChallengeToken) return
+    setApiError(null)
+    try {
+      await mfaMutation.mutateAsync({ challengeToken: mfaChallengeToken, code: mfaCode })
+      setMfaChallengeToken(null)
+      setMfaCode('')
+      toast.success(t('auth', 'welcomeBackToast'), t('auth', 'mfaCompletedMessage'))
+    } catch (err: any) {
+      setApiError(err?.message || t('auth', 'mfaCodeInvalidMessage'))
     }
   }
 
@@ -242,9 +286,9 @@ function AuthForm() {
       await registerMutation.mutateAsync(data)
       setRegisteredEmail(data.email)
       setRegisterSuccess(true)
-      toast.success('Account created', 'Please check your email to verify your account before logging in.')
+      toast.success(t('auth', 'accountCreatedToast'), t('auth', 'checkEmailToVerify'))
     } catch (err: any) {
-      setApiError(err?.message || 'Registration could not be completed. Please try again.')
+      setApiError(err?.message || t('auth', 'registrationFailedMessage'))
     }
   }
 
@@ -253,9 +297,9 @@ function AuthForm() {
     try {
       await forgotMutation.mutateAsync(data)
       setForgotSuccess(true)
-      toast.info('Check your inbox', 'Password reset instructions have been sent.')
+      toast.info(t('auth', 'checkYourInboxToast'), t('auth', 'resetEmailSentMessage'))
     } catch (err: any) {
-      setApiError(err?.message || 'Unable to request password reset. Please try again.')
+      setApiError(err?.message || t('auth', 'resetRequestFailedMessage'))
     }
   }
 
@@ -268,14 +312,14 @@ function AuthForm() {
             <Hotel className="w-7 h-7" />
           </div>
           <h1 className="font-serif text-3xl font-bold text-[#0F2942]">
-            {mode === 'login' && 'Welcome Back'}
-            {mode === 'register' && 'Join LuxStay'}
-            {mode === 'forgot' && 'Reset Password'}
+            {mode === 'login' && t('auth', 'welcomeBackTitle')}
+            {mode === 'register' && t('auth', 'joinLuxStayTitle')}
+            {mode === 'forgot' && t('auth', 'resetPasswordTitle')}
           </h1>
           <p className="text-sm text-slate-500 mt-2">
-            {mode === 'login' && 'Sign in to access your luxury itineraries and bookings'}
-            {mode === 'register' && 'Create your account to unlock curated rates and perks'}
-            {mode === 'forgot' && 'Enter your email to receive recovery instructions'}
+            {mode === 'login' && t('auth', 'loginSubtitle')}
+            {mode === 'register' && t('auth', 'registerSubtitle')}
+            {mode === 'forgot' && t('auth', 'forgotSubtitle')}
           </p>
         </div>
 
@@ -295,7 +339,7 @@ function AuthForm() {
                 type="button"
                 onClick={() => setApiError(null)}
                 className="text-red-500 hover:text-red-800 p-1 -mr-1 rounded-lg hover:bg-red-100/60 transition-colors shrink-0"
-                aria-label="Dismiss notification"
+                aria-label={t('auth', 'dismissNotification')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -316,8 +360,17 @@ function AuthForm() {
                 ) : (
                   <GoogleIcon />
                 )}
-                <span>Continue with Google</span>
+                <span>{t('auth', 'continueWithGoogle')}</span>
               </button>
+
+              {showGoogleButtonFallback && (
+                <div className="mt-3 w-full max-w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="mb-2 text-center text-xs text-slate-500">
+                    {t('auth', 'googleSignInBrowserFallback')}
+                  </p>
+                  <div ref={googleButtonRef} className="flex min-h-10 justify-center" />
+                </div>
+              )}
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
@@ -325,19 +378,44 @@ function AuthForm() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-white px-3 text-slate-400 font-semibold tracking-wider">
-                    Or continue with email
+                    {t('auth', 'orContinueWithEmail')}
                   </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Login Form */}
+          {/* Login Form / administrator MFA challenge */}
           {mode === 'login' && (
+            mfaChallengeToken ? (
+              <form onSubmit={onMfaSubmit} className="space-y-5" method="post" autoComplete="off">
+                <div className="rounded-2xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 p-4 text-sm text-[#0F2942]">
+                  {t('auth', 'mfaAdminNotice')}
+                </div>
+                <Input
+                  id="mfa-code"
+                  label={t('auth', 'authenticatorCodeLabel')}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="123456"
+                  maxLength={6}
+                  value={mfaCode}
+                  onChange={(event) => setMfaCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                  leftIcon={<ShieldCheck className="w-4 h-4" />}
+                />
+                <Button type="submit" variant="gold" size="lg" loading={mfaMutation.isPending} disabled={mfaCode.length !== 6} className="w-full">
+                  {t('auth', 'verifyAndContinue')}
+                </Button>
+                <button type="button" onClick={() => { setMfaChallengeToken(null); setMfaCode(''); setApiError(null) }} className="w-full text-xs font-semibold text-slate-500 hover:text-[#0F2942]">
+                  {t('auth', 'backToSignIn')}
+                </button>
+              </form>
+            ) : (
             <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4" method="post" autoComplete="on">
               <Input
                 id="login-email"
-                label="Email Address"
+                label={t('auth', 'emailAddressLabel')}
                 type="email"
                 placeholder="name@example.com"
                 autoComplete="username"
@@ -349,7 +427,7 @@ function AuthForm() {
               <div className="space-y-1">
                 <Input
                   id="login-password"
-                  label="Password"
+                  label={t('auth', 'passwordLabel')}
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   autoComplete="current-password"
@@ -359,7 +437,7 @@ function AuthForm() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="text-slate-400 hover:text-slate-700 cursor-pointer"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={showPassword ? t('auth', 'hidePassword') : t('auth', 'showPassword')}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -377,7 +455,7 @@ function AuthForm() {
                     }}
                     className="text-xs font-semibold text-[#0F2942] hover:text-[#D4AF37] transition-colors cursor-pointer"
                   >
-                    Forgot password?
+                    {t('auth', 'forgotPasswordLink')}
                   </button>
                 </div>
               </div>
@@ -390,9 +468,10 @@ function AuthForm() {
                 className="w-full mt-2"
                 rightIcon={<ArrowRight className="w-4 h-4" />}
               >
-                Sign In
+                {t('auth', 'signIn')}
               </Button>
             </form>
+            )
           )}
 
           {/* Registration Form */}
@@ -402,9 +481,9 @@ function AuthForm() {
                 <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-sm">
                   <Mail className="w-8 h-8 text-emerald-600" />
                 </div>
-                <h3 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">Verify Your Email</h3>
+                <h3 className="font-serif text-2xl font-bold text-[#0F2942] mb-2">{t('auth', 'verifyYourEmailTitle')}</h3>
                 <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-                  We have sent a verification email to <strong className="text-slate-800">{registeredEmail}</strong>. Please check your inbox and click the verification link before signing in.
+                  {t('auth', 'verificationEmailSentTo')} <strong className="text-slate-800">{registeredEmail}</strong>{t('auth', 'verificationEmailSentAfter')}
                 </p>
                 <Button
                   variant="primary"
@@ -415,14 +494,14 @@ function AuthForm() {
                   }}
                   className="w-full"
                 >
-                  Proceed to Sign In
+                  {t('auth', 'proceedToSignIn')}
                 </Button>
               </div>
             ) : (
               <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4" method="post" autoComplete="on">
                 <Input
                   id="register-name"
-                  label="Full Name *"
+                  label={t('auth', 'fullNameLabel')}
                   type="text"
                   placeholder="Alexander Wright"
                   autoComplete="name"
@@ -433,7 +512,7 @@ function AuthForm() {
 
                 <Input
                   id="register-email"
-                  label="Email Address *"
+                  label={t('auth', 'emailAddressRequiredLabel')}
                   type="email"
                   placeholder="name@example.com"
                   autoComplete="username"
@@ -444,7 +523,7 @@ function AuthForm() {
 
                 <Input
                   id="register-phone"
-                  label="Phone Number (Optional)"
+                  label={t('auth', 'phoneOptionalLabel')}
                   type="tel"
                   placeholder="+251 911 234567"
                   autoComplete="tel"
@@ -455,7 +534,7 @@ function AuthForm() {
 
                 <Input
                   id="register-password"
-                  label="Password *"
+                  label={t('auth', 'passwordRequiredLabel')}
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   autoComplete="new-password"
@@ -465,7 +544,7 @@ function AuthForm() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="text-slate-400 hover:text-slate-700 cursor-pointer"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={showPassword ? t('auth', 'hidePassword') : t('auth', 'showPassword')}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -482,7 +561,7 @@ function AuthForm() {
                   className="w-full mt-2"
                   rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  Create Account
+                  {t('auth', 'createAccount')}
                 </Button>
               </form>
             )
@@ -496,9 +575,9 @@ function AuthForm() {
                   <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
-                  <h4 className="font-serif text-lg font-bold text-slate-900">Check Your Email</h4>
+                  <h4 className="font-serif text-lg font-bold text-slate-900">{t('auth', 'checkYourEmailTitle')}</h4>
                   <p className="text-sm text-slate-500 mt-1 mb-6">
-                    We have dispatched password reset instructions to your email address.
+                    {t('auth', 'resetInstructionsDispatched')}
                   </p>
                   <Button
                     variant="primary"
@@ -508,14 +587,14 @@ function AuthForm() {
                     }}
                     className="w-full"
                   >
-                    Back to Sign In
+                    {t('auth', 'backToSignInCta')}
                   </Button>
                 </div>
               ) : (
                 <form onSubmit={forgotForm.handleSubmit(onForgotSubmit)} className="space-y-4">
                   <Input
                     id="forgot-email"
-                    label="Registered Email"
+                    label={t('auth', 'registeredEmailLabel')}
                     type="email"
                     placeholder="name@example.com"
                     autoComplete="username"
@@ -531,7 +610,7 @@ function AuthForm() {
                     loading={forgotMutation.isPending}
                     className="w-full"
                   >
-                    Send Reset Link
+                    {t('auth', 'sendResetLink')}
                   </Button>
 
                   <div className="text-center">
@@ -544,7 +623,7 @@ function AuthForm() {
                       }}
                       className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
                     >
-                      Remembered your password? Sign in
+                      {t('auth', 'rememberedPasswordSignIn')}
                     </button>
                   </div>
                 </form>
@@ -556,7 +635,7 @@ function AuthForm() {
           {mode !== 'forgot' && (
             <div className="mt-6 pt-6 border-t border-slate-100 text-center">
               <p className="text-sm text-slate-500">
-                {mode === 'login' ? "Don't have an account yet?" : 'Already have a registered account?'}{' '}
+                {mode === 'login' ? t('auth', 'dontHaveAccountYet') : t('auth', 'alreadyHaveAccount')}{' '}
                 <button
                   type="button"
                   onClick={() => {
@@ -567,7 +646,7 @@ function AuthForm() {
                   }}
                   className="font-bold text-[#0F2942] hover:text-[#D4AF37] transition-colors cursor-pointer"
                 >
-                  {mode === 'login' ? 'Create Account' : 'Sign In'}
+                  {mode === 'login' ? t('auth', 'createAccount') : t('auth', 'signIn')}
                 </button>
               </p>
             </div>
@@ -578,95 +657,15 @@ function AuthForm() {
         <div className="mt-8 flex items-center justify-center gap-6 text-xs text-slate-400">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-[#D4AF37]" />
-            <span>256-bit SSL Encryption</span>
+            <span>{t('auth', 'sslEncryption')}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            <span>Google Identity Compatible</span>
+            <span>{t('auth', 'googleIdentityCompatible')}</span>
           </div>
         </div>
       </div>
 
-      {/* Google Sign-In Fallback & Development Modal */}
-      {showGoogleModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <GoogleIcon className="w-6 h-6" />
-                <span className="font-semibold text-slate-800 text-base">Sign in with Google</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowGoogleModal(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-              Choose an account to continue to <strong>LuxStay</strong>. Your email is automatically verified.
-            </p>
-
-            {/* Quick 1-click configured Google account */}
-            <div className="space-y-3 mb-5">
-              <button
-                type="button"
-                onClick={() => {
-                  setCustomGoogleEmail('nebusami20@gmail.com')
-                  setCustomGoogleName('Nebyu Sami')
-                  void handleCustomGoogleSubmit({ preventDefault: () => {} } as any)
-                }}
-                disabled={googleLoading}
-                className="w-full p-3.5 border border-slate-200 hover:border-[#4285F4] hover:bg-blue-50/40 rounded-2xl flex items-center gap-3 text-left transition-all cursor-pointer group"
-              >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#4285F4] to-[#34A853] text-white font-bold flex items-center justify-center shrink-0 shadow-sm">
-                  N
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-slate-900 group-hover:text-[#4285F4] transition-colors">
-                    Nebyu Sami
-                  </div>
-                  <div className="text-xs text-slate-500 truncate">nebusami20@gmail.com</div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#4285F4] transition-colors" />
-              </button>
-            </div>
-
-            {/* Or custom Google account input */}
-            <form onSubmit={handleCustomGoogleSubmit} className="space-y-3 pt-3 border-t border-slate-100">
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Or sign in with another Google account:
-              </div>
-              <Input
-                label="Google Email"
-                type="email"
-                value={customGoogleEmail}
-                onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                placeholder="you@gmail.com"
-                required
-              />
-              <Input
-                label="Full Name"
-                type="text"
-                value={customGoogleName}
-                onChange={(e) => setCustomGoogleName(e.target.value)}
-                placeholder="Your Name"
-                required
-              />
-              <Button
-                type="submit"
-                variant="primary"
-                loading={googleLoading}
-                className="w-full mt-2"
-              >
-                Proceed with Google
-              </Button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

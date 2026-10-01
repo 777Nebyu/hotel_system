@@ -1,7 +1,9 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { hotelApi, managerApi, paymentApi } from '@/lib/services'
 import { useAuth } from '@/lib/auth-store'
 import AuthGate from '@/components/AuthGate'
@@ -39,7 +41,7 @@ import {
   Activity,
 } from 'lucide-react'
 
-import { ManagerAnalyticsCharts } from '@/components/manager/ManagerAnalyticsCharts'
+const ManagerAnalyticsCharts = dynamic(() => import('@/components/manager/ManagerAnalyticsCharts').then((module) => module.ManagerAnalyticsCharts), { ssr: false })
 
 
 import type {
@@ -54,6 +56,7 @@ import type {
   StayRequest,
 } from '@/lib/types'
 import { formatEthiopianBirr } from '@/lib/currency'
+import { useLanguage } from '@/lib/i18n'
 
 type Tab =
   | 'Dashboard'
@@ -92,7 +95,7 @@ type Country = { id: string; name: string; code: string }
 type City = { id: string; name: string }
 
 const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format'
+  'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Swimming_pool_and_main_building_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg/960px-Swimming_pool_and_main_building_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg'
 
 const statusStyle = (status: string) => {
   if (status === 'CONFIRMED' || status === 'CHECKED_IN') return 'bg-blue-50 text-blue-700'
@@ -119,6 +122,71 @@ function ManagerDashboard() {
   const router = useRouter()
   const logout = useAuth((state) => state.logout)
   const user = useAuth((state) => state.user)
+  const { t } = useLanguage()
+
+  const tabLabels: Record<Tab, string> = {
+    Dashboard: t('manager', 'tabDashboard'),
+    Hotels: t('manager', 'tabHotels'),
+    Rooms: t('manager', 'tabRooms'),
+    Pricing: t('manager', 'tabPricing'),
+    Availability: t('manager', 'tabAvailability'),
+    Policies: t('manager', 'tabPolicies'),
+    Staff: t('manager', 'tabStaff'),
+    Reports: t('manager', 'tabReports'),
+    Bookings: t('manager', 'tabBookings'),
+    Reviews: t('manager', 'tabReviews'),
+  }
+
+  const statusLabel = (status: string) => {
+    if (status === 'PENDING') return t('manager', 'statusPending')
+    if (status === 'CONFIRMED') return t('manager', 'statusConfirmed')
+    if (status === 'CHECKED_IN') return t('manager', 'statusCheckedIn')
+    if (status === 'CHECKED_OUT') return t('manager', 'statusCheckedOut')
+    if (status === 'CANCELLED') return t('manager', 'statusCancelled')
+    if (status === 'REJECTED') return t('manager', 'statusRejected')
+    if (status === 'APPROVED') return t('manager', 'statusApproved')
+    if (status === 'AVAILABLE') return t('manager', 'statusAvailable')
+    if (status === 'CLEANING') return t('manager', 'statusCleaning')
+    if (status === 'MAINTENANCE') return t('manager', 'statusMaintenance')
+    if (status === 'UNAVAILABLE') return t('manager', 'statusUnavailable')
+    if (status === 'SUCCEEDED') return t('manager', 'statusSucceeded')
+    if (status === 'FAILED') return t('manager', 'statusFailed')
+    if (status === 'ACTIVE') return t('manager', 'statusActive')
+    if (status === 'INACTIVE') return t('manager', 'statusInactive')
+    return status
+  }
+
+  const roomTypeLabel = (type: string) => {
+    if (type === 'SINGLE') return t('manager', 'roomTypeSingle')
+    if (type === 'DOUBLE') return t('manager', 'roomTypeDouble')
+    if (type === 'SUITE') return t('manager', 'roomTypeSuite')
+    if (type === 'DELUXE') return t('manager', 'roomTypeDeluxe')
+    if (type === 'PRESIDENTIAL') return t('manager', 'roomTypePresidential')
+    return type.replace(/_/g, ' ')
+  }
+
+  const roleLabel = (role: string) => {
+    if (role === 'Front Desk') return t('manager', 'roleFrontDesk')
+    if (role === 'Cleaner') return t('manager', 'roleCleaner')
+    if (role === 'Staff') return t('manager', 'roleStaffMember')
+    return role
+  }
+
+  const reportPeriodLabels: Record<string, string> = {
+    daily: t('manager', 'periodDaily'),
+    weekly: t('manager', 'periodWeekly'),
+    monthly: t('manager', 'periodMonthly'),
+    yearly: t('manager', 'periodYearly'),
+  }
+
+  const reportCategoryLabels: Record<string, string> = {
+    overview: t('manager', 'reportCatOverview'),
+    booking: t('manager', 'reportCatBooking'),
+    revenue: t('manager', 'reportCatRevenue'),
+    occupancy: t('manager', 'reportCatOccupancy'),
+    customer: t('manager', 'reportCatCustomer'),
+    cancellation: t('manager', 'reportCatCancellation'),
+  }
 
   const [tab, setTab] = useState<Tab>('Dashboard')
   const [hotels, setHotels] = useState<ManagedHotel[]>([])
@@ -217,7 +285,7 @@ function ManagerDashboard() {
     roomId: '',
     startDate: new Date().toISOString().slice(0, 10),
     endDate: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-    reason: 'Scheduled maintenance',
+    reason: t('manager', 'defaultMaintenanceReason'),
   })
   const [maintenanceSaving, setMaintenanceSaving] = useState(false)
 
@@ -225,7 +293,7 @@ function ManagerDashboard() {
   const [seasonalModalOpen, setSeasonalModalOpen] = useState(false)
   const [seasonalForm, setSeasonalForm] = useState({
     roomId: '',
-    name: 'High Season Rate',
+    name: t('manager', 'defaultHighSeasonRate'),
     startDate: new Date().toISOString().slice(0, 10),
     endDate: new Date(Date.now() + 86400000 * 14).toISOString().slice(0, 10),
     priceMultiplier: 1.25,
@@ -270,7 +338,7 @@ function ManagerDashboard() {
   // Relocate Room Modal
   const [relocateBooking, setRelocateBooking] = useState<ManagedBooking | null>(null)
   const [relocateNewRoomId, setRelocateNewRoomId] = useState('')
-  const [relocateReason, setRelocateReason] = useState('Room upgrade / maintenance')
+  const [relocateReason, setRelocateReason] = useState(t('manager', 'defaultRelocateReason'))
   const [relocateSubmitting, setRelocateSubmitting] = useState(false)
 
   // Decide Stay Request Modal
@@ -315,7 +383,7 @@ function ManagerDashboard() {
         setSelectedHotelId(hList[0].id)
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Unable to load manager dashboard.')
+      setError(caught instanceof Error ? caught.message : t('manager', 'errLoadDashboard'))
     } finally {
       setLoading(false)
     }
@@ -377,10 +445,18 @@ function ManagerDashboard() {
     setError('')
     try {
       await managerApi.action(id, action)
-      setSuccessBanner(`Booking marked as ${action.replace('-', ' ')}.`)
+      setSuccessBanner(
+        action === 'confirm'
+          ? t('manager', 'msgMarkedConfirm')
+          : action === 'reject'
+            ? t('manager', 'msgMarkedReject')
+            : action === 'check-in'
+              ? t('manager', 'msgMarkedCheckIn')
+              : t('manager', 'msgMarkedCheckOut'),
+      )
       await load()
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Unable to update reservation.')
+      setError(caught instanceof Error ? caught.message : t('manager', 'errUpdateReservation'))
     } finally {
       setActing(null)
     }
@@ -390,10 +466,10 @@ function ManagerDashboard() {
     setError('')
     try {
       await paymentApi.markCashPaid(bookingId, 'Cash paid at front desk')
-      setSuccessBanner('Payment marked as SUCCEEDED (Cash).')
+      setSuccessBanner(t('manager', 'msgCashPaid'))
       await load()
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Failed to update payment.')
+      setError(caught instanceof Error ? caught.message : t('manager', 'errUpdatePayment'))
     }
   }
 
@@ -403,11 +479,13 @@ function ManagerDashboard() {
     setError('')
     try {
       await managerApi.noShow(noShowModalBooking.id)
-      setSuccessBanner(`Booking ${noShowModalBooking.bookingRef} successfully marked as No-Show. Room availability has been restored.`)
+      setSuccessBanner(
+        t('manager', 'msgNoShowMarked', { ref: noShowModalBooking.bookingRef ?? '' }),
+      )
       setNoShowModalBooking(null)
       await load()
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Failed to mark reservation as No-Show.')
+      setError(caught instanceof Error ? caught.message : t('manager', 'errMarkNoShow'))
     } finally {
       setNoShowSubmitting(false)
     }
@@ -425,7 +503,7 @@ function ManagerDashboard() {
     setError('')
     try {
       await managerApi.respondToReview(selectedHotelId, reviewId, responseText.trim())
-      setSuccessBanner('Public management response published successfully.')
+      setSuccessBanner(t('manager', 'msgResponsePublished'))
       setRespondingReviewId(null)
       setResponseText('')
       const res = await managerApi.listReviews(selectedHotelId)
@@ -434,7 +512,7 @@ function ManagerDashboard() {
         setReviewSummary(res.summary)
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Failed to publish review response.')
+      setError(caught instanceof Error ? caught.message : t('manager', 'errPublishResponse'))
     } finally {
       setResponseSubmitting(false)
     }
@@ -442,18 +520,18 @@ function ManagerDashboard() {
 
   const handleDeleteResponse = async (reviewId: string) => {
     if (!selectedHotelId) return
-    if (!confirm('Are you sure you want to delete this public response?')) return
+    if (!confirm(t('manager', 'confirmDeleteResponse'))) return
     setError('')
     try {
       await managerApi.deleteReviewResponse(selectedHotelId, reviewId)
-      setSuccessBanner('Public management response removed.')
+      setSuccessBanner(t('manager', 'msgResponseRemoved'))
       const res = await managerApi.listReviews(selectedHotelId)
       if (res?.data) {
         setHotelReviews(res.data)
         setReviewSummary(res.summary)
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Failed to remove response.')
+      setError(caught instanceof Error ? caught.message : t('manager', 'errRemoveResponse'))
     }
   }
 
@@ -467,10 +545,10 @@ function ManagerDashboard() {
       else await managerApi.createHotel(payload)
       setHotelFormOpen(false)
       setEditingHotel(null)
-      setSuccessBanner(hotelId ? 'Hotel details updated!' : 'Hotel created successfully!')
+      setSuccessBanner(hotelId ? t('manager', 'msgHotelUpdated') : t('manager', 'msgHotelCreated'))
       await load()
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Unable to save hotel.')
+      setError(caught instanceof Error ? caught.message : t('manager', 'errSaveHotel'))
     } finally {
       setSavingHotel(false)
     }
@@ -525,29 +603,29 @@ function ManagerDashboard() {
       }
       if (editingRoom) {
         await managerApi.updateRoom(editingRoom.id, payload)
-        setSuccessBanner(`Room ${payload.roomNumber} updated!`)
+        setSuccessBanner(t('manager', 'msgRoomUpdated', { number: payload.roomNumber }))
       } else {
         await managerApi.createRoom(selectedHotelId, payload)
-        setSuccessBanner(`Room ${payload.roomNumber} created!`)
+        setSuccessBanner(t('manager', 'msgRoomCreated', { number: payload.roomNumber }))
       }
       setRoomModalOpen(false)
       await loadHotelDetails(selectedHotelId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save room.')
+      setError(err instanceof Error ? err.message : t('manager', 'errSaveRoom'))
     } finally {
       setRoomSaving(false)
     }
   }
 
   const handleDeleteRoom = async (roomId: string) => {
-    if (!confirm('Are you sure you want to delete this room?')) return
+    if (!confirm(t('manager', 'confirmDeleteRoom'))) return
     setError('')
     try {
       await managerApi.deleteRoom(roomId)
-      setSuccessBanner('Room deleted.')
+      setSuccessBanner(t('manager', 'msgRoomDeleted'))
       await loadHotelDetails(selectedHotelId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete room.')
+      setError(err instanceof Error ? err.message : t('manager', 'errDeleteRoom'))
     }
   }
 
@@ -559,11 +637,11 @@ function ManagerDashboard() {
     setError('')
     try {
       await managerApi.blockMaintenance(maintenanceForm)
-      setSuccessBanner('Room marked for maintenance block.')
+      setSuccessBanner(t('manager', 'msgMaintenanceBlocked'))
       setMaintenanceModalOpen(false)
       await loadHotelDetails(selectedHotelId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to block maintenance.')
+      setError(err instanceof Error ? err.message : t('manager', 'errBlockMaintenance'))
     } finally {
       setMaintenanceSaving(false)
     }
@@ -578,9 +656,9 @@ function ManagerDashboard() {
       setSelectedHotelRooms((prev) =>
         prev.map((rm) => (rm.id === roomId ? { ...rm, status: newStatus } : rm)),
       )
-      setSuccessBanner(`Room status updated to ${newStatus}.`)
+      setSuccessBanner(t('manager', 'msgRoomStatusUpdated', { status: statusLabel(newStatus) }))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update room status.')
+      setError(err instanceof Error ? err.message : t('manager', 'errUpdateRoomStatus'))
     } finally {
       setActing(null)
     }
@@ -600,11 +678,11 @@ function ManagerDashboard() {
         priceMultiplier: seasonalForm.priceMultiplier ? Number(seasonalForm.priceMultiplier) : undefined,
         fixedPrice: seasonalForm.fixedPrice ? Number(seasonalForm.fixedPrice) : undefined,
       })
-      setSuccessBanner('Seasonal pricing rule established!')
+      setSuccessBanner(t('manager', 'msgSeasonalSaved'))
       setSeasonalModalOpen(false)
       await loadHotelDetails(selectedHotelId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to set seasonal pricing.')
+      setError(err instanceof Error ? err.message : t('manager', 'errSeasonalPricing'))
     } finally {
       setSeasonalSaving(false)
     }
@@ -619,9 +697,9 @@ function ManagerDashboard() {
     try {
       const updated = await managerApi.upsertPolicy(selectedHotelId, hotelPolicy || {})
       setHotelPolicy(updated)
-      setSuccessBanner('Hotel policy rules updated successfully!')
+      setSuccessBanner(t('manager', 'msgPolicyUpdated'))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update policy.')
+      setError(err instanceof Error ? err.message : t('manager', 'errUpdatePolicy'))
     } finally {
       setPolicySaving(false)
     }
@@ -652,10 +730,10 @@ function ManagerDashboard() {
     setError('')
     try {
       if (staffModalMode === 'create') {
-        if (!staffForm.fullName.trim()) throw new Error('Please enter the staff member’s full name.')
-        if (!staffForm.email.trim()) throw new Error('Please enter a valid email address.')
+        if (!staffForm.fullName.trim()) throw new Error(t('manager', 'errStaffName'))
+        if (!staffForm.email.trim()) throw new Error(t('manager', 'errStaffEmail'))
         if (!staffForm.password || staffForm.password.length < 8) {
-          throw new Error('Password must be at least 8 characters long.')
+          throw new Error(t('manager', 'errStaffPassword'))
         }
         const resolvedRole =
           staffForm.rolePreset === 'Other'
@@ -668,9 +746,9 @@ function ManagerDashboard() {
           phone: staffForm.phone.trim() || undefined,
           role: resolvedRole,
         })
-        setSuccessBanner(`Staff member (${resolvedRole}) created and assigned to hotel successfully!`)
+        setSuccessBanner(t('manager', 'msgStaffCreated', { role: roleLabel(resolvedRole) }))
       } else {
-        if (!assignEmail.trim()) throw new Error('Please enter the email address of the staff member.')
+        if (!assignEmail.trim()) throw new Error(t('manager', 'errStaffEmailRequired'))
         const resolvedRole =
           assignRolePreset === 'Other'
             ? assignCustomRole.trim() || 'Staff'
@@ -679,12 +757,12 @@ function ManagerDashboard() {
           email: assignEmail.trim(),
           role: resolvedRole,
         })
-        setSuccessBanner(`Staff member (${resolvedRole}) assigned to hotel successfully!`)
+        setSuccessBanner(t('manager', 'msgStaffAssigned', { role: roleLabel(resolvedRole) }))
       }
       setStaffModalOpen(false)
       await loadHotelDetails(selectedHotelId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save staff member.')
+      setError(err instanceof Error ? err.message : t('manager', 'errSaveStaff'))
     } finally {
       setStaffSaving(false)
     }
@@ -696,7 +774,7 @@ function ManagerDashboard() {
     setError('')
     try {
       await managerApi.updateStaffStatus(selectedHotelId, staffId, !currentActive)
-      setSuccessBanner(`Staff account ${!currentActive ? 'activated' : 'deactivated'}.`)
+      setSuccessBanner(currentActive ? t('manager', 'msgStaffDeactivated') : t('manager', 'msgStaffActivated'))
       setHotelStaff((prev) =>
         prev.map((item) => {
           const id = item.staffId || item.staff?.id || item.user?.id || item.id
@@ -713,22 +791,22 @@ function ManagerDashboard() {
       )
       await loadHotelDetails(selectedHotelId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update staff status.')
+      setError(err instanceof Error ? err.message : t('manager', 'errUpdateStaffStatus'))
     } finally {
       setStatusTogglingId(null)
     }
   }
 
   const handleRemoveStaff = async (staffId: string, staffName?: string) => {
-    const displayName = staffName || 'this staff member'
-    if (!confirm(`Are you sure you want to remove ${displayName} from this hotel?`)) return
+    const displayName = staffName || t('manager', 'thisStaffMember')
+    if (!confirm(t('manager', 'confirmRemoveStaff', { name: displayName }))) return
     setError('')
     try {
       await managerApi.removeStaff(selectedHotelId, staffId)
-      setSuccessBanner(`${displayName} has been removed from this hotel.`)
+      setSuccessBanner(t('manager', 'msgStaffRemoved', { name: displayName }))
       await loadHotelDetails(selectedHotelId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to remove staff.')
+      setError(err instanceof Error ? err.message : t('manager', 'errRemoveStaff'))
     }
   }
 
@@ -751,11 +829,11 @@ function ManagerDashboard() {
         paymentMethod: walkInForm.paymentMethod,
         paidImmediately: walkInForm.paidImmediately,
       })
-      setSuccessBanner('Walk-in guest checked in & reservation registered!')
+      setSuccessBanner(t('manager', 'msgWalkInCreated'))
       setWalkInModalOpen(false)
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create walk-in booking.')
+      setError(err instanceof Error ? err.message : t('manager', 'errWalkIn'))
     } finally {
       setWalkInSubmitting(false)
     }
@@ -774,11 +852,11 @@ function ManagerDashboard() {
         newRoomId: relocateNewRoomId,
         reason: relocateReason.trim(),
       })
-      setSuccessBanner('Guest relocated to new room successfully!')
+      setSuccessBanner(t('manager', 'msgGuestRelocated'))
       setRelocateBooking(null)
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to relocate room.')
+      setError(err instanceof Error ? err.message : t('manager', 'errRelocate'))
     } finally {
       setRelocateSubmitting(false)
     }
@@ -794,12 +872,14 @@ function ManagerDashboard() {
         decision,
         decisionNote: decisionNote.trim() || undefined,
       })
-      setSuccessBanner(`Stay request ${decision.toLowerCase()}!`)
+      setSuccessBanner(
+        decision === 'APPROVED' ? t('manager', 'msgStayRequestApproved') : t('manager', 'msgStayRequestRejected'),
+      )
       setDecidingRequest(null)
       setDecisionNote('')
       await loadHotelDetails(selectedHotelId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update stay request.')
+      setError(err instanceof Error ? err.message : t('manager', 'errStayRequest'))
     } finally {
       setDecidingSubmitting(false)
     }
@@ -808,7 +888,7 @@ function ManagerDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-[#64748B]">
-        Loading manager dashboard…
+        {t('manager', 'loadingDashboard')}
       </div>
     )
   }
@@ -821,14 +901,14 @@ function ManagerDashboard() {
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2563EB] to-[#14B8A6] flex items-center justify-center text-white font-bold text-lg shadow-sm">
             {user?.fullName.charAt(0).toUpperCase() || 'M'}
           </div>
-          <div className="font-semibold text-[#0F172A] mt-3">{user?.fullName || 'Manager'}</div>
-          <div className="text-[#64748B] text-xs">Hotel Management Suite</div>
+          <div className="font-semibold text-[#0F172A] mt-3">{user?.fullName || t('manager', 'sidebarFallbackName')}</div>
+          <div className="text-[#64748B] text-xs">{t('manager', 'sidebarSuiteName')}</div>
 
           {/* Hotel Selector Dropdown */}
           {hotels.length > 0 && (
             <div className="mt-4">
               <label className="block text-[10px] font-bold text-[#94A3B8] uppercase tracking-wider mb-1">
-                Active Property
+                {t('manager', 'labelActiveProperty')}
               </label>
               <select
                 value={selectedHotelId}
@@ -871,7 +951,7 @@ function ManagerDashboard() {
                 tab === item ? 'bg-[#2563EB] text-white shadow-sm' : 'text-[#64748B] hover:bg-[#F1F5F9]'
               }`}
             >
-              <span>{item}</span>
+              <span>{tabLabels[item]}</span>
               {item === 'Reviews' && reviewSummary.pendingResponseCount > 0 && (
                 <span
                   className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
@@ -894,7 +974,7 @@ function ManagerDashboard() {
             }}
             className="w-full text-left px-3.5 py-2.5 text-sm text-red-500 rounded-xl hover:bg-red-50 transition-colors"
           >
-            Sign out
+            {t('manager', 'signOut')}
           </button>
         </div>
       </aside>
@@ -910,7 +990,7 @@ function ManagerDashboard() {
             <button
               onClick={() => setError('')}
               className="text-rose-600 hover:text-rose-900 p-1.5 rounded-lg hover:bg-rose-100/60 transition-colors cursor-pointer"
-              aria-label="Dismiss notification"
+              aria-label={t('manager', 'dismissNotification')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -926,7 +1006,7 @@ function ManagerDashboard() {
             <button
               onClick={() => setSuccessBanner('')}
               className="text-emerald-600 hover:text-emerald-900 p-1.5 rounded-lg hover:bg-emerald-100/60 transition-colors cursor-pointer"
-              aria-label="Dismiss notification"
+              aria-label={t('manager', 'dismissNotification')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -952,21 +1032,25 @@ function ManagerDashboard() {
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
-                  <h1 className="font-serif text-3xl text-[#0F172A]">Manager Overview</h1>
-                  <p className="text-[#64748B]">Live operations, revenue analytics, and occupancy for {selectedHotel?.name || 'Assigned Hotels'}.</p>
+                  <h1 className="font-serif text-3xl text-[#0F172A]">{t('manager', 'dashboardTitle')}</h1>
+                  <p className="text-[#64748B]">
+                    {t('manager', 'dashboardSubtitle', {
+                      hotel: selectedHotel?.name || t('manager', 'assignedHotels'),
+                    })}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setWalkInModalOpen(true)}
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors cursor-pointer"
                   >
-                    + Walk-in Guest
+                    {t('manager', 'btnWalkInGuest')}
                   </button>
                   <button
                     onClick={() => void load()}
                     className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm transition-colors cursor-pointer"
                   >
-                    Refresh
+                    {t('manager', 'btnRefresh')}
                   </button>
                 </div>
               </div>
@@ -974,10 +1058,10 @@ function ManagerDashboard() {
               {/* 4 Primary Top Luxury Metrics */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {[
-                  { label: 'Property Revenue', value: formatMoney(hotelRevenueDisplay), icon: CreditCard, color: 'text-purple-600 bg-purple-50 border-purple-100' },
-                  { label: "Today's Occupancy", value: `${(occupancyRateNum * 100).toFixed(1)}%`, icon: Activity, color: 'text-blue-600 bg-blue-50 border-blue-100' },
-                  { label: 'Total Bookings', value: hotelBookingsDisplay, icon: Calendar, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-                  { label: 'Room Inventory', value: `${hotelActiveRoomsCount} Rooms`, icon: Building2, color: 'text-amber-600 bg-amber-50 border-amber-100' },
+                  { label: t('manager', 'metricPropertyRevenue'), value: formatMoney(hotelRevenueDisplay), icon: CreditCard, color: 'text-purple-600 bg-purple-50 border-purple-100' },
+                  { label: t('manager', 'metricTodaysOccupancy'), value: `${(occupancyRateNum * 100).toFixed(1)}%`, icon: Activity, color: 'text-blue-600 bg-blue-50 border-blue-100' },
+                  { label: t('manager', 'metricTotalBookings'), value: hotelBookingsDisplay, icon: Calendar, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+                  { label: t('manager', 'metricRoomInventory'), value: t('manager', 'metricRoomInventoryValue', { count: hotelActiveRoomsCount }), icon: Building2, color: 'text-amber-600 bg-amber-50 border-amber-100' },
                 ].map((item) => {
                   const IconComp = item.icon
                   return (
@@ -997,10 +1081,10 @@ function ManagerDashboard() {
               {/* 4 Secondary Operational Flow Badges */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {[
-                  { label: 'Pending approvals', value: stats.pendingApprovals, icon: Clock, color: 'text-amber-600 bg-amber-50 border-amber-100' },
-                  { label: "Today's check-ins", value: stats.todaysCheckIns, icon: ArrowDownLeft, color: 'text-blue-600 bg-blue-50 border-blue-100' },
-                  { label: "Today's check-outs", value: stats.todaysCheckOuts, icon: ArrowUpRight, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-                  { label: 'Active guests', value: stats.activeGuests, icon: Users, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+                  { label: t('manager', 'badgePendingApprovals'), value: stats.pendingApprovals, icon: Clock, color: 'text-amber-600 bg-amber-50 border-amber-100' },
+                  { label: t('manager', 'badgeTodaysCheckIns'), value: stats.todaysCheckIns, icon: ArrowDownLeft, color: 'text-blue-600 bg-blue-50 border-blue-100' },
+                  { label: t('manager', 'badgeTodaysCheckOuts'), value: stats.todaysCheckOuts, icon: ArrowUpRight, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
+                  { label: t('manager', 'badgeActiveGuests'), value: stats.activeGuests, icon: Users, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
                 ].map((item) => {
                   const IconComp = item.icon
                   return (
@@ -1032,7 +1116,7 @@ function ManagerDashboard() {
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-bold text-indigo-900 text-base flex items-center gap-2">
                       <Clock className="w-4 h-4 text-indigo-700" />
-                      <span>Pending Guest Stay Requests ({stayRequests.filter((r) => r.status === 'PENDING').length})</span>
+                      <span>{t('manager', 'pendingStayRequests', { count: stayRequests.filter((r) => r.status === 'PENDING').length })}</span>
                     </h3>
                   </div>
                   <div className="space-y-2">
@@ -1045,10 +1129,10 @@ function ManagerDashboard() {
                         >
                           <div>
                             <span className="font-semibold text-sm text-[#0F172A]">
-                              {req.type === 'EARLY_CHECK_IN' ? 'Early Check-In' : 'Late Check-Out'}
+                              {req.type === 'EARLY_CHECK_IN' ? t('manager', 'earlyCheckIn') : t('manager', 'lateCheckOut')}
                             </span>{' '}
-                            <span className="text-xs text-[#64748B]">at {req.requestedTime}</span>
-                            <span className="font-mono text-xs text-[#94A3B8] block">Booking #{req.bookingId.slice(-8)}</span>
+                            <span className="text-xs text-[#64748B]">{t('manager', 'atTime', { time: req.requestedTime })}</span>
+                            <span className="font-mono text-xs text-[#94A3B8] block">{t('manager', 'bookingRefLabel', { ref: req.bookingId.slice(-8) })}</span>
                           </div>
                           <button
                             onClick={() => {
@@ -1057,7 +1141,7 @@ function ManagerDashboard() {
                             }}
                             className="px-3.5 py-1.5 bg-[#2563EB] text-white rounded-lg text-xs font-semibold cursor-pointer"
                           >
-                            Review & Decide
+                            {t('manager', 'btnReviewDecide')}
                           </button>
                         </div>
                       ))}
@@ -1069,10 +1153,13 @@ function ManagerDashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-sm flex flex-col justify-between">
                   <div>
-                    <h2 className="font-bold text-[#0F172A] mb-2">Today&apos;s Property Occupancy</h2>
+                    <h2 className="font-bold text-[#0F172A] mb-2">{t('manager', 'todaysOccupancyTitle')}</h2>
                     <div className="text-4xl font-bold text-[#0F172A]">{(occupancyRateNum * 100).toFixed(1)}%</div>
                     <p className="text-[#64748B] text-sm mt-1">
-                      {occupiedRoomsCount} occupied of {hotelActiveRoomsCount} active rooms
+                      {t('manager', 'occupancyOfRooms', {
+                        occupied: occupiedRoomsCount,
+                        total: hotelActiveRoomsCount,
+                      })}
                     </p>
                     <div className="bg-[#F1F5F9] h-2.5 rounded-full mt-5 overflow-hidden">
                       <div
@@ -1082,16 +1169,16 @@ function ManagerDashboard() {
                     </div>
                   </div>
                   <div className="pt-4 border-t border-slate-100 mt-6 text-xs text-[#64748B] flex justify-between">
-                    <span>Available: {Math.max(0, hotelActiveRoomsCount - occupiedRoomsCount)} rooms</span>
+                    <span>{t('manager', 'availableRoomsLine', { count: Math.max(0, hotelActiveRoomsCount - occupiedRoomsCount) })}</span>
                     <span className="font-semibold text-[#2563EB]">{selectedHotel?.name}</span>
                   </div>
                 </div>
 
                 <div className="lg:col-span-2 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
                   <div className="p-5 border-b border-[#F1F5F9] flex justify-between items-center">
-                    <h2 className="font-bold text-[#0F172A]">Recent Reservations</h2>
+                    <h2 className="font-bold text-[#0F172A]">{t('manager', 'recentReservations')}</h2>
                     <button onClick={() => setTab('Bookings')} className="text-sm text-[#2563EB] font-semibold cursor-pointer">
-                      View All ({bookings.length}) →
+                      {t('manager', 'viewAll', { count: bookings.length })}
                     </button>
                   </div>
                   <div className="divide-y divide-slate-100">
@@ -1099,7 +1186,7 @@ function ManagerDashboard() {
                       <div key={booking.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                           <div className="font-semibold text-[#0F172A] text-sm">
-                            {booking.user?.fullName || 'Walk-in Guest'}{' '}
+                            {booking.user?.fullName || t('manager', 'walkInGuestFallback')}{' '}
                             <span className="font-mono font-normal text-xs text-[#94A3B8]">#{booking.id.slice(-8)}</span>
                           </div>
                           <div className="text-[#64748B] text-xs mt-0.5">
@@ -1108,7 +1195,7 @@ function ManagerDashboard() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${statusStyle(booking.status)}`}>
-                            {booking.status.replace(/_/g, ' ')}
+                            {statusLabel(booking.status)}
                           </span>
                           {booking.status === 'PENDING' && (
                             <button
@@ -1116,7 +1203,7 @@ function ManagerDashboard() {
                               onClick={() => act(booking.id, 'confirm')}
                               className="px-3 py-1 bg-[#2563EB] text-white rounded-lg text-xs font-semibold cursor-pointer"
                             >
-                              Confirm
+                              {t('manager', 'btnConfirm')}
                             </button>
                           )}
                           {booking.status === 'CONFIRMED' && (
@@ -1125,13 +1212,13 @@ function ManagerDashboard() {
                               onClick={() => act(booking.id, 'check-in')}
                               className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-semibold cursor-pointer"
                             >
-                              Check In
+                              {t('manager', 'btnCheckIn')}
                             </button>
                           )}
                         </div>
                       </div>
                     ))}
-                    {!bookings.length && <p className="p-8 text-center text-xs text-[#64748B]">No reservations recorded.</p>}
+                    {!bookings.length && <p className="p-8 text-center text-xs text-[#64748B]">{t('manager', 'noReservations')}</p>}
                   </div>
                 </div>
               </div>
@@ -1144,8 +1231,8 @@ function ManagerDashboard() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">My Hotels</h1>
-                <p className="text-[#64748B] text-sm">{hotels.length} managed properties</p>
+                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('manager', 'myHotelsTitle')}</h1>
+                <p className="text-[#64748B] text-sm">{t('manager', 'managedProperties', { count: hotels.length })}</p>
               </div>
               <button
                 onClick={() => {
@@ -1154,16 +1241,18 @@ function ManagerDashboard() {
                 }}
                 className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm transition-colors"
               >
-                + New Hotel
+                {t('manager', 'btnNewHotel')}
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {hotels.map((hotel) => (
                 <div key={hotel.id} className="bg-white rounded-2xl overflow-hidden border border-[#E2E8F0] shadow-sm flex flex-col">
-                  <img
+                  <Image
                     src={hotel.images?.find((img) => img.isPrimary)?.url || hotel.images?.[0]?.url || FALLBACK_IMAGE}
                     alt={hotel.name}
+                    width={800}
+                    height={600}
                     className="w-full aspect-[4/3] object-cover"
                   />
                   <div className="p-5 flex-1 flex flex-col justify-between">
@@ -1178,17 +1267,17 @@ function ManagerDashboard() {
                             hotel.status === 'ACTIVE' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
                           }`}
                         >
-                          {hotel.status}
+                          {statusLabel(hotel.status)}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-4 mt-4 text-xs text-[#64748B]">
                         <span className="inline-flex items-center gap-1">
                           <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                          <span>{hotel.starRating} Stars</span>
+                          <span>{t('manager', 'starsCount', { count: hotel.starRating })}</span>
                         </span>
-                        <span>{hotel._count?.rooms ?? 0} rooms</span>
-                        <span>{hotel._count?.bookings ?? 0} bookings</span>
+                        <span>{t('manager', 'roomsCount', { count: hotel._count?.rooms ?? 0 })}</span>
+                        <span>{t('manager', 'bookingsCount', { count: hotel._count?.bookings ?? 0 })}</span>
                       </div>
                     </div>
 
@@ -1200,7 +1289,7 @@ function ManagerDashboard() {
                         }}
                         className="px-3 py-1.5 bg-blue-50 text-[#2563EB] rounded-lg text-xs font-semibold hover:bg-blue-100"
                       >
-                        Rooms
+                        {t('manager', 'tabRooms')}
                       </button>
                       <button
                         onClick={() => {
@@ -1209,7 +1298,7 @@ function ManagerDashboard() {
                         }}
                         className="px-3 py-1.5 bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-100"
                       >
-                        Policies
+                        {t('manager', 'tabPolicies')}
                       </button>
                       <button
                         onClick={() => {
@@ -1218,7 +1307,7 @@ function ManagerDashboard() {
                         }}
                         className="px-3 py-1.5 border border-[#E2E8F0] text-[#334155] rounded-lg text-xs font-semibold hover:border-slate-400 ml-auto"
                       >
-                        Edit
+                        {t('manager', 'btnEdit')}
                       </button>
                     </div>
                   </div>
@@ -1233,14 +1322,16 @@ function ManagerDashboard() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Room Inventory</h1>
-                <p className="text-[#64748B] text-sm">Managing rooms for {selectedHotel?.name || 'Hotel'}</p>
+                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('manager', 'roomInventoryTitle')}</h1>
+                <p className="text-[#64748B] text-sm">
+                  {t('manager', 'managingRoomsFor', { hotel: selectedHotel?.name || t('manager', 'hotelFallback') })}
+                </p>
               </div>
               <button
                 onClick={handleOpenCreateRoom}
                 className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm transition-colors"
               >
-                + Add Room
+                {t('manager', 'btnAddRoom')}
               </button>
             </div>
 
@@ -1250,8 +1341,10 @@ function ManagerDashboard() {
                   <div>
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <span className="font-bold text-lg text-[#0F172A]">Room #{room.roomNumber}</span>
-                        <p className="text-xs text-[#64748B] uppercase font-semibold">{room.type.replace(/_/g, ' ')}</p>
+                        <span className="font-bold text-lg text-[#0F172A]">
+                          {t('manager', 'roomNumberLabel', { number: room.roomNumber })}
+                        </span>
+                        <p className="text-xs text-[#64748B] uppercase font-semibold">{roomTypeLabel(room.type)}</p>
                       </div>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
@@ -1262,16 +1355,23 @@ function ManagerDashboard() {
                               : 'bg-red-50 text-red-600'
                         }`}
                       >
-                        {room.status}
+                        {statusLabel(room.status)}
                       </span>
                     </div>
 
                     <div className="text-sm font-bold text-[#0F172A] mb-3">
-                      {formatMoney(room.basePrice)} <span className="font-normal text-xs text-[#64748B]">/ night</span>
+                      {formatMoney(room.basePrice)}{' '}
+                      <span className="font-normal text-xs text-[#64748B]">{t('manager', 'perNight')}</span>
                     </div>
 
                     <div className="text-xs text-[#64748B] space-y-1 mb-4">
-                      <div>Capacity: {room.capacity} guests · {room.beds} bed(s) · {room.bathroom} bath</div>
+                      <div>
+                        {t('manager', 'roomCapacityLine', {
+                          capacity: room.capacity,
+                          beds: room.beds,
+                          bath: room.bathroom,
+                        })}
+                      </div>
                       {room.amenities?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {room.amenities.map((a) => (
@@ -1289,20 +1389,20 @@ function ManagerDashboard() {
                       onClick={() => handleOpenEditRoom(room)}
                       className="px-3 py-1.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-semibold"
                     >
-                      Edit
+                      {t('manager', 'btnEdit')}
                     </button>
                     <button
                       onClick={() => handleDeleteRoom(room.id)}
                       className="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold"
                     >
-                      Delete
+                      {t('manager', 'btnDelete')}
                     </button>
                   </div>
                 </div>
               ))}
               {!selectedHotelRooms.length && (
                 <div className="col-span-3 p-12 text-center bg-white border border-[#E2E8F0] rounded-2xl text-[#64748B]">
-                  No rooms created yet for this hotel. Click &quot;+ Add Room&quot; to configure your inventory.
+                  {t('manager', 'noRoomsYet')}
                 </div>
               )}
             </div>
@@ -1319,16 +1419,16 @@ function ManagerDashboard() {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Seasonal Dynamic Pricing</h1>
+                  <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('manager', 'seasonalPricingTitle')}</h1>
                   <p className="text-[#64748B] text-sm">
-                    Apply multipliers and price overrides during holidays and peak seasons for {selectedHotel?.name}.
+                    {t('manager', 'seasonalPricingSubtitle', { hotel: selectedHotel?.name ?? '' })}
                   </p>
                 </div>
                 <button
                   onClick={() => {
                     setSeasonalForm({
                       roomId: selectedHotelRooms[0]?.id || '',
-                      name: 'Peak Season Override',
+                      name: t('manager', 'defaultPeakSeasonRate'),
                       startDate: new Date().toISOString().slice(0, 10),
                       endDate: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 10),
                       priceMultiplier: 1.25,
@@ -1338,15 +1438,15 @@ function ManagerDashboard() {
                   }}
                   className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm cursor-pointer"
                 >
-                  + Add Pricing Rule
+                  {t('manager', 'btnAddPricingRule')}
                 </button>
               </div>
 
               <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-[#0F172A]">Active Pricing Rules</h3>
+                  <h3 className="font-bold text-[#0F172A]">{t('manager', 'activePricingRules')}</h3>
                   <span className="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-[#2563EB] rounded-full">
-                    {allPricingRules.length} Active Rules
+                    {t('manager', 'activeRulesCount', { count: allPricingRules.length })}
                   </span>
                 </div>
 
@@ -1355,17 +1455,19 @@ function ManagerDashboard() {
                     <table className="w-full text-left text-xs">
                       <thead>
                         <tr className="border-b border-slate-200 text-[#64748B] font-semibold">
-                          <th className="pb-3">Room</th>
-                          <th className="pb-3">Rule Name</th>
-                          <th className="pb-3">Active Dates</th>
-                          <th className="pb-3">Rate Adjustment</th>
-                          <th className="pb-3 text-right">Actions</th>
+                          <th className="pb-3">{t('manager', 'colRoom')}</th>
+                          <th className="pb-3">{t('manager', 'colRuleName')}</th>
+                          <th className="pb-3">{t('manager', 'colActiveDates')}</th>
+                          <th className="pb-3">{t('manager', 'colRateAdjustment')}</th>
+                          <th className="pb-3 text-right">{t('manager', 'colActions')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {allPricingRules.map((rule: any) => (
                           <tr key={rule.id} className="hover:bg-slate-50/60">
-                            <td className="py-3.5 font-bold text-[#0F172A]">Room #{rule.roomNumber}</td>
+                            <td className="py-3.5 font-bold text-[#0F172A]">
+                              {t('manager', 'roomNumberLabel', { number: rule.roomNumber })}
+                            </td>
                             <td className="py-3.5 font-medium text-slate-700">{rule.name}</td>
                             <td className="py-3.5 text-[#64748B]">
                               {formatDate(rule.startDate)} → {formatDate(rule.endDate)}
@@ -1374,7 +1476,9 @@ function ManagerDashboard() {
                               {rule.fixedPrice ? (
                                 <span className="font-bold text-emerald-600">{formatMoney(rule.fixedPrice)}</span>
                               ) : (
-                                <span className="font-bold text-[#2563EB]">{rule.priceMultiplier}x multiplier</span>
+                                <span className="font-bold text-[#2563EB]">
+                                  {t('manager', 'multiplierLine', { value: rule.priceMultiplier })}
+                                </span>
                               )}
                             </td>
                             <td className="py-3.5 text-right">
@@ -1382,15 +1486,17 @@ function ManagerDashboard() {
                                 onClick={async () => {
                                   try {
                                     await managerApi.deleteSeasonalPricing(rule.roomId, rule.id)
-                                    setSuccessBanner('Pricing rule removed.')
+                                    setSuccessBanner(t('manager', 'msgPricingRuleRemoved'))
                                     if (selectedHotelId) await loadHotelDetails(selectedHotelId)
                                   } catch (err) {
-                                    setError(err instanceof Error ? err.message : 'Failed to delete pricing rule.')
+                                    setError(
+                                      err instanceof Error ? err.message : t('manager', 'errDeletePricingRule'),
+                                    )
                                   }
                                 }}
                                 className="text-xs text-rose-600 hover:text-rose-800 font-semibold cursor-pointer"
                               >
-                                Delete
+                                {t('manager', 'btnDelete')}
                               </button>
                             </td>
                           </tr>
@@ -1399,16 +1505,13 @@ function ManagerDashboard() {
                     </table>
                   </div>
                 ) : (
-                  <p className="text-xs text-[#64748B] py-4">
-                    No active seasonal pricing rules configured for this hotel yet. Click &quot;+ Add Pricing Rule&quot; to define a custom seasonal multiplier.
-                  </p>
+                  <p className="text-xs text-[#64748B] py-4">{t('manager', 'noPricingRules')}</p>
                 )}
 
                 <div className="mt-5 p-4 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-900 leading-relaxed flex items-start gap-2.5">
                   <Lightbulb className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                   <div>
-                    <strong>Tip:</strong> A multiplier of 1.25 increases nightly prices by 25%. Fixed price overrides
-                    completely replace base pricing for the defined date window.
+                    <strong>{t('manager', 'tipLabel')}</strong> {t('manager', 'pricingTipBody')}
                   </div>
                 </div>
               </div>
@@ -1421,8 +1524,8 @@ function ManagerDashboard() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Availability & Maintenance</h1>
-                <p className="text-[#64748B] text-sm">Block rooms out of service for repairs or deep cleaning.</p>
+                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('manager', 'availabilityTitle')}</h1>
+                <p className="text-[#64748B] text-sm">{t('manager', 'availabilitySubtitle')}</p>
               </div>
               <button
                 onClick={() => {
@@ -1430,26 +1533,26 @@ function ManagerDashboard() {
                     roomId: selectedHotelRooms[0]?.id || '',
                     startDate: new Date().toISOString().slice(0, 10),
                     endDate: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-                    reason: 'Plumbing / HVAC maintenance',
+                    reason: t('manager', 'defaultBlockReason'),
                   })
                   setMaintenanceModalOpen(true)
                 }}
                 className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold shadow-sm"
               >
-                + Block Maintenance
+                {t('manager', 'btnBlockMaintenance')}
               </button>
             </div>
 
             <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-4 border-b border-slate-100">
                 <div>
-                  <h3 className="font-bold text-[#0F172A] text-base">Room Operational Status &amp; Turnover</h3>
-                  <p className="text-xs text-[#64748B] mt-0.5">
-                    Live room turnover and service availability. Rooms set to Maintenance or Cleaning are automatically blocked from guest bookings.
-                  </p>
+                  <h3 className="font-bold text-[#0F172A] text-base">{t('manager', 'roomStatusTurnover')}</h3>
+                  <p className="text-xs text-[#64748B] mt-0.5">{t('manager', 'roomStatusTurnoverBody')}</p>
                 </div>
                 <div className="text-xs text-[#64748B] font-medium shrink-0">
-                  Total Inventory: <span className="font-bold text-[#0F172A]">{selectedHotelRooms.length}</span> rooms
+                  {t('manager', 'totalInventoryLabel')}{' '}
+                  <span className="font-bold text-[#0F172A]">{selectedHotelRooms.length}</span>{' '}
+                  {t('manager', 'roomsWord')}
                 </div>
               </div>
 
@@ -1458,16 +1561,18 @@ function ManagerDashboard() {
                   <div key={r.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-[#0F172A]">Room #{r.roomNumber}</span>
+                        <span className="font-bold text-sm text-[#0F172A]">
+                          {t('manager', 'roomNumberLabel', { number: r.roomNumber })}
+                        </span>
                         <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                          {r.type.replace(/_/g, ' ')}
+                          {roomTypeLabel(r.type)}
                         </span>
                         <span className="text-xs text-[#64748B]">
-                          Cap: {r.capacity} · {r.beds} bed(s)
+                          {t('manager', 'capLine', { capacity: r.capacity, beds: r.beds })}
                         </span>
                       </div>
                       <div className="text-xs text-[#64748B] mt-1 font-mono">
-                        Base Rate: {formatMoney(r.basePrice)}/night
+                        {t('manager', 'baseRateLine', { price: formatMoney(r.basePrice) })}
                       </div>
                     </div>
 
@@ -1483,7 +1588,7 @@ function ManagerDashboard() {
                               : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50/70'
                           }`}
                         >
-                          Available
+                          {t('manager', 'btnAvailable')}
                         </button>
                         <button
                           type="button"
@@ -1495,7 +1600,7 @@ function ManagerDashboard() {
                               : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50/70'
                           }`}
                         >
-                          Cleaning
+                          {t('manager', 'btnCleaning')}
                         </button>
                         <button
                           type="button"
@@ -1507,7 +1612,7 @@ function ManagerDashboard() {
                               : 'text-slate-600 hover:text-rose-700 hover:bg-rose-50/70'
                           }`}
                         >
-                          Maintenance
+                          {t('manager', 'btnMaintenance')}
                         </button>
                       </div>
                       {acting === `room-status-${r.id}` && (
@@ -1518,9 +1623,7 @@ function ManagerDashboard() {
                 ))}
 
                 {selectedHotelRooms.length === 0 && (
-                  <div className="py-10 text-center text-sm text-[#64748B]">
-                    No rooms configured for this hotel yet. Please add rooms in the Rooms tab first.
-                  </div>
+                  <div className="py-10 text-center text-sm text-[#64748B]">{t('manager', 'noRoomsAvailability')}</div>
                 )}
               </div>
             </div>
@@ -1544,9 +1647,9 @@ function ManagerDashboard() {
           return (
             <div>
               <div className="mb-6">
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Hotel Policies & Rules</h1>
+                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('manager', 'policiesTitle')}</h1>
                 <p className="text-[#64748B] text-sm">
-                  Configure check-in/out hours, cancellation policies, and early/late fees for {selectedHotel?.name}.
+                  {t('manager', 'policiesSubtitle', { hotel: selectedHotel?.name ?? '' })}
                 </p>
               </div>
 
@@ -1554,7 +1657,7 @@ function ManagerDashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                      Standard Check-in Time (HH:mm)
+                      {t('manager', 'labelCheckInTime')}
                     </label>
                     <input
                       type="time"
@@ -1569,7 +1672,7 @@ function ManagerDashboard() {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                      Standard Check-out Time (HH:mm)
+                      {t('manager', 'labelCheckOutTime')}
                     </label>
                     <input
                       type="time"
@@ -1584,7 +1687,7 @@ function ManagerDashboard() {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                      Cancellation Window (Days)
+                      {t('manager', 'labelCancellationWindow')}
                     </label>
                     <input
                       type="number"
@@ -1599,12 +1702,12 @@ function ManagerDashboard() {
                       }
                       className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#2563EB]"
                     />
-                    <p className="text-[11px] text-[#94A3B8] mt-1">Full refund permitted up to this many days before check-in.</p>
+                    <p className="text-[11px] text-[#94A3B8] mt-1">{t('manager', 'helpCancellationWindow')}</p>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                      Cancellation Fee Percent (%)
+                      {t('manager', 'labelCancellationFee')}
                     </label>
                     <input
                       type="number"
@@ -1623,7 +1726,7 @@ function ManagerDashboard() {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                      Early Check-in Fee (ETB)
+                      {t('manager', 'labelEarlyCheckInFee')}
                     </label>
                     <input
                       type="number"
@@ -1641,7 +1744,7 @@ function ManagerDashboard() {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#334155] uppercase tracking-wider mb-1.5">
-                      Late Check-out Fee (ETB)
+                      {t('manager', 'labelLateCheckOutFee')}
                     </label>
                     <input
                       type="number"
@@ -1664,7 +1767,7 @@ function ManagerDashboard() {
                     disabled={policySaving}
                     className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-sm transition-colors"
                   >
-                    {policySaving ? 'Saving…' : 'Save Policies'}
+                    {policySaving ? t('manager', 'saving') : t('manager', 'btnSavePolicies')}
                   </button>
                 </div>
               </form>
@@ -1678,20 +1781,23 @@ function ManagerDashboard() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="font-bold text-[#0F172A] text-2xl">Hotel Staff & Operations Team</h1>
+                  <h1 className="font-bold text-[#0F172A] text-2xl">{t('manager', 'staffTitle')}</h1>
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                    {hotelStaff.length} {hotelStaff.length === 1 ? 'Member' : 'Members'}
+                    {hotelStaff.length}{' '}
+                    {hotelStaff.length === 1 ? t('manager', 'memberSingular') : t('manager', 'memberPlural')}
                   </span>
                 </div>
                 <p className="text-[#64748B] text-sm mt-1">
-                  Onboard front-desk personnel for <span className="font-semibold text-slate-700">{selectedHotel?.name}</span> to operate bookings, check-ins, and room availability.
+                  {t('manager', 'staffSubtitleLead')}{' '}
+                  <span className="font-semibold text-slate-700">{selectedHotel?.name}</span>{' '}
+                  {t('manager', 'staffSubtitleTail')}
                 </p>
               </div>
               <button
                 onClick={handleOpenAddStaff}
                 className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm transition-colors"
               >
-                <span>+</span> Add Staff Member
+                <span>+</span> {t('manager', 'btnAddStaffMember')}
               </button>
             </div>
 
@@ -1703,7 +1809,7 @@ function ManagerDashboard() {
                     type="text"
                     value={staffSearchQuery}
                     onChange={(e) => setStaffSearchQuery(e.target.value)}
-                    placeholder="Search by name, email, or phone..."
+                    placeholder={t('manager', 'staffSearchPlaceholder')}
                     className="w-full pl-9 pr-4 py-2 bg-white border border-[#CBD5E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                   />
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3 pointer-events-none" />
@@ -1711,7 +1817,7 @@ function ManagerDashboard() {
                     <button
                       onClick={() => setStaffSearchQuery('')}
                       className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors"
-                      aria-label="Clear search"
+                      aria-label={t('manager', 'clearSearch')}
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -1727,15 +1833,15 @@ function ManagerDashboard() {
                   <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4 border border-blue-100">
                     <Users className="w-7 h-7 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-[#0F172A] mb-1">No Staff Members Assigned</h3>
+                  <h3 className="text-lg font-bold text-[#0F172A] mb-1">{t('manager', 'noStaffTitle')}</h3>
                   <p className="text-sm text-[#64748B] max-w-md mx-auto mb-6">
-                    Add front-desk operators to {selectedHotel?.name}. They will be able to log in with their email and password to handle daily check-ins, room relocations, and walk-ins.
+                    {t('manager', 'noStaffBody', { hotel: selectedHotel?.name ?? '' })}
                   </p>
                   <button
                     onClick={handleOpenAddStaff}
                     className="px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold shadow-sm"
                   >
-                    + Add Your First Staff Member
+                    {t('manager', 'btnAddFirstStaff')}
                   </button>
                 </div>
               ) : (
@@ -1743,12 +1849,12 @@ function ManagerDashboard() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-xs font-bold text-[#64748B] uppercase tracking-wider">
-                        <th className="py-3.5 px-4">Staff Member</th>
-                        <th className="py-3.5 px-4">Role</th>
-                        <th className="py-3.5 px-4">Contact</th>
-                        <th className="py-3.5 px-4">Account Status</th>
-                        <th className="py-3.5 px-4">Assigned On</th>
-                        <th className="py-3.5 px-4 text-right">Actions</th>
+                        <th className="py-3.5 px-4">{t('manager', 'colStaffMember')}</th>
+                        <th className="py-3.5 px-4">{t('manager', 'colRole')}</th>
+                        <th className="py-3.5 px-4">{t('manager', 'colContact')}</th>
+                        <th className="py-3.5 px-4">{t('manager', 'colAccountStatus')}</th>
+                        <th className="py-3.5 px-4">{t('manager', 'colAssignedOn')}</th>
+                        <th className="py-3.5 px-4 text-right">{t('manager', 'colActions')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#F1F5F9] text-sm">
@@ -1764,8 +1870,8 @@ function ManagerDashboard() {
                         .map((member) => {
                           const userObj = member.staff || member.user
                           const staffId = member.staffId || userObj?.id || member.id
-                          const fullName = userObj?.fullName || 'Staff Member'
-                          const email = userObj?.email || 'N/A'
+                          const fullName = userObj?.fullName || t('manager', 'staffMemberFallback')
+                          const email = userObj?.email || t('manager', 'notAvailable')
                           const phone = userObj?.phone || null
                           const isActive = userObj?.isActive !== false
                           const assignedDate = member.assignedAt || member.createdAt
@@ -1774,7 +1880,7 @@ function ManagerDashboard() {
                                 day: 'numeric',
                                 year: 'numeric',
                               })
-                            : 'Active'
+                            : t('manager', 'wordActive')
 
                           return (
                             <tr key={staffId} className="hover:bg-slate-50/75 transition-colors">
@@ -1818,7 +1924,7 @@ function ManagerDashboard() {
                                       ) : (
                                         <Briefcase className="w-3.5 h-3.5 text-amber-700" />
                                       )}
-                                      <span>{roleName}</span>
+                                      <span>{roleLabel(roleName)}</span>
                                     </span>
                                   )
                                 })()}
@@ -1829,7 +1935,7 @@ function ManagerDashboard() {
                                 {phone ? (
                                   <span className="font-mono">{phone}</span>
                                 ) : (
-                                  <span className="text-slate-400 italic">No phone provided</span>
+                                  <span className="text-slate-400 italic">{t('manager', 'noPhoneProvided')}</span>
                                 )}
                               </td>
 
@@ -1847,7 +1953,7 @@ function ManagerDashboard() {
                                       isActive ? 'bg-emerald-500' : 'bg-amber-500'
                                     }`}
                                   />
-                                  {isActive ? 'Active' : 'Deactivated'}
+                                  {isActive ? t('manager', 'wordActive') : t('manager', 'statusDeactivated')}
                                 </span>
                               </td>
 
@@ -1867,15 +1973,21 @@ function ManagerDashboard() {
                                         ? 'border-slate-200 text-slate-600 hover:bg-slate-100'
                                         : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'
                                     }`}
-                                    title={isActive ? 'Deactivate staff account' : 'Activate staff account'}
+                                    title={
+                                      isActive ? t('manager', 'titleDeactivateStaff') : t('manager', 'titleActivateStaff')
+                                    }
                                   >
-                                    {statusTogglingId === staffId ? 'Updating…' : isActive ? 'Deactivate' : 'Activate'}
+                                    {statusTogglingId === staffId
+                                      ? t('manager', 'updating')
+                                      : isActive
+                                        ? t('manager', 'btnDeactivate')
+                                        : t('manager', 'btnActivate')}
                                   </button>
                                   <button
                                     onClick={() => handleRemoveStaff(staffId, fullName)}
                                     className="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold transition-colors"
                                   >
-                                    Remove
+                                    {t('manager', 'btnRemove')}
                                   </button>
                                 </div>
                               </td>
@@ -1895,9 +2007,11 @@ function ManagerDashboard() {
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Reports & Analytics</h1>
+                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('manager', 'reportsTitle')}</h1>
                 <p className="text-[#64748B] text-sm">
-                  Performance metrics, audit logs, and downloadable statements for {selectedHotel?.name || 'hotel'}.
+                  {t('manager', 'reportsSubtitle', {
+                    hotel: selectedHotel?.name || t('manager', 'hotelFallback'),
+                  })}
                 </p>
               </div>
 
@@ -1912,10 +2026,14 @@ function ManagerDashboard() {
                     try {
                       await managerApi.downloadReport(selectedHotelId, reportCategory, 'pdf', reportPeriod)
                       setSuccessBanner(
-                        `Downloaded ${reportCategory.toUpperCase()} PDF report for ${selectedHotel?.name || 'hotel'} (${reportPeriod}).`
+                        t('manager', 'msgReportPdfDownloaded', {
+                          category: reportCategoryLabels[reportCategory] ?? reportCategory.toUpperCase(),
+                          hotel: selectedHotel?.name || t('manager', 'hotelFallback'),
+                          period: reportPeriodLabels[reportPeriod] ?? reportPeriod,
+                        }),
                       )
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : 'Failed to download PDF report.')
+                      setError(err instanceof Error ? err.message : t('manager', 'errDownloadPdf'))
                     } finally {
                       setReportDownloading(null)
                     }
@@ -1925,12 +2043,12 @@ function ManagerDashboard() {
                   {reportDownloading === 'pdf' ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
-                      <span>Generating PDF…</span>
+                      <span>{t('manager', 'generatingPdf')}</span>
                     </>
                   ) : (
                     <>
                       <FileDown className="w-3.5 h-3.5 text-[#D4AF37]" />
-                      <span>Download PDF</span>
+                      <span>{t('manager', 'downloadPdf')}</span>
                     </>
                   )}
                 </button>
@@ -1944,10 +2062,14 @@ function ManagerDashboard() {
                     try {
                       await managerApi.downloadReport(selectedHotelId, reportCategory, 'excel', reportPeriod)
                       setSuccessBanner(
-                        `Downloaded ${reportCategory.toUpperCase()} Excel spreadsheet for ${selectedHotel?.name || 'hotel'} (${reportPeriod}).`
+                        t('manager', 'msgReportExcelDownloaded', {
+                          category: reportCategoryLabels[reportCategory] ?? reportCategory.toUpperCase(),
+                          hotel: selectedHotel?.name || t('manager', 'hotelFallback'),
+                          period: reportPeriodLabels[reportPeriod] ?? reportPeriod,
+                        }),
                       )
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : 'Failed to download Excel report.')
+                      setError(err instanceof Error ? err.message : t('manager', 'errDownloadExcel'))
                     } finally {
                       setReportDownloading(null)
                     }
@@ -1957,12 +2079,12 @@ function ManagerDashboard() {
                   {reportDownloading === 'excel' ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Generating Excel…</span>
+                      <span>{t('manager', 'generatingExcel')}</span>
                     </>
                   ) : (
                     <>
                       <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
-                      <span>Download Excel</span>
+                      <span>{t('manager', 'downloadExcel')}</span>
                     </>
                   )}
                 </button>
@@ -1975,28 +2097,21 @@ function ManagerDashboard() {
               <div>
                 <div className="text-xs font-semibold text-[#64748B] mb-2 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[#2563EB]" />
-                  <span>Report Timeframe:</span>
+                  <span>{t('manager', 'reportTimeframeLabel')}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(
-                    [
-                      { id: 'daily', label: 'Daily (Today)' },
-                      { id: 'weekly', label: 'Weekly (7 Days)' },
-                      { id: 'monthly', label: 'Monthly (30 Days)' },
-                      { id: 'yearly', label: 'Yearly (365 Days)' },
-                    ] as const
-                  ).map((p) => (
+                  {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((p) => (
                     <button
-                      key={p.id}
+                      key={p}
                       type="button"
-                      onClick={() => setReportPeriod(p.id)}
+                      onClick={() => setReportPeriod(p)}
                       className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                        reportPeriod === p.id
+                        reportPeriod === p
                           ? 'bg-[#2563EB] text-white shadow-sm'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
-                      {p.label}
+                      {reportPeriodLabels[p]}
                     </button>
                   ))}
                 </div>
@@ -2006,32 +2121,25 @@ function ManagerDashboard() {
               <div>
                 <div className="text-xs font-semibold text-[#64748B] mb-2 flex items-center gap-1.5">
                   <BarChart3 className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Report Focus & Category:</span>
+                  <span>{t('manager', 'reportFocusLabel')}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(
-                    [
-                      { id: 'overview', label: 'Executive Overview' },
-                      { id: 'booking', label: 'Reservations' },
-                      { id: 'revenue', label: 'Financial Revenue' },
-                      { id: 'occupancy', label: 'Room Occupancy' },
-                      { id: 'customer', label: 'Guest Demographics' },
-                      { id: 'cancellation', label: 'Cancellations' },
-                    ] as const
-                  ).map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setReportCategory(t.id)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                        reportCategory === t.id
-                          ? 'bg-[#0F2942] text-[#D4AF37] shadow-sm border border-[#D4AF37]/30'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
+                  {(['overview', 'booking', 'revenue', 'occupancy', 'customer', 'cancellation'] as const).map(
+                    (cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setReportCategory(cat)}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                          reportCategory === cat
+                            ? 'bg-[#0F2942] text-[#D4AF37] shadow-sm border border-[#D4AF37]/30'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {reportCategoryLabels[cat]}
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
             </div>
@@ -2040,44 +2148,44 @@ function ManagerDashboard() {
             {reportOverview && (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
-                  <div className="text-xs text-[#64748B] font-medium">Total Bookings</div>
+                  <div className="text-xs text-[#64748B] font-medium">{t('manager', 'kpiTotalBookings')}</div>
                   <div className="text-2xl font-bold text-[#0F172A] mt-1">{reportOverview.totalBookings ?? 0}</div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">Historical property total</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">{t('manager', 'kpiHistoricalTotal')}</div>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
-                  <div className="text-xs text-[#64748B] font-medium">Confirmed / Active</div>
+                  <div className="text-xs text-[#64748B] font-medium">{t('manager', 'kpiConfirmedActive')}</div>
                   <div className="text-2xl font-bold text-emerald-600 mt-1">
                     {reportOverview.confirmedBookings ?? reportOverview.activeBookings ?? 0}
                   </div>
-                  <div className="text-[11px] text-emerald-600/80 mt-0.5">Active stays &amp; reservations</div>
+                  <div className="text-[11px] text-emerald-600/80 mt-0.5">{t('manager', 'kpiActiveStays')}</div>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
-                  <div className="text-xs text-[#64748B] font-medium">Occupancy Rate</div>
+                  <div className="text-xs text-[#64748B] font-medium">{t('manager', 'kpiOccupancyRate')}</div>
                   <div className="text-2xl font-bold text-[#2563EB] mt-1">
                     {typeof reportOverview.occupancyRate === 'number' && !isNaN(reportOverview.occupancyRate)
                       ? `${(reportOverview.occupancyRate * 100).toFixed(1)}%`
                       : '0.0%'}
                   </div>
-                  <div className="text-[11px] text-blue-500 mt-0.5">Current occupied rooms</div>
+                  <div className="text-[11px] text-blue-500 mt-0.5">{t('manager', 'kpiCurrentOccupied')}</div>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
-                  <div className="text-xs text-[#64748B] font-medium">Total Revenue</div>
+                  <div className="text-xs text-[#64748B] font-medium">{t('manager', 'kpiTotalRevenue')}</div>
                   <div className="text-2xl font-bold text-[#0F172A] mt-1">
                     {formatMoney(reportOverview.totalRevenue ?? 0)}
                   </div>
-                  <div className="text-[11px] text-emerald-600 mt-0.5">Completed guest payments</div>
+                  <div className="text-[11px] text-emerald-600 mt-0.5">{t('manager', 'kpiCompletedPayments')}</div>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
-                  <div className="text-xs text-[#64748B] font-medium">Active Room Inventory</div>
+                  <div className="text-xs text-[#64748B] font-medium">{t('manager', 'kpiActiveRooms')}</div>
                   <div className="text-2xl font-bold text-[#0F172A] mt-1">
                     {reportOverview.activeRooms ?? reportOverview.roomsCount ?? selectedHotelRooms.length}
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">Rooms available or occupied</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">{t('manager', 'kpiRoomsAvailableOrOccupied')}</div>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-sm">
-                  <div className="text-xs text-[#64748B] font-medium">Cancellations</div>
+                  <div className="text-xs text-[#64748B] font-medium">{t('manager', 'kpiCancellations')}</div>
                   <div className="text-2xl font-bold text-red-600 mt-1">{reportOverview.cancelledBookings ?? 0}</div>
-                  <div className="text-[11px] text-red-500 mt-0.5">Cancelled reservation requests</div>
+                  <div className="text-[11px] text-red-500 mt-0.5">{t('manager', 'kpiCancelledRequests')}</div>
                 </div>
               </div>
             )}
@@ -2087,10 +2195,15 @@ function ManagerDashboard() {
               <div className="p-5 border-b border-[#F1F5F9] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h2 className="font-bold text-[#0F172A] text-base">
-                    Report Preview ({reportCategory.toUpperCase()} — {reportPeriod.toUpperCase()})
+                    {t('manager', 'reportPreviewTitle', {
+                      category: reportCategoryLabels[reportCategory] ?? reportCategory.toUpperCase(),
+                      period: reportPeriodLabels[reportPeriod] ?? reportPeriod,
+                    })}
                   </h2>
                   <p className="text-xs text-[#64748B] mt-0.5">
-                    Live operational records compiled for {selectedHotel?.name || 'hotel'}.
+                    {t('manager', 'reportPreviewSubtitle', {
+                      hotel: selectedHotel?.name || t('manager', 'hotelFallback'),
+                    })}
                   </p>
                 </div>
               </div>
@@ -2099,27 +2212,32 @@ function ManagerDashboard() {
                 <table className="w-full text-left">
                   <thead className="text-xs text-[#64748B] uppercase bg-[#F8FAFC]">
                     <tr>
-                      <th className="px-5 py-3">Record / Identifier</th>
-                      <th className="px-5 py-3">Detail / Guest</th>
-                      <th className="px-5 py-3">Metrics / Value</th>
-                      <th className="px-5 py-3">Status</th>
+                      <th className="px-5 py-3">{t('manager', 'colRecordIdentifier')}</th>
+                      <th className="px-5 py-3">{t('manager', 'colDetailGuest')}</th>
+                      <th className="px-5 py-3">{t('manager', 'colMetricsValue')}</th>
+                      <th className="px-5 py-3">{t('manager', 'colStatus')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
                     {reportCategory === 'overview' && (
                       <tr className="hover:bg-slate-50">
                         <td className="px-5 py-3.5 font-medium text-[#0F172A]">
-                          {selectedHotel?.name || 'Hotel Property'}
+                          {selectedHotel?.name || t('manager', 'hotelPropertyFallback')}
                         </td>
                         <td className="px-5 py-3.5 text-xs text-[#64748B]">
-                          {selectedHotel?.city?.name || selectedHotel?.address || 'Property Details'}
+                          {selectedHotel?.city?.name ||
+                            selectedHotel?.address ||
+                            t('manager', 'propertyDetailsFallback')}
                         </td>
                         <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
-                          {bookings.filter((b) => b.hotelId === selectedHotelId).length} Bookings • {formatMoney(reportOverview?.totalRevenue || 0)}
+                          {t('manager', 'bookingsRevenueLine', {
+                            count: bookings.filter((b) => b.hotelId === selectedHotelId).length,
+                            revenue: formatMoney(reportOverview?.totalRevenue || 0),
+                          })}
                         </td>
                         <td className="px-5 py-3.5">
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                            {selectedHotel?.status || 'ACTIVE'}
+                            {statusLabel(selectedHotel?.status || 'ACTIVE')}
                           </span>
                         </td>
                       </tr>
@@ -2135,7 +2253,9 @@ function ManagerDashboard() {
                               <span className="font-mono text-xs">#{b.bookingRef || b.id.slice(-8)}</span>
                             </td>
                             <td className="px-5 py-3.5 text-xs text-[#64748B]">
-                              <span className="font-semibold text-slate-800">{b.user?.fullName || 'Guest'}</span>
+                              <span className="font-semibold text-slate-800">
+                                {b.user?.fullName || t('manager', 'guestFallback')}
+                              </span>
                               <span className="block text-[11px] text-slate-400">
                                 {formatDate(b.checkIn)} → {formatDate(b.checkOut)}
                               </span>
@@ -2145,7 +2265,7 @@ function ManagerDashboard() {
                             </td>
                             <td className="px-5 py-3.5">
                               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusStyle(b.status)}`}>
-                                {b.status.replace(/_/g, ' ')}
+                                {statusLabel(b.status)}
                               </span>
                             </td>
                           </tr>
@@ -2155,11 +2275,13 @@ function ManagerDashboard() {
                       revenueItems.map((item, idx) => (
                         <tr key={idx} className="hover:bg-slate-50">
                           <td className="px-5 py-3.5 font-medium text-[#0F172A]">{item.month}</td>
-                          <td className="px-5 py-3.5 text-xs text-[#64748B]">{item.bookings} confirmed bookings</td>
+                          <td className="px-5 py-3.5 text-xs text-[#64748B]">
+                            {t('manager', 'confirmedBookingsCount', { count: item.bookings ?? 0 })}
+                          </td>
                           <td className="px-5 py-3.5 text-xs font-bold text-emerald-700">{formatMoney(item.revenue)}</td>
                           <td className="px-5 py-3.5">
                             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
-                              Settled
+                              {t('manager', 'settled')}
                             </span>
                           </td>
                         </tr>
@@ -2168,18 +2290,23 @@ function ManagerDashboard() {
                     {reportCategory === 'occupancy' &&
                       selectedHotelRooms.slice(0, 10).map((r) => (
                         <tr key={r.id} className="hover:bg-slate-50">
-                          <td className="px-5 py-3.5 font-medium text-[#0F172A]">Room {r.roomNumber}</td>
+                          <td className="px-5 py-3.5 font-medium text-[#0F172A]">
+                            {t('manager', 'roomWord', { number: r.roomNumber })}
+                          </td>
                           <td className="px-5 py-3.5 text-xs text-[#64748B]">
-                            {r.type} • Capacity: {r.capacity} guests
+                            {t('manager', 'roomTypeCapacityLine', {
+                              type: roomTypeLabel(r.type),
+                              capacity: r.capacity,
+                            })}
                           </td>
                           <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
-                            {formatMoney(r.basePrice)} / night
+                            {t('manager', 'pricePerNightLine', { price: formatMoney(r.basePrice) })}
                           </td>
                           <td className="px-5 py-3.5">
                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                               r.status === 'AVAILABLE' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
                             }`}>
-                              {r.status}
+                              {statusLabel(r.status)}
                             </span>
                           </td>
                         </tr>
@@ -2195,7 +2322,9 @@ function ManagerDashboard() {
                               <span className="font-mono text-xs">#{b.bookingRef || b.id.slice(-8)}</span>
                             </td>
                             <td className="px-5 py-3.5 text-xs text-[#64748B]">
-                              <span className="font-semibold text-slate-800">{b.user?.fullName || 'Guest'}</span>
+                              <span className="font-semibold text-slate-800">
+                                {b.user?.fullName || t('manager', 'guestFallback')}
+                              </span>
                               <span className="block text-[11px] text-slate-400">
                                 {formatDate(b.checkIn)} → {formatDate(b.checkOut)}
                               </span>
@@ -2205,7 +2334,7 @@ function ManagerDashboard() {
                             </td>
                             <td className="px-5 py-3.5">
                               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600">
-                                CANCELLED
+                                {t('manager', 'statusCancelled')}
                               </span>
                             </td>
                           </tr>
@@ -2223,17 +2352,21 @@ function ManagerDashboard() {
                         .map((b) => (
                           <tr key={b.id} className="hover:bg-slate-50">
                             <td className="px-5 py-3.5 font-medium text-[#0F172A]">
-                              {b.user?.fullName || 'Guest'}
+                              {b.user?.fullName || t('manager', 'guestFallback')}
                             </td>
                             <td className="px-5 py-3.5 text-xs text-[#64748B]">
                               {b.user?.email} {b.user?.phone ? `• ${b.user.phone}` : ''}
                             </td>
                             <td className="px-5 py-3.5 text-xs font-semibold text-slate-700">
-                              {bookings.filter((bk) => bk.hotelId === selectedHotelId && bk.userId === b.userId).length} stays
+                              {t('manager', 'staysCount', {
+                                count: bookings.filter(
+                                  (bk) => bk.hotelId === selectedHotelId && bk.userId === b.userId,
+                                ).length,
+                              })}
                             </td>
                             <td className="px-5 py-3.5">
                               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                                Verified Guest
+                                {t('manager', 'verifiedGuest')}
                               </span>
                             </td>
                           </tr>
@@ -2246,14 +2379,14 @@ function ManagerDashboard() {
             {/* Monthly Revenue Breakdown Section */}
             {(reportCategory === 'overview' || reportCategory === 'revenue') && (
               <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm mb-6">
-                <h3 className="font-bold text-[#0F172A] text-lg mb-4">Monthly Revenue Breakdown</h3>
+                <h3 className="font-bold text-[#0F172A] text-lg mb-4">{t('manager', 'monthlyRevenueTitle')}</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead>
                       <tr className="border-b border-slate-100 text-[#64748B] text-xs">
-                        <th className="pb-3">Month</th>
-                        <th className="pb-3">Bookings</th>
-                        <th className="pb-3 text-right">Revenue</th>
+                        <th className="pb-3">{t('manager', 'colMonth')}</th>
+                        <th className="pb-3">{t('manager', 'colBookings')}</th>
+                        <th className="pb-3 text-right">{t('manager', 'colRevenue')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -2267,7 +2400,7 @@ function ManagerDashboard() {
                       {!revenueItems.length && (
                         <tr>
                           <td colSpan={3} className="py-6 text-center text-[#94A3B8]">
-                            No historical revenue recorded.
+                            {t('manager', 'noRevenueHistory')}
                           </td>
                         </tr>
                       )}
@@ -2284,14 +2417,16 @@ function ManagerDashboard() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">Guest Reservations</h1>
-                <p className="text-[#64748B] text-sm">{bookings.length} reservations on file</p>
+                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('manager', 'reservationsTitle')}</h1>
+                <p className="text-[#64748B] text-sm">
+                  {t('manager', 'reservationsOnFile', { count: bookings.length })}
+                </p>
               </div>
               <button
                 onClick={() => setWalkInModalOpen(true)}
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-sm"
               >
-                + Walk-in Guest
+                {t('manager', 'btnWalkInGuest')}
               </button>
             </div>
 
@@ -2300,10 +2435,12 @@ function ManagerDashboard() {
                 <div key={booking.id} className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-semibold text-[#0F172A]">{booking.user?.fullName || 'Walk-in Guest'}</span>
+                      <span className="font-semibold text-[#0F172A]">
+                        {booking.user?.fullName || t('manager', 'walkInGuestFallback')}
+                      </span>
                       <span className="font-mono text-xs text-[#94A3B8]">#{booking.id.slice(-8)}</span>
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusStyle(booking.status)}`}>
-                        {booking.status.replace(/_/g, ' ')}
+                        {statusLabel(booking.status)}
                       </span>
                       {booking.payment && (
                         <span
@@ -2315,7 +2452,7 @@ function ManagerDashboard() {
                               : 'bg-amber-50 text-amber-700 border border-amber-200'
                           }`}
                         >
-                          Payment: {booking.payment.status}
+                          {t('manager', 'paymentLabel')}: {statusLabel(booking.payment.status)}
                         </span>
                       )}
                     </div>
@@ -2330,7 +2467,7 @@ function ManagerDashboard() {
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span>{booking.user?.phone || 'Direct Walk-in'}</span>
+                        <span>{booking.user?.phone || t('manager', 'directWalkIn')}</span>
                       </span>
                     </div>
                   </div>
@@ -2339,7 +2476,7 @@ function ManagerDashboard() {
                     {booking.payment?.status === 'SUCCEEDED' ? (
                       <span className="px-2.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Paid</span>
+                        <span>{t('manager', 'paid')}</span>
                       </span>
                     ) : (
                       <button
@@ -2347,7 +2484,7 @@ function ManagerDashboard() {
                         className="px-3 py-1.5 border border-emerald-200 text-emerald-700 hover:bg-emerald-50 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <Banknote className="w-3.5 h-3.5" />
-                        <span>Mark Cash Paid</span>
+                        <span>{t('manager', 'btnMarkCashPaid')}</span>
                       </button>
                     )}
 
@@ -2358,14 +2495,14 @@ function ManagerDashboard() {
                           onClick={() => act(booking.id, 'confirm')}
                           className="px-3 py-1.5 bg-[#2563EB] text-white rounded-lg text-xs font-semibold"
                         >
-                          Confirm
+                          {t('manager', 'btnConfirm')}
                         </button>
                         <button
                           disabled={acting === booking.id}
                           onClick={() => act(booking.id, 'reject')}
                           className="px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-xs font-semibold"
                         >
-                          Reject
+                          {t('manager', 'btnReject')}
                         </button>
                       </>
                     )}
@@ -2377,14 +2514,13 @@ function ManagerDashboard() {
                           onClick={() => act(booking.id, 'check-in')}
                           className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold"
                         >
-                          Check In
+                          {t('manager', 'btnCheckIn')}
                         </button>
                         <button
                           onClick={() => openNoShowModal(booking)}
                           className="px-3 py-1.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-semibold"
                         >
-
-                          No-Show
+                          {t('manager', 'btnNoShow')}
                         </button>
                       </>
                     )}
@@ -2396,7 +2532,7 @@ function ManagerDashboard() {
                           onClick={() => act(booking.id, 'check-out')}
                           className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold"
                         >
-                          Check Out
+                          {t('manager', 'btnCheckOut')}
                         </button>
                         <button
                           onClick={() => {
@@ -2405,14 +2541,16 @@ function ManagerDashboard() {
                           }}
                           className="px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg text-xs font-semibold"
                         >
-                          Relocate Room
+                          {t('manager', 'btnRelocateRoom')}
                         </button>
                       </>
                     )}
                   </div>
                 </div>
               ))}
-              {!bookings.length && <p className="p-10 text-center text-[#64748B]">No reservations recorded.</p>}
+              {!bookings.length && (
+                <p className="p-10 text-center text-[#64748B]">{t('manager', 'noReservations')}</p>
+              )}
             </div>
           </div>
         )}
@@ -2422,11 +2560,11 @@ function ManagerDashboard() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">
-                  Guest Reviews &amp; Public Responses
-                </h1>
+                <h1 className="font-bold text-[#0F172A] text-2xl mb-1">{t('manager', 'reviewsTitle')}</h1>
                 <p className="text-[#64748B] text-sm">
-                  Manage verified guest feedback for {selectedHotel?.name || 'your hotel'} and publish official responses.
+                  {t('manager', 'reviewsSubtitle', {
+                    hotel: selectedHotel?.name || t('manager', 'yourHotelFallback'),
+                  })}
                 </p>
               </div>
               <button
@@ -2434,19 +2572,19 @@ function ManagerDashboard() {
                 className="px-3.5 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-semibold self-start sm:self-auto flex items-center gap-1.5"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
-                <span>Refresh</span>
+                <span>{t('manager', 'btnRefresh')}</span>
               </button>
             </div>
 
             {/* Metrics cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm">
-                <p className="text-xs font-medium text-[#64748B]">Total Reviews</p>
+                <p className="text-xs font-medium text-[#64748B]">{t('manager', 'totalReviews')}</p>
                 <p className="text-2xl font-bold text-[#0F172A] mt-1">{reviewSummary.reviewCount}</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">Verified guest stays</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">{t('manager', 'verifiedGuestStays')}</p>
               </div>
               <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm">
-                <p className="text-xs font-medium text-[#64748B]">Average Rating</p>
+                <p className="text-xs font-medium text-[#64748B]">{t('manager', 'averageRating')}</p>
                 <div className="flex items-center gap-1.5 mt-1">
                   <p className="text-2xl font-bold text-[#0F172A]">
                     {reviewSummary.averageRating ? Number(reviewSummary.averageRating).toFixed(1) : '—'}
@@ -2454,17 +2592,17 @@ function ManagerDashboard() {
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                   <span className="text-xs text-slate-400">/ 5.0</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">Overall satisfaction</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">{t('manager', 'overallSatisfaction')}</p>
               </div>
               <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm">
-                <p className="text-xs font-medium text-[#64748B]">Responded</p>
+                <p className="text-xs font-medium text-[#64748B]">{t('manager', 'responded')}</p>
                 <p className="text-2xl font-bold text-emerald-600 mt-1">{reviewSummary.respondedCount}</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">Public responses active</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">{t('manager', 'publicResponsesActive')}</p>
               </div>
               <div className="p-5 bg-white rounded-2xl border border-amber-200 bg-amber-50/40 shadow-sm">
-                <p className="text-xs font-medium text-amber-800">Needs Response</p>
+                <p className="text-xs font-medium text-amber-800">{t('manager', 'needsResponse')}</p>
                 <p className="text-2xl font-bold text-amber-700 mt-1">{reviewSummary.pendingResponseCount}</p>
-                <p className="text-[11px] text-amber-600 mt-0.5">Pending management action</p>
+                <p className="text-[11px] text-amber-600 mt-0.5">{t('manager', 'pendingManagementAction')}</p>
               </div>
             </div>
 
@@ -2478,7 +2616,7 @@ function ManagerDashboard() {
                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                All Reviews ({reviewSummary.reviewCount})
+                {t('manager', 'allReviewsCount', { count: reviewSummary.reviewCount })}
               </button>
               <button
                 onClick={() => setReviewFilter('pending')}
@@ -2488,7 +2626,7 @@ function ManagerDashboard() {
                     : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'
                 }`}
               >
-                Needs Response ({reviewSummary.pendingResponseCount})
+                {t('manager', 'needsResponseCount', { count: reviewSummary.pendingResponseCount })}
               </button>
               <button
                 onClick={() => setReviewFilter('responded')}
@@ -2498,7 +2636,7 @@ function ManagerDashboard() {
                     : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50'
                 }`}
               >
-                Responded ({reviewSummary.respondedCount})
+                {t('manager', 'respondedCount', { count: reviewSummary.respondedCount })}
               </button>
             </div>
 
@@ -2523,19 +2661,19 @@ function ManagerDashboard() {
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-sm text-[#0F172A]">
-                                {rev.user?.fullName || 'Verified Guest'}
+                                {rev.user?.fullName || t('manager', 'verifiedGuest')}
                               </span>
                               {rev.booking?.bookingRef && (
                                 <span className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
-                                  Ref: {rev.booking.bookingRef}
+                                  {t('manager', 'refLabel', { ref: rev.booking.bookingRef })}
                                 </span>
                               )}
                               <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
-                                Verified Stay
+                                {t('manager', 'verifiedStay')}
                               </span>
                             </div>
                             <span className="text-xs text-[#64748B]">
-                              Reviewed on {formatDate(rev.createdAt)}
+                              {t('manager', 'reviewedOn', { date: formatDate(rev.createdAt) })}
                             </span>
                           </div>
                         </div>
@@ -2568,11 +2706,11 @@ function ManagerDashboard() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-[#0F172A]">
-                                  Official Management Response
+                                  {t('manager', 'officialManagementResponse')}
                                 </span>
                                 {rev.respondedBy?.fullName && (
                                   <span className="text-[11px] text-[#64748B]">
-                                    by {rev.respondedBy.fullName}
+                                    {t('manager', 'byAuthor', { name: rev.respondedBy.fullName })}
                                   </span>
                                 )}
                                 {rev.respondedAt && (
@@ -2589,13 +2727,13 @@ function ManagerDashboard() {
                                   }}
                                   className="text-xs text-[#2563EB] hover:underline font-medium"
                                 >
-                                  Edit
+                                  {t('manager', 'btnEdit')}
                                 </button>
                                 <button
                                   onClick={() => handleDeleteResponse(rev.id)}
                                   className="text-xs text-red-600 hover:underline font-medium"
                                 >
-                                  Delete
+                                  {t('manager', 'btnDelete')}
                                 </button>
                               </div>
                             </div>
@@ -2614,7 +2752,7 @@ function ManagerDashboard() {
                             className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors inline-flex items-center gap-1.5"
                           >
                             <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Respond Publicly</span>
+                            <span>{t('manager', 'btnRespondPublicly')}</span>
                           </button>
                         )}
 
@@ -2623,7 +2761,9 @@ function ManagerDashboard() {
                           <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/30 space-y-3">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-bold text-[#0F172A]">
-                                {rev.response ? 'Edit Management Response' : 'Write Public Response'}
+                                {rev.response
+                                  ? t('manager', 'editManagementResponse')
+                                  : t('manager', 'writePublicResponse')}
                               </span>
                               <span className="text-[11px] text-slate-400">
                                 {responseText.length}/2000
@@ -2632,43 +2772,37 @@ function ManagerDashboard() {
 
                             {/* Quick template buttons */}
                             <div className="space-y-1">
-                              <p className="text-[11px] font-semibold text-[#64748B]">Quick Templates:</p>
+                              <p className="text-[11px] font-semibold text-[#64748B]">{t('manager', 'quickTemplates')}</p>
                               <div className="flex flex-wrap gap-1.5">
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    setResponseText(
-                                      'Thank you for your warm feedback! We are thrilled you had a memorable stay with us and hope to welcome you back again soon.',
-                                    )
+                                    setResponseText(t('manager', 'templateWarmGratitude'))
                                   }
                                   className="text-[11px] bg-white border border-slate-200 hover:border-[#2563EB] px-2.5 py-1 rounded-md text-slate-600 text-left transition-colors inline-flex items-center gap-1.5"
                                 >
                                   <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                                  <span>Warm Gratitude</span>
+                                  <span>{t('manager', 'templateLabelWarmGratitude')}</span>
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    setResponseText(
-                                      'Thank you for bringing this to our attention. We hold our guest experience to the highest standard and are actively addressing the issues you mentioned with our operations team.',
-                                    )
+                                    setResponseText(t('manager', 'templateServiceRecovery'))
                                   }
                                   className="text-[11px] bg-white border border-slate-200 hover:border-[#2563EB] px-2.5 py-1 rounded-md text-slate-600 text-left transition-colors inline-flex items-center gap-1.5"
                                 >
                                   <Wrench className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                                  <span>Service Recovery</span>
+                                  <span>{t('manager', 'templateLabelServiceRecovery')}</span>
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    setResponseText(
-                                      'We truly appreciate your stay and your kind review! Our team strives every day to deliver exceptional hospitality, and we look forward to hosting you on your next visit.',
-                                    )
+                                    setResponseText(t('manager', 'templateHospitality'))
                                   }
                                   className="text-[11px] bg-white border border-slate-200 hover:border-[#2563EB] px-2.5 py-1 rounded-md text-slate-600 text-left transition-colors inline-flex items-center gap-1.5"
                                 >
                                   <Building2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                  <span>Hospitality Appreciation</span>
+                                  <span>{t('manager', 'templateLabelHospitality')}</span>
                                 </button>
                               </div>
                             </div>
@@ -2677,7 +2811,7 @@ function ManagerDashboard() {
                               rows={3}
                               value={responseText}
                               onChange={(e) => setResponseText(e.target.value)}
-                              placeholder="Write a professional, courteous response that will be visible to all potential guests..."
+                              placeholder={t('manager', 'responsePlaceholder')}
                               className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
                             />
 
@@ -2690,7 +2824,7 @@ function ManagerDashboard() {
                                 }}
                                 className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-medium"
                               >
-                                Cancel
+                                {t('manager', 'btnCancel')}
                               </button>
                               <button
                                 type="button"
@@ -2698,7 +2832,7 @@ function ManagerDashboard() {
                                 onClick={() => handleSaveResponse(rev.id)}
                                 className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
                               >
-                                {responseSubmitting ? 'Publishing...' : 'Publish Response'}
+                                {responseSubmitting ? t('manager', 'publishing') : t('manager', 'btnPublishResponse')}
                               </button>
                             </div>
                           </div>
@@ -2714,11 +2848,11 @@ function ManagerDashboard() {
                 return true
               }).length === 0 && (
                 <div className="p-12 text-center text-[#64748B] space-y-1">
-                  <p className="text-sm font-medium">No reviews found matching this filter.</p>
+                  <p className="text-sm font-medium">{t('manager', 'noReviewsMatchingFilter')}</p>
                   <p className="text-xs text-slate-400">
                     {hotelReviews.length === 0
-                      ? 'No guests have submitted reviews for this hotel yet.'
-                      : 'All reviews have responses or none are waiting.'}
+                      ? t('manager', 'noReviewsYet')
+                      : t('manager', 'allReviewsAnswered')}
                   </p>
                 </div>
               )}
@@ -2747,12 +2881,14 @@ function ManagerDashboard() {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
                 <h3 className="font-bold text-lg text-[#0F172A]">
-                  {editingRoom ? `Edit Room ${editingRoom.roomNumber}` : 'Create Room'}
+                  {editingRoom
+                    ? t('manager', 'editRoomTitle', { number: editingRoom.roomNumber })
+                    : t('manager', 'createRoomTitle')}
                 </h3>
                 <button
                   onClick={() => setRoomModalOpen(false)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
-                  aria-label="Close"
+                  aria-label={t('manager', 'close')}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2761,34 +2897,40 @@ function ManagerDashboard() {
               <form onSubmit={handleSaveRoom} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Room Number *</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelRoomNumber')}
+                    </label>
                     <input
                       required
                       value={roomForm.roomNumber}
                       onChange={(e) => setRoomForm((p) => ({ ...p, roomNumber: e.target.value }))}
-                      placeholder="e.g. 101"
+                      placeholder={t('manager', 'phRoomNumber')}
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-[#2563EB]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Room Type</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelRoomType')}
+                    </label>
                     <select
                       value={roomForm.type}
                       onChange={(e) => setRoomForm((p) => ({ ...p, type: e.target.value }))}
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-[#2563EB]"
                     >
-                      <option value="SINGLE">Single</option>
-                      <option value="DOUBLE">Double</option>
-                      <option value="SUITE">Suite</option>
-                      <option value="DELUXE">Deluxe</option>
-                      <option value="PRESIDENTIAL">Presidential</option>
+                      <option value="SINGLE">{t('manager', 'roomTypeSingle')}</option>
+                      <option value="DOUBLE">{t('manager', 'roomTypeDouble')}</option>
+                      <option value="SUITE">{t('manager', 'roomTypeSuite')}</option>
+                      <option value="DELUXE">{t('manager', 'roomTypeDeluxe')}</option>
+                      <option value="PRESIDENTIAL">{t('manager', 'roomTypePresidential')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Capacity</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelCapacity')}
+                    </label>
                     <input
                       type="number"
                       min={1}
@@ -2798,7 +2940,7 @@ function ManagerDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Beds</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('manager', 'labelBeds')}</label>
                     <input
                       type="number"
                       min={1}
@@ -2808,7 +2950,7 @@ function ManagerDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Baths</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">{t('manager', 'labelBaths')}</label>
                     <input
                       type="number"
                       min={1}
@@ -2820,7 +2962,9 @@ function ManagerDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">Base Price (ETB / night) *</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t('manager', 'labelBasePrice')}
+                  </label>
                   <input
                     type="number"
                     required
@@ -2832,11 +2976,13 @@ function ManagerDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">Amenities (comma separated)</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t('manager', 'labelAmenities')}
+                  </label>
                   <input
                     value={roomForm.amenities}
                     onChange={(e) => setRoomForm((p) => ({ ...p, amenities: e.target.value }))}
-                    placeholder="WiFi, TV, AC, Balcony"
+                    placeholder={t('manager', 'phAmenities')}
                     className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                   />
                 </div>
@@ -2847,14 +2993,14 @@ function ManagerDashboard() {
                     onClick={() => setRoomModalOpen(false)}
                     className="px-4 py-2 text-sm text-[#64748B] font-semibold"
                   >
-                    Cancel
+                    {t('manager', 'btnCancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={roomSaving}
                     className="px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-sm"
                   >
-                    {roomSaving ? 'Saving…' : 'Save Room'}
+                    {roomSaving ? t('manager', 'saving') : t('manager', 'btnSaveRoom')}
                   </button>
                 </div>
               </form>
@@ -2867,11 +3013,11 @@ function ManagerDashboard() {
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-                <h3 className="font-bold text-lg text-[#0F172A]">Front Desk Walk-In Guest</h3>
+                <h3 className="font-bold text-lg text-[#0F172A]">{t('manager', 'walkInModalTitle')}</h3>
                 <button
                   onClick={() => setWalkInModalOpen(false)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
-                  aria-label="Close"
+                  aria-label={t('manager', 'close')}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2880,22 +3026,26 @@ function ManagerDashboard() {
               <form onSubmit={handleWalkInSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Guest Full Name *</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelGuestFullName')}
+                    </label>
                     <input
                       required
                       value={walkInForm.guestName}
                       onChange={(e) => setWalkInForm((p) => ({ ...p, guestName: e.target.value }))}
-                      placeholder="e.g. Abebe Bikila"
+                      placeholder={t('manager', 'phGuestName')}
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Phone Number *</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelPhoneNumber')}
+                    </label>
                     <input
                       required
                       value={walkInForm.guestPhone}
                       onChange={(e) => setWalkInForm((p) => ({ ...p, guestPhone: e.target.value }))}
-                      placeholder="+251 91 123 4567"
+                      placeholder={t('manager', 'phPhone')}
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     />
                   </div>
@@ -2903,40 +3053,50 @@ function ManagerDashboard() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Email (Optional)</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelEmailOptional')}
+                    </label>
                     <input
                       type="email"
                       value={walkInForm.guestEmail}
                       onChange={(e) => setWalkInForm((p) => ({ ...p, guestEmail: e.target.value }))}
-                      placeholder="guest@example.com"
+                      placeholder={t('manager', 'phEmail')}
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">National ID / Passport</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelNationalId')}
+                    </label>
                     <input
                       value={walkInForm.guestIdNumber}
                       onChange={(e) => setWalkInForm((p) => ({ ...p, guestIdNumber: e.target.value }))}
-                      placeholder="ID-12345"
+                      placeholder={t('manager', 'phIdNumber')}
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">Select Room *</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t('manager', 'labelSelectRoom')}
+                  </label>
                   <select
                     required
                     value={walkInForm.roomId}
                     onChange={(e) => setWalkInForm((p) => ({ ...p, roomId: e.target.value }))}
                     className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                   >
-                    <option value="">Choose an available room…</option>
+                    <option value="">{t('manager', 'optChooseRoom')}</option>
                     {selectedHotelRooms
                       .filter((r) => r.status === 'AVAILABLE')
                       .map((r) => (
                         <option key={r.id} value={r.id}>
-                          Room #{r.roomNumber} ({r.type.replace(/_/g, ' ')}) · {formatMoney(r.basePrice)}/night
+                          {t('manager', 'roomOptionLine', {
+                            number: r.roomNumber,
+                            type: roomTypeLabel(r.type),
+                            price: formatMoney(r.basePrice),
+                          })}
                         </option>
                       ))}
                   </select>
@@ -2944,7 +3104,9 @@ function ManagerDashboard() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Check-in</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelCheckIn')}
+                    </label>
                     <input
                       type="date"
                       required
@@ -2954,7 +3116,9 @@ function ManagerDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Check-out</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelCheckOut')}
+                    </label>
                     <input
                       type="date"
                       required
@@ -2968,16 +3132,18 @@ function ManagerDashboard() {
 
                 <div className="grid grid-cols-2 gap-3 items-center">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Payment Method</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelPaymentMethod')}
+                    </label>
                     <select
                       value={walkInForm.paymentMethod}
                       onChange={(e) => setWalkInForm((p) => ({ ...p, paymentMethod: e.target.value }))}
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     >
-                      <option value="CASH">Cash</option>
-                      <option value="TELEBIRR">Telebirr</option>
-                      <option value="CBE_BIRR">CBE Birr</option>
-                      <option value="CREDIT_CARD">Credit Card</option>
+                      <option value="CASH">{t('manager', 'optCash')}</option>
+                      <option value="TELEBIRR">{t('manager', 'optTelebirr')}</option>
+                      <option value="CBE_BIRR">{t('manager', 'optCbeBirr')}</option>
+                      <option value="CREDIT_CARD">{t('manager', 'optCreditCard')}</option>
                     </select>
                   </div>
                   <div className="pt-5">
@@ -2988,7 +3154,7 @@ function ManagerDashboard() {
                         onChange={(e) => setWalkInForm((p) => ({ ...p, paidImmediately: e.target.checked }))}
                         className="rounded text-[#2563EB]"
                       />
-                      Mark Paid Immediately
+                      {t('manager', 'labelMarkPaidImmediately')}
                     </label>
                   </div>
                 </div>
@@ -2999,14 +3165,14 @@ function ManagerDashboard() {
                     onClick={() => setWalkInModalOpen(false)}
                     className="px-4 py-2 text-sm text-[#64748B] font-semibold"
                   >
-                    Cancel
+                    {t('manager', 'btnCancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={walkInSubmitting || !walkInForm.roomId}
                     className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-sm"
                   >
-                    {walkInSubmitting ? 'Registering…' : 'Register Walk-In'}
+                    {walkInSubmitting ? t('manager', 'registering') : t('manager', 'btnRegisterWalkIn')}
                   </button>
                 </div>
               </form>
@@ -3019,11 +3185,11 @@ function ManagerDashboard() {
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-                <h3 className="font-bold text-lg text-[#0F172A]">Relocate Checked-In Guest</h3>
+                <h3 className="font-bold text-lg text-[#0F172A]">{t('manager', 'relocateModalTitle')}</h3>
                 <button
                   onClick={() => setRelocateBooking(null)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
-                  aria-label="Close"
+                  aria-label={t('manager', 'close')}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -3031,26 +3197,33 @@ function ManagerDashboard() {
 
               <form onSubmit={handleRelocateSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">Target New Room *</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t('manager', 'labelTargetRoom')}
+                  </label>
                   <select
                     required
                     value={relocateNewRoomId}
                     onChange={(e) => setRelocateNewRoomId(e.target.value)}
                     className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                   >
-                    <option value="">Select target room…</option>
+                    <option value="">{t('manager', 'optSelectTargetRoom')}</option>
                     {selectedHotelRooms
                       .filter((r) => r.status === 'AVAILABLE')
                       .map((r) => (
                         <option key={r.id} value={r.id}>
-                          Room #{r.roomNumber} ({r.type.replace(/_/g, ' ')})
+                          {t('manager', 'roomOptionLineShort', {
+                            number: r.roomNumber,
+                            type: roomTypeLabel(r.type),
+                          })}
                         </option>
                       ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">Reason for Relocation *</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t('manager', 'labelReason')}
+                  </label>
                   <textarea
                     required
                     rows={2}
@@ -3066,14 +3239,14 @@ function ManagerDashboard() {
                     onClick={() => setRelocateBooking(null)}
                     className="px-4 py-2 text-sm text-[#64748B] font-semibold"
                   >
-                    Cancel
+                    {t('manager', 'btnCancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={relocateSubmitting || !relocateNewRoomId}
                     className="px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-sm"
                   >
-                    {relocateSubmitting ? 'Relocating…' : 'Relocate Guest'}
+                    {relocateSubmitting ? t('manager', 'relocating') : t('manager', 'btnRelocateGuest')}
                   </button>
                 </div>
               </form>
@@ -3086,11 +3259,11 @@ function ManagerDashboard() {
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-                <h3 className="font-bold text-lg text-[#0F172A]">Decide Stay Request</h3>
+                <h3 className="font-bold text-lg text-[#0F172A]">{t('manager', 'decideModalTitle')}</h3>
                 <button
                   onClick={() => setDecidingRequest(null)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
-                  aria-label="Close"
+                  aria-label={t('manager', 'close')}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -3098,20 +3271,24 @@ function ManagerDashboard() {
 
               <div className="mb-4 text-sm text-[#334155] space-y-1">
                 <p>
-                  <strong>Type:</strong>{' '}
-                  {decidingRequest.type === 'EARLY_CHECK_IN' ? 'Early Check-In' : 'Late Check-Out'}
+                  <strong>{t('manager', 'typeLabel')}</strong>{' '}
+                  {decidingRequest.type === 'EARLY_CHECK_IN'
+                    ? t('manager', 'earlyCheckIn')
+                    : t('manager', 'lateCheckOut')}
                 </p>
                 <p>
-                  <strong>Requested Time:</strong> {decidingRequest.requestedTime}
+                  <strong>{t('manager', 'requestedTimeLabel')}</strong> {decidingRequest.requestedTime}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">Decision Note / Reason</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t('manager', 'labelDecisionNote')}
+                  </label>
                   <input
                     type="text"
-                    placeholder="e.g. Room is ready for early check-in"
+                    placeholder={t('manager', 'phDecisionNote')}
                     value={decisionNote}
                     onChange={(e) => setDecisionNote(e.target.value)}
                     className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
@@ -3124,14 +3301,14 @@ function ManagerDashboard() {
                     onClick={() => handleDecideStayRequest('REJECTED')}
                     className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-xs font-bold"
                   >
-                    Reject Request
+                    {t('manager', 'btnRejectRequest')}
                   </button>
                   <button
                     disabled={decidingSubmitting}
                     onClick={() => handleDecideStayRequest('APPROVED')}
                     className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm"
                   >
-                    Approve Request
+                    {t('manager', 'btnApproveRequest')}
                   </button>
                 </div>
               </div>
@@ -3146,15 +3323,15 @@ function ManagerDashboard() {
               {/* Header */}
               <div className="bg-[#0F2942] px-6 py-4 flex items-center justify-between">
                 <div>
-                  <h3 className="font-bold text-lg text-white">Add Staff Member</h3>
+                  <h3 className="font-bold text-lg text-white">{t('manager', 'addStaffModalTitle')}</h3>
                   <p className="text-xs text-slate-300">
-                    Assign front desk personnel to {selectedHotel?.name}
+                    {t('manager', 'addStaffModalSubtitle', { hotel: selectedHotel?.name ?? '' })}
                   </p>
                 </div>
                 <button
                   onClick={() => setStaffModalOpen(false)}
                   className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition-colors"
-                  aria-label="Close"
+                  aria-label={t('manager', 'close')}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -3171,7 +3348,7 @@ function ManagerDashboard() {
                       : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  Create New Staff Account
+                  {t('manager', 'tabCreateStaffAccount')}
                 </button>
                 <button
                   type="button"
@@ -3182,7 +3359,7 @@ function ManagerDashboard() {
                       : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  Assign Existing Staff by Email
+                  {t('manager', 'tabAssignExistingStaff')}
                 </button>
               </div>
 
@@ -3193,26 +3370,26 @@ function ManagerDashboard() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-[#334155] mb-1">
-                          Full Name <span className="text-red-500">*</span>
+                          {t('manager', 'labelFullName')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           required
                           value={staffForm.fullName}
                           onChange={(e) => setStaffForm({ ...staffForm, fullName: e.target.value })}
-                          placeholder="e.g. Abebe Bekele"
+                          placeholder={t('manager', 'phStaffName')}
                           className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                         />
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-[#334155] mb-1">
-                          Phone Number
+                          {t('manager', 'labelPhoneNumberPlain')}
                         </label>
                         <input
                           type="tel"
                           value={staffForm.phone}
                           onChange={(e) => setStaffForm({ ...staffForm, phone: e.target.value })}
-                          placeholder="e.g. +251 91 123 4567"
+                          placeholder={t('manager', 'phStaffPhone')}
                           className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                         />
                       </div>
@@ -3220,24 +3397,24 @@ function ManagerDashboard() {
 
                     <div>
                       <label className="block text-xs font-bold text-[#334155] mb-1">
-                        Work Email Address <span className="text-red-500">*</span>
+                        {t('manager', 'labelWorkEmail')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="email"
                         required
                         value={staffForm.email}
                         onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
-                        placeholder="e.g. abebe@grandskylight.com"
+                        placeholder={t('manager', 'phStaffEmail')}
                         className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       />
                       <p className="text-[11px] text-slate-500 mt-1">
-                        This email will be used as their login username.
+                        {t('manager', 'helpStaffLogin')}
                       </p>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-[#334155] mb-1">
-                        Initial Login Password <span className="text-red-500">*</span>
+                        {t('manager', 'labelInitialPassword')} <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <input
@@ -3246,15 +3423,17 @@ function ManagerDashboard() {
                           minLength={8}
                           value={staffForm.password}
                           onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
-                          placeholder="Minimum 8 characters"
+                          placeholder={t('manager', 'phPasswordMin')}
                           className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                         />
                         <button
                           type="button"
                           onClick={() => setShowStaffPassword(!showStaffPassword)}
                           className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-700 transition-colors p-0.5"
-                          title={showStaffPassword ? 'Hide password' : 'Show password'}
-                          aria-label={showStaffPassword ? 'Hide password' : 'Show password'}
+                          title={showStaffPassword ? t('manager', 'hidePassword') : t('manager', 'showPassword')}
+                          aria-label={
+                            showStaffPassword ? t('manager', 'hidePassword') : t('manager', 'showPassword')
+                          }
                         >
                           {showStaffPassword ? (
                             <EyeOff className="w-4 h-4" />
@@ -3264,14 +3443,14 @@ function ManagerDashboard() {
                         </button>
                       </div>
                       <p className="text-[11px] text-slate-500 mt-1">
-                        Staff will use this password along with their email to log in to the Staff Desk.
+                        {t('manager', 'helpStaffPassword')}
                       </p>
                     </div>
 
                     {/* Role Selection */}
                     <div>
                       <label className="block text-xs font-bold text-[#334155] mb-1.5">
-                        Staff Role / Department <span className="text-red-500">*</span>
+                        {t('manager', 'labelStaffRole')} <span className="text-red-500">*</span>
                       </label>
                       <div className="grid grid-cols-3 gap-2.5">
                         <button
@@ -3284,7 +3463,7 @@ function ManagerDashboard() {
                           }`}
                         >
                           <BellRing className="w-3.5 h-3.5" />
-                          <span>Front Desk</span>
+                          <span>{t('manager', 'roleFrontDesk')}</span>
                         </button>
                         <button
                           type="button"
@@ -3296,7 +3475,7 @@ function ManagerDashboard() {
                           }`}
                         >
                           <Sparkles className="w-3.5 h-3.5" />
-                          <span>Cleaner</span>
+                          <span>{t('manager', 'roleCleaner')}</span>
                         </button>
                         <button
                           type="button"
@@ -3308,7 +3487,7 @@ function ManagerDashboard() {
                           }`}
                         >
                           <Briefcase className="w-3.5 h-3.5" />
-                          <span>Other</span>
+                          <span>{t('manager', 'roleOther')}</span>
                         </button>
                       </div>
 
@@ -3319,7 +3498,7 @@ function ManagerDashboard() {
                             required
                             value={staffForm.customRole}
                             onChange={(e) => setStaffForm({ ...staffForm, customRole: e.target.value })}
-                            placeholder="Enter custom role (e.g. Concierge, Maintenance, Security, Chef...)"
+                            placeholder={t('manager', 'phCustomRole')}
                             className="w-full border border-amber-300 bg-amber-50/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                           />
                         </div>
@@ -3330,25 +3509,25 @@ function ManagerDashboard() {
                   <>
                     <div>
                       <label className="block text-xs font-bold text-[#334155] mb-1">
-                        Staff Member's Email Address <span className="text-red-500">*</span>
+                        {t('manager', 'labelStaffEmail')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="email"
                         required
                         value={assignEmail}
                         onChange={(e) => setAssignEmail(e.target.value)}
-                        placeholder="e.g. staff.member@domain.com"
+                        placeholder={t('manager', 'phAssignEmail')}
                         className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       />
                       <p className="text-[11px] text-slate-500 mt-1">
-                        Assign an existing registered user to this hotel.
+                        {t('manager', 'helpAssignExisting')}
                       </p>
                     </div>
 
                     {/* Role Selection for assigned staff */}
                     <div>
                       <label className="block text-xs font-bold text-[#334155] mb-1.5">
-                        Assign As Role <span className="text-red-500">*</span>
+                        {t('manager', 'labelAssignRole')} <span className="text-red-500">*</span>
                       </label>
                       <div className="grid grid-cols-3 gap-2.5">
                         <button
@@ -3361,7 +3540,7 @@ function ManagerDashboard() {
                           }`}
                         >
                           <BellRing className="w-3.5 h-3.5" />
-                          <span>Front Desk</span>
+                          <span>{t('manager', 'roleFrontDesk')}</span>
                         </button>
                         <button
                           type="button"
@@ -3373,7 +3552,7 @@ function ManagerDashboard() {
                           }`}
                         >
                           <Sparkles className="w-3.5 h-3.5" />
-                          <span>Cleaner</span>
+                          <span>{t('manager', 'roleCleaner')}</span>
                         </button>
                         <button
                           type="button"
@@ -3385,7 +3564,7 @@ function ManagerDashboard() {
                           }`}
                         >
                           <Briefcase className="w-3.5 h-3.5" />
-                          <span>Other</span>
+                          <span>{t('manager', 'roleOther')}</span>
                         </button>
                       </div>
 
@@ -3396,7 +3575,7 @@ function ManagerDashboard() {
                             required
                             value={assignCustomRole}
                             onChange={(e) => setAssignCustomRole(e.target.value)}
-                            placeholder="Enter custom role (e.g. Concierge, Maintenance, Security, Chef...)"
+                            placeholder={t('manager', 'phCustomRole')}
                             className="w-full border border-amber-300 bg-amber-50/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                           />
                         </div>
@@ -3411,7 +3590,7 @@ function ManagerDashboard() {
                     onClick={() => setStaffModalOpen(false)}
                     className="px-4 py-2 text-sm text-[#64748B] hover:text-[#0F172A] font-semibold transition-colors"
                   >
-                    Cancel
+                    {t('manager', 'btnCancel')}
                   </button>
                   <button
                     type="submit"
@@ -3419,10 +3598,10 @@ function ManagerDashboard() {
                     className="px-5 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-xl text-sm font-bold shadow-sm transition-colors disabled:opacity-50"
                   >
                     {staffSaving
-                      ? 'Saving…'
+                      ? t('manager', 'saving')
                       : staffModalMode === 'create'
-                      ? 'Create & Assign Staff'
-                      : 'Assign Staff to Hotel'}
+                        ? t('manager', 'btnCreateAssignStaff')
+                        : t('manager', 'btnAssignStaffToHotel')}
                   </button>
                 </div>
               </form>
@@ -3435,11 +3614,11 @@ function ManagerDashboard() {
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-                <h3 className="font-bold text-lg text-[#0F172A]">Block Room for Maintenance</h3>
+                <h3 className="font-bold text-lg text-[#0F172A]">{t('manager', 'maintenanceModalTitle')}</h3>
                 <button
                   onClick={() => setMaintenanceModalOpen(false)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
-                  aria-label="Close"
+                  aria-label={t('manager', 'close')}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -3447,7 +3626,9 @@ function ManagerDashboard() {
 
               <form onSubmit={handleBlockMaintenance} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">Room *</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t('manager', 'labelRoom')}
+                  </label>
                   <select
                     required
                     value={maintenanceForm.roomId}
@@ -3456,7 +3637,10 @@ function ManagerDashboard() {
                   >
                     {selectedHotelRooms.map((r) => (
                       <option key={r.id} value={r.id}>
-                        Room #{r.roomNumber} ({r.type})
+                        {t('manager', 'roomOptionLineShort', {
+                          number: r.roomNumber,
+                          type: roomTypeLabel(r.type),
+                        })}
                       </option>
                     ))}
                   </select>
@@ -3464,7 +3648,9 @@ function ManagerDashboard() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Start Date</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelStartDate')}
+                    </label>
                     <input
                       type="date"
                       required
@@ -3474,7 +3660,9 @@ function ManagerDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">End Date</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelEndDate')}
+                    </label>
                     <input
                       type="date"
                       required
@@ -3486,7 +3674,9 @@ function ManagerDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">Reason</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t('manager', 'labelReasonShort')}
+                  </label>
                   <input
                     value={maintenanceForm.reason}
                     onChange={(e) => setMaintenanceForm((p) => ({ ...p, reason: e.target.value }))}
@@ -3500,14 +3690,14 @@ function ManagerDashboard() {
                     onClick={() => setMaintenanceModalOpen(false)}
                     className="px-4 py-2 text-sm text-[#64748B] font-semibold"
                   >
-                    Cancel
+                    {t('manager', 'btnCancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={maintenanceSaving}
                     className="px-5 py-2 bg-amber-600 text-white rounded-xl text-sm font-bold shadow-sm"
                   >
-                    {maintenanceSaving ? 'Blocking…' : 'Apply Block'}
+                    {maintenanceSaving ? t('manager', 'blocking') : t('manager', 'btnApplyBlock')}
                   </button>
                 </div>
               </form>
@@ -3520,11 +3710,11 @@ function ManagerDashboard() {
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
               <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-                <h3 className="font-bold text-lg text-[#0F172A]">Seasonal Dynamic Pricing</h3>
+                <h3 className="font-bold text-lg text-[#0F172A]">{t('manager', 'seasonalPricingTitle')}</h3>
                 <button
                   onClick={() => setSeasonalModalOpen(false)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"
-                  aria-label="Close"
+                  aria-label={t('manager', 'close')}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -3532,7 +3722,9 @@ function ManagerDashboard() {
 
               <form onSubmit={handleSaveSeasonalPricing} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">Room *</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t('manager', 'labelRoom')}
+                  </label>
                   <select
                     required
                     value={seasonalForm.roomId}
@@ -3541,26 +3733,33 @@ function ManagerDashboard() {
                   >
                     {selectedHotelRooms.map((r) => (
                       <option key={r.id} value={r.id}>
-                        Room #{r.roomNumber} ({r.type})
+                        {t('manager', 'roomOptionLineShort', {
+                          number: r.roomNumber,
+                          type: roomTypeLabel(r.type),
+                        })}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#334155] mb-1">Rule Name</label>
+                  <label className="block text-xs font-semibold text-[#334155] mb-1">
+                    {t('manager', 'labelRuleName')}
+                  </label>
                   <input
                     required
                     value={seasonalForm.name}
                     onChange={(e) => setSeasonalForm((p) => ({ ...p, name: e.target.value }))}
-                    placeholder="e.g. Festival Season Surge"
+                    placeholder={t('manager', 'phRuleName')}
                     className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Start Date</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelStartDate')}
+                    </label>
                     <input
                       type="date"
                       required
@@ -3570,7 +3769,9 @@ function ManagerDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">End Date</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelEndDate')}
+                    </label>
                     <input
                       type="date"
                       required
@@ -3583,7 +3784,9 @@ function ManagerDashboard() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Price Multiplier</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelPriceMultiplier')}
+                    </label>
                     <input
                       type="number"
                       step="0.05"
@@ -3594,12 +3797,14 @@ function ManagerDashboard() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#334155] mb-1">Fixed Override (Optional)</label>
+                    <label className="block text-xs font-semibold text-[#334155] mb-1">
+                      {t('manager', 'labelFixedOverride')}
+                    </label>
                     <input
                       type="number"
                       value={seasonalForm.fixedPrice}
                       onChange={(e) => setSeasonalForm((p) => ({ ...p, fixedPrice: e.target.value }))}
-                      placeholder="e.g. 2500"
+                      placeholder={t('manager', 'phFixedPrice')}
                       className="w-full border border-[#CBD5E1] rounded-xl px-3 py-2 text-sm"
                     />
                   </div>
@@ -3611,14 +3816,14 @@ function ManagerDashboard() {
                     onClick={() => setSeasonalModalOpen(false)}
                     className="px-4 py-2 text-sm text-[#64748B] font-semibold"
                   >
-                    Cancel
+                    {t('manager', 'btnCancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={seasonalSaving}
                     className="px-5 py-2 bg-[#2563EB] text-white rounded-xl text-sm font-bold shadow-sm"
                   >
-                    {seasonalSaving ? 'Saving…' : 'Save Rule'}
+                    {seasonalSaving ? t('manager', 'saving') : t('manager', 'btnSaveRule')}
                   </button>
                 </div>
               </form>
@@ -3635,40 +3840,45 @@ function ManagerDashboard() {
                   <AlertTriangle className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-[#0F172A]">
-                    Confirm Guest No-Show
-                  </h3>
+                  <h3 className="font-bold text-lg text-[#0F172A]">{t('manager', 'noShowModalTitle')}</h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Reservation Ref: <span className="font-mono font-semibold text-slate-700">{noShowModalBooking.bookingRef}</span>
+                    {t('manager', 'reservationRef')}{' '}
+                    <span className="font-mono font-semibold text-slate-700">{noShowModalBooking.bookingRef}</span>
                   </p>
                 </div>
               </div>
 
               <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 mb-4 space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Guest</span>
+                  <span className="text-slate-500 font-medium">{t('manager', 'guestLabel')}</span>
                   <span className="font-semibold text-slate-800">
-                    {noShowModalBooking.user?.fullName || noShowModalBooking.details?.[0]?.guestInfo?.name || 'Registered Guest'}
+                    {noShowModalBooking.user?.fullName ||
+                      noShowModalBooking.details?.[0]?.guestInfo?.name ||
+                      t('manager', 'registeredGuestFallback')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Scheduled Stay</span>
+                  <span className="text-slate-500 font-medium">{t('manager', 'scheduledStay')}</span>
                   <span className="font-semibold text-slate-800">
                     {noShowModalBooking.checkIn?.slice?.(0, 10)} &rarr; {noShowModalBooking.checkOut?.slice?.(0, 10)}
                   </span>
                 </div>
                 {noShowModalBooking.details?.[0]?.room && (
                   <div className="flex justify-between">
-                    <span className="text-slate-500 font-medium">Assigned Room</span>
+                    <span className="text-slate-500 font-medium">{t('manager', 'assignedRoom')}</span>
                     <span className="font-semibold text-slate-800">
-                      Room {noShowModalBooking.details[0].room.roomNumber} ({noShowModalBooking.details[0].room.type})
+                      {t('manager', 'roomWithType', {
+                        number: noShowModalBooking.details[0].room.roomNumber,
+                        type: roomTypeLabel(noShowModalBooking.details[0].room.type),
+                      })}
                     </span>
                   </div>
                 )}
               </div>
 
               <p className="text-xs text-slate-600 mb-6 leading-relaxed">
-                Marking this reservation as a <strong>No-Show</strong> records that the guest did not arrive. The assigned room will be immediately released back into available inventory for new bookings.
+                {t('manager', 'noShowBodyLead')} <strong>{t('manager', 'noShowBodyStrong')}</strong>{' '}
+                {t('manager', 'noShowBodyTail')}
               </p>
 
               <div className="flex justify-end gap-2.5">
@@ -3678,7 +3888,7 @@ function ManagerDashboard() {
                   onClick={() => setNoShowModalBooking(null)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                 >
-                  Cancel
+                  {t('manager', 'btnCancel')}
                 </button>
                 <button
                   type="button"
@@ -3689,10 +3899,10 @@ function ManagerDashboard() {
                   {noShowSubmitting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      Updating...
+                      {t('manager', 'updating')}
                     </>
                   ) : (
-                    'Confirm No-Show'
+                    t('manager', 'btnConfirmNoShow')
                   )}
                 </button>
               </div>
@@ -3730,6 +3940,7 @@ function HotelFormModal({
   const [amenities, setAmenities] = useState((hotel?.amenities ?? []).join(', '))
   const [cities, setCities] = useState<City[]>([])
   const [countryError, setCountryError] = useState('')
+  const { t } = useLanguage()
 
   useEffect(() => {
     if (!countryId) return
@@ -3742,7 +3953,7 @@ function HotelFormModal({
         setCityId(match?.id ?? '')
         setCityName(match ? '' : hotel?.city?.name ?? '')
       })
-      .catch(() => setCountryError('Unable to load cities for this country.'))
+      .catch(() => setCountryError(t('manager', 'errLoadCities')))
   }, [countryId, suggestedCityId, hotel])
 
   const submit = () => {
@@ -3763,11 +3974,13 @@ function HotelFormModal({
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-[#E2E8F0] flex justify-between items-center">
-          <h2 className="font-bold text-[#0F172A] text-xl">{hotel ? 'Edit Hotel' : 'Create Hotel'}</h2>
+          <h2 className="font-bold text-[#0F172A] text-xl">
+            {hotel ? t('manager', 'editHotelTitle') : t('manager', 'createHotelTitle')}
+          </h2>
           <button
             onClick={onCancel}
             className="w-8 h-8 rounded-full text-[#64748B] hover:bg-[#F1F5F9] flex items-center justify-center transition-colors"
-            aria-label="Close"
+            aria-label={t('manager', 'close')}
           >
             <X className="w-4 h-4" />
           </button>
@@ -3776,24 +3989,24 @@ function HotelFormModal({
         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
             <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
-              Hotel Name *
+              {t('manager', 'labelHotelName')}
             </label>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. Grand Palace Hotel"
+              placeholder={t('manager', 'phHotelName')}
               className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2563EB]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">Country</label>
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">{t('manager', 'labelCountry')}</label>
             <select
               value={countryId ?? ''}
               onChange={(event) => setCountryId(event.target.value)}
               className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2563EB] bg-white"
             >
-              {!countryId && <option value="">Choose country…</option>}
+              {!countryId && <option value="">{t('manager', 'optChooseCountry')}</option>}
               {countries.map((country) => (
                 <option key={country.id} value={country.id}>
                   {country.name}
@@ -3803,14 +4016,14 @@ function HotelFormModal({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">City</label>
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">{t('manager', 'labelCity')}</label>
             {cities.length ? (
               <select
                 value={cityId}
                 onChange={(event) => setCityId(event.target.value)}
                 className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2563EB] bg-white"
               >
-                <option value="">Choose city…</option>
+                <option value="">{t('manager', 'optChooseCity')}</option>
                 {cities.map((city) => (
                   <option key={city.id} value={city.id}>
                     {city.name}
@@ -3821,7 +4034,7 @@ function HotelFormModal({
               <input
                 value={cityName}
                 onChange={(event) => setCityName(event.target.value)}
-                placeholder={hotel?.city?.name || 'City name'}
+                placeholder={hotel?.city?.name || t('manager', 'phCityName')}
                 className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2563EB]"
               />
             )}
@@ -3831,18 +4044,18 @@ function HotelFormModal({
 
           <div className="sm:col-span-2">
             <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
-              Address *
+              {t('manager', 'labelAddress')}
             </label>
             <input
               value={address}
               onChange={(event) => setAddress(event.target.value)}
-              placeholder="e.g. Bole Road, House 104"
+              placeholder={t('manager', 'phAddress')}
               className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2563EB]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">Star Rating</label>
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">{t('manager', 'labelStarRating')}</label>
             <select
               value={starRating}
               onChange={(event) => setStarRating(Number(event.target.value))}
@@ -3850,43 +4063,45 @@ function HotelFormModal({
             >
               {[1, 2, 3, 4, 5].map((value) => (
                 <option key={value} value={value}>
-                  {value} Star{value > 1 ? 's' : ''} (Rating {value}/5)
+                  {value > 1
+                    ? t('manager', 'starOptionPlural', { value })
+                    : t('manager', 'starOptionSingular', { value })}
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">Status</label>
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">{t('manager', 'labelStatus')}</label>
             <select
               value={status}
               onChange={(event) => setStatus(event.target.value)}
               className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2563EB] bg-white"
             >
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Inactive</option>
+              <option value="ACTIVE">{t('manager', 'wordActive')}</option>
+              <option value="INACTIVE">{t('manager', 'wordInactive')}</option>
             </select>
           </div>
 
           <div className="sm:col-span-2">
-            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">Amenities</label>
+            <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">{t('manager', 'labelAmenities')}</label>
             <input
               value={amenities}
               onChange={(event) => setAmenities(event.target.value)}
-              placeholder="Pool, Spa, High-Speed WiFi, Valet Parking"
+              placeholder={t('manager', 'phAmenitiesHotel')}
               className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2563EB]"
             />
           </div>
 
           <div className="sm:col-span-2">
             <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
-              Description
+              {t('manager', 'labelDescription')}
             </label>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={3}
-              placeholder="Describe the hotel amenities, dining, and prime location."
+              placeholder={t('manager', 'phDescription')}
               className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2563EB] resize-none"
             />
           </div>
@@ -3894,14 +4109,18 @@ function HotelFormModal({
 
         <div className="p-6 border-t border-[#E2E8F0] flex justify-end gap-3">
           <button onClick={onCancel} className="px-5 py-2.5 border border-[#E2E8F0] text-[#334155] rounded-xl text-sm font-semibold">
-            Cancel
+            {t('manager', 'btnCancel')}
           </button>
           <button
             onClick={submit}
             disabled={saving || !name.trim() || !address.trim()}
             className="px-5 py-2.5 bg-[#2563EB] disabled:opacity-50 text-white rounded-xl text-sm font-semibold shadow-sm"
           >
-            {saving ? 'Saving…' : hotel ? 'Save Changes' : 'Create Hotel'}
+            {saving
+              ? t('manager', 'saving')
+              : hotel
+                ? t('manager', 'btnSaveChanges')
+                : t('manager', 'btnCreateHotel')}
           </button>
         </div>
       </div>

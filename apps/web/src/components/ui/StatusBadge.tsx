@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react'
 import {
   CheckCircle2,
@@ -9,6 +11,7 @@ import {
   LogOut,
   RefreshCw,
 } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 export type BookingStatus =
   | 'PENDING'
@@ -46,9 +49,10 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, className = '', size = 'md' }: StatusBadgeProps) {
+  const { t } = useLanguage()
   const normalized = (status || '').toUpperCase()
 
-  let label = normalized.replace(/_/g, ' ')
+  let labelKey: string | null = null
   let styles = 'bg-slate-100 text-slate-700 border-slate-200'
   let Icon = Clock
 
@@ -58,19 +62,19 @@ export function StatusBadge({ status, className = '', size = 'md' }: StatusBadge
     case 'SUCCEEDED':
       styles = 'bg-emerald-50 text-emerald-700 border-emerald-200'
       Icon = CheckCircle2
-      label = normalized === 'CONFIRMED' ? 'Confirmed' : 'Paid'
+      labelKey = normalized === 'CONFIRMED' ? 'statusConfirmed' : 'statusPaid'
       break
 
     case 'CHECKED_IN':
       styles = 'bg-blue-50 text-blue-700 border-blue-200'
       Icon = LogIn
-      label = 'Checked In'
+      labelKey = 'statusCheckedIn'
       break
 
     case 'CHECKED_OUT':
       styles = 'bg-slate-100 text-slate-700 border-slate-300'
       Icon = LogOut
-      label = 'Checked Out'
+      labelKey = 'statusCheckedOut'
       break
 
     // Pending / In-flight
@@ -78,21 +82,21 @@ export function StatusBadge({ status, className = '', size = 'md' }: StatusBadge
     case 'VALIDATING':
       styles = 'bg-amber-50 text-amber-700 border-amber-200'
       Icon = Clock
-      label = 'Pending'
+      labelKey = 'statusPending'
       break
 
     case 'PROCESSING':
     case 'AWAITING_EXTERNAL_CONFIRMATION':
       styles = 'bg-sky-50 text-sky-700 border-sky-200 animate-pulse'
       Icon = RefreshCw
-      label = normalized === 'PROCESSING' ? 'Processing' : 'Awaiting Payment'
+      labelKey = normalized === 'PROCESSING' ? 'statusProcessing' : 'statusAwaitingPayment'
       break
 
     // Failed / Cancelled / Rejected
     case 'CANCELLED':
       styles = 'bg-slate-100 text-slate-500 border-slate-200'
       Icon = XCircle
-      label = 'Cancelled'
+      labelKey = 'statusCancelled'
       break
 
     case 'FAILED':
@@ -100,39 +104,41 @@ export function StatusBadge({ status, className = '', size = 'md' }: StatusBadge
     case 'EXPIRED':
       styles = 'bg-red-50 text-red-700 border-red-200'
       Icon = AlertTriangle
-      label = normalized === 'EXPIRED' ? 'Expired' : normalized === 'FAILED' ? 'Failed' : 'Rejected'
+      labelKey = normalized === 'EXPIRED' ? 'statusExpired' : normalized === 'FAILED' ? 'statusFailed' : 'statusRejected'
       break
 
     // Refund Semantics (Contract 2.D)
     case 'REFUND_PENDING':
       styles = 'bg-amber-50 text-amber-800 border-amber-300'
       Icon = Clock
-      label = 'Refund Pending'
+      labelKey = 'statusRefundPending'
       break
 
     case 'REFUNDED':
       styles = 'bg-purple-50 text-purple-700 border-purple-200'
       Icon = RotateCcw
-      label = 'Refunded'
+      labelKey = 'statusRefunded'
       break
 
     case 'PARTIALLY_REFUNDED':
       styles = 'bg-purple-50 text-purple-700 border-purple-200'
       Icon = RotateCcw
-      label = 'Partially Refunded'
+      labelKey = 'statusPartiallyRefunded'
       break
 
     case 'REFUND_FAILED':
       styles = 'bg-red-50 text-red-700 border-red-200'
       Icon = AlertTriangle
-      label = 'Refund Failed'
+      labelKey = 'statusRefundFailed'
       break
 
     default:
       styles = 'bg-slate-100 text-slate-700 border-slate-200'
       Icon = Clock
-      label = normalized.replace(/_/g, ' ')
+      labelKey = null
   }
+
+  const label = labelKey ? t('common', labelKey) : normalized.replace(/_/g, ' ')
 
   const sizeClass = size === 'sm' ? 'text-[11px] px-2 py-0.5 gap-1' : 'text-xs px-2.5 py-1 gap-1.5'
 

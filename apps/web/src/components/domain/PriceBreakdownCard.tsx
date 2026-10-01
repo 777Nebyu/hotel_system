@@ -4,6 +4,7 @@ import Image from 'next/image'
 import type { BookingQuote, Hotel } from '@/lib/types'
 import { formatEthiopianBirr } from '@/lib/currency'
 import { Calendar, Users, Bed, ShieldCheck, Tag } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 interface PriceBreakdownCardProps {
   quote: BookingQuote | null
@@ -37,10 +38,11 @@ export function PriceBreakdownCard({
   guests,
   isLoading = false,
 }: PriceBreakdownCardProps) {
+  const { t } = useLanguage()
   const primaryImage =
     hotel?.images?.find((img) => img.isPrimary)?.url ||
     hotel?.images?.[0]?.url ||
-    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format'
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Swimming_pool_and_main_building_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg/960px-Swimming_pool_and_main_building_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg'
 
   const nights = quote?.nights ?? 1
   const subtotal = quote?.subtotal ?? 0
@@ -56,17 +58,17 @@ export function PriceBreakdownCard({
       <div className="relative h-36 w-full overflow-hidden bg-slate-900">
         <Image
           src={primaryImage}
-          alt={hotel?.name ?? 'Luxury Hotel'}
+          alt={hotel?.name ?? t('hotel', 'luxuryHotel')}
           fill
           className="object-cover opacity-90"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
         <div className="absolute bottom-3 left-4 right-4 text-white">
           <div className="font-serif text-lg font-bold leading-tight drop-shadow-sm line-clamp-1">
-            {hotel?.name ?? 'Selected Hotel'}
+            {hotel?.name ?? t('hotel', 'selectedHotel')}
           </div>
           <div className="text-xs text-slate-200 line-clamp-1">
-            {hotel?.city?.name ? `${hotel.city.name}, ${hotel.city.country?.name ?? ''}` : 'Ethiopia'}
+            {hotel?.city?.name ? `${hotel.city.name}, ${hotel.city.country?.name ?? ''}` : t('hotel', 'ethiopiaCountry')}
           </div>
         </div>
       </div>
@@ -76,27 +78,27 @@ export function PriceBreakdownCard({
         <div className="space-y-2.5 pb-4 border-b border-slate-100 text-xs text-slate-600">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-slate-500">
-              <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" /> Stay Dates
+              <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" /> {t('hotel', 'stayDates')}
             </span>
             <span className="font-medium text-slate-900">
-              {formatDate(checkIn)} – {formatDate(checkOut)} ({nights} {nights === 1 ? 'night' : 'nights'})
+              {t('hotel', nights === 1 ? 'stayDatesOne' : 'stayDatesMany', { checkIn: formatDate(checkIn), checkOut: formatDate(checkOut), nights })}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-slate-500">
-              <Users className="w-3.5 h-3.5 text-[#D4AF37]" /> Guests
+              <Users className="w-3.5 h-3.5 text-[#D4AF37]" /> {t('hotel', 'guestsLabel')}
             </span>
             <span className="font-medium text-slate-900">
-              {guests.adults} {guests.adults === 1 ? 'Adult' : 'Adults'}
-              {guests.children > 0 ? `, ${guests.children} ${guests.children === 1 ? 'Child' : 'Children'}` : ''}
+              {t('hotel', guests.adults === 1 ? 'adultCountOne' : 'adultCountMany', { count: guests.adults })}
+              {guests.children > 0 ? t('hotel', guests.children === 1 ? 'childCountOne' : 'childCountMany', { count: guests.children }) : ''}
             </span>
           </div>
 
           {roomType && (
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-slate-500">
-                <Bed className="w-3.5 h-3.5 text-[#D4AF37]" /> Suite Type
+                <Bed className="w-3.5 h-3.5 text-[#D4AF37]" /> {t('hotel', 'suiteType')}
               </span>
               <span className="font-medium text-slate-900 capitalize">
                 {roomType.replace(/_/g, ' ')}
@@ -116,20 +118,20 @@ export function PriceBreakdownCard({
         ) : (
           <div className="space-y-2.5 text-sm">
             <div className="flex items-center justify-between text-slate-600">
-              <span>Room Subtotal</span>
+              <span>{t('hotel', 'roomSubtotal')}</span>
               <span className="font-medium text-slate-900">{formatEthiopianBirr(subtotal)}</span>
             </div>
 
             {taxAmount > 0 && (
               <div className="flex items-center justify-between text-slate-600">
-                <span>Value Added Tax ({taxRate}%)</span>
+                <span>{t('hotel', 'vatLabel', { rate: taxRate })}</span>
                 <span className="font-medium text-slate-900">{formatEthiopianBirr(taxAmount)}</span>
               </div>
             )}
 
             {serviceFee > 0 && (
               <div className="flex items-center justify-between text-slate-600">
-                <span>Hotel Hospitality Fee (5%)</span>
+                <span>{t('hotel', 'hospitalityFee')}</span>
                 <span className="font-medium text-slate-900">{formatEthiopianBirr(serviceFee)}</span>
               </div>
             )}
@@ -138,7 +140,7 @@ export function PriceBreakdownCard({
               <div className="flex items-center justify-between text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-lg">
                 <span className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider">
                   <Tag className="w-3 h-3" />
-                  {quote?.couponCode || 'Promotion'}
+                  {quote?.couponCode || t('hotel', 'promotionLabel')}
                 </span>
                 <span className="font-bold text-xs">-{formatEthiopianBirr(discount)}</span>
               </div>
@@ -147,8 +149,8 @@ export function PriceBreakdownCard({
             {/* Total */}
             <div className="pt-3 border-t border-slate-200 flex items-baseline justify-between">
               <div>
-                <div className="text-sm font-semibold text-slate-900">Total Price</div>
-                <div className="text-[11px] text-slate-500">Taxes & fees included</div>
+                <div className="text-sm font-semibold text-slate-900">{t('hotel', 'totalPriceLabel')}</div>
+                <div className="text-[11px] text-slate-500">{t('hotel', 'taxesFeesIncluded')}</div>
               </div>
               <div className="text-right">
                 <span className="font-serif text-2xl font-bold text-[#0F2942]">
@@ -162,7 +164,7 @@ export function PriceBreakdownCard({
         {/* Security / Trust badge */}
         <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-[11px] text-slate-500">
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>Guaranteed booking with 256-bit encrypted checkout.</span>
+          <span>{t('hotel', 'guaranteedBooking')}</span>
         </div>
       </div>
     </div>

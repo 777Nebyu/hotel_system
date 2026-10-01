@@ -29,6 +29,11 @@ export const authService = {
     return res.data
   },
 
+  verifyMfa: async (dto: { challengeToken: string; code: string }): Promise<AuthResponse> => {
+    const res = await apiClient.post<AuthResponse>('/auth/mfa/verify', dto)
+    return res.data
+  },
+
   forgotPassword: async (dto: ForgotPasswordInput): Promise<{ message: string }> => {
     const res = await apiClient.post<{ message: string }>('/auth/forgot-password', dto)
     return res.data

@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { formatEthiopianBirr } from '@/lib/currency'
+import { useLanguage } from '@/lib/i18n'
 
 export interface MonthlyRevenuePoint {
   month: string
@@ -81,6 +82,7 @@ export function AdminAnalyticsCharts({
   const [hoveredRevenueIdx, setHoveredRevenueIdx] = useState<number | null>(null)
   const [hoveredTrendIdx, setHoveredTrendIdx] = useState<number | null>(null)
   const [activeTab, setActiveTab] = useState<'revenue' | 'bookings'>('revenue')
+  const { t } = useLanguage()
 
   // Filter revenue series based on selected range
   const revenueData =
@@ -144,13 +146,13 @@ export function AdminAnalyticsCharts({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-[#0F172A]">Platform Performance Trends</h2>
+              <h2 className="text-xl font-bold text-[#0F172A]">{t('admin', 'chartTrendsTitle')}</h2>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#2563EB] border border-blue-100">
-                <Sparkles className="w-3 h-3" /> Live Analytics
+                <Sparkles className="w-3 h-3" /> {t('admin', 'chartLiveAnalytics')}
               </span>
             </div>
             <p className="text-xs text-[#64748B] mt-1">
-              Historical revenue curves, reservation pacing, and property-level occupancy distributions.
+              {t('admin', 'chartTrendsSubtitle')}
             </p>
           </div>
 
@@ -165,7 +167,7 @@ export function AdminAnalyticsCharts({
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Revenue Velocity
+                {t('admin', 'chartRevenueTab')}
               </button>
               <button
                 type="button"
@@ -176,7 +178,7 @@ export function AdminAnalyticsCharts({
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                30-Day Reservations
+                {t('admin', 'chartBookingsTab')}
               </button>
             </div>
 
@@ -191,7 +193,7 @@ export function AdminAnalyticsCharts({
                       : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
-                  6M
+                  {t('admin', 'chartRange6M')}
                 </button>
                 <button
                   type="button"
@@ -202,7 +204,7 @@ export function AdminAnalyticsCharts({
                       : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
-                  12M
+                  {t('admin', 'chartRange12M')}
                 </button>
               </div>
             )}
@@ -215,30 +217,32 @@ export function AdminAnalyticsCharts({
             {/* KPI Run Rate Bar */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-xs text-slate-500 font-medium">Period Total Revenue</div>
+                <div className="text-xs text-slate-500 font-medium">{t('admin', 'chartPeriodTotalRevenue')}</div>
                 <div className="text-xl font-bold text-[#0F172A] mt-1">
                   {formatMoney(totalPeriodRevenue)}
                 </div>
                 <div className="text-[11px] text-emerald-600 font-medium mt-0.5 flex items-center gap-1">
                   <ArrowUpRight className="w-3 h-3" />
-                  <span>Settled guest transactions</span>
+                  <span>{t('admin', 'chartSettledTransactions')}</span>
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-xs text-slate-500 font-medium">Monthly Run Rate Average</div>
+                <div className="text-xs text-slate-500 font-medium">{t('admin', 'chartMonthlyAverage')}</div>
                 <div className="text-xl font-bold text-[#0F172A] mt-1">
                   {formatMoney(avgMonthlyRevenue)}
                 </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">Across {revenueData.length} recorded months</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  {t('admin', 'chartAcrossMonths', { count: revenueData.length })}
+                </div>
               </div>
 
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-xs text-slate-500 font-medium">Peak Performance Month</div>
+                <div className="text-xs text-slate-500 font-medium">{t('admin', 'chartPeakMonth')}</div>
                 <div className="text-xl font-bold text-[#2563EB] mt-1">
                   {formatMoney(maxRevenue)}
                 </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">Highest recorded monthly gross</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">{t('admin', 'chartPeakMonthHelp')}</div>
               </div>
             </div>
 
@@ -378,7 +382,7 @@ export function AdminAnalyticsCharts({
                     {formatMoney(hoveredPoint.revenue)}
                   </div>
                   <div className="text-[10px] text-slate-400 mt-0.5">
-                    Total Platform Settled Revenue
+                    {t('admin', 'chartTooltipTotalRevenue')}
                   </div>
                 </div>
               )}
@@ -391,10 +395,10 @@ export function AdminAnalyticsCharts({
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="text-xs text-[#64748B]">
-                Daily reservation pacing over the last 30 calendar days ({totalRecentBookings} bookings recorded).
+                {t('admin', 'chartDailyPacing', { count: totalRecentBookings })}
               </div>
               <div className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
-                Peak: {maxBookings} bookings / day
+                {t('admin', 'chartPeakPerDay', { count: maxBookings })}
               </div>
             </div>
 
@@ -425,7 +429,11 @@ export function AdminAnalyticsCharts({
                     {isHovered && (
                       <div className="absolute -top-12 z-30 bg-[#0F2942] text-white px-2.5 py-1.5 rounded-lg shadow-lg text-[11px] whitespace-nowrap border border-slate-700 pointer-events-none">
                         <div className="font-semibold">{formatShortDate(d.date)}</div>
-                        <div className="text-indigo-200">{d.bookings} {d.bookings === 1 ? 'reservation' : 'reservations'}</div>
+                        <div className="text-indigo-200">
+                          {d.bookings === 1
+                            ? t('admin', 'chartReservationSingular', { count: d.bookings })
+                            : t('admin', 'chartReservationPlural', { count: d.bookings })}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -435,8 +443,8 @@ export function AdminAnalyticsCharts({
 
             <div className="flex justify-between text-[10px] text-slate-400 mt-2 px-1">
               <span>{formatShortDate(bookingTrends[0]?.date || '')}</span>
-              <span>15 Days Ago</span>
-              <span>Today ({formatShortDate(bookingTrends[bookingTrends.length - 1]?.date || '')})</span>
+              <span>{t('admin', 'fifteenDaysAgo')}</span>
+              <span>{t('admin', 'chartTodayWithDate', { date: formatShortDate(bookingTrends[bookingTrends.length - 1]?.date || '') })}</span>
             </div>
           </div>
         )}
@@ -449,9 +457,9 @@ export function AdminAnalyticsCharts({
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-[#0F172A] text-base flex items-center gap-2">
               <Building2 className="w-4 h-4 text-[#2563EB]" />
-              <span>Top Properties by Volume</span>
+              <span>{t('admin', 'chartTopProperties')}</span>
             </h3>
-            <span className="text-xs text-slate-500 font-medium">Ranked by Stays</span>
+            <span className="text-xs text-slate-500 font-medium">{t('admin', 'chartRankedByStays')}</span>
           </div>
 
           <div className="space-y-4">
@@ -468,7 +476,9 @@ export function AdminAnalyticsCharts({
                       <span className="font-medium text-[#0F172A]">{h.name}</span>
                     </div>
                     <span className="font-bold text-slate-800">
-                      {h.bookings} {h.bookings === 1 ? 'booking' : 'bookings'}
+                      {h.bookings === 1
+                        ? t('admin', 'chartBookingSingular', { count: h.bookings })
+                        : t('admin', 'chartBookingPlural', { count: h.bookings })}
                     </span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -483,7 +493,7 @@ export function AdminAnalyticsCharts({
 
             {!topHotels.length && (
               <p className="text-xs text-slate-400 py-6 text-center">
-                No property reservations recorded yet.
+                {t('admin', 'chartEmptyProperties')}
               </p>
             )}
           </div>
@@ -494,9 +504,9 @@ export function AdminAnalyticsCharts({
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-[#0F172A] text-base flex items-center gap-2">
               <BarChart2 className="w-4 h-4 text-emerald-600" />
-              <span>Hotel Occupancy Distribution</span>
+              <span>{t('admin', 'chartOccupancyTitle')}</span>
             </h3>
-            <span className="text-xs text-slate-500 font-medium">Today&apos;s Stays</span>
+            <span className="text-xs text-slate-500 font-medium">{t('admin', 'chartTodaysStays')}</span>
           </div>
 
           <div className="space-y-4">
@@ -508,7 +518,11 @@ export function AdminAnalyticsCharts({
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-medium text-[#0F172A]">{ob.name}</span>
                       <span className="font-bold text-slate-800">
-                        {ratePercent}% ({ob.occupiedToday}/{ob.totalRooms} rooms)
+                        {t('admin', 'chartRoomsOccupied', {
+                          rate: ratePercent,
+                          occupied: ob.occupiedToday,
+                          total: ob.totalRooms,
+                        })}
                       </span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -528,7 +542,7 @@ export function AdminAnalyticsCharts({
               })
             ) : (
               <div className="py-8 text-center text-xs text-slate-400">
-                All rooms currently available for booking.
+                {t('admin', 'chartAllRoomsAvailable')}
               </div>
             )}
           </div>

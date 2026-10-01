@@ -7,7 +7,9 @@ export function makeQueryClient(): QueryClient {
         // Default moderate stale time (2 minutes)
         staleTime: 1000 * 60 * 2,
         gcTime: 1000 * 60 * 15,
-        refetchOnWindowFocus: true,
+        // Off globally — prevents a re-fetch cascade on every Alt-Tab.
+        // Time-sensitive queries (e.g. AVAILABILITY) opt back in via CACHE_POLICIES.
+        refetchOnWindowFocus: false,
         refetchOnReconnect: true,
         retry: (failureCount, error: any) => {
           // Do not retry client 4xx errors (validation, auth, conflict)

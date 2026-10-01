@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ShieldAlert, Home, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/lib/auth-store'
+import { useLanguage } from '@/lib/i18n'
 
 export interface AccessDeniedViewProps {
   requiredRoles?: string[]
@@ -12,6 +13,7 @@ export interface AccessDeniedViewProps {
 
 export function AccessDeniedView({ requiredRoles = [] }: AccessDeniedViewProps) {
   const { user, logout } = useAuth()
+  const { t } = useLanguage()
 
   const userPortalPath = React.useMemo(() => {
     if (!user) return '/'
@@ -22,12 +24,12 @@ export function AccessDeniedView({ requiredRoles = [] }: AccessDeniedViewProps) 
   }, [user])
 
   const userPortalLabel = React.useMemo(() => {
-    if (!user) return 'Go to Portal'
-    if (user.role === 'ADMIN') return 'Go to Admin Portal'
-    if (user.role === 'MANAGER') return 'Go to Manager Console'
-    if (user.role === 'STAFF') return 'Go to Staff Desk'
-    return 'Go to My Trips'
-  }, [user])
+    if (!user) return t('common', 'goToPortal')
+    if (user.role === 'ADMIN') return t('common', 'goToAdminPortal')
+    if (user.role === 'MANAGER') return t('common', 'goToManagerConsole')
+    if (user.role === 'STAFF') return t('common', 'goToStaffDesk')
+    return t('common', 'goToMyTrips')
+  }, [user, t])
 
   return (
     <div className="min-h-[75vh] flex items-center justify-center p-6 bg-[#F8FAFC]">
@@ -37,26 +39,26 @@ export function AccessDeniedView({ requiredRoles = [] }: AccessDeniedViewProps) 
         </div>
 
         <span className="text-xs font-bold uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">
-          403 Access Denied
+          {t('common', 'accessDeniedBadge')}
         </span>
 
         <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F2942] mt-4 mb-2">
-          Restricted Portal
+          {t('common', 'restrictedPortal')}
         </h1>
 
         <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-          You do not have the authorization required to access this portal.
+          {t('common', 'accessDeniedMessage')}
           {requiredRoles.length > 0 && (
             <span className="block mt-2 font-medium text-slate-700">
-              Required privilege:{' '}
+              {t('common', 'requiredPrivilege')}{' '}
               <span className="text-[#0F2942] font-bold">
-                {requiredRoles.join(' or ')}
+                {requiredRoles.join(t('common', 'orSeparator'))}
               </span>
             </span>
           )}
           {user && (
             <span className="block mt-1 text-xs text-slate-400">
-              Signed in as: <span className="font-semibold">{user.email}</span> ({user.role})
+              {t('common', 'signedInAs')} <span className="font-semibold">{user.email}</span> ({user.role})
             </span>
           )}
         </p>
@@ -72,7 +74,7 @@ export function AccessDeniedView({ requiredRoles = [] }: AccessDeniedViewProps) 
           <div className="flex flex-col sm:flex-row gap-3">
             <Link href="/" className="w-full sm:w-1/2">
               <Button variant="primary" className="w-full" leftIcon={<Home className="w-4 h-4" />}>
-                Return Home
+                {t('common', 'returnHome')}
               </Button>
             </Link>
             <Button
@@ -81,7 +83,7 @@ export function AccessDeniedView({ requiredRoles = [] }: AccessDeniedViewProps) 
               className="w-full sm:w-1/2"
               leftIcon={<LogOut className="w-4 h-4" />}
             >
-              Switch Account
+              {t('common', 'switchAccount')}
             </Button>
           </div>
         </div>

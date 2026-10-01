@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Suspense } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { useHotelSearchQuery, useAmenitiesQuery, useCitiesQuery } from '@/hooks/use-catalog'
+import { useFavoritesQuery, useHotelSearchQuery, useAmenitiesQuery, useCitiesQuery } from '@/hooks/use-catalog'
 import { HotelCard } from '@/components/domain/HotelCard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { PriceRangeSlider } from '@/components/forms/PriceRangeSlider'
 import { formatEthiopianBirr } from '@/lib/currency'
+import { useLanguage } from '@/lib/i18n'
 import {
   Search,
   SlidersHorizontal,
@@ -24,17 +25,18 @@ import {
   RotateCcw,
 } from 'lucide-react'
 
-const SORT_OPTIONS = [
-  { label: 'Most Popular', value: 'popularity' },
-  { label: 'Price: Low to High', value: 'price_asc' },
-  { label: 'Price: High to Low', value: 'price_desc' },
-  { label: 'Top Guest Rating', value: 'rating_desc' },
-]
-
 function SearchContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
+
+  const SORT_OPTIONS = [
+    { label: t('account', 'sortMostPopular'), value: 'popularity' },
+    { label: t('account', 'sortPriceLowToHigh'), value: 'price_asc' },
+    { label: t('account', 'sortPriceHighToLow'), value: 'price_desc' },
+    { label: t('account', 'sortTopGuestRating'), value: 'rating_desc' },
+  ]
 
   // 1. Synchronized URL Search Parameters
   const cityParam = searchParams.get('city') || ''
@@ -119,6 +121,9 @@ function SearchContent() {
   }, [checkInParam, checkOutParam])
 
   // Execute TanStack Query with backend catalog
+  const { data: favorites } = useFavoritesQuery()
+  const favoriteIds = React.useMemo(() => new Set((favorites ?? []).map((favorite) => favorite.id)), [favorites])
+
   const {
     data: searchResponse,
     isLoading,
@@ -153,14 +158,14 @@ function SearchContent() {
   const FilterPanelContent = (
     <div className="space-y-6">
       <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-        <h3 className="font-serif text-lg font-bold text-[#0F2942]">Filter Stays</h3>
+        <h3 className="font-serif text-lg font-bold text-[#0F2942]">{t('account', 'filterStays')}</h3>
         {activeFiltersCount > 0 && (
           <button
             onClick={clearAllFilters}
             className="text-xs font-semibold text-[#D4AF37] hover:underline cursor-pointer flex items-center gap-1"
           >
             <RotateCcw className="w-3 h-3" />
-            <span>Reset All</span>
+            <span>{t('account', 'resetAll')}</span>
           </button>
         )}
       </div>
@@ -168,7 +173,7 @@ function SearchContent() {
       {/* Destination / City */}
       <div>
         <label htmlFor="search-city-filter" className="block text-xs font-bold uppercase tracking-wider text-[#0F2942] mb-2">
-          City
+          {t('account', 'cityLabel')}
         </label>
         <div className="relative">
           <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -179,7 +184,7 @@ function SearchContent() {
             onKeyDown={(e) => {
               if (e.key === 'Enter') updateParams({ city: localCity })
             }}
-            placeholder="Filter by city..."
+            placeholder={t('account', 'cityFilterPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0F2942] focus:ring-1 focus:ring-[#0F2942]"
           />
         </div>
@@ -188,7 +193,7 @@ function SearchContent() {
       {/* Nightly Price Range */}
       <div>
         <h4 className="text-xs font-bold uppercase tracking-wider text-[#0F2942] mb-2">
-          Nightly Rate
+          {t('account', 'nightlyRate')}
         </h4>
         <PriceRangeSlider
           min={0}
@@ -205,7 +210,7 @@ function SearchContent() {
       {/* Star Rating */}
       <div>
         <h4 className="text-xs font-bold uppercase tracking-wider text-[#0F2942] mb-2">
-          Property Rating
+          {t('account', 'propertyRating')}
         </h4>
         <div className="space-y-1.5">
           {[5, 4, 3].map((stars) => (
@@ -225,7 +230,7 @@ function SearchContent() {
                 ))}
               </div>
               <span className="text-xs text-slate-500 font-medium">
-                {stars === 5 ? '5-Star Grand Luxury' : `${stars} Stars & Above`}
+                {stars === 5 ? t('account', 'fiveStarLuxury') : t('account', 'starsAndAbove', { count: stars })}
               </span>
             </label>
           ))}
@@ -235,7 +240,7 @@ function SearchContent() {
       {/* Standard Amenities */}
       <div>
         <h4 className="text-xs font-bold uppercase tracking-wider text-[#0F2942] mb-2">
-          Amenities
+          {t('account', 'amenitiesLabel')}
         </h4>
         <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
           {amenitiesList && amenitiesList.length > 0 ? (
@@ -283,13 +288,17 @@ function SearchContent() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <span className="text-xs font-bold uppercase tracking-widest text-[#D4AF37]">
-              Discovery Catalog
+              {t('account', 'discoveryCatalog')}
             </span>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F2942] mt-1">
-              {cityParam ? `Luxury Stays in ${cityParam}` : 'Explore Luxury Stays & Grand Resorts'}
+              {cityParam
+                ? t('account', 'luxuryStaysInCity', { city: cityParam })
+                : t('account', 'exploreLuxuryStays')}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              {isLoading ? 'Searching authoritative property inventory...' : `Found ${totalCount} verified luxury properties`}
+              {isLoading
+                ? t('account', 'searchingInventory')
+                : t('account', 'foundProperties', { count: totalCount })}
             </p>
           </div>
 
@@ -302,13 +311,13 @@ function SearchContent() {
               className="lg:hidden"
               leftIcon={<SlidersHorizontal className="w-4 h-4" />}
             >
-              Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+              {t('account', 'filtersLabel')} {activeFiltersCount > 0 && `(${activeFiltersCount})`}
             </Button>
 
             {/* Sort Dropdown */}
             <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
               <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-              <span className="font-semibold text-slate-500">Sort:</span>
+              <span className="font-semibold text-slate-500">{t('account', 'sortLabel')}</span>
               <select
                 value={sortParam}
                 onChange={(e) => updateParams({ sort: e.target.value })}
@@ -327,10 +336,10 @@ function SearchContent() {
         {/* Active Filter Chips */}
         {activeFiltersCount > 0 && (
           <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-100">
-            <span className="text-xs font-semibold text-slate-400">Active filters:</span>
+            <span className="text-xs font-semibold text-slate-400">{t('account', 'activeFilters')}</span>
             {cityParam && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                <span>City: {cityParam}</span>
+                <span>{t('account', 'cityChip', { city: cityParam })}</span>
                 <button onClick={() => updateParams({ city: undefined })} className="hover:text-red-500">
                   <X className="w-3 h-3" />
                 </button>
@@ -354,7 +363,7 @@ function SearchContent() {
                 key={s}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200"
               >
-                <span>{s} Stars</span>
+                <span>{t('account', 'starsChip', { count: s })}</span>
                 <button onClick={() => toggleStar(s)} className="hover:text-red-500">
                   <X className="w-3 h-3" />
                 </button>
@@ -375,7 +384,7 @@ function SearchContent() {
               onClick={clearAllFilters}
               className="text-xs font-bold text-[#D4AF37] hover:underline ml-2 cursor-pointer"
             >
-              Clear all
+              {t('account', 'clearAll')}
             </button>
           </div>
         )}
@@ -412,8 +421,10 @@ function SearchContent() {
           {/* Error State */}
           {isError && (
             <ErrorState
-              title="Unable to load hotel catalog"
-              message={error instanceof Error ? error.message : 'Please check your connection and try again.'}
+              title={t('account', 'unableToLoadCatalog')}
+              message={
+                error instanceof Error ? error.message : t('account', 'checkConnection')
+              }
               onRetry={() => refetch()}
             />
           )}
@@ -427,6 +438,7 @@ function SearchContent() {
                   hotel={hotel}
                   stayNights={stayNights}
                   searchQuery={searchParams.toString()}
+                  isFavorite={favoriteIds.has(hotel.id)}
                 />
               ))}
             </div>
@@ -435,9 +447,9 @@ function SearchContent() {
           {/* Empty State */}
           {!isLoading && !isError && hotels.length === 0 && (
             <EmptyState
-              title="No luxury properties found"
-              description="No properties match your exact search criteria. Try expanding your price range, clearing amenities, or choosing a different city."
-              actionLabel="Clear Filters"
+              title={t('account', 'noPropertiesFound')}
+              description={t('account', 'noPropertiesFoundDesc')}
+              actionLabel={t('account', 'clearFilters')}
               onAction={clearAllFilters}
             />
           )}
@@ -448,7 +460,7 @@ function SearchContent() {
       <Drawer
         isOpen={mobileFilterOpen}
         onClose={() => setMobileFilterOpen(false)}
-        title="Filter Stays"
+        title={t('account', 'filterStays')}
         position="bottom"
       >
         <div className="pb-6">
@@ -459,7 +471,7 @@ function SearchContent() {
               className="w-full"
               onClick={() => setMobileFilterOpen(false)}
             >
-              Show {totalCount} Properties
+              {t('account', 'showProperties', { count: totalCount })}
             </Button>
           </div>
         </div>

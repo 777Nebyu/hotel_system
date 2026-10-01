@@ -104,6 +104,7 @@ export default function Aurora({
   useEffect(() => {
     const ctn = ctnDom.current
     if (!ctn) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const renderer = new Renderer({ alpha: true, premultipliedAlpha: true, antialias: true })
     const gl = renderer.gl
     gl.clearColor(0, 0, 0, 0)
@@ -136,24 +137,49 @@ export default function Aurora({
     const mesh = new Mesh(gl, { geometry, program })
     ctn.appendChild(gl.canvas)
     let animateId = 0
-    let t = 0
+    let lastFrameTs = 0
+    // Memoized color array — only recomputed when the colorStops reference changes,
+    // not on every animation frame.
+    let cachedStops: string[] = []
+    let cachedColorArray: number[][] = []
+    const getColorArray = (stops: string[]) => {
+      if (stops !== cachedStops) {
+        cachedStops = stops
+        cachedColorArray = toColorArray(stops)
+      }
+      return cachedColorArray
+    }
     const update = (ts: number) => {
       animateId = requestAnimationFrame(update)
-      t = ts * 0.001
+      // Throttle to ~30 fps — imperceptible for a slow ambient shimmer,
+      // halves GPU work vs the default 60 fps.
+      if (ts - lastFrameTs < 32) return
+      lastFrameTs = ts
       const p = propsRef.current
       if (program) {
-        program.uniforms.uTime.value = t * (p.speed ?? speed)
+        program.uniforms.uTime.value = (ts * 0.001) * (p.speed ?? speed)
         program.uniforms.uAmplitude.value = p.amplitude ?? amplitude
         program.uniforms.uBlend.value = p.blend ?? blend
         program.uniforms.uLightMode.value = (p.lightMode ?? lightMode) ? 1 : 0
-        program.uniforms.uColorStops.value = toColorArray(p.colorStops ?? colorStops)
+        program.uniforms.uColorStops.value = getColorArray(p.colorStops ?? colorStops)
         renderer.render({ scene: mesh })
       }
     }
+    // Pause the RAF loop while the tab is hidden; resume when it's visible again.
+    const handleVisibility = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animateId)
+      } else {
+        lastFrameTs = 0
+        animateId = requestAnimationFrame(update)
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
     animateId = requestAnimationFrame(update)
     resize()
     return () => {
       cancelAnimationFrame(animateId)
+      document.removeEventListener('visibilitychange', handleVisibility)
       window.removeEventListener('resize', resize)
       if (ctn && gl.canvas.parentNode === ctn) ctn.removeChild(gl.canvas)
       gl.getExtension('WEBGL_lose_context')?.loseContext()
