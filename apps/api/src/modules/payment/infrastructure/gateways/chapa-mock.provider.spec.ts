@@ -145,7 +145,12 @@ describe('ChapaMockProvider', () => {
         'AUTHORIZED',
       );
 
-      expect(mockBank.simulateAuth).toHaveBeenCalledWith('CBE', '100000', 2500, 'AUTHORIZED');
+      expect(mockBank.simulateAuth).toHaveBeenCalledWith(
+        'CBE',
+        '100000',
+        2500,
+        'AUTHORIZED',
+      );
       expect(result.approved).toBe(true);
     });
 

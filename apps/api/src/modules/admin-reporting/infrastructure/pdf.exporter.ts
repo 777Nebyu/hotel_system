@@ -1,10 +1,20 @@
 import PDFDocument from 'pdfkit';
-import type { ReportDocument, ReportKpiCard, ReportRow, ReportSection } from './types';
+import type {
+  ReportDocument,
+  ReportKpiCard,
+  ReportRow,
+  ReportSection,
+} from './types';
 
 const toCell = (value: unknown): string => {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'number') {
-    return Number.isInteger(value) ? value.toLocaleString() : value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return Number.isInteger(value)
+      ? value.toLocaleString()
+      : value.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
   }
   if (typeof value === 'object') {
     if (value instanceof Date) return value.toISOString().slice(0, 10);
@@ -73,7 +83,14 @@ export class PdfReportExporter {
     const totalPages = pdfDoc.bufferedPageRange().count;
     for (let i = 0; i < totalPages; i++) {
       pdfDoc.switchToPage(i);
-      this.renderFooter(pdfDoc, i + 1, totalPages, contentWidth, margin, pageHeight);
+      this.renderFooter(
+        pdfDoc,
+        i + 1,
+        totalPages,
+        contentWidth,
+        margin,
+        pageHeight,
+      );
     }
 
     pdfDoc.end();
@@ -88,38 +105,39 @@ export class PdfReportExporter {
   ) {
     const bannerHeight = 58;
     // Dark Sapphire header block
-    doc
-      .rect(margin, margin, contentWidth, bannerHeight)
-      .fill('#0F2942');
+    doc.rect(margin, margin, contentWidth, bannerHeight).fill('#0F2942');
 
     // Gold accent line
-    doc
-      .rect(margin, margin + bannerHeight, contentWidth, 3)
-      .fill('#D4AF37');
+    doc.rect(margin, margin + bannerHeight, contentWidth, 3).fill('#D4AF37');
 
     // Brand tag
     doc
       .fillColor('#D4AF37')
       .font('Helvetica-Bold')
       .fontSize(8)
-      .text('LUXSTAY RESORTS & HOSPITALITY PLATFORM', margin + 14, margin + 10, {
-        characterSpacing: 1.2,
-      });
+      .text(
+        'LUXSTAY RESORTS & HOSPITALITY PLATFORM',
+        margin + 14,
+        margin + 10,
+        {
+          characterSpacing: 1.2,
+        },
+      );
 
     // Report Title
     doc
       .fillColor('#FFFFFF')
       .font('Helvetica-Bold')
       .fontSize(15)
-      .text(meta.title, margin + 14, margin + 24, { width: contentWidth - 140 });
+      .text(meta.title, margin + 14, margin + 24, {
+        width: contentWidth - 140,
+      });
 
     // Period Badge on top right
     const badgeText = `${meta.periodLabel.toUpperCase()} REPORT`;
     const badgeWidth = 110;
     const badgeX = margin + contentWidth - badgeWidth - 14;
-    doc
-      .roundedRect(badgeX, margin + 14, badgeWidth, 22, 4)
-      .fill('#1E3E62');
+    doc.roundedRect(badgeX, margin + 14, badgeWidth, 22, 4).fill('#1E3E62');
 
     doc
       .fillColor('#F1F5F9')
@@ -255,18 +273,21 @@ export class PdfReportExporter {
 
     // Determine columns
     const rawKeys = Object.keys(rows[0]);
-    const columns = (section.columns ?? []).length > 0
-      ? section.columns!
-      : rawKeys.map((k) => ({
-          key: k,
-          header: this.headerFor(k),
-          align: this.inferAlign(k) as 'left' | 'right' | 'center',
-        }));
+    const columns =
+      (section.columns ?? []).length > 0
+        ? section.columns!
+        : rawKeys.map((k) => ({
+            key: k,
+            header: this.headerFor(k),
+            align: this.inferAlign(k),
+          }));
 
     // Calculate column widths proportional to content
     const colCount = columns.length;
     const defaultColWidth = contentWidth / colCount;
-    const colWidths: number[] = columns.map((col) => col.width ?? defaultColWidth);
+    const colWidths: number[] = columns.map(
+      (col) => col.width ?? defaultColWidth,
+    );
 
     // Normalize widths so total equals contentWidth
     const totalW = colWidths.reduce((a, b) => a + b, 0);
@@ -278,9 +299,7 @@ export class PdfReportExporter {
 
     // Helper: Draw Table Header
     const drawTableHeader = (y: number) => {
-      doc
-        .rect(margin, y, contentWidth, headerHeight)
-        .fill('#0F2942');
+      doc.rect(margin, y, contentWidth, headerHeight).fill('#0F2942');
 
       doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#FFFFFF');
       let currentX = margin;
@@ -330,15 +349,13 @@ export class PdfReportExporter {
         const w = widths[i];
         const rawVal = row[col.key];
         const cellText = toCell(rawVal);
-        const align = col.align ?? (this.inferAlign(col.key) as 'left' | 'right' | 'center');
+        const align = col.align ?? this.inferAlign(col.key);
 
-        doc
-          .fillColor('#1E293B')
-          .text(cellText, cellX + 6, currentY + 5, {
-            width: w - 12,
-            align,
-            ellipsis: true,
-          });
+        doc.fillColor('#1E293B').text(cellText, cellX + 6, currentY + 5, {
+          width: w - 12,
+          align,
+          ellipsis: true,
+        });
         cellX += w;
       });
 
@@ -369,7 +386,11 @@ export class PdfReportExporter {
       .fillColor('#94A3B8')
       .font('Helvetica')
       .fontSize(7)
-      .text('LuxStay Hotel Management System — Official Analytics & Audit Record', margin, footerY);
+      .text(
+        'LuxStay Hotel Management System — Official Analytics & Audit Record',
+        margin,
+        footerY,
+      );
 
     doc
       .fillColor('#94A3B8')
@@ -403,7 +424,11 @@ export class PdfReportExporter {
     ) {
       return 'right';
     }
-    if (lower.includes('date') || lower.includes('status') || lower.includes('ref')) {
+    if (
+      lower.includes('date') ||
+      lower.includes('status') ||
+      lower.includes('ref')
+    ) {
       return 'center';
     }
     return 'left';

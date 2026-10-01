@@ -8,7 +8,7 @@ import {
   Optional,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
-import * as bcrypt from 'bcrypt';
+import { hashPassword } from '../../../common/security/password-hasher';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BookingStatus, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -16,6 +16,7 @@ import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helpe
 import { AuditService } from '../../../common/services/audit.service';
 import { BookingService } from './booking.service';
 import { NotificationService } from '../../notification/application/notification.service';
+import { MailProducer } from '../../jobs/mail.producer';
 import { NOTIFICATION_CHANNELS } from '../../notification/domain';
 import { canTransition } from '../domain';
 import {
@@ -50,6 +51,7 @@ export class ManagerBookingService {
     private readonly bookings: BookingService,
     @Optional() private readonly notifications?: NotificationService,
     @Optional() private readonly emitter?: EventEmitter2,
+    @Optional() private readonly mail?: MailProducer,
   ) {}
 
   async listBookings(query: ManageBookingsQuery, actor: BookingActor) {
@@ -1049,10 +1051,17 @@ export class ManagerBookingService {
       const email = dto.guestEmail
         ? dto.guestEmail.toLowerCase()
         : `walkin_${Date.now()}_${randomBytes(4).toString('hex')}@hotel.local`;
-      const passwordHash = await bcrypt.hash(
-        randomBytes(16).toString('hex'),
-        10,
-      );
+      const passwordHash = await hashPassword(randomBytes(16).toString('hex'));
+      // Only a real, deliverable address can ever receive a verification
+      // link. Synthetic walk-in addresses are unreachable by design, so they
+      // stay unverified and can never sign in.
+      const verificationToken = dto.guestEmail
+        ? randomBytes(32).toString('hex')
+        : null;
+      const verificationTokenExpiresAt = verificationToken
+        ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+        : null;
+
       guest = await this.db.user.create({
         data: {
           email,
@@ -1060,10 +1069,16 @@ export class ManagerBookingService {
           phone: dto.guestPhone,
           passwordHash,
           role: 'CUSTOMER',
-          status: 'ACTIVE',
-          emailVerifiedAt: new Date(),
+          status: 'EMAIL_UNVERIFIED',
+          emailVerified: false,
+          verificationToken,
+          verificationTokenExpiresAt,
         },
       });
+
+      if (verificationToken) {
+        void this.mail?.enqueueVerification(email, verificationToken);
+      }
     }
 
     const bookingInput: CreateBookingInput = {
@@ -1075,7 +1090,9 @@ export class ManagerBookingService {
       guestInfos: [
         {
           fullName: dto.guestName,
-          email: dto.guestEmail,
+          // The account email (real or the synthetic walk-in address), not the
+          // optional raw DTO field — guestInfos requires a concrete address.
+          email: guest.email,
           phone: dto.guestPhone,
           idNumber: dto.guestIdNumber,
         },

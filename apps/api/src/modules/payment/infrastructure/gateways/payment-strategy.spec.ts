@@ -27,14 +27,16 @@ describe('CreditCardGateway', () => {
 
   // ── approve cases — exact test card numbers ────────────────────────────
   describe('approved references', () => {
-    it.each([
-      '4242424242424242',
-      '4917484589897108',
-      '4716293094400436',
-    ])('approves card number %s', async (ref) => {
-      const result = await gateway.charge({ amount: anyAmount, reference: ref });
-      expect(result.approved).toBe(true);
-    });
+    it.each(['4242424242424242', '4917484589897108', '4716293094400436'])(
+      'approves card number %s',
+      async (ref) => {
+        const result = await gateway.charge({
+          amount: anyAmount,
+          reference: ref,
+        });
+        expect(result.approved).toBe(true);
+      },
+    );
 
     it('approves a card number with spaces stripped (4242 with spaces)', async () => {
       const result = await gateway.charge({
@@ -62,7 +64,10 @@ describe('CreditCardGateway', () => {
       '',
       'not-a-card',
     ])('declines reference "%s"', async (ref) => {
-      const result = await gateway.charge({ amount: anyAmount, reference: ref });
+      const result = await gateway.charge({
+        amount: anyAmount,
+        reference: ref,
+      });
       expect(result.approved).toBe(false);
     });
   });
@@ -130,7 +135,10 @@ describe('PayPalGateway', () => {
       '',
       'PAYPAL-FAIL',
     ])('declines reference "%s"', async (ref) => {
-      const result = await gateway.charge({ amount: anyAmount, reference: ref });
+      const result = await gateway.charge({
+        amount: anyAmount,
+        reference: ref,
+      });
       expect(result.approved).toBe(false);
     });
   });
@@ -198,13 +206,16 @@ describe('TelebirrGateway', () => {
   // ── decline cases ──────────────────────────────────────────────────────
   describe('declined references', () => {
     it.each([
-      '0911000002',        // CBE Birr number, not Telebirr
-      '+251911000002',     // CBE Birr E.164
-      '0900000000',        // arbitrary number
+      '0911000002', // CBE Birr number, not Telebirr
+      '+251911000002', // CBE Birr E.164
+      '0900000000', // arbitrary number
       '',
       'not-a-phone',
     ])('declines reference "%s"', async (ref) => {
-      const result = await gateway.charge({ amount: anyAmount, reference: ref });
+      const result = await gateway.charge({
+        amount: anyAmount,
+        reference: ref,
+      });
       expect(result.approved).toBe(false);
     });
   });
@@ -272,13 +283,16 @@ describe('CbeBirrGateway', () => {
   // ── decline cases ──────────────────────────────────────────────────────
   describe('declined references', () => {
     it.each([
-      '0911000001',        // Telebirr number, not CBE Birr
-      '+251911000001',     // Telebirr E.164
-      '0900000000',        // arbitrary number
+      '0911000001', // Telebirr number, not CBE Birr
+      '+251911000001', // Telebirr E.164
+      '0900000000', // arbitrary number
       '',
       'not-a-phone',
     ])('declines reference "%s"', async (ref) => {
-      const result = await gateway.charge({ amount: anyAmount, reference: ref });
+      const result = await gateway.charge({
+        amount: anyAmount,
+        reference: ref,
+      });
       expect(result.approved).toBe(false);
     });
   });
@@ -310,16 +324,16 @@ describe('CashGateway', () => {
 
   // ── always approved — cash requires no reference validation ───────────
   describe('always approved regardless of reference', () => {
-    it.each([
-      'RECEIPT-001',
-      '12345',
-      '',
-      'any-arbitrary-string',
-      'null',
-    ])('approves reference "%s"', async (ref) => {
-      const result = await gateway.charge({ amount: anyAmount, reference: ref });
-      expect(result.approved).toBe(true);
-    });
+    it.each(['RECEIPT-001', '12345', '', 'any-arbitrary-string', 'null'])(
+      'approves reference "%s"',
+      async (ref) => {
+        const result = await gateway.charge({
+          amount: anyAmount,
+          reference: ref,
+        });
+        expect(result.approved).toBe(true);
+      },
+    );
   });
 
   it('approves regardless of amount', async () => {
@@ -331,7 +345,10 @@ describe('CashGateway', () => {
 
   // ── providerRef shape ──────────────────────────────────────────────────
   it('always returns a non-empty providerRef string', async () => {
-    const result = await gateway.charge({ amount: anyAmount, reference: 'cash-ref' });
+    const result = await gateway.charge({
+      amount: anyAmount,
+      reference: 'cash-ref',
+    });
     expect(result.providerRef).toMatch(/^mock_cash_/);
   });
 });
@@ -363,9 +380,12 @@ describe('PaymentGatewayRegistry', () => {
       ['TELEBIRR', TelebirrGateway],
       ['CBE_BIRR', CbeBirrGateway],
       ['CASH', CashGateway],
-    ] as const)('returns the correct gateway for method %s', (method, GatewayClass) => {
-      expect(registry.get(method)).toBeInstanceOf(GatewayClass);
-    });
+    ] as const)(
+      'returns the correct gateway for method %s',
+      (method, GatewayClass) => {
+        expect(registry.get(method)).toBeInstanceOf(GatewayClass);
+      },
+    );
   });
 
   // ── unknown method throws ──────────────────────────────────────────────

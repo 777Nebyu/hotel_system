@@ -15,15 +15,26 @@ jest.mock('sanitize-html', () => {
 describe('ReviewService sanitization', () => {
   it('stores review comments without HTML tags', async () => {
     const db = {
-      hotel: { findUnique: jest.fn().mockResolvedValue({ id: 'hotel-1', status: 'ACTIVE' }) },
-      booking: { findFirst: jest.fn().mockResolvedValue({ status: 'CHECKED_OUT' }) },
+      hotel: {
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ id: 'hotel-1', status: 'ACTIVE' }),
+      },
+      booking: {
+        findFirst: jest.fn().mockResolvedValue({ status: 'CHECKED_OUT' }),
+      },
       review: {
         findFirst: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockResolvedValue({ id: 'review-1' }),
       },
     };
     const emitter = { emit: jest.fn() };
-    const service = new ReviewService(db as never, emitter as never, {} as never, {} as never);
+    const service = new ReviewService(
+      db as never,
+      emitter as never,
+      {} as never,
+      {} as never,
+    );
 
     await service.create(
       {
@@ -35,7 +46,9 @@ describe('ReviewService sanitization', () => {
     );
 
     expect(db.review.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ comment: 'Great stay' }) }),
+      expect.objectContaining({
+        data: expect.objectContaining({ comment: 'Great stay' }),
+      }),
     );
   });
 
@@ -57,7 +70,12 @@ describe('ReviewService sanitization', () => {
         },
       };
       const emitter = { emit: jest.fn() };
-      const service = new ReviewService(db as never, emitter as never, {} as never, {} as never);
+      const service = new ReviewService(
+        db as never,
+        emitter as never,
+        {} as never,
+        {} as never,
+      );
 
       const result = await service.update(
         'review-1',
@@ -88,7 +106,12 @@ describe('ReviewService sanitization', () => {
         },
       };
       const emitter = { emit: jest.fn() };
-      const service = new ReviewService(db as never, emitter as never, {} as never, {} as never);
+      const service = new ReviewService(
+        db as never,
+        emitter as never,
+        {} as never,
+        {} as never,
+      );
 
       await expect(
         service.update(
@@ -96,7 +119,9 @@ describe('ReviewService sanitization', () => {
           { rating: 4, comment: 'Updated review text' },
           'user-1',
         ),
-      ).rejects.toThrow('Reviews can only be edited within 48 hours of posting');
+      ).rejects.toThrow(
+        'Reviews can only be edited within 48 hours of posting',
+      );
     });
   });
 });

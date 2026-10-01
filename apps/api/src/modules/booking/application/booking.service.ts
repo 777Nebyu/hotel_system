@@ -131,6 +131,8 @@ export class BookingService {
       select: { emailVerifiedAt: true, role: true },
     });
     if (!user) throw new NotFoundException('User not found');
+    // Keep in sync with the client-side gate in BookingFlowScreen: the
+    // verification timestamp is the canonical proof before allowing a booking.
     if (
       user.role === 'CUSTOMER' &&
       !user.emailVerifiedAt &&

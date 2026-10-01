@@ -1,10 +1,18 @@
-import { BadRequestException, Injectable, NotFoundException, Optional } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  Optional,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { HotelStatus, Prisma, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
 import { NotificationService } from '../../notification/application/notification.service';
-import { NOTIFICATION_TYPES, NOTIFICATION_CHANNELS } from '../../notification/domain';
+import {
+  NOTIFICATION_TYPES,
+  NOTIFICATION_CHANNELS,
+} from '../../notification/domain';
 import {
   HotelApprovedEvent,
   HotelEventNames,
@@ -38,7 +46,7 @@ export class AdminHotelService {
 
   async list(query: AdminHotelsQuery) {
     const where: Prisma.HotelWhereInput = {};
-    if (query.status) where.status = query.status as HotelStatus;
+    if (query.status) where.status = query.status;
     if (query.search) {
       where.OR = [{ name: { contains: query.search, mode: 'insensitive' } }];
     }
@@ -64,7 +72,7 @@ export class AdminHotelService {
     const before = await this.db.hotel.findUniqueOrThrow({
       where: { id: hotelId },
     });
-    const status = dto.status as HotelStatus;
+    const status = dto.status;
     // HOTEL-002/003: Validate state transition
     const allowed = this.VALID_TRANSITIONS[before.status];
     if (!allowed || !allowed.includes(status)) {
@@ -110,7 +118,10 @@ export class AdminHotelService {
           dto.rejectionReason ?? 'Hotel suspended by admin',
         ),
       );
-    } else if (status === HotelStatus.ACTIVE && before.status !== HotelStatus.ACTIVE) {
+    } else if (
+      status === HotelStatus.ACTIVE &&
+      before.status !== HotelStatus.ACTIVE
+    ) {
       this.emitter?.emit(
         HotelEventNames.APPROVED,
         new HotelApprovedEvent(hotelId, updated.managerId),
@@ -124,7 +135,9 @@ export class AdminHotelService {
       where: { id: hotelId },
     });
     if (before.status !== HotelStatus.PENDING_APPROVAL) {
-      throw new BadRequestException(`Cannot approve hotel in ${before.status} status. Only PENDING_APPROVAL hotels can be approved.`);
+      throw new BadRequestException(
+        `Cannot approve hotel in ${before.status} status. Only PENDING_APPROVAL hotels can be approved.`,
+      );
     }
     const updated = await this.db.hotel.update({
       where: { id: hotelId },
@@ -233,7 +246,11 @@ export class AdminHotelService {
       });
     }
     // MGR-003: Notify old manager of removal
-    if (before.managerId && before.managerId !== dto.managerId && this.notifications) {
+    if (
+      before.managerId &&
+      before.managerId !== dto.managerId &&
+      this.notifications
+    ) {
       await this.notifications.notify({
         userId: before.managerId,
         type: NOTIFICATION_TYPES.MANAGER_REMOVED,

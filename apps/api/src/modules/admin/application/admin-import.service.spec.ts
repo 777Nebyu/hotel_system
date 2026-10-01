@@ -26,10 +26,14 @@ describe('AdminImportService', () => {
     db.hotel.findUnique.mockResolvedValue(null);
 
     await expect(
-      service.importRoomsFromCsv('invalid-id', Buffer.from('roomNumber,type,basePrice\n101,DELUXE,150'), {
-        sub: 'admin-1',
-        role: 'ADMIN',
-      }),
+      service.importRoomsFromCsv(
+        'invalid-id',
+        Buffer.from('roomNumber,type,basePrice\n101,DELUXE,150'),
+        {
+          sub: 'admin-1',
+          role: 'ADMIN',
+        },
+      ),
     ).rejects.toThrow(NotFoundException);
   });
 
@@ -38,7 +42,10 @@ describe('AdminImportService', () => {
 
     const csvData = Buffer.from('title,author\nBook,Author');
     await expect(
-      service.importRoomsFromCsv('hotel-1', csvData, { sub: 'admin-1', role: 'ADMIN' }),
+      service.importRoomsFromCsv('hotel-1', csvData, {
+        sub: 'admin-1',
+        role: 'ADMIN',
+      }),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -64,12 +71,24 @@ describe('AdminImportService', () => {
     expect(result.failedCount).toBe(2);
     expect(result.errors).toEqual([
       { row: 2, roomNumber: '101', error: 'Room already exists in this hotel' },
-      { row: 5, roomNumber: '103', error: 'Duplicate roomNumber in uploaded file' },
+      {
+        row: 5,
+        roomNumber: '103',
+        error: 'Duplicate roomNumber in uploaded file',
+      },
     ]);
     expect(db.room.createMany).toHaveBeenCalledWith({
       data: [
-        expect.objectContaining({ roomNumber: '102', type: 'STANDARD', basePrice: 100 }),
-        expect.objectContaining({ roomNumber: '103', type: 'SUITE', basePrice: 350 }),
+        expect.objectContaining({
+          roomNumber: '102',
+          type: 'STANDARD',
+          basePrice: 100,
+        }),
+        expect.objectContaining({
+          roomNumber: '103',
+          type: 'SUITE',
+          basePrice: 350,
+        }),
       ],
     });
     expect(audit.record).toHaveBeenCalledWith(

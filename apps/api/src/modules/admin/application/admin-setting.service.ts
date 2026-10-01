@@ -4,7 +4,10 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
 import type { AuditLogsQuery, UpsertSetting } from '@repo/shared-types';
 
-export const DEFAULT_PLATFORM_SETTINGS: Record<string, Record<string, unknown>> = {
+export const DEFAULT_PLATFORM_SETTINGS: Record<
+  string,
+  Record<string, unknown>
+> = {
   COMMISSION_AND_TAX: {
     platformFeePercent: 10,
     vatRate: 15,
@@ -35,7 +38,8 @@ export const DEFAULT_PLATFORM_SETTINGS: Record<string, Record<string, unknown>> 
   },
   PLATFORM_OPERATIONS: {
     maintenanceMode: false,
-    maintenanceMessage: 'LuxStay is currently undergoing scheduled platform maintenance.',
+    maintenanceMessage:
+      'LuxStay is currently undergoing scheduled platform maintenance.',
     autoApproveHotels: false,
     maxUploadSizeMb: 15,
   },
@@ -49,15 +53,21 @@ export class AdminSettingService {
   ) {}
 
   async listSettings() {
-    const existing = await this.db.platformSetting.findMany({ orderBy: { key: 'asc' } });
+    const existing = await this.db.platformSetting.findMany({
+      orderBy: { key: 'asc' },
+    });
     const existingKeys = new Set(existing.map((s) => s.key));
 
     // Auto-seed missing default settings so platform has standard categories out-of-the-box
-    const missingKeys = Object.keys(DEFAULT_PLATFORM_SETTINGS).filter((k) => !existingKeys.has(k));
+    const missingKeys = Object.keys(DEFAULT_PLATFORM_SETTINGS).filter(
+      (k) => !existingKeys.has(k),
+    );
     if (missingKeys.length > 0) {
       for (const key of missingKeys) {
         try {
-          const val = DEFAULT_PLATFORM_SETTINGS[key] as unknown as Prisma.InputJsonValue;
+          const val = DEFAULT_PLATFORM_SETTINGS[
+            key
+          ] as unknown as Prisma.InputJsonValue;
           const created = await this.db.platformSetting.create({
             data: { key, value: val },
           });

@@ -123,7 +123,10 @@ describe('ManagerBookingService - Walk-In Bookings', () => {
         fullName: 'Walkin Guest',
         phone: '+251922334455',
         role: 'CUSTOMER',
-        status: 'ACTIVE',
+        // A walk-in guest account starts unverified and can only sign in
+        // after clicking the verification link sent to their real address.
+        status: 'EMAIL_UNVERIFIED',
+        emailVerified: false,
       }),
     });
     expect(bookings.createBooking).toHaveBeenCalledWith(
@@ -508,5 +511,157 @@ describe('ManagerBookingService - Milestone 3 Features (Stay Requests, Relocatio
       expect(relocations).toHaveLength(1);
       expect(relocations[0].reason).toBe('AC malfunction');
     });
+  });
+});
+
+describe('ManagerBookingService - Walk-in guest email verification', () => {
+  const HOUR = 60 * 60 * 1000;
+
+  type CtorArgs = ConstructorParameters<typeof ManagerBookingService>;
+
+  type DbMock = {
+    hotel: { findMany: jest.Mock };
+    user: { findUnique: jest.Mock; create: jest.Mock };
+    booking: { update: jest.Mock; findUniqueOrThrow: jest.Mock };
+    payment: { update: jest.Mock };
+    paymentAttempt: { create: jest.Mock };
+    bookingStatusHistory: { create: jest.Mock };
+    $transaction: jest.Mock;
+  };
+
+  // jest.Mock is untyped, so pull the first call argument out explicitly
+  // instead of letting `any` leak into the assertions.
+  const callArg = <T>(mock: jest.Mock, index = 0): T => {
+    const calls = mock.mock.calls as unknown[][];
+    return calls[index]?.[0] as T;
+  };
+
+  type UserCreateCall = {
+    data: {
+      email: string;
+      status: string;
+      emailVerified: boolean;
+      verificationToken: string | null;
+      verificationTokenExpiresAt: Date | null;
+    };
+  };
+
+  let service: ManagerBookingService;
+  let db: DbMock;
+  let scope: any;
+  let audit: any;
+  let bookings: any;
+  let mail: { enqueueVerification: jest.Mock };
+
+  const walkInDto = (extra: Record<string, unknown> = {}) => ({
+    hotelId: 'hotel-1',
+    roomIds: ['room-1'],
+    checkIn: '2026-09-10',
+    checkOut: '2026-09-12',
+    guests: { adults: 1, children: 0 },
+    guestName: 'Walkin Guest',
+    guestPhone: '+251922334455',
+    paymentMethod: 'CASH',
+    paidImmediately: false,
+    ...extra,
+  });
+
+  beforeEach(() => {
+    db = {
+      hotel: { findMany: jest.fn() },
+      user: {
+        findUnique: jest.fn().mockResolvedValue(null),
+        create: jest
+          .fn()
+          .mockImplementation((args: { data: Record<string, unknown> }) =>
+            Promise.resolve({ id: 'guest-new', ...args.data }),
+          ),
+      },
+      booking: {
+        update: jest.fn().mockResolvedValue({}),
+        findUniqueOrThrow: jest.fn().mockResolvedValue({
+          id: 'booking-1',
+          bookingRef: 'YT-2026-ABC12',
+          status: 'PENDING',
+          hotel: { id: 'hotel-1', name: 'Grand Hotel' },
+          details: [],
+          payment: null,
+          user: {
+            id: 'guest-new',
+            fullName: 'Walkin Guest',
+            email: 'x@y.com',
+          },
+        }),
+      },
+      payment: { update: jest.fn().mockResolvedValue({}) },
+      paymentAttempt: { create: jest.fn().mockResolvedValue({}) },
+      bookingStatusHistory: { create: jest.fn().mockResolvedValue({}) },
+      $transaction: jest
+        .fn()
+        .mockImplementation((callback: (tx: DbMock) => unknown) =>
+          callback(db),
+        ),
+    };
+    scope = { assertManagerOwnsHotel: jest.fn().mockResolvedValue(true) };
+    audit = { record: jest.fn().mockResolvedValue({}) };
+    bookings = {
+      createBooking: jest.fn().mockResolvedValue({
+        id: 'booking-1',
+        bookingRef: 'YT-2026-ABC12',
+        payment: null,
+      }),
+    };
+    mail = { enqueueVerification: jest.fn().mockResolvedValue(undefined) };
+
+    service = new ManagerBookingService(
+      db as unknown as CtorArgs[0],
+      scope,
+      audit,
+      bookings,
+      undefined,
+      undefined,
+      mail as unknown as CtorArgs[6],
+    );
+  });
+
+  it('issues a 24h token and emails it when a real guest email is supplied', async () => {
+    const before = Date.now();
+    await service.createWalkInBooking(
+      walkInDto({ guestEmail: 'jane.smith@example.com' }) as never,
+      { sub: 'manager-1', role: 'MANAGER' },
+    );
+    const after = Date.now();
+
+    const { data } = callArg<UserCreateCall>(db.user.create);
+
+    expect(data.email).toBe('jane.smith@example.com');
+    expect(data.status).toBe('EMAIL_UNVERIFIED');
+    expect(data.emailVerified).toBe(false);
+    expect(data.verificationToken).toHaveLength(64);
+
+    const expiry = data.verificationTokenExpiresAt?.getTime() ?? 0;
+    expect(expiry).toBeGreaterThanOrEqual(before + 24 * HOUR);
+    expect(expiry).toBeLessThanOrEqual(after + 24 * HOUR);
+
+    expect(mail.enqueueVerification).toHaveBeenCalledTimes(1);
+    expect(mail.enqueueVerification).toHaveBeenCalledWith(
+      'jane.smith@example.com',
+      data.verificationToken,
+    );
+  });
+
+  it('issues no token and sends no email for a synthetic walk-in address', async () => {
+    await service.createWalkInBooking(walkInDto() as never, {
+      sub: 'manager-1',
+      role: 'MANAGER',
+    });
+
+    const { data } = callArg<UserCreateCall>(db.user.create);
+
+    expect(data.email).toMatch(/^walkin_\d+_[a-f0-9]+@hotel\.local$/);
+    expect(data.status).toBe('EMAIL_UNVERIFIED');
+    expect(data.verificationToken).toBeNull();
+    expect(data.verificationTokenExpiresAt).toBeNull();
+    expect(mail.enqueueVerification).not.toHaveBeenCalled();
   });
 });

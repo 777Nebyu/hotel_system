@@ -199,14 +199,24 @@ describe('availableNights', () => {
       // Sep 01→04, 3 nights; Sep 02 blocked
       const overrides = [override(d('2026-09-02'), 'UNAVAILABLE')];
       expect(
-        availableNights('AVAILABLE', overrides, d('2026-09-01'), d('2026-09-04')),
+        availableNights(
+          'AVAILABLE',
+          overrides,
+          d('2026-09-01'),
+          d('2026-09-04'),
+        ),
       ).toBe(2);
     });
 
     it('reduces count by 1 when the first night is blocked', () => {
       const overrides = [override(d('2026-09-01'), 'UNAVAILABLE')];
       expect(
-        availableNights('AVAILABLE', overrides, d('2026-09-01'), d('2026-09-04')),
+        availableNights(
+          'AVAILABLE',
+          overrides,
+          d('2026-09-01'),
+          d('2026-09-04'),
+        ),
       ).toBe(2);
     });
 
@@ -214,7 +224,12 @@ describe('availableNights', () => {
       // Range Sep 01→04 covers nights Sep 01, Sep 02, Sep 03 (toExclusive)
       const overrides = [override(d('2026-09-03'), 'UNAVAILABLE')];
       expect(
-        availableNights('AVAILABLE', overrides, d('2026-09-01'), d('2026-09-04')),
+        availableNights(
+          'AVAILABLE',
+          overrides,
+          d('2026-09-01'),
+          d('2026-09-04'),
+        ),
       ).toBe(2);
     });
 
@@ -225,7 +240,12 @@ describe('availableNights', () => {
         override(d('2026-09-03'), 'UNAVAILABLE'),
       ];
       expect(
-        availableNights('AVAILABLE', overrides, d('2026-09-01'), d('2026-09-04')),
+        availableNights(
+          'AVAILABLE',
+          overrides,
+          d('2026-09-01'),
+          d('2026-09-04'),
+        ),
       ).toBe(0);
     });
 
@@ -233,7 +253,12 @@ describe('availableNights', () => {
       // Room is UNAVAILABLE but Sep 02 has an AVAILABLE override
       const overrides = [override(d('2026-09-02'), 'AVAILABLE')];
       expect(
-        availableNights('UNAVAILABLE', overrides, d('2026-09-01'), d('2026-09-04')),
+        availableNights(
+          'UNAVAILABLE',
+          overrides,
+          d('2026-09-01'),
+          d('2026-09-04'),
+        ),
       ).toBe(1);
     });
   });
@@ -245,7 +270,12 @@ describe('availableNights', () => {
       const overrides = [override(d('2026-09-03'), 'UNAVAILABLE')];
       // Sep 03 is excluded from the loop, so the override has no effect on the count
       expect(
-        availableNights('AVAILABLE', overrides, d('2026-09-01'), d('2026-09-03')),
+        availableNights(
+          'AVAILABLE',
+          overrides,
+          d('2026-09-01'),
+          d('2026-09-03'),
+        ),
       ).toBe(2);
     });
   });
@@ -267,7 +297,12 @@ describe('roomAvailableAcross', () => {
 
     it('returns true even for UNAVAILABLE room when range is zero nights', () => {
       expect(
-        roomAvailableAcross('UNAVAILABLE', [], d('2026-09-01'), d('2026-09-01')),
+        roomAvailableAcross(
+          'UNAVAILABLE',
+          [],
+          d('2026-09-01'),
+          d('2026-09-01'),
+        ),
       ).toBe(true);
     });
   });
@@ -282,14 +317,24 @@ describe('roomAvailableAcross', () => {
 
     it('returns false when the one night is blocked by room status', () => {
       expect(
-        roomAvailableAcross('UNAVAILABLE', [], d('2026-09-01'), d('2026-09-02')),
+        roomAvailableAcross(
+          'UNAVAILABLE',
+          [],
+          d('2026-09-01'),
+          d('2026-09-02'),
+        ),
       ).toBe(false);
     });
 
     it('returns false when the one night is blocked by an override', () => {
       const overrides = [override(d('2026-09-01'), 'UNAVAILABLE')];
       expect(
-        roomAvailableAcross('AVAILABLE', overrides, d('2026-09-01'), d('2026-09-02')),
+        roomAvailableAcross(
+          'AVAILABLE',
+          overrides,
+          d('2026-09-01'),
+          d('2026-09-02'),
+        ),
       ).toBe(false);
     });
   });
@@ -305,13 +350,23 @@ describe('roomAvailableAcross', () => {
     it('returns false when any single night in the stay is blocked', () => {
       const overrides = [override(d('2026-09-02'), 'UNAVAILABLE')];
       expect(
-        roomAvailableAcross('AVAILABLE', overrides, d('2026-09-01'), d('2026-09-04')),
+        roomAvailableAcross(
+          'AVAILABLE',
+          overrides,
+          d('2026-09-01'),
+          d('2026-09-04'),
+        ),
       ).toBe(false);
     });
 
     it('returns false when ALL nights are blocked', () => {
       expect(
-        roomAvailableAcross('UNAVAILABLE', [], d('2026-09-01'), d('2026-09-04')),
+        roomAvailableAcross(
+          'UNAVAILABLE',
+          [],
+          d('2026-09-01'),
+          d('2026-09-04'),
+        ),
       ).toBe(false);
     });
   });
@@ -326,12 +381,22 @@ describe('roomAvailableAcross', () => {
 
       // Sep 01→04 stays: covers nights Sep 01, 02, 03 → Sep 04 is NOT included
       expect(
-        roomAvailableAcross('AVAILABLE', overrides, d('2026-09-01'), d('2026-09-04')),
+        roomAvailableAcross(
+          'AVAILABLE',
+          overrides,
+          d('2026-09-01'),
+          d('2026-09-04'),
+        ),
       ).toBe(true);
 
       // Sep 04→07 stay: covers nights Sep 04, 05, 06 → Sep 04 IS blocked
       expect(
-        roomAvailableAcross('AVAILABLE', overrides, d('2026-09-04'), d('2026-09-07')),
+        roomAvailableAcross(
+          'AVAILABLE',
+          overrides,
+          d('2026-09-04'),
+          d('2026-09-07'),
+        ),
       ).toBe(false);
     });
   });
@@ -347,7 +412,12 @@ describe('roomAvailableAcross', () => {
     it('returns false when night 5 is blocked', () => {
       const overrides = [override(d('2026-09-05'), 'MAINTENANCE')];
       expect(
-        roomAvailableAcross('AVAILABLE', overrides, d('2026-09-01'), d('2026-09-08')),
+        roomAvailableAcross(
+          'AVAILABLE',
+          overrides,
+          d('2026-09-01'),
+          d('2026-09-08'),
+        ),
       ).toBe(false);
     });
   });

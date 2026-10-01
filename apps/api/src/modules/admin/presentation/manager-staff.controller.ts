@@ -15,6 +15,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { Role } from '../../../generated/prisma/client';
 import {
+  emailFieldSchema,
   hotelStaffQuerySchema,
   staffHotelParamsSchema,
 } from '@repo/shared-types';
@@ -26,9 +27,9 @@ const managerHotelParamsSchema = z.object({
   hotelId: z.string().min(1),
 });
 
-const addStaffSchema = z.object({
+export const addStaffSchema = z.object({
   fullName: z.string().min(2).max(100).optional(),
-  email: z.string().email().optional(),
+  email: emailFieldSchema.optional(),
   password: z.string().min(8).max(100).optional(),
   phone: z.string().max(30).optional(),
   role: z.string().min(1).max(50).optional(),
@@ -81,7 +82,9 @@ export class ManagerStaffController {
 
   @Post()
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @ApiOperation({ summary: 'Create or assign a staff member to hotel (manager/admin)' })
+  @ApiOperation({
+    summary: 'Create or assign a staff member to hotel (manager/admin)',
+  })
   async add(
     @Param() params: ManagerHotelParamsDto,
     @Body() dto: AddStaffDto,
@@ -114,11 +117,7 @@ export class ManagerStaffController {
     );
   }
 
-  assign(
-    params: ManagerHotelParamsDto,
-    dto: AddStaffDto,
-    req: AuthedRequest,
-  ) {
+  assign(params: ManagerHotelParamsDto, dto: AddStaffDto, req: AuthedRequest) {
     return this.add(params, dto, req);
   }
 

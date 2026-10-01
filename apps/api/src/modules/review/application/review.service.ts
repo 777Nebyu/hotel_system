@@ -113,7 +113,9 @@ export class ReviewService {
       allowedAttributes: {},
     }).trim();
     if (cleaned.length < 2) {
-      throw new BadRequestException('Review comment must contain readable text');
+      throw new BadRequestException(
+        'Review comment must contain readable text',
+      );
     }
     return cleaned;
   }

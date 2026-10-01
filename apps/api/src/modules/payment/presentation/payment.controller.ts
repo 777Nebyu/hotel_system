@@ -1,5 +1,20 @@
-import { Body, Controller, Get, Headers, Param, Post, Query, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { PaymentService } from '../application/payment.service';
 import { Public } from '../../../common/decorators/public.decorator';
@@ -16,11 +31,9 @@ import {
   ChapaWebhookDto,
 } from './dto/payment.dto';
 
-
 interface AuthedRequest {
   user: { sub: string; role: string; hotelId?: string };
 }
-
 
 @ApiTags('payments')
 @Controller('payments')
@@ -57,7 +70,9 @@ export class PaymentController {
   @Post(':bookingId/chapa-intent')
   @Throttle({ default: { ttl: 60_000, limit: 60 } })
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a Chapa payment intent with method-specific flow' })
+  @ApiOperation({
+    summary: 'Create a Chapa payment intent with method-specific flow',
+  })
   chapaIntent(
     @Param('bookingId') bookingId: string,
     @Body() dto: ChapaIntentDto,
@@ -131,25 +146,55 @@ export class PaymentController {
   @Post('webhook/chapa')
   @Public()
   @Throttle({ default: { ttl: 60_000, limit: 120 } })
-  @ApiOperation({ summary: 'Chapa webhook — server-side payment verification' })
-  chapaWebhook(@Body() body: ChapaWebhookDto) {
-    return this.payments.handleWebhook(body.tx_ref, {
-      status: body.status,
-      amount: body.amount,
-      currency: body.currency,
-    });
+  @ApiOperation({
+    summary: 'Chapa webhook — HMAC verified & server-side payment verification',
+  })
+  chapaWebhook(
+    @Body() body: ChapaWebhookDto,
+    @Req() req: any,
+    @Headers('x-chapa-signature') sig1: string | undefined,
+    @Headers('chapa-signature') sig2: string | undefined,
+  ) {
+    const rawBody = req.rawBody as Buffer | undefined;
+    return this.payments.handleWebhook(
+      body.tx_ref,
+      {
+        status: body.status,
+        amount: body.amount,
+        currency: body.currency,
+      },
+      rawBody,
+      sig1 || sig2,
+    );
   }
 
-  // ── Callback (user-facing redirect) ─────────────────────────────────────────
+  // ── Callback (user-facing redirect with server verification) ────────────────
 
   @Get('callback')
   @Public()
-  @ApiOperation({ summary: 'Payment callback — user-facing redirect after payment' })
-  callback(
+  @ApiOperation({
+    summary: 'Payment callback — user-facing redirect after payment',
+  })
+  callback(@Query('tx_ref') txRef: string, @Query('status') _status?: string) {
+    if (txRef) {
+      return this.payments.verifyChapaCallback(txRef);
+    }
+    return { status: 'PENDING', message: 'No transaction reference supplied' };
+  }
+
+  @Get('chapa/callback')
+  @Public()
+  @ApiOperation({
+    summary: 'Chapa callback — explicit server verification redirect',
+  })
+  chapaCallback(
     @Query('tx_ref') txRef: string,
-    @Query('status') status: string,
+    @Query('status') _status?: string,
   ) {
-    return { txRef, status, message: 'Payment processed' };
+    if (txRef) {
+      return this.payments.verifyChapaCallback(txRef);
+    }
+    return { status: 'PENDING', message: 'No transaction reference supplied' };
   }
 
   // ── Legacy Mock Callback ────────────────────────────────────────────────────
@@ -173,10 +218,7 @@ export class PaymentController {
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Refund a successful booking payment' })
-  refund(
-    @Param() params: PaymentIdParamsDto,
-    @Req() req: AuthedRequest,
-  ) {
+  refund(@Param() params: PaymentIdParamsDto, @Req() req: AuthedRequest) {
     return this.payments.refund(params.bookingId, req.user);
   }
 

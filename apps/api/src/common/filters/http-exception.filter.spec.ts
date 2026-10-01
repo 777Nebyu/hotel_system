@@ -135,14 +135,18 @@ describe('HttpExceptionFilter', () => {
 
     filter.catch(exception, mockHost);
 
-    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+    expect(mockResponse.status).toHaveBeenCalledWith(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
     expect(mockResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
         statusCode: 500,
         path: '/api/v1/test',
         error: {
           code: 'INTERNAL_SERVER_ERROR',
-          message: expect.stringMatching(/Database connection lost|Internal server error/),
+          message: expect.stringMatching(
+            /Database connection lost|Internal server error/,
+          ),
           details: null,
         },
       }),
@@ -156,6 +160,9 @@ describe('HttpExceptionFilter', () => {
 
     filter.catch(exception, mockHost);
 
-    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-Request-Id', 'req-12345');
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'X-Request-Id',
+      'req-12345',
+    );
   });
 });

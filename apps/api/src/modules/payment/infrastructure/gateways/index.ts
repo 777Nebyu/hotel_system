@@ -3,6 +3,8 @@ export * from './paypal.gateway';
 export * from './telebirr.gateway';
 export * from './cbe-birr.gateway';
 export * from './cash.gateway';
+export * from './chapa-payment.gateway';
+export * from './mock-payment.gateway';
 export * from './chapa-mock.provider';
 export * from './bank-mock.provider';
 export * from '../mock-sms.service';

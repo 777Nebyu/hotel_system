@@ -43,7 +43,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       (request.headers['x-correlation-id'] as string) ||
       undefined;
 
-    if (requestId && !response.headersSent && !response.getHeader('x-request-id')) {
+    if (
+      requestId &&
+      !response.headersSent &&
+      !response.getHeader('x-request-id')
+    ) {
       response.setHeader('X-Request-Id', requestId);
     }
 
@@ -72,13 +76,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
           message = 'Validation failed';
           details = resObj.message;
         } else if (resObj.issues) {
-          message = typeof resObj.message === 'string' ? resObj.message : 'Validation failed';
+          message =
+            typeof resObj.message === 'string'
+              ? resObj.message
+              : 'Validation failed';
           details = resObj.issues;
         } else if (resObj.details !== undefined) {
-          message = typeof resObj.message === 'string' ? resObj.message : exception.message;
+          message =
+            typeof resObj.message === 'string'
+              ? resObj.message
+              : exception.message;
           details = resObj.details;
         } else if (resObj.errors !== undefined) {
-          message = typeof resObj.message === 'string' ? resObj.message : exception.message;
+          message =
+            typeof resObj.message === 'string'
+              ? resObj.message
+              : exception.message;
           details = resObj.errors;
         } else if (typeof resObj.message === 'string') {
           message = resObj.message;
@@ -88,7 +101,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       } else {
         message = exception.message;
       }
-    } else if (exception instanceof ZodError || (exception as any)?.name === 'ZodError') {
+    } else if (
+      exception instanceof ZodError ||
+      (exception as any)?.name === 'ZodError'
+    ) {
       statusCode = HttpStatus.BAD_REQUEST;
       code = 'VALIDATION_ERROR';
       message = 'Validation failed';
@@ -105,11 +121,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
       } else if (prismaCode === 'P2025') {
         statusCode = HttpStatus.NOT_FOUND;
         code = 'RECORD_NOT_FOUND';
-        message = (exception as any)?.meta?.cause || 'The requested record was not found.';
+        message =
+          (exception as any)?.meta?.cause ||
+          'The requested record was not found.';
       } else if (prismaCode === 'P2003') {
         statusCode = HttpStatus.BAD_REQUEST;
         code = 'DEPENDENCY_CONSTRAINT';
-        message = 'Operation cannot be completed because of related record dependencies.';
+        message =
+          'Operation cannot be completed because of related record dependencies.';
       } else {
         statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         code = prismaCode || 'DATABASE_ERROR';
@@ -128,7 +147,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
               !l.startsWith('at ') &&
               !l.includes('client-engine-runtime'),
           );
-        message = cleanLines[cleanLines.length - 1] || 'Database operation failed.';
+        message =
+          cleanLines[cleanLines.length - 1] || 'Database operation failed.';
       }
       details = (exception as any)?.meta || null;
     } else if (exception instanceof Error) {

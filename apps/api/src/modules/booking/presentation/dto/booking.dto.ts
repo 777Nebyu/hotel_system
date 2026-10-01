@@ -18,5 +18,7 @@ export class MyBookingsQueryDto extends createZodDto(myBookingsQuerySchema) {}
 export class CancelRoomsDto extends createZodDto(cancelRoomSchema) {}
 export class CreateRoomHoldDto extends createZodDto(createRoomHoldSchema) {}
 export class RoomHoldIdParamsDto extends createZodDto(roomHoldIdParamsSchema) {}
-export class CreateStayRequestDto extends createZodDto(createStayRequestSchema) {}
+export class CreateStayRequestDto extends createZodDto(
+  createStayRequestSchema,
+) {}
 export class ModifyBookingDto extends createZodDto(modifyBookingSchema) {}

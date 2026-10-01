@@ -64,7 +64,9 @@ export class AdminImportService {
     // Map column headers
     const headers: string[] = [];
     worksheet.getRow(1).eachCell((cell, colNumber) => {
-      headers[colNumber] = String(cell.value || '').trim().toLowerCase();
+      headers[colNumber] = String(cell.value || '')
+        .trim()
+        .toLowerCase();
     });
 
     const colIndex = (name: string) =>

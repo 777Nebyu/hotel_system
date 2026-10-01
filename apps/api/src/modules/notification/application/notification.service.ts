@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  Optional,
+} from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { NOTIFICATION_CHANNELS, NOTIFICATION_TYPES } from '../domain';

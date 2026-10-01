@@ -29,7 +29,8 @@ export class FraudService {
     });
 
     if (failedAttemptsCount >= 3) {
-      const reason = 'Exceeded payment failure threshold (>=3 failed attempts in 15m)';
+      const reason =
+        'Exceeded payment failure threshold (>=3 failed attempts in 15m)';
       await this.db.user.update({
         where: { id: userId },
         data: {
@@ -124,13 +125,9 @@ export class FraudService {
       },
     });
 
-    await this.audit.record(
-      adminId,
-      'USER_FLAGGED',
-      'User',
-      userId,
-      { reason },
-    );
+    await this.audit.record(adminId, 'USER_FLAGGED', 'User', userId, {
+      reason,
+    });
 
     return updated;
   }
@@ -159,13 +156,9 @@ export class FraudService {
       },
     });
 
-    await this.audit.record(
-      adminId,
-      'USER_UNFLAGGED',
-      'User',
-      userId,
-      { reason: reason || 'Manual unflag by admin' },
-    );
+    await this.audit.record(adminId, 'USER_UNFLAGGED', 'User', userId, {
+      reason: reason || 'Manual unflag by admin',
+    });
 
     return updated;
   }

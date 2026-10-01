@@ -87,7 +87,16 @@ export const ModelName = {
   BookingModification: 'BookingModification',
   RoomRelocation: 'RoomRelocation',
   ContactThread: 'ContactThread',
-  ContactMessage: 'ContactMessage'
+  ContactMessage: 'ContactMessage',
+  AiConversation: 'AiConversation',
+  AiMessage: 'AiMessage',
+  AiKnowledgeDocument: 'AiKnowledgeDocument',
+  AiAuditLog: 'AiAuditLog',
+  Source: 'Source',
+  Place: 'Place',
+  Trip: 'Trip',
+  TripItem: 'TripItem',
+  EmergencyContact: 'EmergencyContact'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -109,6 +118,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  googleId: 'googleId',
   passwordHash: 'passwordHash',
   fullName: 'fullName',
   phone: 'phone',
@@ -118,8 +128,10 @@ export const UserScalarFieldEnum = {
   deletedAt: 'deletedAt',
   deletionScheduledFor: 'deletionScheduledFor',
   profilePhotoUrl: 'profilePhotoUrl',
+  emailVerified: 'emailVerified',
   emailVerifiedAt: 'emailVerifiedAt',
   verificationToken: 'verificationToken',
+  verificationTokenExpiresAt: 'verificationTokenExpiresAt',
   resetPasswordToken: 'resetPasswordToken',
   resetPasswordExpiresAt: 'resetPasswordExpiresAt',
   refreshTokenHash: 'refreshTokenHash',
@@ -127,6 +139,11 @@ export const UserScalarFieldEnum = {
   lastLoginAt: 'lastLoginAt',
   loginAttempts: 'loginAttempts',
   lockedUntil: 'lockedUntil',
+  mfaEnabled: 'mfaEnabled',
+  mfaSecretEncrypted: 'mfaSecretEncrypted',
+  mfaPendingSecretEncrypted: 'mfaPendingSecretEncrypted',
+  mfaChallengeHash: 'mfaChallengeHash',
+  mfaChallengeExpiresAt: 'mfaChallengeExpiresAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   pushToken: 'pushToken',
@@ -653,6 +670,157 @@ export const ContactMessageScalarFieldEnum = {
 } as const
 
 export type ContactMessageScalarFieldEnum = (typeof ContactMessageScalarFieldEnum)[keyof typeof ContactMessageScalarFieldEnum]
+
+
+export const AiConversationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  hotelId: 'hotelId',
+  title: 'title',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AiConversationScalarFieldEnum = (typeof AiConversationScalarFieldEnum)[keyof typeof AiConversationScalarFieldEnum]
+
+
+export const AiMessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  role: 'role',
+  content: 'content',
+  toolCalls: 'toolCalls',
+  toolResults: 'toolResults',
+  createdAt: 'createdAt'
+} as const
+
+export type AiMessageScalarFieldEnum = (typeof AiMessageScalarFieldEnum)[keyof typeof AiMessageScalarFieldEnum]
+
+
+export const AiKnowledgeDocumentScalarFieldEnum = {
+  id: 'id',
+  hotelId: 'hotelId',
+  title: 'title',
+  content: 'content',
+  approved: 'approved',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AiKnowledgeDocumentScalarFieldEnum = (typeof AiKnowledgeDocumentScalarFieldEnum)[keyof typeof AiKnowledgeDocumentScalarFieldEnum]
+
+
+export const AiAuditLogScalarFieldEnum = {
+  id: 'id',
+  actorId: 'actorId',
+  actorRole: 'actorRole',
+  hotelId: 'hotelId',
+  toolName: 'toolName',
+  arguments: 'arguments',
+  resultSummary: 'resultSummary',
+  createdAt: 'createdAt'
+} as const
+
+export type AiAuditLogScalarFieldEnum = (typeof AiAuditLogScalarFieldEnum)[keyof typeof AiAuditLogScalarFieldEnum]
+
+
+export const SourceScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  url: 'url',
+  license: 'license',
+  verifiedBy: 'verifiedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SourceScalarFieldEnum = (typeof SourceScalarFieldEnum)[keyof typeof SourceScalarFieldEnum]
+
+
+export const PlaceScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  amharicName: 'amharicName',
+  description: 'description',
+  amharicDescription: 'amharicDescription',
+  category: 'category',
+  status: 'status',
+  address: 'address',
+  lat: 'lat',
+  lng: 'lng',
+  cityId: 'cityId',
+  phone: 'phone',
+  website: 'website',
+  openingHours: 'openingHours',
+  hoursVerified: 'hoursVerified',
+  priceLevel: 'priceLevel',
+  rating: 'rating',
+  images: 'images',
+  sourceId: 'sourceId',
+  lastVerifiedAt: 'lastVerifiedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlaceScalarFieldEnum = (typeof PlaceScalarFieldEnum)[keyof typeof PlaceScalarFieldEnum]
+
+
+export const TripScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  hotelId: 'hotelId',
+  bookingId: 'bookingId',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  timezone: 'timezone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type TripScalarFieldEnum = (typeof TripScalarFieldEnum)[keyof typeof TripScalarFieldEnum]
+
+
+export const TripItemScalarFieldEnum = {
+  id: 'id',
+  tripId: 'tripId',
+  dayDate: 'dayDate',
+  startTime: 'startTime',
+  durationMin: 'durationMin',
+  itemType: 'itemType',
+  placeId: 'placeId',
+  bookingId: 'bookingId',
+  title: 'title',
+  notes: 'notes',
+  costAmount: 'costAmount',
+  currency: 'currency',
+  status: 'status',
+  position: 'position',
+  createdBy: 'createdBy',
+  reminderSentAt: 'reminderSentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TripItemScalarFieldEnum = (typeof TripItemScalarFieldEnum)[keyof typeof TripItemScalarFieldEnum]
+
+
+export const EmergencyContactScalarFieldEnum = {
+  id: 'id',
+  city: 'city',
+  hotelId: 'hotelId',
+  kind: 'kind',
+  name: 'name',
+  phone: 'phone',
+  sourceId: 'sourceId',
+  lastVerifiedAt: 'lastVerifiedAt',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmergencyContactScalarFieldEnum = (typeof EmergencyContactScalarFieldEnum)[keyof typeof EmergencyContactScalarFieldEnum]
 
 
 export const SortOrder = {

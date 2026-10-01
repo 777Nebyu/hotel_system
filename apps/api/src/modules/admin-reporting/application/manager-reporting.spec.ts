@@ -69,7 +69,10 @@ describe('Manager Reporting & Hotel-Scoped Analytics', () => {
         },
       });
       expect(db.booking.count).toHaveBeenCalledWith({
-        where: { hotelId: 'hotel-1', status: { in: ['CONFIRMED', 'CHECKED_IN'] } },
+        where: {
+          hotelId: 'hotel-1',
+          status: { in: ['CONFIRMED', 'CHECKED_IN'] },
+        },
       });
     });
   });

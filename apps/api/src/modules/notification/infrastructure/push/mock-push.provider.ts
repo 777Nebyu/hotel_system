@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { PushMessage, PushNotificationProvider, PushSendResult } from './push.provider';
+import type {
+  PushMessage,
+  PushNotificationProvider,
+  PushSendResult,
+} from './push.provider';
 
 @Injectable()
 export class MockPushProvider implements PushNotificationProvider {

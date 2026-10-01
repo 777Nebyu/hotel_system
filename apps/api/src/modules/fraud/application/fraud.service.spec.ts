@@ -137,7 +137,11 @@ describe('FraudService', () => {
         flaggedAt: new Date(),
       });
 
-      const res = await service.flagUser('user-1', 'admin-1', 'Suspicious card usage');
+      const res = await service.flagUser(
+        'user-1',
+        'admin-1',
+        'Suspicious card usage',
+      );
 
       expect(res.isFlagged).toBe(true);
       expect(audit.record).toHaveBeenCalledWith(
@@ -168,7 +172,11 @@ describe('FraudService', () => {
         flaggedAt: null,
       });
 
-      const res = await service.unflagUser('user-1', 'admin-1', 'Verified legitimate user');
+      const res = await service.unflagUser(
+        'user-1',
+        'admin-1',
+        'Verified legitimate user',
+      );
 
       expect(res.isFlagged).toBe(false);
       expect(audit.record).toHaveBeenCalledWith(

@@ -37,6 +37,7 @@ export type UserSumAggregateOutputType = {
 export type UserMinAggregateOutputType = {
   id: string | null
   email: string | null
+  googleId: string | null
   passwordHash: string | null
   fullName: string | null
   phone: string | null
@@ -46,8 +47,10 @@ export type UserMinAggregateOutputType = {
   deletedAt: Date | null
   deletionScheduledFor: Date | null
   profilePhotoUrl: string | null
+  emailVerified: boolean | null
   emailVerifiedAt: Date | null
   verificationToken: string | null
+  verificationTokenExpiresAt: Date | null
   resetPasswordToken: string | null
   resetPasswordExpiresAt: Date | null
   refreshTokenHash: string | null
@@ -55,6 +58,11 @@ export type UserMinAggregateOutputType = {
   lastLoginAt: Date | null
   loginAttempts: number | null
   lockedUntil: Date | null
+  mfaEnabled: boolean | null
+  mfaSecretEncrypted: string | null
+  mfaPendingSecretEncrypted: string | null
+  mfaChallengeHash: string | null
+  mfaChallengeExpiresAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   pushToken: string | null
@@ -66,6 +74,7 @@ export type UserMinAggregateOutputType = {
 export type UserMaxAggregateOutputType = {
   id: string | null
   email: string | null
+  googleId: string | null
   passwordHash: string | null
   fullName: string | null
   phone: string | null
@@ -75,8 +84,10 @@ export type UserMaxAggregateOutputType = {
   deletedAt: Date | null
   deletionScheduledFor: Date | null
   profilePhotoUrl: string | null
+  emailVerified: boolean | null
   emailVerifiedAt: Date | null
   verificationToken: string | null
+  verificationTokenExpiresAt: Date | null
   resetPasswordToken: string | null
   resetPasswordExpiresAt: Date | null
   refreshTokenHash: string | null
@@ -84,6 +95,11 @@ export type UserMaxAggregateOutputType = {
   lastLoginAt: Date | null
   loginAttempts: number | null
   lockedUntil: Date | null
+  mfaEnabled: boolean | null
+  mfaSecretEncrypted: string | null
+  mfaPendingSecretEncrypted: string | null
+  mfaChallengeHash: string | null
+  mfaChallengeExpiresAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   pushToken: string | null
@@ -95,6 +111,7 @@ export type UserMaxAggregateOutputType = {
 export type UserCountAggregateOutputType = {
   id: number
   email: number
+  googleId: number
   passwordHash: number
   fullName: number
   phone: number
@@ -104,8 +121,10 @@ export type UserCountAggregateOutputType = {
   deletedAt: number
   deletionScheduledFor: number
   profilePhotoUrl: number
+  emailVerified: number
   emailVerifiedAt: number
   verificationToken: number
+  verificationTokenExpiresAt: number
   resetPasswordToken: number
   resetPasswordExpiresAt: number
   refreshTokenHash: number
@@ -113,6 +132,11 @@ export type UserCountAggregateOutputType = {
   lastLoginAt: number
   loginAttempts: number
   lockedUntil: number
+  mfaEnabled: number
+  mfaSecretEncrypted: number
+  mfaPendingSecretEncrypted: number
+  mfaChallengeHash: number
+  mfaChallengeExpiresAt: number
   createdAt: number
   updatedAt: number
   pushToken: number
@@ -134,6 +158,7 @@ export type UserSumAggregateInputType = {
 export type UserMinAggregateInputType = {
   id?: true
   email?: true
+  googleId?: true
   passwordHash?: true
   fullName?: true
   phone?: true
@@ -143,8 +168,10 @@ export type UserMinAggregateInputType = {
   deletedAt?: true
   deletionScheduledFor?: true
   profilePhotoUrl?: true
+  emailVerified?: true
   emailVerifiedAt?: true
   verificationToken?: true
+  verificationTokenExpiresAt?: true
   resetPasswordToken?: true
   resetPasswordExpiresAt?: true
   refreshTokenHash?: true
@@ -152,6 +179,11 @@ export type UserMinAggregateInputType = {
   lastLoginAt?: true
   loginAttempts?: true
   lockedUntil?: true
+  mfaEnabled?: true
+  mfaSecretEncrypted?: true
+  mfaPendingSecretEncrypted?: true
+  mfaChallengeHash?: true
+  mfaChallengeExpiresAt?: true
   createdAt?: true
   updatedAt?: true
   pushToken?: true
@@ -163,6 +195,7 @@ export type UserMinAggregateInputType = {
 export type UserMaxAggregateInputType = {
   id?: true
   email?: true
+  googleId?: true
   passwordHash?: true
   fullName?: true
   phone?: true
@@ -172,8 +205,10 @@ export type UserMaxAggregateInputType = {
   deletedAt?: true
   deletionScheduledFor?: true
   profilePhotoUrl?: true
+  emailVerified?: true
   emailVerifiedAt?: true
   verificationToken?: true
+  verificationTokenExpiresAt?: true
   resetPasswordToken?: true
   resetPasswordExpiresAt?: true
   refreshTokenHash?: true
@@ -181,6 +216,11 @@ export type UserMaxAggregateInputType = {
   lastLoginAt?: true
   loginAttempts?: true
   lockedUntil?: true
+  mfaEnabled?: true
+  mfaSecretEncrypted?: true
+  mfaPendingSecretEncrypted?: true
+  mfaChallengeHash?: true
+  mfaChallengeExpiresAt?: true
   createdAt?: true
   updatedAt?: true
   pushToken?: true
@@ -192,6 +232,7 @@ export type UserMaxAggregateInputType = {
 export type UserCountAggregateInputType = {
   id?: true
   email?: true
+  googleId?: true
   passwordHash?: true
   fullName?: true
   phone?: true
@@ -201,8 +242,10 @@ export type UserCountAggregateInputType = {
   deletedAt?: true
   deletionScheduledFor?: true
   profilePhotoUrl?: true
+  emailVerified?: true
   emailVerifiedAt?: true
   verificationToken?: true
+  verificationTokenExpiresAt?: true
   resetPasswordToken?: true
   resetPasswordExpiresAt?: true
   refreshTokenHash?: true
@@ -210,6 +253,11 @@ export type UserCountAggregateInputType = {
   lastLoginAt?: true
   loginAttempts?: true
   lockedUntil?: true
+  mfaEnabled?: true
+  mfaSecretEncrypted?: true
+  mfaPendingSecretEncrypted?: true
+  mfaChallengeHash?: true
+  mfaChallengeExpiresAt?: true
   createdAt?: true
   updatedAt?: true
   pushToken?: true
@@ -308,6 +356,7 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type UserGroupByOutputType = {
   id: string
   email: string
+  googleId: string | null
   passwordHash: string
   fullName: string
   phone: string | null
@@ -317,8 +366,10 @@ export type UserGroupByOutputType = {
   deletedAt: Date | null
   deletionScheduledFor: Date | null
   profilePhotoUrl: string | null
+  emailVerified: boolean
   emailVerifiedAt: Date | null
   verificationToken: string | null
+  verificationTokenExpiresAt: Date | null
   resetPasswordToken: string | null
   resetPasswordExpiresAt: Date | null
   refreshTokenHash: string | null
@@ -326,6 +377,11 @@ export type UserGroupByOutputType = {
   lastLoginAt: Date | null
   loginAttempts: number
   lockedUntil: Date | null
+  mfaEnabled: boolean
+  mfaSecretEncrypted: string | null
+  mfaPendingSecretEncrypted: string | null
+  mfaChallengeHash: string | null
+  mfaChallengeExpiresAt: Date | null
   createdAt: Date
   updatedAt: Date
   pushToken: string | null
@@ -360,6 +416,7 @@ export type UserWhereInput = {
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   id?: Prisma.StringFilter<"User"> | string
   email?: Prisma.StringFilter<"User"> | string
+  googleId?: Prisma.StringNullableFilter<"User"> | string | null
   passwordHash?: Prisma.StringFilter<"User"> | string
   fullName?: Prisma.StringFilter<"User"> | string
   phone?: Prisma.StringNullableFilter<"User"> | string | null
@@ -369,8 +426,10 @@ export type UserWhereInput = {
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   deletionScheduledFor?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   profilePhotoUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  emailVerified?: Prisma.BoolFilter<"User"> | boolean
   emailVerifiedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   verificationToken?: Prisma.StringNullableFilter<"User"> | string | null
+  verificationTokenExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   resetPasswordToken?: Prisma.StringNullableFilter<"User"> | string | null
   resetPasswordExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   refreshTokenHash?: Prisma.StringNullableFilter<"User"> | string | null
@@ -378,6 +437,11 @@ export type UserWhereInput = {
   lastLoginAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   loginAttempts?: Prisma.IntFilter<"User"> | number
   lockedUntil?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  mfaEnabled?: Prisma.BoolFilter<"User"> | boolean
+  mfaSecretEncrypted?: Prisma.StringNullableFilter<"User"> | string | null
+  mfaPendingSecretEncrypted?: Prisma.StringNullableFilter<"User"> | string | null
+  mfaChallengeHash?: Prisma.StringNullableFilter<"User"> | string | null
+  mfaChallengeExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   pushToken?: Prisma.StringNullableFilter<"User"> | string | null
@@ -403,11 +467,14 @@ export type UserWhereInput = {
   roomRelocations?: Prisma.RoomRelocationListRelationFilter
   contactThreads?: Prisma.ContactThreadListRelationFilter
   sentContactMessages?: Prisma.ContactMessageListRelationFilter
+  aiConversations?: Prisma.AiConversationListRelationFilter
+  trips?: Prisma.TripListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -417,8 +484,10 @@ export type UserOrderByWithRelationInput = {
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   deletionScheduledFor?: Prisma.SortOrderInput | Prisma.SortOrder
   profilePhotoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   verificationToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  verificationTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   resetPasswordToken?: Prisma.SortOrderInput | Prisma.SortOrder
   resetPasswordExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -426,6 +495,11 @@ export type UserOrderByWithRelationInput = {
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   loginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaEnabled?: Prisma.SortOrder
+  mfaSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaPendingSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaChallengeHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaChallengeExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pushToken?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -451,13 +525,17 @@ export type UserOrderByWithRelationInput = {
   roomRelocations?: Prisma.RoomRelocationOrderByRelationAggregateInput
   contactThreads?: Prisma.ContactThreadOrderByRelationAggregateInput
   sentContactMessages?: Prisma.ContactMessageOrderByRelationAggregateInput
+  aiConversations?: Prisma.AiConversationOrderByRelationAggregateInput
+  trips?: Prisma.TripOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
+  googleId?: string
   verificationToken?: string
   resetPasswordToken?: string
+  mfaChallengeHash?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
@@ -470,13 +548,19 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   deletionScheduledFor?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   profilePhotoUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  emailVerified?: Prisma.BoolFilter<"User"> | boolean
   emailVerifiedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  verificationTokenExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   resetPasswordExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   refreshTokenHash?: Prisma.StringNullableFilter<"User"> | string | null
   refreshTokenFamily?: Prisma.StringNullableFilter<"User"> | string | null
   lastLoginAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   loginAttempts?: Prisma.IntFilter<"User"> | number
   lockedUntil?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  mfaEnabled?: Prisma.BoolFilter<"User"> | boolean
+  mfaSecretEncrypted?: Prisma.StringNullableFilter<"User"> | string | null
+  mfaPendingSecretEncrypted?: Prisma.StringNullableFilter<"User"> | string | null
+  mfaChallengeExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   pushToken?: Prisma.StringNullableFilter<"User"> | string | null
@@ -502,11 +586,14 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   roomRelocations?: Prisma.RoomRelocationListRelationFilter
   contactThreads?: Prisma.ContactThreadListRelationFilter
   sentContactMessages?: Prisma.ContactMessageListRelationFilter
-}, "id" | "email" | "verificationToken" | "resetPasswordToken">
+  aiConversations?: Prisma.AiConversationListRelationFilter
+  trips?: Prisma.TripListRelationFilter
+}, "id" | "email" | "googleId" | "verificationToken" | "resetPasswordToken" | "mfaChallengeHash">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -516,8 +603,10 @@ export type UserOrderByWithAggregationInput = {
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   deletionScheduledFor?: Prisma.SortOrderInput | Prisma.SortOrder
   profilePhotoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   verificationToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  verificationTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   resetPasswordToken?: Prisma.SortOrderInput | Prisma.SortOrder
   resetPasswordExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   refreshTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -525,6 +614,11 @@ export type UserOrderByWithAggregationInput = {
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   loginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaEnabled?: Prisma.SortOrder
+  mfaSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaPendingSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaChallengeHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaChallengeExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pushToken?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -544,6 +638,7 @@ export type UserScalarWhereWithAggregatesInput = {
   NOT?: Prisma.UserScalarWhereWithAggregatesInput | Prisma.UserScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"User"> | string
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
+  googleId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
   fullName?: Prisma.StringWithAggregatesFilter<"User"> | string
   phone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -553,8 +648,10 @@ export type UserScalarWhereWithAggregatesInput = {
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   deletionScheduledFor?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   profilePhotoUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  emailVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   emailVerifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   verificationToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  verificationTokenExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   resetPasswordToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   resetPasswordExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   refreshTokenHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -562,6 +659,11 @@ export type UserScalarWhereWithAggregatesInput = {
   lastLoginAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   loginAttempts?: Prisma.IntWithAggregatesFilter<"User"> | number
   lockedUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  mfaEnabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  mfaSecretEncrypted?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  mfaPendingSecretEncrypted?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  mfaChallengeHash?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  mfaChallengeExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   pushToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -573,6 +675,7 @@ export type UserScalarWhereWithAggregatesInput = {
 export type UserCreateInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -582,8 +685,10 @@ export type UserCreateInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -591,6 +696,11 @@ export type UserCreateInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -616,11 +726,14 @@ export type UserCreateInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -630,8 +743,10 @@ export type UserUncheckedCreateInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -639,6 +754,11 @@ export type UserUncheckedCreateInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -664,11 +784,14 @@ export type UserUncheckedCreateInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -678,8 +801,10 @@ export type UserUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -687,6 +812,11 @@ export type UserUpdateInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -712,11 +842,14 @@ export type UserUpdateInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -726,8 +859,10 @@ export type UserUncheckedUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -735,6 +870,11 @@ export type UserUncheckedUpdateInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -760,11 +900,14 @@ export type UserUncheckedUpdateInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -774,8 +917,10 @@ export type UserCreateManyInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -783,6 +928,11 @@ export type UserCreateManyInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -794,6 +944,7 @@ export type UserCreateManyInput = {
 export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -803,8 +954,10 @@ export type UserUpdateManyMutationInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -812,6 +965,11 @@ export type UserUpdateManyMutationInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -823,6 +981,7 @@ export type UserUpdateManyMutationInput = {
 export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -832,8 +991,10 @@ export type UserUncheckedUpdateManyInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -841,6 +1002,11 @@ export type UserUncheckedUpdateManyInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -852,6 +1018,7 @@ export type UserUncheckedUpdateManyInput = {
 export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  googleId?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   phone?: Prisma.SortOrder
@@ -861,8 +1028,10 @@ export type UserCountOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder
   deletionScheduledFor?: Prisma.SortOrder
   profilePhotoUrl?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrder
   verificationToken?: Prisma.SortOrder
+  verificationTokenExpiresAt?: Prisma.SortOrder
   resetPasswordToken?: Prisma.SortOrder
   resetPasswordExpiresAt?: Prisma.SortOrder
   refreshTokenHash?: Prisma.SortOrder
@@ -870,6 +1039,11 @@ export type UserCountOrderByAggregateInput = {
   lastLoginAt?: Prisma.SortOrder
   loginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
+  mfaEnabled?: Prisma.SortOrder
+  mfaSecretEncrypted?: Prisma.SortOrder
+  mfaPendingSecretEncrypted?: Prisma.SortOrder
+  mfaChallengeHash?: Prisma.SortOrder
+  mfaChallengeExpiresAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pushToken?: Prisma.SortOrder
@@ -885,6 +1059,7 @@ export type UserAvgOrderByAggregateInput = {
 export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  googleId?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   phone?: Prisma.SortOrder
@@ -894,8 +1069,10 @@ export type UserMaxOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder
   deletionScheduledFor?: Prisma.SortOrder
   profilePhotoUrl?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrder
   verificationToken?: Prisma.SortOrder
+  verificationTokenExpiresAt?: Prisma.SortOrder
   resetPasswordToken?: Prisma.SortOrder
   resetPasswordExpiresAt?: Prisma.SortOrder
   refreshTokenHash?: Prisma.SortOrder
@@ -903,6 +1080,11 @@ export type UserMaxOrderByAggregateInput = {
   lastLoginAt?: Prisma.SortOrder
   loginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
+  mfaEnabled?: Prisma.SortOrder
+  mfaSecretEncrypted?: Prisma.SortOrder
+  mfaPendingSecretEncrypted?: Prisma.SortOrder
+  mfaChallengeHash?: Prisma.SortOrder
+  mfaChallengeExpiresAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pushToken?: Prisma.SortOrder
@@ -914,6 +1096,7 @@ export type UserMaxOrderByAggregateInput = {
 export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  googleId?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   phone?: Prisma.SortOrder
@@ -923,8 +1106,10 @@ export type UserMinOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder
   deletionScheduledFor?: Prisma.SortOrder
   profilePhotoUrl?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrder
   verificationToken?: Prisma.SortOrder
+  verificationTokenExpiresAt?: Prisma.SortOrder
   resetPasswordToken?: Prisma.SortOrder
   resetPasswordExpiresAt?: Prisma.SortOrder
   refreshTokenHash?: Prisma.SortOrder
@@ -932,6 +1117,11 @@ export type UserMinOrderByAggregateInput = {
   lastLoginAt?: Prisma.SortOrder
   loginAttempts?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
+  mfaEnabled?: Prisma.SortOrder
+  mfaSecretEncrypted?: Prisma.SortOrder
+  mfaPendingSecretEncrypted?: Prisma.SortOrder
+  mfaChallengeHash?: Prisma.SortOrder
+  mfaChallengeExpiresAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   pushToken?: Prisma.SortOrder
@@ -1266,9 +1456,38 @@ export type UserUpdateOneRequiredWithoutSentContactMessagesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSentContactMessagesInput, Prisma.UserUpdateWithoutSentContactMessagesInput>, Prisma.UserUncheckedUpdateWithoutSentContactMessagesInput>
 }
 
+export type UserCreateNestedOneWithoutAiConversationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAiConversationsInput, Prisma.UserUncheckedCreateWithoutAiConversationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAiConversationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAiConversationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAiConversationsInput, Prisma.UserUncheckedCreateWithoutAiConversationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAiConversationsInput
+  upsert?: Prisma.UserUpsertWithoutAiConversationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAiConversationsInput, Prisma.UserUpdateWithoutAiConversationsInput>, Prisma.UserUncheckedUpdateWithoutAiConversationsInput>
+}
+
+export type UserCreateNestedOneWithoutTripsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTripsInput, Prisma.UserUncheckedCreateWithoutTripsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTripsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTripsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTripsInput, Prisma.UserUncheckedCreateWithoutTripsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTripsInput
+  upsert?: Prisma.UserUpsertWithoutTripsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTripsInput, Prisma.UserUpdateWithoutTripsInput>, Prisma.UserUncheckedUpdateWithoutTripsInput>
+}
+
 export type UserCreateWithoutHotelsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -1278,8 +1497,10 @@ export type UserCreateWithoutHotelsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -1287,6 +1508,11 @@ export type UserCreateWithoutHotelsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -1311,11 +1537,14 @@ export type UserCreateWithoutHotelsInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutHotelsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -1325,8 +1554,10 @@ export type UserUncheckedCreateWithoutHotelsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -1334,6 +1565,11 @@ export type UserUncheckedCreateWithoutHotelsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -1358,6 +1594,8 @@ export type UserUncheckedCreateWithoutHotelsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutHotelsInput = {
@@ -1379,6 +1617,7 @@ export type UserUpdateToOneWithWhereWithoutHotelsInput = {
 export type UserUpdateWithoutHotelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1388,8 +1627,10 @@ export type UserUpdateWithoutHotelsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1397,6 +1638,11 @@ export type UserUpdateWithoutHotelsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1421,11 +1667,14 @@ export type UserUpdateWithoutHotelsInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutHotelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1435,8 +1684,10 @@ export type UserUncheckedUpdateWithoutHotelsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1444,6 +1695,11 @@ export type UserUncheckedUpdateWithoutHotelsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1468,11 +1724,14 @@ export type UserUncheckedUpdateWithoutHotelsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutBookingsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -1482,8 +1741,10 @@ export type UserCreateWithoutBookingsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -1491,6 +1752,11 @@ export type UserCreateWithoutBookingsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -1515,11 +1781,14 @@ export type UserCreateWithoutBookingsInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutBookingsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -1529,8 +1798,10 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -1538,6 +1809,11 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -1562,6 +1838,8 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutBookingsInput = {
@@ -1583,6 +1861,7 @@ export type UserUpdateToOneWithWhereWithoutBookingsInput = {
 export type UserUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1592,8 +1871,10 @@ export type UserUpdateWithoutBookingsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1601,6 +1882,11 @@ export type UserUpdateWithoutBookingsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1625,11 +1911,14 @@ export type UserUpdateWithoutBookingsInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBookingsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1639,8 +1928,10 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1648,6 +1939,11 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1672,11 +1968,14 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutReviewsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -1686,8 +1985,10 @@ export type UserCreateWithoutReviewsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -1695,6 +1996,11 @@ export type UserCreateWithoutReviewsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -1719,11 +2025,14 @@ export type UserCreateWithoutReviewsInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -1733,8 +2042,10 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -1742,6 +2053,11 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -1766,6 +2082,8 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -1776,6 +2094,7 @@ export type UserCreateOrConnectWithoutReviewsInput = {
 export type UserCreateWithoutReviewResponsesInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -1785,8 +2104,10 @@ export type UserCreateWithoutReviewResponsesInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -1794,6 +2115,11 @@ export type UserCreateWithoutReviewResponsesInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -1818,11 +2144,14 @@ export type UserCreateWithoutReviewResponsesInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutReviewResponsesInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -1832,8 +2161,10 @@ export type UserUncheckedCreateWithoutReviewResponsesInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -1841,6 +2172,11 @@ export type UserUncheckedCreateWithoutReviewResponsesInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -1865,6 +2201,8 @@ export type UserUncheckedCreateWithoutReviewResponsesInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewResponsesInput = {
@@ -1886,6 +2224,7 @@ export type UserUpdateToOneWithWhereWithoutReviewsInput = {
 export type UserUpdateWithoutReviewsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1895,8 +2234,10 @@ export type UserUpdateWithoutReviewsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1904,6 +2245,11 @@ export type UserUpdateWithoutReviewsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1928,11 +2274,14 @@ export type UserUpdateWithoutReviewsInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1942,8 +2291,10 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1951,6 +2302,11 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1975,6 +2331,8 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutReviewResponsesInput = {
@@ -1991,6 +2349,7 @@ export type UserUpdateToOneWithWhereWithoutReviewResponsesInput = {
 export type UserUpdateWithoutReviewResponsesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2000,8 +2359,10 @@ export type UserUpdateWithoutReviewResponsesInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2009,6 +2370,11 @@ export type UserUpdateWithoutReviewResponsesInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2033,11 +2399,14 @@ export type UserUpdateWithoutReviewResponsesInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewResponsesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2047,8 +2416,10 @@ export type UserUncheckedUpdateWithoutReviewResponsesInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2056,6 +2427,11 @@ export type UserUncheckedUpdateWithoutReviewResponsesInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2080,11 +2456,14 @@ export type UserUncheckedUpdateWithoutReviewResponsesInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutFavoritesInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -2094,8 +2473,10 @@ export type UserCreateWithoutFavoritesInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -2103,6 +2484,11 @@ export type UserCreateWithoutFavoritesInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -2127,11 +2513,14 @@ export type UserCreateWithoutFavoritesInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFavoritesInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -2141,8 +2530,10 @@ export type UserUncheckedCreateWithoutFavoritesInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -2150,6 +2541,11 @@ export type UserUncheckedCreateWithoutFavoritesInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -2174,6 +2570,8 @@ export type UserUncheckedCreateWithoutFavoritesInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFavoritesInput = {
@@ -2195,6 +2593,7 @@ export type UserUpdateToOneWithWhereWithoutFavoritesInput = {
 export type UserUpdateWithoutFavoritesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2204,8 +2603,10 @@ export type UserUpdateWithoutFavoritesInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2213,6 +2614,11 @@ export type UserUpdateWithoutFavoritesInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2237,11 +2643,14 @@ export type UserUpdateWithoutFavoritesInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFavoritesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2251,8 +2660,10 @@ export type UserUncheckedUpdateWithoutFavoritesInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2260,6 +2671,11 @@ export type UserUncheckedUpdateWithoutFavoritesInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2284,11 +2700,14 @@ export type UserUncheckedUpdateWithoutFavoritesInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -2298,8 +2717,10 @@ export type UserCreateWithoutNotificationsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -2307,6 +2728,11 @@ export type UserCreateWithoutNotificationsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -2331,11 +2757,14 @@ export type UserCreateWithoutNotificationsInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -2345,8 +2774,10 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -2354,6 +2785,11 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -2378,6 +2814,8 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -2399,6 +2837,7 @@ export type UserUpdateToOneWithWhereWithoutNotificationsInput = {
 export type UserUpdateWithoutNotificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2408,8 +2847,10 @@ export type UserUpdateWithoutNotificationsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2417,6 +2858,11 @@ export type UserUpdateWithoutNotificationsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2441,11 +2887,14 @@ export type UserUpdateWithoutNotificationsInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2455,8 +2904,10 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2464,6 +2915,11 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2488,11 +2944,14 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAuditLogsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -2502,8 +2961,10 @@ export type UserCreateWithoutAuditLogsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -2511,6 +2972,11 @@ export type UserCreateWithoutAuditLogsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -2535,11 +3001,14 @@ export type UserCreateWithoutAuditLogsInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditLogsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -2549,8 +3018,10 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -2558,6 +3029,11 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -2582,6 +3058,8 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -2603,6 +3081,7 @@ export type UserUpdateToOneWithWhereWithoutAuditLogsInput = {
 export type UserUpdateWithoutAuditLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2612,8 +3091,10 @@ export type UserUpdateWithoutAuditLogsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2621,6 +3102,11 @@ export type UserUpdateWithoutAuditLogsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2645,11 +3131,14 @@ export type UserUpdateWithoutAuditLogsInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2659,8 +3148,10 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2668,6 +3159,11 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2692,11 +3188,14 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNotificationPreferencesInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -2706,8 +3205,10 @@ export type UserCreateWithoutNotificationPreferencesInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -2715,6 +3216,11 @@ export type UserCreateWithoutNotificationPreferencesInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -2739,11 +3245,14 @@ export type UserCreateWithoutNotificationPreferencesInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotificationPreferencesInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -2753,8 +3262,10 @@ export type UserUncheckedCreateWithoutNotificationPreferencesInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -2762,6 +3273,11 @@ export type UserUncheckedCreateWithoutNotificationPreferencesInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -2786,6 +3302,8 @@ export type UserUncheckedCreateWithoutNotificationPreferencesInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotificationPreferencesInput = {
@@ -2807,6 +3325,7 @@ export type UserUpdateToOneWithWhereWithoutNotificationPreferencesInput = {
 export type UserUpdateWithoutNotificationPreferencesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2816,8 +3335,10 @@ export type UserUpdateWithoutNotificationPreferencesInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2825,6 +3346,11 @@ export type UserUpdateWithoutNotificationPreferencesInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2849,11 +3375,14 @@ export type UserUpdateWithoutNotificationPreferencesInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationPreferencesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2863,8 +3392,10 @@ export type UserUncheckedUpdateWithoutNotificationPreferencesInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2872,6 +3403,11 @@ export type UserUncheckedUpdateWithoutNotificationPreferencesInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2896,11 +3432,14 @@ export type UserUncheckedUpdateWithoutNotificationPreferencesInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutStaffHotelsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -2910,8 +3449,10 @@ export type UserCreateWithoutStaffHotelsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -2919,6 +3460,11 @@ export type UserCreateWithoutStaffHotelsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -2943,11 +3489,14 @@ export type UserCreateWithoutStaffHotelsInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutStaffHotelsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -2957,8 +3506,10 @@ export type UserUncheckedCreateWithoutStaffHotelsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -2966,6 +3517,11 @@ export type UserUncheckedCreateWithoutStaffHotelsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -2990,6 +3546,8 @@ export type UserUncheckedCreateWithoutStaffHotelsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutStaffHotelsInput = {
@@ -3011,6 +3569,7 @@ export type UserUpdateToOneWithWhereWithoutStaffHotelsInput = {
 export type UserUpdateWithoutStaffHotelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3020,8 +3579,10 @@ export type UserUpdateWithoutStaffHotelsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3029,6 +3590,11 @@ export type UserUpdateWithoutStaffHotelsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3053,11 +3619,14 @@ export type UserUpdateWithoutStaffHotelsInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStaffHotelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3067,8 +3636,10 @@ export type UserUncheckedUpdateWithoutStaffHotelsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3076,6 +3647,11 @@ export type UserUncheckedUpdateWithoutStaffHotelsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3100,11 +3676,14 @@ export type UserUncheckedUpdateWithoutStaffHotelsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutDisputesOpenedInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -3114,8 +3693,10 @@ export type UserCreateWithoutDisputesOpenedInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -3123,6 +3704,11 @@ export type UserCreateWithoutDisputesOpenedInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -3147,11 +3733,14 @@ export type UserCreateWithoutDisputesOpenedInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDisputesOpenedInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -3161,8 +3750,10 @@ export type UserUncheckedCreateWithoutDisputesOpenedInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -3170,6 +3761,11 @@ export type UserUncheckedCreateWithoutDisputesOpenedInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -3194,6 +3790,8 @@ export type UserUncheckedCreateWithoutDisputesOpenedInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDisputesOpenedInput = {
@@ -3215,6 +3813,7 @@ export type UserUpdateToOneWithWhereWithoutDisputesOpenedInput = {
 export type UserUpdateWithoutDisputesOpenedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3224,8 +3823,10 @@ export type UserUpdateWithoutDisputesOpenedInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3233,6 +3834,11 @@ export type UserUpdateWithoutDisputesOpenedInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3257,11 +3863,14 @@ export type UserUpdateWithoutDisputesOpenedInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDisputesOpenedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3271,8 +3880,10 @@ export type UserUncheckedUpdateWithoutDisputesOpenedInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3280,6 +3891,11 @@ export type UserUncheckedUpdateWithoutDisputesOpenedInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3304,11 +3920,14 @@ export type UserUncheckedUpdateWithoutDisputesOpenedInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSuspensionRequestsMadeInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -3318,8 +3937,10 @@ export type UserCreateWithoutSuspensionRequestsMadeInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -3327,6 +3948,11 @@ export type UserCreateWithoutSuspensionRequestsMadeInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -3351,11 +3977,14 @@ export type UserCreateWithoutSuspensionRequestsMadeInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSuspensionRequestsMadeInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -3365,8 +3994,10 @@ export type UserUncheckedCreateWithoutSuspensionRequestsMadeInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -3374,6 +4005,11 @@ export type UserUncheckedCreateWithoutSuspensionRequestsMadeInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -3398,6 +4034,8 @@ export type UserUncheckedCreateWithoutSuspensionRequestsMadeInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSuspensionRequestsMadeInput = {
@@ -3408,6 +4046,7 @@ export type UserCreateOrConnectWithoutSuspensionRequestsMadeInput = {
 export type UserCreateWithoutSuspensionRequestsApprovedInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -3417,8 +4056,10 @@ export type UserCreateWithoutSuspensionRequestsApprovedInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -3426,6 +4067,11 @@ export type UserCreateWithoutSuspensionRequestsApprovedInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -3450,11 +4096,14 @@ export type UserCreateWithoutSuspensionRequestsApprovedInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSuspensionRequestsApprovedInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -3464,8 +4113,10 @@ export type UserUncheckedCreateWithoutSuspensionRequestsApprovedInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -3473,6 +4124,11 @@ export type UserUncheckedCreateWithoutSuspensionRequestsApprovedInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -3497,6 +4153,8 @@ export type UserUncheckedCreateWithoutSuspensionRequestsApprovedInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSuspensionRequestsApprovedInput = {
@@ -3518,6 +4176,7 @@ export type UserUpdateToOneWithWhereWithoutSuspensionRequestsMadeInput = {
 export type UserUpdateWithoutSuspensionRequestsMadeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3527,8 +4186,10 @@ export type UserUpdateWithoutSuspensionRequestsMadeInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3536,6 +4197,11 @@ export type UserUpdateWithoutSuspensionRequestsMadeInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3560,11 +4226,14 @@ export type UserUpdateWithoutSuspensionRequestsMadeInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSuspensionRequestsMadeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3574,8 +4243,10 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsMadeInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3583,6 +4254,11 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsMadeInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3607,6 +4283,8 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsMadeInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutSuspensionRequestsApprovedInput = {
@@ -3623,6 +4301,7 @@ export type UserUpdateToOneWithWhereWithoutSuspensionRequestsApprovedInput = {
 export type UserUpdateWithoutSuspensionRequestsApprovedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3632,8 +4311,10 @@ export type UserUpdateWithoutSuspensionRequestsApprovedInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3641,6 +4322,11 @@ export type UserUpdateWithoutSuspensionRequestsApprovedInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3665,11 +4351,14 @@ export type UserUpdateWithoutSuspensionRequestsApprovedInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSuspensionRequestsApprovedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3679,8 +4368,10 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsApprovedInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3688,6 +4379,11 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsApprovedInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3712,11 +4408,14 @@ export type UserUncheckedUpdateWithoutSuspensionRequestsApprovedInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRoomHoldsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -3726,8 +4425,10 @@ export type UserCreateWithoutRoomHoldsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -3735,6 +4436,11 @@ export type UserCreateWithoutRoomHoldsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -3759,11 +4465,14 @@ export type UserCreateWithoutRoomHoldsInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRoomHoldsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -3773,8 +4482,10 @@ export type UserUncheckedCreateWithoutRoomHoldsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -3782,6 +4493,11 @@ export type UserUncheckedCreateWithoutRoomHoldsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -3806,6 +4522,8 @@ export type UserUncheckedCreateWithoutRoomHoldsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRoomHoldsInput = {
@@ -3827,6 +4545,7 @@ export type UserUpdateToOneWithWhereWithoutRoomHoldsInput = {
 export type UserUpdateWithoutRoomHoldsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3836,8 +4555,10 @@ export type UserUpdateWithoutRoomHoldsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3845,6 +4566,11 @@ export type UserUpdateWithoutRoomHoldsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3869,11 +4595,14 @@ export type UserUpdateWithoutRoomHoldsInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRoomHoldsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3883,8 +4612,10 @@ export type UserUncheckedUpdateWithoutRoomHoldsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3892,6 +4623,11 @@ export type UserUncheckedUpdateWithoutRoomHoldsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3916,11 +4652,14 @@ export type UserUncheckedUpdateWithoutRoomHoldsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutStayRequestsDecidedInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -3930,8 +4669,10 @@ export type UserCreateWithoutStayRequestsDecidedInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -3939,6 +4680,11 @@ export type UserCreateWithoutStayRequestsDecidedInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -3963,11 +4709,14 @@ export type UserCreateWithoutStayRequestsDecidedInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutStayRequestsDecidedInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -3977,8 +4726,10 @@ export type UserUncheckedCreateWithoutStayRequestsDecidedInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -3986,6 +4737,11 @@ export type UserUncheckedCreateWithoutStayRequestsDecidedInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -4010,6 +4766,8 @@ export type UserUncheckedCreateWithoutStayRequestsDecidedInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutStayRequestsDecidedInput = {
@@ -4031,6 +4789,7 @@ export type UserUpdateToOneWithWhereWithoutStayRequestsDecidedInput = {
 export type UserUpdateWithoutStayRequestsDecidedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4040,8 +4799,10 @@ export type UserUpdateWithoutStayRequestsDecidedInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4049,6 +4810,11 @@ export type UserUpdateWithoutStayRequestsDecidedInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4073,11 +4839,14 @@ export type UserUpdateWithoutStayRequestsDecidedInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStayRequestsDecidedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4087,8 +4856,10 @@ export type UserUncheckedUpdateWithoutStayRequestsDecidedInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4096,6 +4867,11 @@ export type UserUncheckedUpdateWithoutStayRequestsDecidedInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4120,11 +4896,14 @@ export type UserUncheckedUpdateWithoutStayRequestsDecidedInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -4134,8 +4913,10 @@ export type UserCreateWithoutSessionsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -4143,6 +4924,11 @@ export type UserCreateWithoutSessionsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -4167,11 +4953,14 @@ export type UserCreateWithoutSessionsInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -4181,8 +4970,10 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -4190,6 +4981,11 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -4214,6 +5010,8 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -4235,6 +5033,7 @@ export type UserUpdateToOneWithWhereWithoutSessionsInput = {
 export type UserUpdateWithoutSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4244,8 +5043,10 @@ export type UserUpdateWithoutSessionsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4253,6 +5054,11 @@ export type UserUpdateWithoutSessionsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4277,11 +5083,14 @@ export type UserUpdateWithoutSessionsInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4291,8 +5100,10 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4300,6 +5111,11 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4324,11 +5140,14 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutBookingModificationsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -4338,8 +5157,10 @@ export type UserCreateWithoutBookingModificationsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -4347,6 +5168,11 @@ export type UserCreateWithoutBookingModificationsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -4371,11 +5197,14 @@ export type UserCreateWithoutBookingModificationsInput = {
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutBookingModificationsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -4385,8 +5214,10 @@ export type UserUncheckedCreateWithoutBookingModificationsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -4394,6 +5225,11 @@ export type UserUncheckedCreateWithoutBookingModificationsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -4418,6 +5254,8 @@ export type UserUncheckedCreateWithoutBookingModificationsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutBookingModificationsInput = {
@@ -4439,6 +5277,7 @@ export type UserUpdateToOneWithWhereWithoutBookingModificationsInput = {
 export type UserUpdateWithoutBookingModificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4448,8 +5287,10 @@ export type UserUpdateWithoutBookingModificationsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4457,6 +5298,11 @@ export type UserUpdateWithoutBookingModificationsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4481,11 +5327,14 @@ export type UserUpdateWithoutBookingModificationsInput = {
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBookingModificationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4495,8 +5344,10 @@ export type UserUncheckedUpdateWithoutBookingModificationsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4504,6 +5355,11 @@ export type UserUncheckedUpdateWithoutBookingModificationsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4528,11 +5384,14 @@ export type UserUncheckedUpdateWithoutBookingModificationsInput = {
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRoomRelocationsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -4542,8 +5401,10 @@ export type UserCreateWithoutRoomRelocationsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -4551,6 +5412,11 @@ export type UserCreateWithoutRoomRelocationsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -4575,11 +5441,14 @@ export type UserCreateWithoutRoomRelocationsInput = {
   bookingModifications?: Prisma.BookingModificationCreateNestedManyWithoutRequestedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRoomRelocationsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -4589,8 +5458,10 @@ export type UserUncheckedCreateWithoutRoomRelocationsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -4598,6 +5469,11 @@ export type UserUncheckedCreateWithoutRoomRelocationsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -4622,6 +5498,8 @@ export type UserUncheckedCreateWithoutRoomRelocationsInput = {
   bookingModifications?: Prisma.BookingModificationUncheckedCreateNestedManyWithoutRequestedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRoomRelocationsInput = {
@@ -4643,6 +5521,7 @@ export type UserUpdateToOneWithWhereWithoutRoomRelocationsInput = {
 export type UserUpdateWithoutRoomRelocationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4652,8 +5531,10 @@ export type UserUpdateWithoutRoomRelocationsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4661,6 +5542,11 @@ export type UserUpdateWithoutRoomRelocationsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4685,11 +5571,14 @@ export type UserUpdateWithoutRoomRelocationsInput = {
   bookingModifications?: Prisma.BookingModificationUpdateManyWithoutRequestedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRoomRelocationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4699,8 +5588,10 @@ export type UserUncheckedUpdateWithoutRoomRelocationsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4708,6 +5599,11 @@ export type UserUncheckedUpdateWithoutRoomRelocationsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4732,11 +5628,14 @@ export type UserUncheckedUpdateWithoutRoomRelocationsInput = {
   bookingModifications?: Prisma.BookingModificationUncheckedUpdateManyWithoutRequestedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutContactThreadsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -4746,8 +5645,10 @@ export type UserCreateWithoutContactThreadsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -4755,6 +5656,11 @@ export type UserCreateWithoutContactThreadsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -4779,11 +5685,14 @@ export type UserCreateWithoutContactThreadsInput = {
   bookingModifications?: Prisma.BookingModificationCreateNestedManyWithoutRequestedByInput
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactThreadsInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -4793,8 +5702,10 @@ export type UserUncheckedCreateWithoutContactThreadsInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -4802,6 +5713,11 @@ export type UserUncheckedCreateWithoutContactThreadsInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -4826,6 +5742,8 @@ export type UserUncheckedCreateWithoutContactThreadsInput = {
   bookingModifications?: Prisma.BookingModificationUncheckedCreateNestedManyWithoutRequestedByInput
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactThreadsInput = {
@@ -4847,6 +5765,7 @@ export type UserUpdateToOneWithWhereWithoutContactThreadsInput = {
 export type UserUpdateWithoutContactThreadsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4856,8 +5775,10 @@ export type UserUpdateWithoutContactThreadsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4865,6 +5786,11 @@ export type UserUpdateWithoutContactThreadsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4889,11 +5815,14 @@ export type UserUpdateWithoutContactThreadsInput = {
   bookingModifications?: Prisma.BookingModificationUpdateManyWithoutRequestedByNestedInput
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactThreadsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4903,8 +5832,10 @@ export type UserUncheckedUpdateWithoutContactThreadsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4912,6 +5843,11 @@ export type UserUncheckedUpdateWithoutContactThreadsInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4936,11 +5872,14 @@ export type UserUncheckedUpdateWithoutContactThreadsInput = {
   bookingModifications?: Prisma.BookingModificationUncheckedUpdateManyWithoutRequestedByNestedInput
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSentContactMessagesInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -4950,8 +5889,10 @@ export type UserCreateWithoutSentContactMessagesInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -4959,6 +5900,11 @@ export type UserCreateWithoutSentContactMessagesInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -4983,11 +5929,14 @@ export type UserCreateWithoutSentContactMessagesInput = {
   bookingModifications?: Prisma.BookingModificationCreateNestedManyWithoutRequestedByInput
   roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSentContactMessagesInput = {
   id?: string
   email: string
+  googleId?: string | null
   passwordHash: string
   fullName: string
   phone?: string | null
@@ -4997,8 +5946,10 @@ export type UserUncheckedCreateWithoutSentContactMessagesInput = {
   deletedAt?: Date | string | null
   deletionScheduledFor?: Date | string | null
   profilePhotoUrl?: string | null
+  emailVerified?: boolean
   emailVerifiedAt?: Date | string | null
   verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
   resetPasswordToken?: string | null
   resetPasswordExpiresAt?: Date | string | null
   refreshTokenHash?: string | null
@@ -5006,6 +5957,11 @@ export type UserUncheckedCreateWithoutSentContactMessagesInput = {
   lastLoginAt?: Date | string | null
   loginAttempts?: number
   lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   pushToken?: string | null
@@ -5030,6 +5986,8 @@ export type UserUncheckedCreateWithoutSentContactMessagesInput = {
   bookingModifications?: Prisma.BookingModificationUncheckedCreateNestedManyWithoutRequestedByInput
   roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
   contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSentContactMessagesInput = {
@@ -5051,6 +6009,7 @@ export type UserUpdateToOneWithWhereWithoutSentContactMessagesInput = {
 export type UserUpdateWithoutSentContactMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5060,8 +6019,10 @@ export type UserUpdateWithoutSentContactMessagesInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5069,6 +6030,11 @@ export type UserUpdateWithoutSentContactMessagesInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5093,11 +6059,14 @@ export type UserUpdateWithoutSentContactMessagesInput = {
   bookingModifications?: Prisma.BookingModificationUpdateManyWithoutRequestedByNestedInput
   roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentContactMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5107,8 +6076,10 @@ export type UserUncheckedUpdateWithoutSentContactMessagesInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5116,6 +6087,11 @@ export type UserUncheckedUpdateWithoutSentContactMessagesInput = {
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5140,6 +6116,496 @@ export type UserUncheckedUpdateWithoutSentContactMessagesInput = {
   bookingModifications?: Prisma.BookingModificationUncheckedUpdateManyWithoutRequestedByNestedInput
   roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
   contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutAiConversationsInput = {
+  id?: string
+  email: string
+  googleId?: string | null
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  role?: $Enums.Role
+  isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
+  profilePhotoUrl?: string | null
+  emailVerified?: boolean
+  emailVerifiedAt?: Date | string | null
+  verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
+  resetPasswordToken?: string | null
+  resetPasswordExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  refreshTokenFamily?: string | null
+  lastLoginAt?: Date | string | null
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
+  hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
+  staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  reviewResponses?: Prisma.ReviewCreateNestedManyWithoutRespondedByInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  notificationPreferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
+  bookingModifications?: Prisma.BookingModificationCreateNestedManyWithoutRequestedByInput
+  roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
+  contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
+  sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  trips?: Prisma.TripCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAiConversationsInput = {
+  id?: string
+  email: string
+  googleId?: string | null
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  role?: $Enums.Role
+  isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
+  profilePhotoUrl?: string | null
+  emailVerified?: boolean
+  emailVerifiedAt?: Date | string | null
+  verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
+  resetPasswordToken?: string | null
+  resetPasswordExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  refreshTokenFamily?: string | null
+  lastLoginAt?: Date | string | null
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
+  hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
+  staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  reviewResponses?: Prisma.ReviewUncheckedCreateNestedManyWithoutRespondedByInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  notificationPreferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
+  bookingModifications?: Prisma.BookingModificationUncheckedCreateNestedManyWithoutRequestedByInput
+  roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
+  contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
+  sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  trips?: Prisma.TripUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAiConversationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAiConversationsInput, Prisma.UserUncheckedCreateWithoutAiConversationsInput>
+}
+
+export type UserUpsertWithoutAiConversationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAiConversationsInput, Prisma.UserUncheckedUpdateWithoutAiConversationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAiConversationsInput, Prisma.UserUncheckedCreateWithoutAiConversationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAiConversationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAiConversationsInput, Prisma.UserUncheckedUpdateWithoutAiConversationsInput>
+}
+
+export type UserUpdateWithoutAiConversationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshTokenFamily?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
+  staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  reviewResponses?: Prisma.ReviewUpdateManyWithoutRespondedByNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  notificationPreferences?: Prisma.NotificationPreferenceUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
+  bookingModifications?: Prisma.BookingModificationUpdateManyWithoutRequestedByNestedInput
+  roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
+  contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
+  sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  trips?: Prisma.TripUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAiConversationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshTokenFamily?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
+  staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  reviewResponses?: Prisma.ReviewUncheckedUpdateManyWithoutRespondedByNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  notificationPreferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+  bookingModifications?: Prisma.BookingModificationUncheckedUpdateManyWithoutRequestedByNestedInput
+  roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
+  contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
+  sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  trips?: Prisma.TripUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutTripsInput = {
+  id?: string
+  email: string
+  googleId?: string | null
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  role?: $Enums.Role
+  isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
+  profilePhotoUrl?: string | null
+  emailVerified?: boolean
+  emailVerifiedAt?: Date | string | null
+  verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
+  resetPasswordToken?: string | null
+  resetPasswordExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  refreshTokenFamily?: string | null
+  lastLoginAt?: Date | string | null
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
+  hotels?: Prisma.HotelCreateNestedManyWithoutManagerInput
+  staffHotels?: Prisma.StaffHotelCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  reviewResponses?: Prisma.ReviewCreateNestedManyWithoutRespondedByInput
+  favorites?: Prisma.FavoriteCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  notificationPreferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  disputesOpened?: Prisma.DisputeCreateNestedManyWithoutOpenedByInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestCreateNestedManyWithoutRequesterInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestCreateNestedManyWithoutDecidedByInput
+  bookingModifications?: Prisma.BookingModificationCreateNestedManyWithoutRequestedByInput
+  roomRelocations?: Prisma.RoomRelocationCreateNestedManyWithoutRelocatedByInput
+  contactThreads?: Prisma.ContactThreadCreateNestedManyWithoutCustomerInput
+  sentContactMessages?: Prisma.ContactMessageCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutTripsInput = {
+  id?: string
+  email: string
+  googleId?: string | null
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  role?: $Enums.Role
+  isActive?: boolean
+  status?: $Enums.UserStatus
+  deletedAt?: Date | string | null
+  deletionScheduledFor?: Date | string | null
+  profilePhotoUrl?: string | null
+  emailVerified?: boolean
+  emailVerifiedAt?: Date | string | null
+  verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
+  resetPasswordToken?: string | null
+  resetPasswordExpiresAt?: Date | string | null
+  refreshTokenHash?: string | null
+  refreshTokenFamily?: string | null
+  lastLoginAt?: Date | string | null
+  loginAttempts?: number
+  lockedUntil?: Date | string | null
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaChallengeHash?: string | null
+  mfaChallengeExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pushToken?: string | null
+  isFlagged?: boolean
+  flagReason?: string | null
+  flaggedAt?: Date | string | null
+  hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutManagerInput
+  staffHotels?: Prisma.StaffHotelUncheckedCreateNestedManyWithoutStaffInput
+  sessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  reviewResponses?: Prisma.ReviewUncheckedCreateNestedManyWithoutRespondedByInput
+  favorites?: Prisma.FavoriteUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  notificationPreferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  disputesOpened?: Prisma.DisputeUncheckedCreateNestedManyWithoutOpenedByInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutRequesterInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedCreateNestedManyWithoutApproverInput
+  roomHolds?: Prisma.RoomHoldUncheckedCreateNestedManyWithoutUserInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedCreateNestedManyWithoutDecidedByInput
+  bookingModifications?: Prisma.BookingModificationUncheckedCreateNestedManyWithoutRequestedByInput
+  roomRelocations?: Prisma.RoomRelocationUncheckedCreateNestedManyWithoutRelocatedByInput
+  contactThreads?: Prisma.ContactThreadUncheckedCreateNestedManyWithoutCustomerInput
+  sentContactMessages?: Prisma.ContactMessageUncheckedCreateNestedManyWithoutSenderInput
+  aiConversations?: Prisma.AiConversationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutTripsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTripsInput, Prisma.UserUncheckedCreateWithoutTripsInput>
+}
+
+export type UserUpsertWithoutTripsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTripsInput, Prisma.UserUncheckedUpdateWithoutTripsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTripsInput, Prisma.UserUncheckedCreateWithoutTripsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTripsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTripsInput, Prisma.UserUncheckedUpdateWithoutTripsInput>
+}
+
+export type UserUpdateWithoutTripsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshTokenFamily?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hotels?: Prisma.HotelUpdateManyWithoutManagerNestedInput
+  staffHotels?: Prisma.StaffHotelUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  reviewResponses?: Prisma.ReviewUpdateManyWithoutRespondedByNestedInput
+  favorites?: Prisma.FavoriteUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  notificationPreferences?: Prisma.NotificationPreferenceUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  disputesOpened?: Prisma.DisputeUpdateManyWithoutOpenedByNestedInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUpdateManyWithoutRequesterNestedInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUpdateManyWithoutDecidedByNestedInput
+  bookingModifications?: Prisma.BookingModificationUpdateManyWithoutRequestedByNestedInput
+  roomRelocations?: Prisma.RoomRelocationUpdateManyWithoutRelocatedByNestedInput
+  contactThreads?: Prisma.ContactThreadUpdateManyWithoutCustomerNestedInput
+  sentContactMessages?: Prisma.ContactMessageUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTripsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionScheduledFor?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  profilePhotoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshTokenFamily?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaChallengeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pushToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isFlagged?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  flagReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flaggedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hotels?: Prisma.HotelUncheckedUpdateManyWithoutManagerNestedInput
+  staffHotels?: Prisma.StaffHotelUncheckedUpdateManyWithoutStaffNestedInput
+  sessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  reviewResponses?: Prisma.ReviewUncheckedUpdateManyWithoutRespondedByNestedInput
+  favorites?: Prisma.FavoriteUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  notificationPreferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  disputesOpened?: Prisma.DisputeUncheckedUpdateManyWithoutOpenedByNestedInput
+  suspensionRequestsMade?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutRequesterNestedInput
+  suspensionRequestsApproved?: Prisma.SuspensionRequestUncheckedUpdateManyWithoutApproverNestedInput
+  roomHolds?: Prisma.RoomHoldUncheckedUpdateManyWithoutUserNestedInput
+  stayRequestsDecided?: Prisma.StayRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+  bookingModifications?: Prisma.BookingModificationUncheckedUpdateManyWithoutRequestedByNestedInput
+  roomRelocations?: Prisma.RoomRelocationUncheckedUpdateManyWithoutRelocatedByNestedInput
+  contactThreads?: Prisma.ContactThreadUncheckedUpdateManyWithoutCustomerNestedInput
+  sentContactMessages?: Prisma.ContactMessageUncheckedUpdateManyWithoutSenderNestedInput
+  aiConversations?: Prisma.AiConversationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -5167,6 +6633,8 @@ export type UserCountOutputType = {
   roomRelocations: number
   contactThreads: number
   sentContactMessages: number
+  aiConversations: number
+  trips: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5189,6 +6657,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   roomRelocations?: boolean | UserCountOutputTypeCountRoomRelocationsArgs
   contactThreads?: boolean | UserCountOutputTypeCountContactThreadsArgs
   sentContactMessages?: boolean | UserCountOutputTypeCountSentContactMessagesArgs
+  aiConversations?: boolean | UserCountOutputTypeCountAiConversationsArgs
+  trips?: boolean | UserCountOutputTypeCountTripsArgs
 }
 
 /**
@@ -5334,10 +6804,25 @@ export type UserCountOutputTypeCountSentContactMessagesArgs<ExtArgs extends runt
   where?: Prisma.ContactMessageWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAiConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AiConversationWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTripsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TripWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   email?: boolean
+  googleId?: boolean
   passwordHash?: boolean
   fullName?: boolean
   phone?: boolean
@@ -5347,8 +6832,10 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   deletedAt?: boolean
   deletionScheduledFor?: boolean
   profilePhotoUrl?: boolean
+  emailVerified?: boolean
   emailVerifiedAt?: boolean
   verificationToken?: boolean
+  verificationTokenExpiresAt?: boolean
   resetPasswordToken?: boolean
   resetPasswordExpiresAt?: boolean
   refreshTokenHash?: boolean
@@ -5356,6 +6843,11 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   lastLoginAt?: boolean
   loginAttempts?: boolean
   lockedUntil?: boolean
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: boolean
+  mfaPendingSecretEncrypted?: boolean
+  mfaChallengeHash?: boolean
+  mfaChallengeExpiresAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   pushToken?: boolean
@@ -5381,12 +6873,15 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   roomRelocations?: boolean | Prisma.User$roomRelocationsArgs<ExtArgs>
   contactThreads?: boolean | Prisma.User$contactThreadsArgs<ExtArgs>
   sentContactMessages?: boolean | Prisma.User$sentContactMessagesArgs<ExtArgs>
+  aiConversations?: boolean | Prisma.User$aiConversationsArgs<ExtArgs>
+  trips?: boolean | Prisma.User$tripsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   email?: boolean
+  googleId?: boolean
   passwordHash?: boolean
   fullName?: boolean
   phone?: boolean
@@ -5396,8 +6891,10 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   deletedAt?: boolean
   deletionScheduledFor?: boolean
   profilePhotoUrl?: boolean
+  emailVerified?: boolean
   emailVerifiedAt?: boolean
   verificationToken?: boolean
+  verificationTokenExpiresAt?: boolean
   resetPasswordToken?: boolean
   resetPasswordExpiresAt?: boolean
   refreshTokenHash?: boolean
@@ -5405,6 +6902,11 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   lastLoginAt?: boolean
   loginAttempts?: boolean
   lockedUntil?: boolean
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: boolean
+  mfaPendingSecretEncrypted?: boolean
+  mfaChallengeHash?: boolean
+  mfaChallengeExpiresAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   pushToken?: boolean
@@ -5416,6 +6918,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   email?: boolean
+  googleId?: boolean
   passwordHash?: boolean
   fullName?: boolean
   phone?: boolean
@@ -5425,8 +6928,10 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   deletedAt?: boolean
   deletionScheduledFor?: boolean
   profilePhotoUrl?: boolean
+  emailVerified?: boolean
   emailVerifiedAt?: boolean
   verificationToken?: boolean
+  verificationTokenExpiresAt?: boolean
   resetPasswordToken?: boolean
   resetPasswordExpiresAt?: boolean
   refreshTokenHash?: boolean
@@ -5434,6 +6939,11 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   lastLoginAt?: boolean
   loginAttempts?: boolean
   lockedUntil?: boolean
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: boolean
+  mfaPendingSecretEncrypted?: boolean
+  mfaChallengeHash?: boolean
+  mfaChallengeExpiresAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   pushToken?: boolean
@@ -5445,6 +6955,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type UserSelectScalar = {
   id?: boolean
   email?: boolean
+  googleId?: boolean
   passwordHash?: boolean
   fullName?: boolean
   phone?: boolean
@@ -5454,8 +6965,10 @@ export type UserSelectScalar = {
   deletedAt?: boolean
   deletionScheduledFor?: boolean
   profilePhotoUrl?: boolean
+  emailVerified?: boolean
   emailVerifiedAt?: boolean
   verificationToken?: boolean
+  verificationTokenExpiresAt?: boolean
   resetPasswordToken?: boolean
   resetPasswordExpiresAt?: boolean
   refreshTokenHash?: boolean
@@ -5463,6 +6976,11 @@ export type UserSelectScalar = {
   lastLoginAt?: boolean
   loginAttempts?: boolean
   lockedUntil?: boolean
+  mfaEnabled?: boolean
+  mfaSecretEncrypted?: boolean
+  mfaPendingSecretEncrypted?: boolean
+  mfaChallengeHash?: boolean
+  mfaChallengeExpiresAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   pushToken?: boolean
@@ -5471,7 +6989,7 @@ export type UserSelectScalar = {
   flaggedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "phone" | "role" | "isActive" | "status" | "deletedAt" | "deletionScheduledFor" | "profilePhotoUrl" | "emailVerifiedAt" | "verificationToken" | "resetPasswordToken" | "resetPasswordExpiresAt" | "refreshTokenHash" | "refreshTokenFamily" | "lastLoginAt" | "loginAttempts" | "lockedUntil" | "createdAt" | "updatedAt" | "pushToken" | "isFlagged" | "flagReason" | "flaggedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "googleId" | "passwordHash" | "fullName" | "phone" | "role" | "isActive" | "status" | "deletedAt" | "deletionScheduledFor" | "profilePhotoUrl" | "emailVerified" | "emailVerifiedAt" | "verificationToken" | "verificationTokenExpiresAt" | "resetPasswordToken" | "resetPasswordExpiresAt" | "refreshTokenHash" | "refreshTokenFamily" | "lastLoginAt" | "loginAttempts" | "lockedUntil" | "mfaEnabled" | "mfaSecretEncrypted" | "mfaPendingSecretEncrypted" | "mfaChallengeHash" | "mfaChallengeExpiresAt" | "createdAt" | "updatedAt" | "pushToken" | "isFlagged" | "flagReason" | "flaggedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   hotels?: boolean | Prisma.User$hotelsArgs<ExtArgs>
   staffHotels?: boolean | Prisma.User$staffHotelsArgs<ExtArgs>
@@ -5492,6 +7010,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   roomRelocations?: boolean | Prisma.User$roomRelocationsArgs<ExtArgs>
   contactThreads?: boolean | Prisma.User$contactThreadsArgs<ExtArgs>
   sentContactMessages?: boolean | Prisma.User$sentContactMessagesArgs<ExtArgs>
+  aiConversations?: boolean | Prisma.User$aiConversationsArgs<ExtArgs>
+  trips?: boolean | Prisma.User$tripsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -5519,10 +7039,13 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     roomRelocations: Prisma.$RoomRelocationPayload<ExtArgs>[]
     contactThreads: Prisma.$ContactThreadPayload<ExtArgs>[]
     sentContactMessages: Prisma.$ContactMessagePayload<ExtArgs>[]
+    aiConversations: Prisma.$AiConversationPayload<ExtArgs>[]
+    trips: Prisma.$TripPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     email: string
+    googleId: string | null
     passwordHash: string
     fullName: string
     phone: string | null
@@ -5532,8 +7055,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     deletedAt: Date | null
     deletionScheduledFor: Date | null
     profilePhotoUrl: string | null
+    emailVerified: boolean
     emailVerifiedAt: Date | null
     verificationToken: string | null
+    verificationTokenExpiresAt: Date | null
     resetPasswordToken: string | null
     resetPasswordExpiresAt: Date | null
     refreshTokenHash: string | null
@@ -5541,6 +7066,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     lastLoginAt: Date | null
     loginAttempts: number
     lockedUntil: Date | null
+    mfaEnabled: boolean
+    mfaSecretEncrypted: string | null
+    mfaPendingSecretEncrypted: string | null
+    mfaChallengeHash: string | null
+    mfaChallengeExpiresAt: Date | null
     createdAt: Date
     updatedAt: Date
     pushToken: string | null
@@ -5960,6 +7490,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   roomRelocations<T extends Prisma.User$roomRelocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$roomRelocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomRelocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   contactThreads<T extends Prisma.User$contactThreadsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$contactThreadsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactThreadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sentContactMessages<T extends Prisma.User$sentContactMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentContactMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  aiConversations<T extends Prisma.User$aiConversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$aiConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AiConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  trips<T extends Prisma.User$tripsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tripsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TripPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5991,6 +7523,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
 export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<"User", 'String'>
   readonly email: Prisma.FieldRef<"User", 'String'>
+  readonly googleId: Prisma.FieldRef<"User", 'String'>
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly fullName: Prisma.FieldRef<"User", 'String'>
   readonly phone: Prisma.FieldRef<"User", 'String'>
@@ -6000,8 +7533,10 @@ export interface UserFieldRefs {
   readonly deletedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly deletionScheduledFor: Prisma.FieldRef<"User", 'DateTime'>
   readonly profilePhotoUrl: Prisma.FieldRef<"User", 'String'>
+  readonly emailVerified: Prisma.FieldRef<"User", 'Boolean'>
   readonly emailVerifiedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly verificationToken: Prisma.FieldRef<"User", 'String'>
+  readonly verificationTokenExpiresAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly resetPasswordToken: Prisma.FieldRef<"User", 'String'>
   readonly resetPasswordExpiresAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly refreshTokenHash: Prisma.FieldRef<"User", 'String'>
@@ -6009,6 +7544,11 @@ export interface UserFieldRefs {
   readonly lastLoginAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly loginAttempts: Prisma.FieldRef<"User", 'Int'>
   readonly lockedUntil: Prisma.FieldRef<"User", 'DateTime'>
+  readonly mfaEnabled: Prisma.FieldRef<"User", 'Boolean'>
+  readonly mfaSecretEncrypted: Prisma.FieldRef<"User", 'String'>
+  readonly mfaPendingSecretEncrypted: Prisma.FieldRef<"User", 'String'>
+  readonly mfaChallengeHash: Prisma.FieldRef<"User", 'String'>
+  readonly mfaChallengeExpiresAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly pushToken: Prisma.FieldRef<"User", 'String'>
@@ -6861,6 +8401,54 @@ export type User$sentContactMessagesArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.ContactMessageScalarFieldEnum | Prisma.ContactMessageScalarFieldEnum[]
+}
+
+/**
+ * User.aiConversations
+ */
+export type User$aiConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AiConversation
+   */
+  select?: Prisma.AiConversationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AiConversation
+   */
+  omit?: Prisma.AiConversationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AiConversationInclude<ExtArgs> | null
+  where?: Prisma.AiConversationWhereInput
+  orderBy?: Prisma.AiConversationOrderByWithRelationInput | Prisma.AiConversationOrderByWithRelationInput[]
+  cursor?: Prisma.AiConversationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AiConversationScalarFieldEnum | Prisma.AiConversationScalarFieldEnum[]
+}
+
+/**
+ * User.trips
+ */
+export type User$tripsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Trip
+   */
+  select?: Prisma.TripSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Trip
+   */
+  omit?: Prisma.TripOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TripInclude<ExtArgs> | null
+  where?: Prisma.TripWhereInput
+  orderBy?: Prisma.TripOrderByWithRelationInput | Prisma.TripOrderByWithRelationInput[]
+  cursor?: Prisma.TripWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TripScalarFieldEnum | Prisma.TripScalarFieldEnum[]
 }
 
 /**

@@ -67,7 +67,12 @@ describe('PaymentService lifecycle protections', () => {
         }),
       }),
     };
-    config = { getOrThrow: jest.fn().mockReturnValue('test-webhook-secret') };
+    config = {
+      // `mockCallback` guards on nodeEnv before it ever looks at the secret,
+      // and several gateway paths read feature keys through `get`.
+      get: jest.fn((key: string) => (key === 'nodeEnv' ? 'test' : undefined)),
+      getOrThrow: jest.fn().mockReturnValue('test-webhook-secret'),
+    };
     const audit = { record: jest.fn().mockResolvedValue(undefined) };
     service = new PaymentService(
       db as PrismaService,
@@ -86,7 +91,11 @@ describe('PaymentService lifecycle protections', () => {
   });
 
   it('emits completion only when the conditional payment update wins', async () => {
-    await service.mockCallback('booking-1', { status: 'SUCCEEDED', reference: '4242' }, 'test-webhook-secret');
+    await service.mockCallback(
+      'booking-1',
+      { status: 'SUCCEEDED', reference: '4242' },
+      'test-webhook-secret',
+    );
     expect(db.payment.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
@@ -165,6 +174,135 @@ describe('PaymentService lifecycle protections', () => {
         data: expect.objectContaining({ outcome: 'FAILED' }),
       }),
     );
-    expect(mockFraud.checkPaymentFailureVelocity).toHaveBeenCalledWith('user-1');
+    expect(mockFraud.checkPaymentFailureVelocity).toHaveBeenCalledWith(
+      'user-1',
+    );
+  });
+
+  describe('Chapa webhook & live verification security', () => {
+    it('rejects webhook when HMAC signature fails', async () => {
+      const mockChapaService = {
+        verifySignature: jest.fn().mockReturnValue(false),
+        verify: jest.fn(),
+      };
+      (service as any).chapaService = mockChapaService;
+
+      await expect(
+        service.handleWebhook(
+          'CHP-YT-20260926-TEST01',
+          { status: 'SUCCESS', amount: 100 },
+          Buffer.from('raw body'),
+          'invalid-signature',
+        ),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('re-verifies status server-to-server and confirms payment when signature and amount match', async () => {
+      const mockChapaService = {
+        verifySignature: jest.fn().mockReturnValue(true),
+        verify: jest.fn().mockResolvedValue({
+          status: 'success',
+          data: {
+            status: 'success',
+            amount: 100,
+            currency: 'ETB',
+            tx_ref: 'CHP-YT-20260926-TEST01',
+          },
+        }),
+      };
+      (service as any).chapaService = mockChapaService;
+      config.get = jest.fn((k: string) =>
+        k === 'payment.chapaSecretKey' ? 'secret' : undefined,
+      );
+
+      db.payment.findFirst = jest.fn().mockResolvedValue({
+        id: 'payment-1',
+        bookingId: 'booking-1',
+        provider: 'CHAPA',
+        method: 'TELEBIRR',
+        amount: { toNumber: () => 100 },
+        currency: 'ETB',
+        status: 'PENDING',
+        booking: {
+          id: 'booking-1',
+          userId: 'user-1',
+          status: 'PENDING',
+          totalPrice: { toNumber: () => 100 },
+        },
+      });
+      db.paymentEvent = { create: jest.fn().mockResolvedValue({}) };
+
+      const result = await service.handleWebhook(
+        'CHP-YT-20260926-TEST01',
+        { status: 'SUCCESS', amount: 100 },
+        Buffer.from('body'),
+        'valid-sig',
+      );
+
+      expect(result.status).toBe('SUCCEEDED');
+      expect(mockChapaService.verify).toHaveBeenCalledWith(
+        'CHP-YT-20260926-TEST01',
+      );
+      expect(db.payment.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            id: 'payment-1',
+            status: {
+              in: [
+                'PENDING',
+                'PENDING_AT_HOTEL',
+                'OTP_SENT',
+                'PROCESSING',
+                'FAILED',
+              ],
+            },
+          },
+          data: expect.objectContaining({ status: 'SUCCEEDED' }),
+        }),
+      );
+    });
+
+    it('rejects webhook when amount differs from booking total price', async () => {
+      const mockChapaService = {
+        verifySignature: jest.fn().mockReturnValue(true),
+        verify: jest.fn().mockResolvedValue({
+          status: 'success',
+          data: {
+            status: 'success',
+            amount: 10, // attacker claims 10 instead of 100
+            currency: 'ETB',
+            tx_ref: 'CHP-YT-20260926-TEST01',
+          },
+        }),
+      };
+      (service as any).chapaService = mockChapaService;
+      config.get = jest.fn((k: string) =>
+        k === 'payment.chapaSecretKey' ? 'secret' : undefined,
+      );
+
+      db.payment.findFirst = jest.fn().mockResolvedValue({
+        id: 'payment-1',
+        bookingId: 'booking-1',
+        provider: 'CHAPA',
+        method: 'TELEBIRR',
+        amount: { toNumber: () => 100 },
+        currency: 'ETB',
+        status: 'PENDING',
+        booking: {
+          id: 'booking-1',
+          userId: 'user-1',
+          totalPrice: { toNumber: () => 100 },
+        },
+      });
+
+      await expect(
+        service.handleWebhook(
+          'CHP-YT-20260926-TEST01',
+          { status: 'SUCCESS', amount: 10 },
+          Buffer.from('body'),
+          'valid-sig',
+        ),
+      ).rejects.toThrow();
+    });
   });
 });

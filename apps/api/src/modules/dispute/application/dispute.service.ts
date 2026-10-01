@@ -50,7 +50,7 @@ export class DisputeService {
 
   async listForUser(userId: string, query: DisputeQuery) {
     const where: Prisma.DisputeWhereInput = { openedById: userId };
-    if (query.status) where.status = query.status as DisputeStatus;
+    if (query.status) where.status = query.status;
     const [total, disputes] = await Promise.all([
       this.db.dispute.count({ where }),
       this.db.dispute.findMany({
@@ -63,21 +63,28 @@ export class DisputeService {
         },
       }),
     ]);
-    return { data: disputes, total, page: query.page, pageSize: query.pageSize };
+    return {
+      data: disputes,
+      total,
+      page: query.page,
+      pageSize: query.pageSize,
+    };
   }
 
   async adminList(query: DisputeQuery) {
     // Query DTO defaults are applied by the validation pipe, but keep the
     // service defensive for direct calls and alternate adapters. Prisma
     // rejects NaN/undefined pagination values with a 500 response.
-    const page = Number.isFinite(Number(query.page)) && Number(query.page) > 0
-      ? Math.floor(Number(query.page))
-      : 1;
-    const pageSize = Number.isFinite(Number(query.pageSize)) && Number(query.pageSize) > 0
-      ? Math.min(100, Math.floor(Number(query.pageSize)))
-      : 20;
+    const page =
+      Number.isFinite(Number(query.page)) && Number(query.page) > 0
+        ? Math.floor(Number(query.page))
+        : 1;
+    const pageSize =
+      Number.isFinite(Number(query.pageSize)) && Number(query.pageSize) > 0
+        ? Math.min(100, Math.floor(Number(query.pageSize)))
+        : 20;
     const where: Prisma.DisputeWhereInput = {};
-    if (query.status) where.status = query.status as DisputeStatus;
+    if (query.status) where.status = query.status;
     const [total, disputes] = await Promise.all([
       this.db.dispute.count({ where }),
       this.db.dispute.findMany({

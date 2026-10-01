@@ -90,7 +90,9 @@ describe('Push Providers', () => {
     });
 
     it('handles network failure', async () => {
-      (global.fetch as jest.Mock).mockRejectedValue(new Error('Network offline'));
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network offline'),
+      );
 
       const res = await provider.send({
         token: 'ExponentPushToken[abc]',

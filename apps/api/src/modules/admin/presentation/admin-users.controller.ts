@@ -36,7 +36,9 @@ export class AdminUsersController {
 
   @Post()
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @ApiOperation({ summary: 'Create a new user account (Manager, Staff, Admin)' })
+  @ApiOperation({
+    summary: 'Create a new user account (Manager, Staff, Admin)',
+  })
   create(@Body() dto: CreateAdminUserDto, @Req() req: AuthedRequest) {
     return this.users.create(dto, req.user.sub);
   }

@@ -6,7 +6,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { HotelStatus, Prisma, RoomStatus } from '../../../generated/prisma/client';
+import {
+  HotelStatus,
+  Prisma,
+  RoomStatus,
+} from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
 import { CacheService } from '../../../common/cache/cache.service';
@@ -113,7 +117,7 @@ export class ManagerCatalogService {
 
     const initialStatus =
       actor.role === 'ADMIN' && dto.status
-        ? (dto.status as HotelStatus)
+        ? dto.status
         : HotelStatus.PENDING_APPROVAL;
 
     const hotel = await this.db.hotel.create({
@@ -153,7 +157,7 @@ export class ManagerCatalogService {
     if (dto.lng !== undefined) data.lng = dto.lng;
     if (dto.starRating !== undefined) data.starRating = dto.starRating;
     if (dto.status !== undefined && actor.role === 'ADMIN') {
-      data.status = dto.status as HotelStatus;
+      data.status = dto.status;
     }
     if (dto.rejectionReason !== undefined && actor.role === 'ADMIN') {
       data.rejectionReason = dto.rejectionReason;
@@ -170,13 +174,7 @@ export class ManagerCatalogService {
         policy: true,
       },
     });
-    await this.audit.record(
-      actor.sub,
-      'hotel.update',
-      'Hotel',
-      id,
-      dto as unknown as Prisma.InputJsonValue,
-    );
+    await this.audit.record(actor.sub, 'hotel.update', 'Hotel', id, dto);
     await Promise.all([
       this.cache.del(`hotel:detail:${id}`),
       this.cache.delPattern('hotel:search:*'),
@@ -259,7 +257,7 @@ export class ManagerCatalogService {
       'hotel.policy.update',
       'HotelPolicy',
       policy.id,
-      dto as unknown as Prisma.InputJsonValue,
+      dto,
     );
     return policy;
   }
@@ -352,11 +350,7 @@ export class ManagerCatalogService {
     return { deleted: true };
   }
 
-  async createRoom(
-    hotelId: string,
-    dto: CreateRoomInput,
-    actor: CatalogActor,
-  ) {
+  async createRoom(hotelId: string, dto: CreateRoomInput, actor: CatalogActor) {
     await this.assertCanManage(hotelId, actor);
     try {
       return await this.db.room.create({
@@ -432,18 +426,12 @@ export class ManagerCatalogService {
       },
     });
 
-    await this.audit.record(
-      actor.sub,
-      'ROOM_STATUS_UPDATED',
-      'Room',
-      roomId,
-      {
-        oldStatus: room.status,
-        newStatus: status,
-        hotelId: room.hotelId,
-        roomNumber: room.roomNumber,
-      },
-    );
+    await this.audit.record(actor.sub, 'ROOM_STATUS_UPDATED', 'Room', roomId, {
+      oldStatus: room.status,
+      newStatus: status,
+      hotelId: room.hotelId,
+      roomNumber: room.roomNumber,
+    });
 
     return updated;
   }
@@ -472,7 +460,12 @@ export class ManagerCatalogService {
                 checkOut: true,
                 status: true,
                 user: {
-                  select: { id: true, fullName: true, email: true, phone: true },
+                  select: {
+                    id: true,
+                    fullName: true,
+                    email: true,
+                    phone: true,
+                  },
                 },
               },
             },
@@ -551,11 +544,7 @@ export class ManagerCatalogService {
     return { success: true };
   }
 
-  async removeRoomImage(
-    roomId: string,
-    imageId: string,
-    actor: CatalogActor,
-  ) {
+  async removeRoomImage(roomId: string, imageId: string, actor: CatalogActor) {
     await this.assertCanManageRoom(roomId, actor);
     const img = await this.db.roomImage.findUnique({ where: { id: imageId } });
     if (img) {
@@ -663,14 +652,17 @@ export class ManagerCatalogService {
   }
 
   async blockMaintenance(dto: BlockMaintenanceInput, actor: CatalogActor) {
-    const roomIds = dto.roomIds && dto.roomIds.length > 0
-      ? dto.roomIds
-      : dto.roomId
-        ? [dto.roomId]
-        : [];
+    const roomIds =
+      dto.roomIds && dto.roomIds.length > 0
+        ? dto.roomIds
+        : dto.roomId
+          ? [dto.roomId]
+          : [];
 
     if (!roomIds.length) {
-      throw new BadRequestException('No room specified for maintenance blocking');
+      throw new BadRequestException(
+        'No room specified for maintenance blocking',
+      );
     }
 
     for (const rid of roomIds) {

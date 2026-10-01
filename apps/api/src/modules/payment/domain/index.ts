@@ -11,3 +11,4 @@ export const PAYMENT_METHODS = [
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 export * from './payment-gateway';
+export * from './payment-gateway.interface';

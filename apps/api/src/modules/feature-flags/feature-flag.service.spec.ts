@@ -30,7 +30,11 @@ describe('FeatureFlagService', () => {
     const isEnabled = await service.isEnabled('ENABLE_WALK_IN_BOOKINGS');
 
     expect(isEnabled).toBe(DEFAULT_FEATURE_FLAGS.ENABLE_WALK_IN_BOOKINGS);
-    expect(cache.set).toHaveBeenCalledWith('feature_flag:ENABLE_WALK_IN_BOOKINGS', true, 60);
+    expect(cache.set).toHaveBeenCalledWith(
+      'feature_flag:ENABLE_WALK_IN_BOOKINGS',
+      true,
+      60,
+    );
   });
 
   it('returns cached value if present', async () => {
@@ -48,7 +52,11 @@ describe('FeatureFlagService', () => {
     const isEnabled = await service.isEnabled('ENABLE_WALK_IN_BOOKINGS');
 
     expect(isEnabled).toBe(false);
-    expect(cache.set).toHaveBeenCalledWith('feature_flag:ENABLE_WALK_IN_BOOKINGS', false, 60);
+    expect(cache.set).toHaveBeenCalledWith(
+      'feature_flag:ENABLE_WALK_IN_BOOKINGS',
+      false,
+      60,
+    );
   });
 
   it('updates platformSetting, cache, and records audit on setFlag', async () => {
@@ -65,7 +73,11 @@ describe('FeatureFlagService', () => {
       create: { key: 'ff_ENABLE_WALK_IN_BOOKINGS', value: false },
       update: { value: false },
     });
-    expect(cache.set).toHaveBeenCalledWith('feature_flag:ENABLE_WALK_IN_BOOKINGS', false, 60);
+    expect(cache.set).toHaveBeenCalledWith(
+      'feature_flag:ENABLE_WALK_IN_BOOKINGS',
+      false,
+      60,
+    );
     expect(audit.record).toHaveBeenCalledWith(
       'admin-1',
       'FEATURE_FLAG_UPDATED',

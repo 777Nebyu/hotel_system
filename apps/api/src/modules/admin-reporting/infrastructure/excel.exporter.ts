@@ -38,7 +38,12 @@ export class ExcelReportExporter {
     summarySheet.mergeCells('B2:F2');
     const brandCell = summarySheet.getCell('B2');
     brandCell.value = 'LUXSTAY RESORTS & HOSPITALITY PLATFORM';
-    brandCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+    brandCell.font = {
+      name: 'Calibri',
+      size: 10,
+      bold: true,
+      color: { argb: 'FFFFFFFF' },
+    };
     brandCell.fill = {
       type: 'pattern',
       pattern: 'solid',
@@ -51,7 +56,12 @@ export class ExcelReportExporter {
     summarySheet.mergeCells('B3:F3');
     const titleCell = summarySheet.getCell('B3');
     titleCell.value = docMeta.title;
-    titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FF0F2942' } };
+    titleCell.font = {
+      name: 'Calibri',
+      size: 14,
+      bold: true,
+      color: { argb: 'FF0F2942' },
+    };
     titleCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
     summarySheet.getRow(3).height = 28;
 
@@ -182,7 +192,8 @@ export class ExcelReportExporter {
         let maxLen = col.header.length + 4;
         rows.forEach((r) => {
           const val = r[col.key];
-          const len = val !== null && val !== undefined ? String(val).length + 3 : 0;
+          const len =
+            val !== null && val !== undefined ? String(val).length + 3 : 0;
           if (len > maxLen) maxLen = len;
         });
         const currentCol = dataSheet.getColumn(colIdx + 1);
@@ -209,7 +220,10 @@ export class ExcelReportExporter {
   }
 
   private sanitizeSheetName(name: string): string {
-    const cleaned = name.replace(/[*?:/\\\[\]]/g, '').slice(0, 30).trim();
+    const cleaned = name
+      .replace(/[*?:/\\\[\]]/g, '')
+      .slice(0, 30)
+      .trim();
     return cleaned || 'Report';
   }
 }

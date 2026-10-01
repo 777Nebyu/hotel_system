@@ -55,7 +55,9 @@ export class ManagerCatalogController {
 
   @Get('manager/hotels')
   @Roles(Role.MANAGER, Role.ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'List hotels managed by or assigned to the current user' })
+  @ApiOperation({
+    summary: 'List hotels managed by or assigned to the current user',
+  })
   myHotels(@Req() req: AuthedRequest) {
     return this.manager.myHotels(req.user);
   }
@@ -99,16 +101,15 @@ export class ManagerCatalogController {
   @Get('hotels/:id/policy')
   @Roles(Role.MANAGER, Role.STAFF, Role.ADMIN)
   @ApiOperation({ summary: 'Get hotel policy rules' })
-  getHotelPolicy(
-    @Param() params: HotelIdParamsDto,
-    @Req() req: AuthedRequest,
-  ) {
+  getHotelPolicy(@Param() params: HotelIdParamsDto, @Req() req: AuthedRequest) {
     return this.manager.getHotelPolicy(params.id, req.user);
   }
 
   @Put('hotels/:id/policy')
   @Roles(Role.MANAGER, Role.ADMIN)
-  @ApiOperation({ summary: 'Configure hotel check-in/out and cancellation policies' })
+  @ApiOperation({
+    summary: 'Configure hotel check-in/out and cancellation policies',
+  })
   upsertHotelPolicy(
     @Param() params: HotelIdParamsDto,
     @Body() dto: UpsertHotelPolicyDto,
@@ -363,7 +364,8 @@ export class ManagerCatalogController {
   @Post('maintenance/block')
   @Roles(Role.MANAGER, Role.ADMIN)
   @ApiOperation({
-    summary: 'Block dates for room maintenance (51-availability-calendar-maintenance)',
+    summary:
+      'Block dates for room maintenance (51-availability-calendar-maintenance)',
   })
   blockMaintenance(
     @Body() dto: BlockMaintenanceDto,

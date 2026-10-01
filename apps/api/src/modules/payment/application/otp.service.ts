@@ -19,7 +19,10 @@ export class OtpService {
   ) {
     this.otpExpirySeconds = this.config.get('MOCK_OTP_EXPIRY', 300);
     this.maxAttempts = this.config.get('MOCK_OTP_MAX_ATTEMPTS', 5);
-    this.resendCooldownSeconds = this.config.get('MOCK_OTP_RESEND_COOLDOWN', 60);
+    this.resendCooldownSeconds = this.config.get(
+      'MOCK_OTP_RESEND_COOLDOWN',
+      60,
+    );
   }
 
   /**
@@ -62,7 +65,10 @@ export class OtpService {
   async verifyOtp(
     paymentId: string,
     code: string,
-  ): Promise<{ valid: boolean; reason?: 'INVALID' | 'EXPIRED' | 'MAX_ATTEMPTS' }> {
+  ): Promise<{
+    valid: boolean;
+    reason?: 'INVALID' | 'EXPIRED' | 'MAX_ATTEMPTS';
+  }> {
     const payment = await this.db.payment.findUnique({
       where: { id: paymentId },
     });
@@ -118,7 +124,9 @@ export class OtpService {
    */
   async resendOtp(
     paymentId: string,
-  ): Promise<{ code: string; expiresAt: Date } | { error: 'COOLDOWN' | 'NOT_FOUND' }> {
+  ): Promise<
+    { code: string; expiresAt: Date } | { error: 'COOLDOWN' | 'NOT_FOUND' }
+  > {
     const payment = await this.db.payment.findUnique({
       where: { id: paymentId },
     });
@@ -129,8 +137,7 @@ export class OtpService {
 
     // Check cooldown (if last OTP was sent recently)
     if (payment.verificationExpiresAt) {
-      const lastOtpAge =
-        (Date.now() - payment.createdAt.getTime()) / 1000;
+      const lastOtpAge = (Date.now() - payment.createdAt.getTime()) / 1000;
       // If the current OTP hasn't expired yet and was sent recently, enforce cooldown
       if (
         payment.verificationExpiresAt > new Date() &&

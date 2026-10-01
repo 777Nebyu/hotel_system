@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
@@ -14,10 +7,7 @@ import { Role } from '../../../generated/prisma/client';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { ResourceScopeHelper } from '../../../common/guards/resource-scope.helper';
 import { AdminReportingService } from '../application/admin-reporting.service';
-import {
-  DaysQueryDto,
-  MonthsQueryDto,
-} from './dto/admin-reporting.dto';
+import { DaysQueryDto, MonthsQueryDto } from './dto/admin-reporting.dto';
 import {
   ReportParamsDto,
   ReportQueryDto,
@@ -44,7 +34,9 @@ export class ManagerReportingController {
   ) {}
 
   @Get('overview')
-  @ApiOperation({ summary: 'Hotel overview counts and revenue (manager/admin)' })
+  @ApiOperation({
+    summary: 'Hotel overview counts and revenue (manager/admin)',
+  })
   async overview(
     @Param() params: ManagerHotelParamsDto,
     @Query() query: ReportQueryDto,
@@ -112,7 +104,9 @@ export class ManagerReportingController {
   }
 
   @Get('export/:type')
-  @ApiOperation({ summary: 'Export hotel report as PDF or Excel (manager/admin)' })
+  @ApiOperation({
+    summary: 'Export hotel report as PDF or Excel (manager/admin)',
+  })
   async exportReportExplicit(
     @Param() params: ManagerHotelParamsDto,
     @Param() reportParams: ReportParamsDto,
@@ -129,7 +123,9 @@ export class ManagerReportingController {
   }
 
   @Get(':type')
-  @ApiOperation({ summary: 'Export hotel report as PDF or Excel (manager/admin)' })
+  @ApiOperation({
+    summary: 'Export hotel report as PDF or Excel (manager/admin)',
+  })
   async exportReport(
     @Param() params: ManagerHotelParamsDto,
     @Param() reportParams: ReportParamsDto,

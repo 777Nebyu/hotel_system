@@ -67,7 +67,11 @@ export class CouponService {
   }
 
   /** Validates that a code exists, is active and under its usage limit. */
-  async validate(code: string, client: DbClient = this.db, bookingAmount?: number): Promise<Coupon> {
+  async validate(
+    code: string,
+    client: DbClient = this.db,
+    bookingAmount?: number,
+  ): Promise<Coupon> {
     const normalized = code.trim().toUpperCase();
     const coupon = await client.coupon.findUnique({
       where: { code: normalized },
@@ -76,7 +80,9 @@ export class CouponService {
       throw new BadRequestException(`Invalid promo code "${normalized}"`);
     }
     if (!coupon.isActive) {
-      throw new BadRequestException(`Promo code "${normalized}" is no longer active`);
+      throw new BadRequestException(
+        `Promo code "${normalized}" is no longer active`,
+      );
     }
     const now = new Date();
     if (coupon.validFrom > now) {

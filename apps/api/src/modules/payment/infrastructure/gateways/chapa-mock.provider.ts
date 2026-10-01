@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { providerRefFor, simulateProviderLatency } from './provider-ref';
 import { OtpService } from '../../application/otp.service';
 import { MockSmsService } from '../mock-sms.service';
@@ -102,7 +98,11 @@ export class ChapaMockProvider {
     amount: number,
     bankCode: string,
     accountNumber: string,
-  ): Promise<{ status: 'PROCESSING'; bankTransactionId: string; paymentReference: string }> {
+  ): Promise<{
+    status: 'PROCESSING';
+    bankTransactionId: string;
+    paymentReference: string;
+  }> {
     const bankTransactionId = `BANK-MOCK-${Date.now().toString(36).toUpperCase()}`;
     const paymentReference = this.generateBankReference(bankCode);
 

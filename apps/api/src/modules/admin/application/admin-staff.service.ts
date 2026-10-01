@@ -4,10 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { hashPassword } from '../../../common/security/password-hasher';
+import { randomBytes } from 'crypto';
 import { Prisma, Role, UserStatus } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
+import { MailProducer } from '../../jobs/mail.producer';
 import type { HotelStaffQuery } from '@repo/shared-types';
 
 export interface CreateStaffDto {
@@ -24,13 +26,12 @@ export interface AssignStaffDto {
   role?: string;
 }
 
-const BCRYPT_ROUNDS = 12;
-
 @Injectable()
 export class AdminStaffService {
   constructor(
     private readonly db: PrismaService,
     private readonly audit: AuditService,
+    private readonly mail: MailProducer,
   ) {}
 
   async listHotelStaff(hotelId: string, query: HotelStaffQuery) {
@@ -135,8 +136,12 @@ export class AdminStaffService {
       };
     }
 
-    // Hash password and create new STAFF user
-    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
+    // Create an unverified STAFF account and invite the mailbox owner.
+    const passwordHash = await hashPassword(dto.password);
+    const verificationToken = randomBytes(32).toString('hex');
+    const verificationTokenExpiresAt = new Date(
+      Date.now() + 24 * 60 * 60 * 1000,
+    );
     const user = await this.db.user.create({
       data: {
         fullName: dto.fullName.trim(),
@@ -144,9 +149,11 @@ export class AdminStaffService {
         passwordHash,
         phone: dto.phone?.trim() || null,
         role: Role.STAFF,
-        status: UserStatus.ACTIVE,
+        status: UserStatus.EMAIL_UNVERIFIED,
         isActive: true,
-        emailVerifiedAt: new Date(),
+        emailVerified: false,
+        verificationToken,
+        verificationTokenExpiresAt,
       },
       select: {
         id: true,
@@ -162,11 +169,19 @@ export class AdminStaffService {
       data: { staffId: user.id, hotelId, role: staffRoleTitle },
     });
 
-    await this.audit.record(actorId, 'CREATE_AND_ASSIGN_STAFF', 'Hotel', hotelId, {
-      staffId: user.id,
-      email: normalizedEmail,
-      role: staffRoleTitle,
-    });
+    void this.mail.enqueueVerification(normalizedEmail, verificationToken);
+
+    await this.audit.record(
+      actorId,
+      'CREATE_AND_ASSIGN_STAFF',
+      'Hotel',
+      hotelId,
+      {
+        staffId: user.id,
+        email: normalizedEmail,
+        role: staffRoleTitle,
+      },
+    );
 
     return {
       id: user.id,
@@ -218,7 +233,9 @@ export class AdminStaffService {
     }
 
     if (!user) {
-      throw new NotFoundException('User with specified ID or email was not found');
+      throw new NotFoundException(
+        'User with specified ID or email was not found',
+      );
     }
 
     if (user.role === 'CUSTOMER') {
@@ -266,7 +283,9 @@ export class AdminStaffService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('Staff member is already assigned to this hotel');
+        throw new ConflictException(
+          'Staff member is already assigned to this hotel',
+        );
       }
       throw error;
     }
@@ -388,7 +407,14 @@ export class AdminStaffService {
       orderBy: { assignedAt: 'desc' },
       include: {
         staff: {
-          select: { id: true, fullName: true, email: true, phone: true, role: true, isActive: true },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+            role: true,
+            isActive: true,
+          },
         },
         hotel: {
           select: { id: true, name: true, status: true },

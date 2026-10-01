@@ -15,11 +15,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { Role } from '../../../generated/prisma/client';
+import { Roles } from '../../../common/decorators/roles.decorator';
 import { MockSmsService } from '../infrastructure/mock-sms.service';
 import { BankMockProvider } from '../infrastructure/gateways/bank-mock.provider';
 
 @ApiTags('Admin: Payment Sandbox')
 @ApiBearerAuth()
+@Roles(Role.ADMIN)
 @Controller('admin/payment-sandbox')
 export class AdminSandboxController {
   constructor(
@@ -82,7 +85,10 @@ export class AdminSandboxController {
     @Query('pageSize') pageSize?: string,
   ) {
     const pageNum = Math.max(1, parseInt(page ?? '1', 10) || 1);
-    const size = Math.min(100, Math.max(1, parseInt(pageSize ?? '20', 10) || 20));
+    const size = Math.min(
+      100,
+      Math.max(1, parseInt(pageSize ?? '20', 10) || 20),
+    );
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
@@ -216,9 +222,7 @@ export class AdminSandboxController {
   @ApiOperation({ summary: 'Delete a specific SMS' })
   deleteSms(@Param('id') id: string) {
     const deleted = this.sms.delete(id);
-    return deleted
-      ? { message: 'SMS deleted' }
-      : { message: 'SMS not found' };
+    return deleted ? { message: 'SMS deleted' } : { message: 'SMS not found' };
   }
 
   @Get('banks')

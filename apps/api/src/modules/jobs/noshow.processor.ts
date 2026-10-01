@@ -45,7 +45,9 @@ export class NoShowProcessor extends WorkerHost {
 
     if (!noShowBookings.length) return;
 
-    this.logger.log(`Found ${noShowBookings.length} confirmed bookings past check-in date without check-in`);
+    this.logger.log(
+      `Found ${noShowBookings.length} confirmed bookings past check-in date without check-in`,
+    );
 
     for (const booking of noShowBookings) {
       await this.db.booking.update({

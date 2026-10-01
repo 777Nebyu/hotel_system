@@ -18,7 +18,9 @@ export class AdminExportController {
   constructor(private readonly exports: AdminExportService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Export data (bookings, payments, reviews, users) as CSV' })
+  @ApiOperation({
+    summary: 'Export data (bookings, payments, reviews, users) as CSV',
+  })
   async exportData(
     @Body() dto: ExportQueryDto,
     @Req() req: AuthedRequest,

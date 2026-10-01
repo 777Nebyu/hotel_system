@@ -70,7 +70,10 @@ export function validateUploadedFile(
     }
   }
 
-  file.originalname = basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, '_');
+  file.originalname = basename(file.originalname).replace(
+    /[^a-zA-Z0-9._-]/g,
+    '_',
+  );
 }
 
 export interface StorageService {

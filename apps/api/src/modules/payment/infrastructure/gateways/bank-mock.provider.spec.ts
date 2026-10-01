@@ -94,27 +94,47 @@ describe('BankMockProvider', () => {
 
   describe('simulateAuth', () => {
     it('should succeed for AUTHORIZED', async () => {
-      const result = await provider.simulateAuth('CBE', '100000', 2500, 'AUTHORIZED');
+      const result = await provider.simulateAuth(
+        'CBE',
+        '100000',
+        2500,
+        'AUTHORIZED',
+      );
       expect(result.approved).toBe(true);
       expect(result.status).toBe('COMPLETED');
       expect(result.bankTransactionId).toBeTruthy();
     });
 
     it('should fail for DECLINED', async () => {
-      const result = await provider.simulateAuth('CBE', '100000', 2500, 'DECLINED');
+      const result = await provider.simulateAuth(
+        'CBE',
+        '100000',
+        2500,
+        'DECLINED',
+      );
       expect(result.approved).toBe(false);
       expect(result.status).toBe('FAILED');
       expect(result.failureReason).toBe('Payment declined by bank');
     });
 
     it('should fail for INSUFFICIENT_BALANCE', async () => {
-      const result = await provider.simulateAuth('CBE', '100000', 2500, 'INSUFFICIENT_BALANCE');
+      const result = await provider.simulateAuth(
+        'CBE',
+        '100000',
+        2500,
+        'INSUFFICIENT_BALANCE',
+      );
       expect(result.approved).toBe(false);
       expect(result.failureReason).toBe('Insufficient balance');
     });
 
     it('should fail for TIMEOUT', async () => {
-      const result = await provider.simulateAuth('CBE', '100000', 2500, 'TIMEOUT');
+      const result = await provider.simulateAuth(
+        'CBE',
+        '100000',
+        2500,
+        'TIMEOUT',
+      );
       expect(result.approved).toBe(false);
       expect(result.failureReason).toBe('Bank request timed out');
     });

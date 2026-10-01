@@ -29,7 +29,7 @@ export class FeatureFlagService {
     const enabled =
       setting?.value !== undefined && typeof setting.value === 'boolean'
         ? setting.value
-        : DEFAULT_FEATURE_FLAGS[key] ?? true;
+        : (DEFAULT_FEATURE_FLAGS[key] ?? true);
 
     await this.cache.set(cacheKey, enabled, 60);
     return enabled;
@@ -58,10 +58,16 @@ export class FeatureFlagService {
 
     await this.cache.set(`feature_flag:${key}`, enabled, 60);
 
-    await this.audit.record(actorId, 'FEATURE_FLAG_UPDATED', 'FeatureFlag', key, {
-      enabled,
-      reason,
-    });
+    await this.audit.record(
+      actorId,
+      'FEATURE_FLAG_UPDATED',
+      'FeatureFlag',
+      key,
+      {
+        enabled,
+        reason,
+      },
+    );
 
     return enabled;
   }

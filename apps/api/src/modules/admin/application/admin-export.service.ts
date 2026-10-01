@@ -48,7 +48,9 @@ export class AdminExportService {
       });
       managedHotelIds = hotels.map((h) => h.id);
       if (dto.type === 'users') {
-        throw new ForbiddenException('Managers cannot export user directory data');
+        throw new ForbiddenException(
+          'Managers cannot export user directory data',
+        );
       }
     }
 
@@ -71,7 +73,9 @@ export class AdminExportService {
 
       const count = await this.db.booking.count({ where });
       if (count > maxLimit) {
-        throw new BadRequestException('Export exceeds 10,000 rows. Please apply more specific date filters.');
+        throw new BadRequestException(
+          'Export exceeds 10,000 rows. Please apply more specific date filters.',
+        );
       }
 
       const bookings = await this.db.booking.findMany({
@@ -111,7 +115,9 @@ export class AdminExportService {
 
       const count = await this.db.payment.count({ where });
       if (count > maxLimit) {
-        throw new BadRequestException('Export exceeds 10,000 rows. Please apply more specific date filters.');
+        throw new BadRequestException(
+          'Export exceeds 10,000 rows. Please apply more specific date filters.',
+        );
       }
 
       const payments = await this.db.payment.findMany({
@@ -140,7 +146,9 @@ export class AdminExportService {
 
       const count = await this.db.review.count({ where });
       if (count > maxLimit) {
-        throw new BadRequestException('Export exceeds 10,000 rows. Please apply filters.');
+        throw new BadRequestException(
+          'Export exceeds 10,000 rows. Please apply filters.',
+        );
       }
 
       const reviews = await this.db.review.findMany({
@@ -165,7 +173,9 @@ export class AdminExportService {
     } else if (dto.type === 'users') {
       const count = await this.db.user.count();
       if (count > maxLimit) {
-        throw new BadRequestException('Export exceeds 10,000 rows. Please apply filters.');
+        throw new BadRequestException(
+          'Export exceeds 10,000 rows. Please apply filters.',
+        );
       }
 
       const users = await this.db.user.findMany({

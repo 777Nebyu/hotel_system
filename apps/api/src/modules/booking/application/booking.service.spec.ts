@@ -319,6 +319,7 @@ describe('BookingService - Milestone 3 Features (Modifications & Relocations)', 
       db.user = {
         findUnique: jest.fn().mockResolvedValue({
           id: 'user-1',
+          emailVerified: true,
           emailVerifiedAt: new Date(),
           role: 'CUSTOMER',
         }),

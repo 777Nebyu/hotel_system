@@ -7,6 +7,7 @@ import {
   adminReviewsQuerySchema,
   adminUsersQuerySchema,
   auditLogsQuerySchema,
+  emailFieldSchema,
   exportQuerySchema,
   flagUserSchema,
   reassignManagerSchema,
@@ -24,7 +25,7 @@ import {
 
 export const createAdminUserSchema = z.object({
   fullName: z.string().min(2).max(100),
-  email: z.string().email(),
+  email: emailFieldSchema,
   password: z.string().min(8).max(100),
   phone: z.string().max(30).optional().nullable(),
   role: z.enum(['CUSTOMER', 'MANAGER', 'STAFF', 'ADMIN']).default('MANAGER'),

@@ -138,3 +138,57 @@ export const ContactStatus = {
 } as const
 
 export type ContactStatus = (typeof ContactStatus)[keyof typeof ContactStatus]
+
+
+export const PlaceCategory = {
+  RESTAURANT: 'RESTAURANT',
+  CAFE: 'CAFE',
+  HERITAGE: 'HERITAGE',
+  MUSEUM: 'MUSEUM',
+  ATTRACTION: 'ATTRACTION',
+  NIGHTLIFE: 'NIGHTLIFE',
+  SHOPPING: 'SHOPPING',
+  HOSPITAL: 'HOSPITAL',
+  CLINIC: 'CLINIC',
+  PHARMACY: 'PHARMACY',
+  EMERGENCY: 'EMERGENCY',
+  OTHER: 'OTHER'
+} as const
+
+export type PlaceCategory = (typeof PlaceCategory)[keyof typeof PlaceCategory]
+
+
+export const PlaceStatus = {
+  DRAFT: 'DRAFT',
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type PlaceStatus = (typeof PlaceStatus)[keyof typeof PlaceStatus]
+
+
+export const TripItemType = {
+  PLACE: 'PLACE',
+  BOOKING: 'BOOKING',
+  CUSTOM: 'CUSTOM'
+} as const
+
+export type TripItemType = (typeof TripItemType)[keyof typeof TripItemType]
+
+
+export const TripItemStatus = {
+  PLANNED: 'PLANNED',
+  DONE: 'DONE',
+  SKIPPED: 'SKIPPED'
+} as const
+
+export type TripItemStatus = (typeof TripItemStatus)[keyof typeof TripItemStatus]
+
+
+export const CreatedByOrigin = {
+  USER: 'USER',
+  AI: 'AI'
+} as const
+
+export type CreatedByOrigin = (typeof CreatedByOrigin)[keyof typeof CreatedByOrigin]

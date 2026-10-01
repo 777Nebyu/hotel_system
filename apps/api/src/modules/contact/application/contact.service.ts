@@ -106,14 +106,21 @@ export class ContactService {
           },
         });
       } catch (err) {
-        this.logger.warn(`Failed to dispatch hotel contact notification: ${err}`);
+        this.logger.warn(
+          `Failed to dispatch hotel contact notification: ${err}`,
+        );
       }
     }
 
     return thread;
   }
 
-  async listThreads(actor: ContactActor, hotelId?: string, page = 1, pageSize = 50) {
+  async listThreads(
+    actor: ContactActor,
+    hotelId?: string,
+    page = 1,
+    pageSize = 50,
+  ) {
     const where: Prisma.ContactThreadWhereInput = {};
 
     if (actor.role === 'CUSTOMER') {

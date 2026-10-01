@@ -36,6 +36,20 @@ export class CacheService implements OnModuleDestroy {
     }
   }
 
+  /** Atomically increment a counter and set its expiry on first use. */
+  async increment(key: string, ttlSeconds: number): Promise<number | null> {
+    try {
+      const count = await this.client.incr(key);
+      if (count === 1) {
+        await this.client.expire(key, ttlSeconds);
+      }
+      return count;
+    } catch (err) {
+      this.logger.warn(`Cache increment failed for key "${key}": ${err}`);
+      return null;
+    }
+  }
+
   async del(key: string): Promise<void> {
     try {
       await this.client.del(key);

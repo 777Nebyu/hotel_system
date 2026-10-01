@@ -33,6 +33,9 @@ import { FeatureFlagModule } from './modules/feature-flags/feature-flag.module';
 import { FeatureFlagGuard } from './modules/feature-flags/feature-flag.guard';
 import { FraudModule } from './modules/fraud/fraud.module';
 import { ContactModule } from './modules/contact/contact.module';
+import { AiModule } from './modules/ai/ai.module';
+import { DiscoverModule } from './modules/discover/discover.module';
+import { TripModule } from './modules/trip/trip.module';
 
 @Module({
   imports: [
@@ -68,6 +71,9 @@ import { ContactModule } from './modules/contact/contact.module';
     FeatureFlagModule,
     FraudModule,
     ContactModule,
+    AiModule,
+    DiscoverModule,
+    TripModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },

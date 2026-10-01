@@ -121,9 +121,9 @@ describe('ContactService', () => {
         hotel: { managerId: 'mgr-1' },
       });
 
-      await expect(service.getThread('thread-1', otherCustomer)).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.getThread('thread-1', otherCustomer),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('returns thread and marks incoming messages as read', async () => {

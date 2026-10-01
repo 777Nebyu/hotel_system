@@ -30,7 +30,9 @@ export class AccountPurgeProcessor extends WorkerHost {
 
     if (!expiredUsers.length) return;
 
-    this.logger.log(`Found ${expiredUsers.length} deactivated accounts pending permanent purge`);
+    this.logger.log(
+      `Found ${expiredUsers.length} deactivated accounts pending permanent purge`,
+    );
 
     for (const user of expiredUsers) {
       await this.db.user.update({
@@ -53,13 +55,9 @@ export class AccountPurgeProcessor extends WorkerHost {
         where: { userId: user.id },
       });
 
-      await this.audit.record(
-        'system',
-        'USER_PURGED',
-        'User',
-        user.id,
-        { originalEmail: user.email },
-      );
+      await this.audit.record('system', 'USER_PURGED', 'User', user.id, {
+        originalEmail: user.email,
+      });
     }
   }
 }

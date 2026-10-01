@@ -168,6 +168,7 @@ export type CityWhereInput = {
   countryId?: Prisma.StringFilter<"City"> | string
   country?: Prisma.XOR<Prisma.CountryScalarRelationFilter, Prisma.CountryWhereInput>
   hotels?: Prisma.HotelListRelationFilter
+  places?: Prisma.PlaceListRelationFilter
 }
 
 export type CityOrderByWithRelationInput = {
@@ -176,6 +177,7 @@ export type CityOrderByWithRelationInput = {
   countryId?: Prisma.SortOrder
   country?: Prisma.CountryOrderByWithRelationInput
   hotels?: Prisma.HotelOrderByRelationAggregateInput
+  places?: Prisma.PlaceOrderByRelationAggregateInput
 }
 
 export type CityWhereUniqueInput = Prisma.AtLeast<{
@@ -188,6 +190,7 @@ export type CityWhereUniqueInput = Prisma.AtLeast<{
   countryId?: Prisma.StringFilter<"City"> | string
   country?: Prisma.XOR<Prisma.CountryScalarRelationFilter, Prisma.CountryWhereInput>
   hotels?: Prisma.HotelListRelationFilter
+  places?: Prisma.PlaceListRelationFilter
 }, "id" | "name_countryId">
 
 export type CityOrderByWithAggregationInput = {
@@ -213,6 +216,7 @@ export type CityCreateInput = {
   name: string
   country: Prisma.CountryCreateNestedOneWithoutCitiesInput
   hotels?: Prisma.HotelCreateNestedManyWithoutCityInput
+  places?: Prisma.PlaceCreateNestedManyWithoutCityInput
 }
 
 export type CityUncheckedCreateInput = {
@@ -220,6 +224,7 @@ export type CityUncheckedCreateInput = {
   name: string
   countryId: string
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutCityInput
+  places?: Prisma.PlaceUncheckedCreateNestedManyWithoutCityInput
 }
 
 export type CityUpdateInput = {
@@ -227,6 +232,7 @@ export type CityUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.CountryUpdateOneRequiredWithoutCitiesNestedInput
   hotels?: Prisma.HotelUpdateManyWithoutCityNestedInput
+  places?: Prisma.PlaceUpdateManyWithoutCityNestedInput
 }
 
 export type CityUncheckedUpdateInput = {
@@ -234,6 +240,7 @@ export type CityUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   countryId?: Prisma.StringFieldUpdateOperationsInput | string
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutCityNestedInput
+  places?: Prisma.PlaceUncheckedUpdateManyWithoutCityNestedInput
 }
 
 export type CityCreateManyInput = {
@@ -289,6 +296,11 @@ export type CityMinOrderByAggregateInput = {
 export type CityScalarRelationFilter = {
   is?: Prisma.CityWhereInput
   isNot?: Prisma.CityWhereInput
+}
+
+export type CityNullableScalarRelationFilter = {
+  is?: Prisma.CityWhereInput | null
+  isNot?: Prisma.CityWhereInput | null
 }
 
 export type CityCreateNestedManyWithoutCountryInput = {
@@ -347,16 +359,34 @@ export type CityUpdateOneRequiredWithoutHotelsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CityUpdateToOneWithWhereWithoutHotelsInput, Prisma.CityUpdateWithoutHotelsInput>, Prisma.CityUncheckedUpdateWithoutHotelsInput>
 }
 
+export type CityCreateNestedOneWithoutPlacesInput = {
+  create?: Prisma.XOR<Prisma.CityCreateWithoutPlacesInput, Prisma.CityUncheckedCreateWithoutPlacesInput>
+  connectOrCreate?: Prisma.CityCreateOrConnectWithoutPlacesInput
+  connect?: Prisma.CityWhereUniqueInput
+}
+
+export type CityUpdateOneWithoutPlacesNestedInput = {
+  create?: Prisma.XOR<Prisma.CityCreateWithoutPlacesInput, Prisma.CityUncheckedCreateWithoutPlacesInput>
+  connectOrCreate?: Prisma.CityCreateOrConnectWithoutPlacesInput
+  upsert?: Prisma.CityUpsertWithoutPlacesInput
+  disconnect?: Prisma.CityWhereInput | boolean
+  delete?: Prisma.CityWhereInput | boolean
+  connect?: Prisma.CityWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CityUpdateToOneWithWhereWithoutPlacesInput, Prisma.CityUpdateWithoutPlacesInput>, Prisma.CityUncheckedUpdateWithoutPlacesInput>
+}
+
 export type CityCreateWithoutCountryInput = {
   id?: string
   name: string
   hotels?: Prisma.HotelCreateNestedManyWithoutCityInput
+  places?: Prisma.PlaceCreateNestedManyWithoutCityInput
 }
 
 export type CityUncheckedCreateWithoutCountryInput = {
   id?: string
   name: string
   hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutCityInput
+  places?: Prisma.PlaceUncheckedCreateNestedManyWithoutCityInput
 }
 
 export type CityCreateOrConnectWithoutCountryInput = {
@@ -398,12 +428,14 @@ export type CityCreateWithoutHotelsInput = {
   id?: string
   name: string
   country: Prisma.CountryCreateNestedOneWithoutCitiesInput
+  places?: Prisma.PlaceCreateNestedManyWithoutCityInput
 }
 
 export type CityUncheckedCreateWithoutHotelsInput = {
   id?: string
   name: string
   countryId: string
+  places?: Prisma.PlaceUncheckedCreateNestedManyWithoutCityInput
 }
 
 export type CityCreateOrConnectWithoutHotelsInput = {
@@ -426,12 +458,58 @@ export type CityUpdateWithoutHotelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.CountryUpdateOneRequiredWithoutCitiesNestedInput
+  places?: Prisma.PlaceUpdateManyWithoutCityNestedInput
 }
 
 export type CityUncheckedUpdateWithoutHotelsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   countryId?: Prisma.StringFieldUpdateOperationsInput | string
+  places?: Prisma.PlaceUncheckedUpdateManyWithoutCityNestedInput
+}
+
+export type CityCreateWithoutPlacesInput = {
+  id?: string
+  name: string
+  country: Prisma.CountryCreateNestedOneWithoutCitiesInput
+  hotels?: Prisma.HotelCreateNestedManyWithoutCityInput
+}
+
+export type CityUncheckedCreateWithoutPlacesInput = {
+  id?: string
+  name: string
+  countryId: string
+  hotels?: Prisma.HotelUncheckedCreateNestedManyWithoutCityInput
+}
+
+export type CityCreateOrConnectWithoutPlacesInput = {
+  where: Prisma.CityWhereUniqueInput
+  create: Prisma.XOR<Prisma.CityCreateWithoutPlacesInput, Prisma.CityUncheckedCreateWithoutPlacesInput>
+}
+
+export type CityUpsertWithoutPlacesInput = {
+  update: Prisma.XOR<Prisma.CityUpdateWithoutPlacesInput, Prisma.CityUncheckedUpdateWithoutPlacesInput>
+  create: Prisma.XOR<Prisma.CityCreateWithoutPlacesInput, Prisma.CityUncheckedCreateWithoutPlacesInput>
+  where?: Prisma.CityWhereInput
+}
+
+export type CityUpdateToOneWithWhereWithoutPlacesInput = {
+  where?: Prisma.CityWhereInput
+  data: Prisma.XOR<Prisma.CityUpdateWithoutPlacesInput, Prisma.CityUncheckedUpdateWithoutPlacesInput>
+}
+
+export type CityUpdateWithoutPlacesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country?: Prisma.CountryUpdateOneRequiredWithoutCitiesNestedInput
+  hotels?: Prisma.HotelUpdateManyWithoutCityNestedInput
+}
+
+export type CityUncheckedUpdateWithoutPlacesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  countryId?: Prisma.StringFieldUpdateOperationsInput | string
+  hotels?: Prisma.HotelUncheckedUpdateManyWithoutCityNestedInput
 }
 
 export type CityCreateManyCountryInput = {
@@ -443,12 +521,14 @@ export type CityUpdateWithoutCountryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   hotels?: Prisma.HotelUpdateManyWithoutCityNestedInput
+  places?: Prisma.PlaceUpdateManyWithoutCityNestedInput
 }
 
 export type CityUncheckedUpdateWithoutCountryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   hotels?: Prisma.HotelUncheckedUpdateManyWithoutCityNestedInput
+  places?: Prisma.PlaceUncheckedUpdateManyWithoutCityNestedInput
 }
 
 export type CityUncheckedUpdateManyWithoutCountryInput = {
@@ -463,10 +543,12 @@ export type CityUncheckedUpdateManyWithoutCountryInput = {
 
 export type CityCountOutputType = {
   hotels: number
+  places: number
 }
 
 export type CityCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   hotels?: boolean | CityCountOutputTypeCountHotelsArgs
+  places?: boolean | CityCountOutputTypeCountPlacesArgs
 }
 
 /**
@@ -486,6 +568,13 @@ export type CityCountOutputTypeCountHotelsArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.HotelWhereInput
 }
 
+/**
+ * CityCountOutputType without action
+ */
+export type CityCountOutputTypeCountPlacesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PlaceWhereInput
+}
+
 
 export type CitySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -493,6 +582,7 @@ export type CitySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   countryId?: boolean
   country?: boolean | Prisma.CountryDefaultArgs<ExtArgs>
   hotels?: boolean | Prisma.City$hotelsArgs<ExtArgs>
+  places?: boolean | Prisma.City$placesArgs<ExtArgs>
   _count?: boolean | Prisma.CityCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["city"]>
 
@@ -520,6 +610,7 @@ export type CityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type CityInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   country?: boolean | Prisma.CountryDefaultArgs<ExtArgs>
   hotels?: boolean | Prisma.City$hotelsArgs<ExtArgs>
+  places?: boolean | Prisma.City$placesArgs<ExtArgs>
   _count?: boolean | Prisma.CityCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CityIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -534,6 +625,7 @@ export type $CityPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     country: Prisma.$CountryPayload<ExtArgs>
     hotels: Prisma.$HotelPayload<ExtArgs>[]
+    places: Prisma.$PlacePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -935,6 +1027,7 @@ export interface Prisma__CityClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   country<T extends Prisma.CountryDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CountryDefaultArgs<ExtArgs>>): Prisma.Prisma__CountryClient<runtime.Types.Result.GetResult<Prisma.$CountryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   hotels<T extends Prisma.City$hotelsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.City$hotelsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HotelPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  places<T extends Prisma.City$placesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.City$placesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PlacePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1389,6 +1482,30 @@ export type City$hotelsArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.HotelScalarFieldEnum | Prisma.HotelScalarFieldEnum[]
+}
+
+/**
+ * City.places
+ */
+export type City$placesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Place
+   */
+  select?: Prisma.PlaceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Place
+   */
+  omit?: Prisma.PlaceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PlaceInclude<ExtArgs> | null
+  where?: Prisma.PlaceWhereInput
+  orderBy?: Prisma.PlaceOrderByWithRelationInput | Prisma.PlaceOrderByWithRelationInput[]
+  cursor?: Prisma.PlaceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PlaceScalarFieldEnum | Prisma.PlaceScalarFieldEnum[]
 }
 
 /**

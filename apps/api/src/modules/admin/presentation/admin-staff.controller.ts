@@ -38,7 +38,9 @@ export class AdminStaffController {
   constructor(private readonly staff: AdminStaffService) {}
 
   @Get('staff-assignments')
-  @ApiOperation({ summary: 'List all staff–hotel assignments across all hotels' })
+  @ApiOperation({
+    summary: 'List all staff–hotel assignments across all hotels',
+  })
   listAll() {
     return this.staff.listAllAssignments();
   }

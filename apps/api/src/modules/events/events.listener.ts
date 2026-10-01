@@ -41,30 +41,42 @@ export class DomainEventsListener {
 
   @OnEvent(BookingEventNames.CANCELLED)
   handleBookingCancelled(event: BookingCancelledEvent) {
-    this.logger.log(`booking.cancelled received for booking ${event.bookingId}`, {
-      event,
-    });
+    this.logger.log(
+      `booking.cancelled received for booking ${event.bookingId}`,
+      {
+        event,
+      },
+    );
   }
 
   @OnEvent(BookingEventNames.MODIFIED)
   handleBookingModified(event: BookingModifiedEvent) {
-    this.logger.log(`booking.modified received for booking ${event.bookingId}`, {
-      event,
-    });
+    this.logger.log(
+      `booking.modified received for booking ${event.bookingId}`,
+      {
+        event,
+      },
+    );
   }
 
   @OnEvent(BookingEventNames.CHECKED_IN)
   handleBookingCheckedIn(event: BookingCheckedInEvent) {
-    this.logger.log(`booking.checked_in received for booking ${event.bookingId}`, {
-      event,
-    });
+    this.logger.log(
+      `booking.checked_in received for booking ${event.bookingId}`,
+      {
+        event,
+      },
+    );
   }
 
   @OnEvent(BookingEventNames.CHECKED_OUT)
   handleBookingCheckedOut(event: BookingCheckedOutEvent) {
-    this.logger.log(`booking.checked_out received for booking ${event.bookingId}`, {
-      event,
-    });
+    this.logger.log(
+      `booking.checked_out received for booking ${event.bookingId}`,
+      {
+        event,
+      },
+    );
   }
 
   @OnEvent(BookingEventNames.NO_SHOW)
@@ -92,10 +104,9 @@ export class DomainEventsListener {
 
   @OnEvent(PaymentEventNames.FAILED)
   handlePaymentFailed(event: PaymentFailedEvent) {
-    this.logger.warn(
-      `payment.failed received for booking ${event.bookingId}`,
-      { event },
-    );
+    this.logger.warn(`payment.failed received for booking ${event.bookingId}`, {
+      event,
+    });
   }
 
   @OnEvent(ReviewEventNames.SUBMITTED)

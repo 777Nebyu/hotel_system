@@ -11,6 +11,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { z } from 'zod';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
@@ -18,8 +19,11 @@ import {
   deactivateAccountSchema,
   emailSchema,
   loginSchema,
+  mfaVerifySchema,
+  mfaCodeSchema,
   refreshTokenSchema,
   registerSchema,
+  resendVerificationSchema,
   resetPasswordSchema,
   sessionIdParamsSchema,
   updateProfileSchema,
@@ -28,13 +32,17 @@ import type {
   DeactivateAccountInput,
   EmailInput,
   LoginInput,
+  MfaVerifyInput,
   RefreshTokenInput,
   RegisterInput,
+  ResendVerificationInput,
   ResetPasswordInput,
   SessionIdParams,
   UpdateProfileInput,
 } from '@repo/shared-types';
 import { Public } from '../../../common/decorators/public.decorator';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { Role } from '../../../generated/prisma/client';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { IdentityService } from '../application/identity.service';
 import type { JwtUser } from '../infrastructure/jwt.strategy';
@@ -46,7 +54,12 @@ export class IdentityController {
 
   @Post('register')
   @Public()
-  @Throttle({ default: { ttl: 60000, limit: process.env.NODE_ENV === 'production' ? 10 : 100 } })
+  @Throttle({
+    default: {
+      ttl: 60000,
+      limit: process.env.NODE_ENV === 'production' ? 10 : 100,
+    },
+  })
   register(
     @Body(new ZodValidationPipe(registerSchema)) dto: RegisterInput,
     @Req() req: Request,
@@ -59,7 +72,12 @@ export class IdentityController {
 
   @Post('login')
   @Public()
-  @Throttle({ default: { ttl: 60000, limit: process.env.NODE_ENV === 'production' ? 10 : 100 } })
+  @Throttle({
+    default: {
+      ttl: 60000,
+      limit: process.env.NODE_ENV === 'production' ? 10 : 100,
+    },
+  })
   login(
     @Body(new ZodValidationPipe(loginSchema)) dto: LoginInput,
     @Req() req: Request,
@@ -108,6 +126,48 @@ export class IdentityController {
     return this.service.logout(req.user.sub, req.user.sessionId);
   }
 
+  @Post('mfa/verify')
+  @Public()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  verifyMfa(
+    @Body(new ZodValidationPipe(mfaVerifySchema)) dto: MfaVerifyInput,
+    @Req() req: Request,
+  ) {
+    return this.service.verifyMfa(dto.challengeToken, dto.code, {
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip,
+    });
+  }
+
+  @Post('mfa/enroll')
+  @ApiBearerAuth()
+  @Roles(Role.ADMIN)
+  enrollMfa(@Req() req: { user: JwtUser }) {
+    return this.service.enrollMfa(req.user.sub);
+  }
+
+  @Post('mfa/enable')
+  @ApiBearerAuth()
+  @Roles(Role.ADMIN)
+  enableMfa(
+    @Body(new ZodValidationPipe(z.object({ code: mfaCodeSchema })))
+    body: { code: string },
+    @Req() req: { user: JwtUser },
+  ) {
+    return this.service.enableMfa(req.user.sub, body.code);
+  }
+
+  @Post('mfa/disable')
+  @ApiBearerAuth()
+  @Roles(Role.ADMIN)
+  disableMfa(
+    @Body(new ZodValidationPipe(z.object({ code: mfaCodeSchema })))
+    body: { code: string },
+    @Req() req: { user: JwtUser },
+  ) {
+    return this.service.disableMfa(req.user.sub, body.code);
+  }
+
   @Get('sessions')
   @ApiBearerAuth()
   listSessions(@Req() req: { user: JwtUser }) {
@@ -117,7 +177,8 @@ export class IdentityController {
   @Delete('sessions/:id')
   @ApiBearerAuth()
   revokeSession(
-    @Param(new ZodValidationPipe(sessionIdParamsSchema)) params: SessionIdParams,
+    @Param(new ZodValidationPipe(sessionIdParamsSchema))
+    params: SessionIdParams,
     @Req() req: { user: JwtUser },
   ) {
     return this.service.revokeSession(req.user.sub, params.id);
@@ -148,11 +209,28 @@ export class IdentityController {
     return this.service.resetPassword(dto.token, dto.password);
   }
 
+  @Get('verify-email/:token')
+  @Public()
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
+  verifyGet(@Param('token') token: string) {
+    return this.service.verifyEmail(token);
+  }
+
   @Post('verify-email/:token')
   @Public()
   @Throttle({ default: { ttl: 60000, limit: 10 } })
   verify(@Param('token') token: string) {
     return this.service.verifyEmail(token);
+  }
+
+  @Post('resend-verification')
+  @Public()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  resendVerification(
+    @Body(new ZodValidationPipe(resendVerificationSchema))
+    dto: ResendVerificationInput,
+  ) {
+    return this.service.resendVerificationEmail(dto.email);
   }
 
   @Get('me')

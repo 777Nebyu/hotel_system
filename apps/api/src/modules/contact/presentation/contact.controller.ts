@@ -12,9 +12,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import {
-  hotelIdParamsSchema,
-} from '@repo/shared-types';
+import { hotelIdParamsSchema } from '@repo/shared-types';
 import { ContactService } from '../application/contact.service';
 import {
   ContactThreadIdParamsDto,
@@ -54,12 +52,16 @@ export class ContactController {
   }
 
   @Get('contact/threads')
-  @ApiOperation({ summary: 'List contact threads for current user/manager/staff' })
-  listThreads(
-    @Query() query: ListThreadsQueryDto,
-    @Req() req: AuthedRequest,
-  ) {
-    return this.contact.listThreads(req.user, query.hotelId, query.page, query.pageSize);
+  @ApiOperation({
+    summary: 'List contact threads for current user/manager/staff',
+  })
+  listThreads(@Query() query: ListThreadsQueryDto, @Req() req: AuthedRequest) {
+    return this.contact.listThreads(
+      req.user,
+      query.hotelId,
+      query.page,
+      query.pageSize,
+    );
   }
 
   @Get('contact/threads/:threadId')

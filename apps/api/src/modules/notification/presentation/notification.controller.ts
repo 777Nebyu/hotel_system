@@ -40,13 +40,17 @@ export class NotificationController {
   }
 
   @Get('preferences')
-  @ApiOperation({ summary: 'Get notification preferences for the current user' })
+  @ApiOperation({
+    summary: 'Get notification preferences for the current user',
+  })
   getPreferences(@Req() req: AuthedRequest) {
     return this.notifications.getPreferences(req.user.sub);
   }
 
   @Patch('preferences')
-  @ApiOperation({ summary: 'Update notification preference for the current user' })
+  @ApiOperation({
+    summary: 'Update notification preference for the current user',
+  })
   updatePreference(
     @Body() dto: UpdateNotificationPreferenceDto,
     @Req() req: AuthedRequest,

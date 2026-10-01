@@ -1,7 +1,4 @@
-import {
-  BOOKING_TRANSITIONS,
-  canTransition,
-} from './index';
+import { BOOKING_TRANSITIONS, canTransition } from './index';
 import { buildQuote } from './quote';
 
 // ---------------------------------------------------------------------------
@@ -19,38 +16,39 @@ describe('canTransition', () => {
       ['CONFIRMED', 'CANCELLED'],
       ['CONFIRMED', 'NO_SHOW'],
       ['CHECKED_IN', 'CHECKED_OUT'],
-    ] as const)(
-      '%s → %s is allowed',
-      (from, to) => {
-        expect(canTransition(from, to)).toBe(true);
-      },
-    );
+    ] as const)('%s → %s is allowed', (from, to) => {
+      expect(canTransition(from, to)).toBe(true);
+    });
   });
 
   // ── invalid / skipping transitions ────────────────────────────────────
   describe('invalid transitions', () => {
     it.each([
-      ['PENDING', 'CHECKED_IN'],   // skip CONFIRMED
-      ['PENDING', 'CHECKED_OUT'],  // skip two states
-      ['CONFIRMED', 'CHECKED_OUT'],// skip CHECKED_IN
-      ['CONFIRMED', 'PENDING'],    // backward
-      ['CONFIRMED', 'REJECTED'],   // only PENDING can be rejected
-      ['CHECKED_IN', 'PENDING'],   // backward
+      ['PENDING', 'CHECKED_IN'], // skip CONFIRMED
+      ['PENDING', 'CHECKED_OUT'], // skip two states
+      ['CONFIRMED', 'CHECKED_OUT'], // skip CHECKED_IN
+      ['CONFIRMED', 'PENDING'], // backward
+      ['CONFIRMED', 'REJECTED'], // only PENDING can be rejected
+      ['CHECKED_IN', 'PENDING'], // backward
       ['CHECKED_IN', 'CONFIRMED'], // backward
       ['CHECKED_IN', 'CANCELLED'], // cannot cancel mid-stay
-      ['CHECKED_IN', 'REJECTED'],  // cannot reject mid-stay
-    ] as const)(
-      '%s → %s is rejected',
-      (from, to) => {
-        expect(canTransition(from, to)).toBe(false);
-      },
-    );
+      ['CHECKED_IN', 'REJECTED'], // cannot reject mid-stay
+    ] as const)('%s → %s is rejected', (from, to) => {
+      expect(canTransition(from, to)).toBe(false);
+    });
   });
 
   // ── terminal states — nothing is allowed out of them ──────────────────
   describe('terminal states block every outgoing transition', () => {
-    const terminals = ['CHECKED_OUT', 'CANCELLED', 'REJECTED', 'NO_SHOW'] as const;
-    const allStatuses = Object.keys(BOOKING_TRANSITIONS) as (keyof typeof BOOKING_TRANSITIONS)[];
+    const terminals = [
+      'CHECKED_OUT',
+      'CANCELLED',
+      'REJECTED',
+      'NO_SHOW',
+    ] as const;
+    const allStatuses = Object.keys(
+      BOOKING_TRANSITIONS,
+    ) as (keyof typeof BOOKING_TRANSITIONS)[];
 
     terminals.forEach((terminal) => {
       allStatuses.forEach((to) => {
@@ -146,24 +144,24 @@ describe('buildQuote', () => {
 
       expect(quote.subtotal).toBe(300);
       expect(quote.taxRate).toBe(0.15);
-      expect(quote.taxAmount).toBe(45);    // 15% of 300
-      expect(quote.serviceFee).toBe(15);   // 5% of 300
+      expect(quote.taxAmount).toBe(45); // 15% of 300
+      expect(quote.serviceFee).toBe(15); // 5% of 300
       expect(quote.discount).toBe(0);
-      expect(quote.total).toBe(360);       // 300 + 45 + 15
+      expect(quote.total).toBe(360); // 300 + 45 + 15
     });
 
     it('supports custom tax rate when provided', () => {
       const quote = buildQuote({
         ...baseInput,
         rooms: [{ roomId: 'r1', roomNumber: '101', nightly: [100, 100, 100] }],
-        taxRate: 0.10,
+        taxRate: 0.1,
       });
 
       expect(quote.subtotal).toBe(300);
-      expect(quote.taxRate).toBe(0.10);
-      expect(quote.taxAmount).toBe(30);    // 10% of 300
-      expect(quote.serviceFee).toBe(15);   // 5% of 300
-      expect(quote.total).toBe(345);       // 300 + 30 + 15
+      expect(quote.taxRate).toBe(0.1);
+      expect(quote.taxAmount).toBe(30); // 10% of 300
+      expect(quote.serviceFee).toBe(15); // 5% of 300
+      expect(quote.total).toBe(345); // 300 + 30 + 15
     });
   });
 
@@ -173,7 +171,7 @@ describe('buildQuote', () => {
       const quote = buildQuote({
         ...baseInput,
         rooms: [
-          { roomId: 'r1', roomNumber: '101', nightly: [80, 80] },   // $160
+          { roomId: 'r1', roomNumber: '101', nightly: [80, 80] }, // $160
           { roomId: 'r2', roomNumber: '102', nightly: [120, 120] }, // $240
         ],
         checkIn: new Date('2026-09-01T00:00:00.000Z'),
@@ -184,9 +182,9 @@ describe('buildQuote', () => {
       expect(quote.rooms[1].roomTotal).toBe(240);
 
       expect(quote.subtotal).toBe(400);
-      expect(quote.taxAmount).toBe(60);   // 15% of 400
-      expect(quote.serviceFee).toBe(20);  // 5% of 400
-      expect(quote.total).toBe(480);      // 400 + 60 + 20
+      expect(quote.taxAmount).toBe(60); // 15% of 400
+      expect(quote.serviceFee).toBe(20); // 5% of 400
+      expect(quote.total).toBe(480); // 400 + 60 + 20
     });
   });
 
@@ -204,9 +202,9 @@ describe('buildQuote', () => {
       expect(quote.rooms[0].pricePerNight).toBe(116.67);
 
       expect(quote.subtotal).toBe(350);
-      expect(quote.taxAmount).toBe(52.5);  // 15% of 350
-      expect(quote.serviceFee).toBe(17.5);  // 5% of 350
-      expect(quote.total).toBe(420);        // 350 + 52.5 + 17.5
+      expect(quote.taxAmount).toBe(52.5); // 15% of 350
+      expect(quote.serviceFee).toBe(17.5); // 5% of 350
+      expect(quote.total).toBe(420); // 350 + 52.5 + 17.5
     });
   });
 
@@ -225,7 +223,7 @@ describe('buildQuote', () => {
       expect(quote.taxAmount).toBe(45);
       expect(quote.serviceFee).toBe(15);
       expect(quote.discount).toBe(30);
-      expect(quote.total).toBe(330);        // 300 + 45 + 15 - 30
+      expect(quote.total).toBe(330); // 300 + 45 + 15 - 30
       expect(quote.couponCode).toBe('SAVE30');
     });
 
@@ -258,7 +256,9 @@ describe('buildQuote', () => {
     it('includes roomId and roomNumber on each room line', () => {
       const quote = buildQuote({
         ...baseInput,
-        rooms: [{ roomId: 'room-abc', roomNumber: '201', nightly: [200, 200, 200] }],
+        rooms: [
+          { roomId: 'room-abc', roomNumber: '201', nightly: [200, 200, 200] },
+        ],
       });
 
       expect(quote.rooms[0].roomId).toBe('room-abc');
@@ -280,14 +280,16 @@ describe('buildQuote', () => {
       // 3 nights × $33.333… = $99.999…
       const quote = buildQuote({
         ...baseInput,
-        rooms: [{ roomId: 'r1', roomNumber: '101', nightly: [33.33, 33.33, 33.34] }],
+        rooms: [
+          { roomId: 'r1', roomNumber: '101', nightly: [33.33, 33.33, 33.34] },
+        ],
       });
 
-      expect(quote.rooms[0].roomTotal).toBe(100);    // 33.33+33.33+33.34
+      expect(quote.rooms[0].roomTotal).toBe(100); // 33.33+33.33+33.34
       expect(quote.subtotal).toBe(100);
-      expect(quote.taxAmount).toBe(15);              // 15% of 100
-      expect(quote.serviceFee).toBe(5);              // 5% of 100
-      expect(quote.total).toBe(120);                 // 100 + 15 + 5
+      expect(quote.taxAmount).toBe(15); // 15% of 100
+      expect(quote.serviceFee).toBe(5); // 5% of 100
+      expect(quote.total).toBe(120); // 100 + 15 + 5
       // No floating-point drift — values are clean
       expect(Number.isFinite(quote.total)).toBe(true);
     });

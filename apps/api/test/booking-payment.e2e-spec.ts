@@ -5,7 +5,8 @@ import type { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
-const WEBHOOK_SECRET = process.env.MOCK_PAYMENT_WEBHOOK_SECRET ?? 'development-mock-payment-secret';
+const WEBHOOK_SECRET =
+  process.env.MOCK_PAYMENT_WEBHOOK_SECRET ?? 'development-mock-payment-secret';
 
 describe('Booking-payment lifecycle (e2e)', () => {
   let app: INestApplication<App>;
@@ -53,18 +54,34 @@ describe('Booking-payment lifecycle (e2e)', () => {
   });
 
   afterAll(async () => {
-    if (bookingId) await db.booking.delete({ where: { id: bookingId } }).catch(() => undefined);
-    if (roomId) await db.room.delete({ where: { id: roomId } }).catch(() => undefined);
+    if (bookingId)
+      await db.booking
+        .delete({ where: { id: bookingId } })
+        .catch(() => undefined);
+    if (roomId)
+      await db.room.delete({ where: { id: roomId } }).catch(() => undefined);
     if (hotelId) {
-      const hotel = await db.hotel.findUnique({ where: { id: hotelId }, select: { cityId: true } });
+      const hotel = await db.hotel.findUnique({
+        where: { id: hotelId },
+        select: { cityId: true },
+      });
       await db.hotel.delete({ where: { id: hotelId } }).catch(() => undefined);
       if (hotel) {
-        const city = await db.city.findUnique({ where: { id: hotel.cityId }, select: { countryId: true } });
-        await db.city.delete({ where: { id: hotel.cityId } }).catch(() => undefined);
-        if (city) await db.country.delete({ where: { id: city.countryId } }).catch(() => undefined);
+        const city = await db.city.findUnique({
+          where: { id: hotel.cityId },
+          select: { countryId: true },
+        });
+        await db.city
+          .delete({ where: { id: hotel.cityId } })
+          .catch(() => undefined);
+        if (city)
+          await db.country
+            .delete({ where: { id: city.countryId } })
+            .catch(() => undefined);
       }
     }
-    if (userId) await db.user.delete({ where: { id: userId } }).catch(() => undefined);
+    if (userId)
+      await db.user.delete({ where: { id: userId } }).catch(() => undefined);
     await app.close();
   });
 
@@ -81,7 +98,12 @@ describe('Booking-payment lifecycle (e2e)', () => {
     await request(app.getHttpServer())
       .post('/bookings/checkout')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ hotelId, roomIds: [roomId], checkIn: '2099-01-01', checkOut: '2099-01-03' })
+      .send({
+        hotelId,
+        roomIds: [roomId],
+        checkIn: '2099-01-01',
+        checkOut: '2099-01-03',
+      })
       .expect(201);
 
     const booking = await request(app.getHttpServer())
@@ -122,11 +144,19 @@ describe('Booking-payment lifecycle (e2e)', () => {
       .expect(201);
     expect(refundReplay.body.idempotent).toBe(true);
 
-    await db.booking.update({ where: { id: bookingId }, data: { status: 'CHECKED_OUT' } });
+    await db.booking.update({
+      where: { id: bookingId },
+      data: { status: 'CHECKED_OUT' },
+    });
     const review = await request(app.getHttpServer())
       .post('/reviews')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ hotelId, bookingId, rating: 5, comment: '<script>alert(1)</script><b>Great stay</b>' })
+      .send({
+        hotelId,
+        bookingId,
+        rating: 5,
+        comment: '<script>alert(1)</script><b>Great stay</b>',
+      })
       .expect(201);
     expect(review.body.comment).toBe('Great stay');
 
@@ -134,6 +164,9 @@ describe('Booking-payment lifecycle (e2e)', () => {
       .post('/auth/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(201);
-    await request(app.getHttpServer()).post('/auth/refresh').send({ refreshToken }).expect(401);
+    await request(app.getHttpServer())
+      .post('/auth/refresh')
+      .send({ refreshToken })
+      .expect(401);
   });
 });

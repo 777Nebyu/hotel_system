@@ -41,7 +41,8 @@ export class AdminReportingService {
 
   async overview() {
     const key = 'admin:dashboard:overview';
-    const cached = await this.cache.get<ReturnType<typeof this.computeOverview>>(key);
+    const cached =
+      await this.cache.get<ReturnType<typeof this.computeOverview>>(key);
     if (cached) return cached;
     const result = await this.computeOverview();
     await this.cache.set(key, result, DASHBOARD_CACHE_TTL);
@@ -210,7 +211,10 @@ export class AdminReportingService {
       },
     });
 
-    const byHotel = new Map<string, { id: string; name: string; revenue: number }>();
+    const byHotel = new Map<
+      string,
+      { id: string; name: string; revenue: number }
+    >();
     for (const payment of payments) {
       const hotel = payment.booking?.hotel;
       if (!hotel) continue;
@@ -345,7 +349,10 @@ export class AdminReportingService {
     for (const booking of bookings) {
       const key = `${booking.createdAt.getFullYear()}-${String(
         booking.createdAt.getMonth() + 1,
-      ).padStart(2, '0')}-${String(booking.createdAt.getDate()).padStart(2, '0')}`;
+      ).padStart(
+        2,
+        '0',
+      )}-${String(booking.createdAt.getDate()).padStart(2, '0')}`;
       byDay.set(key, (byDay.get(key) ?? 0) + 1);
     }
 
@@ -363,7 +370,10 @@ export class AdminReportingService {
 
   async mostBookedHotels(limit = 10) {
     const key = `admin:dashboard:most-booked-hotels:${limit}`;
-    const cached = await this.cache.get<{ hotelId: string; name: string; bookings: number }[]>(key);
+    const cached =
+      await this.cache.get<
+        { hotelId: string; name: string; bookings: number }[]
+      >(key);
     if (cached) return cached;
     const result = await this.computeMostBookedHotels(limit);
     await this.cache.set(key, result, DASHBOARD_CACHE_TTL);
@@ -455,8 +465,12 @@ export class AdminReportingService {
     startDate?: string,
     endDate?: string,
   ) {
-    const { start, end, label: periodLabel, dateRangeStr } =
-      this.getDateRangeForPeriod(period, startDate, endDate);
+    const {
+      start,
+      end,
+      label: periodLabel,
+      dateRangeStr,
+    } = this.getDateRangeForPeriod(period, startDate, endDate);
 
     const doc: ReportDocument = await this.buildAdminReportDocument(
       type,
@@ -493,7 +507,9 @@ export class AdminReportingService {
             this.db.booking.findMany({
               where: { createdAt: { gte: start, lte: end } },
               include: {
-                hotel: { select: { name: true, city: { select: { name: true } } } },
+                hotel: {
+                  select: { name: true, city: { select: { name: true } } },
+                },
                 user: { select: { fullName: true, email: true } },
                 details: { include: { room: true } },
                 payment: { select: { status: true, amount: true } },
@@ -501,13 +517,21 @@ export class AdminReportingService {
               orderBy: { createdAt: 'desc' },
             }),
             this.db.payment.aggregate({
-              where: { status: 'SUCCEEDED', createdAt: { gte: start, lte: end } },
+              where: {
+                status: 'SUCCEEDED',
+                createdAt: { gte: start, lte: end },
+              },
               _sum: { amount: true },
               _count: true,
             }),
             this.db.hotel.findMany({
               where: { status: 'ACTIVE' },
-              select: { id: true, name: true, city: { select: { name: true } }, starRating: true },
+              select: {
+                id: true,
+                name: true,
+                city: { select: { name: true } },
+                starRating: true,
+              },
             }),
             this.db.room.count(),
           ]);
@@ -515,9 +539,14 @@ export class AdminReportingService {
         const totalRevenue = succeededPayments._sum.amount?.toNumber() ?? 0;
         const totalBookings = bookings.length;
         const confirmedBookings = bookings.filter(
-          (b) => b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'CHECKED_OUT',
+          (b) =>
+            b.status === 'CONFIRMED' ||
+            b.status === 'CHECKED_IN' ||
+            b.status === 'CHECKED_OUT',
         ).length;
-        const cancelledBookings = bookings.filter((b) => b.status === 'CANCELLED').length;
+        const cancelledBookings = bookings.filter(
+          (b) => b.status === 'CANCELLED',
+        ).length;
 
         const kpiCards: ReportKpiCard[] = [
           {
@@ -533,7 +562,10 @@ export class AdminReportingService {
           {
             label: 'Cancellations',
             value: cancelledBookings,
-            subtext: totalBookings > 0 ? `${((cancelledBookings / totalBookings) * 100).toFixed(1)}% rate` : '0%',
+            subtext:
+              totalBookings > 0
+                ? `${((cancelledBookings / totalBookings) * 100).toFixed(1)}% rate`
+                : '0%',
           },
           {
             label: 'Active Inventory',
@@ -545,7 +577,13 @@ export class AdminReportingService {
         // Hotel breakdown section
         const hotelStatsMap = new Map<
           string,
-          { hotel: string; city: string; stars: number; bookings: number; revenue: number }
+          {
+            hotel: string;
+            city: string;
+            stars: number;
+            bookings: number;
+            revenue: number;
+          }
         >();
         for (const h of hotels) {
           hotelStatsMap.set(h.id, {
@@ -597,12 +635,14 @@ export class AdminReportingService {
           sections: [
             {
               title: 'Property Performance Breakdown',
-              description: 'Operational and financial breakdown by property during this timeframe.',
+              description:
+                'Operational and financial breakdown by property during this timeframe.',
               rows: propertyRows,
             },
             {
               title: 'Reservations Manifest',
-              description: 'Latest guest reservations processed in this period.',
+              description:
+                'Latest guest reservations processed in this period.',
               rows: bookingRows,
             },
           ],
@@ -622,10 +662,18 @@ export class AdminReportingService {
 
         const total = bookings.length;
         const confirmed = bookings.filter(
-          (b) => b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'CHECKED_OUT',
+          (b) =>
+            b.status === 'CONFIRMED' ||
+            b.status === 'CHECKED_IN' ||
+            b.status === 'CHECKED_OUT',
         ).length;
-        const cancelled = bookings.filter((b) => b.status === 'CANCELLED').length;
-        const grossValue = bookings.reduce((sum, b) => sum + b.totalPrice.toNumber(), 0);
+        const cancelled = bookings.filter(
+          (b) => b.status === 'CANCELLED',
+        ).length;
+        const grossValue = bookings.reduce(
+          (sum, b) => sum + b.totalPrice.toNumber(),
+          0,
+        );
 
         const kpiCards: ReportKpiCard[] = [
           { label: 'Total Reservations', value: total },
@@ -672,9 +720,16 @@ export class AdminReportingService {
         });
 
         const succeeded = payments.filter((p) => p.status === 'SUCCEEDED');
-        const grossRevenue = succeeded.reduce((sum, p) => sum + p.amount.toNumber(), 0);
-        const pendingCount = payments.filter((p) => p.status === 'PENDING').length;
-        const failedCount = payments.filter((p) => p.status === 'FAILED').length;
+        const grossRevenue = succeeded.reduce(
+          (sum, p) => sum + p.amount.toNumber(),
+          0,
+        );
+        const pendingCount = payments.filter(
+          (p) => p.status === 'PENDING',
+        ).length;
+        const failedCount = payments.filter(
+          (p) => p.status === 'FAILED',
+        ).length;
 
         const kpiCards: ReportKpiCard[] = [
           { label: 'Gross Revenue', value: formatETB(grossRevenue) },
@@ -684,10 +739,17 @@ export class AdminReportingService {
         ];
 
         // Revenue by hotel
-        const byHotel = new Map<string, { hotel: string; count: number; total: number }>();
+        const byHotel = new Map<
+          string,
+          { hotel: string; count: number; total: number }
+        >();
         for (const p of succeeded) {
           const hName = p.booking?.hotel?.name || 'General';
-          const item = byHotel.get(hName) ?? { hotel: hName, count: 0, total: 0 };
+          const item = byHotel.get(hName) ?? {
+            hotel: hName,
+            count: 0,
+            total: 0,
+          };
           item.count += 1;
           item.total += p.amount.toNumber();
           byHotel.set(hName, item);
@@ -730,7 +792,10 @@ export class AdminReportingService {
         const kpiCards: ReportKpiCard[] = [
           { label: 'Total Rooms', value: occ.totalRooms },
           { label: 'Occupied Today', value: occ.occupiedToday },
-          { label: 'Occupancy Rate', value: `${(occ.occupancyRate * 100).toFixed(1)}%` },
+          {
+            label: 'Occupancy Rate',
+            value: `${(occ.occupancyRate * 100).toFixed(1)}%`,
+          },
         ];
 
         const rows: ReportRow[] = occ.breakdown.map((b) => ({
@@ -761,7 +826,10 @@ export class AdminReportingService {
           orderBy: { updatedAt: 'desc' },
         });
 
-        const lostValue = cancelled.reduce((s, b) => s + b.totalPrice.toNumber(), 0);
+        const lostValue = cancelled.reduce(
+          (s, b) => s + b.totalPrice.toNumber(),
+          0,
+        );
         const kpiCards: ReportKpiCard[] = [
           { label: 'Total Cancellations', value: cancelled.length },
           { label: 'Lost Revenue', value: formatETB(lostValue) },
@@ -789,7 +857,9 @@ export class AdminReportingService {
 
       case 'customer': {
         const customers = await this.db.user.findMany({
-          where: { bookings: { some: { createdAt: { gte: start, lte: end } } } },
+          where: {
+            bookings: { some: { createdAt: { gte: start, lte: end } } },
+          },
           include: {
             bookings: {
               where: { createdAt: { gte: start, lte: end } },
@@ -798,20 +868,26 @@ export class AdminReportingService {
           },
         });
 
-        const customerEntries = customers.map((user) => {
-          const bookingsCount = user.bookings.length;
-          const spend = user.bookings.reduce(
-            (sum, b) => sum + (b.payment?.status === 'SUCCEEDED' ? b.payment.amount.toNumber() : 0),
-            0,
-          );
-          return {
-            customer: user.fullName,
-            email: user.email,
-            phone: user.phone || '—',
-            bookings: bookingsCount,
-            spend,
-          };
-        }).sort((a, b) => b.spend - a.spend);
+        const customerEntries = customers
+          .map((user) => {
+            const bookingsCount = user.bookings.length;
+            const spend = user.bookings.reduce(
+              (sum, b) =>
+                sum +
+                (b.payment?.status === 'SUCCEEDED'
+                  ? b.payment.amount.toNumber()
+                  : 0),
+              0,
+            );
+            return {
+              customer: user.fullName,
+              email: user.email,
+              phone: user.phone || '—',
+              bookings: bookingsCount,
+              spend,
+            };
+          })
+          .sort((a, b) => b.spend - a.spend);
 
         const totalSpend = customerEntries.reduce((s, c) => s + c.spend, 0);
         const kpiCards: ReportKpiCard[] = [
@@ -819,7 +895,10 @@ export class AdminReportingService {
           { label: 'Total Spend', value: formatETB(totalSpend) },
           {
             label: 'Avg Spend / Guest',
-            value: customerEntries.length > 0 ? formatETB(totalSpend / customerEntries.length) : '—',
+            value:
+              customerEntries.length > 0
+                ? formatETB(totalSpend / customerEntries.length)
+                : '—',
           },
         ];
 
@@ -874,7 +953,10 @@ export class AdminReportingService {
         where: { hotelId, status: 'PENDING' },
       }),
       this.db.booking.count({
-        where: { hotelId, status: { in: ['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT'] } },
+        where: {
+          hotelId,
+          status: { in: ['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT'] },
+        },
       }),
       this.db.booking.count({
         where: { hotelId, status: 'CANCELLED' },
@@ -899,7 +981,11 @@ export class AdminReportingService {
     const today = now.toDateString();
     let occupiedToday = 0;
     for (const b of occupiedBookingsToday) {
-      for (let d = b.checkIn.getTime(); d < b.checkOut.getTime(); d += 86_400_000) {
+      for (
+        let d = b.checkIn.getTime();
+        d < b.checkOut.getTime();
+        d += 86_400_000
+      ) {
         if (new Date(d).toDateString() === today) {
           occupiedToday++;
           break;
@@ -1032,7 +1118,10 @@ export class AdminReportingService {
     for (const booking of bookings) {
       const key = `${booking.createdAt.getFullYear()}-${String(
         booking.createdAt.getMonth() + 1,
-      ).padStart(2, '0')}-${String(booking.createdAt.getDate()).padStart(2, '0')}`;
+      ).padStart(
+        2,
+        '0',
+      )}-${String(booking.createdAt.getDate()).padStart(2, '0')}`;
       byDay.set(key, (byDay.get(key) ?? 0) + 1);
     }
 
@@ -1067,8 +1156,12 @@ export class AdminReportingService {
     });
     if (!hotel) throw new NotFoundException('Hotel not found');
 
-    const { start, end, label: periodLabel, dateRangeStr } =
-      this.getDateRangeForPeriod(period, startDate, endDate);
+    const {
+      start,
+      end,
+      label: periodLabel,
+      dateRangeStr,
+    } = this.getDateRangeForPeriod(period, startDate, endDate);
 
     const doc: ReportDocument = await this.buildHotelReportDocument(
       hotel,
@@ -1089,7 +1182,17 @@ export class AdminReportingService {
   }
 
   private async buildHotelReportDocument(
-    hotel: { id: string; name: string; city?: { name: string } | null; rooms: Array<{ id: string; type: string; roomNumber: string; basePrice: any }> },
+    hotel: {
+      id: string;
+      name: string;
+      city?: { name: string } | null;
+      rooms: Array<{
+        id: string;
+        type: string;
+        roomNumber: string;
+        basePrice: any;
+      }>;
+    },
     type: ReportType,
     start: Date,
     end: Date,
@@ -1126,9 +1229,14 @@ export class AdminReportingService {
         const totalRevenue = succeededPayments._sum.amount?.toNumber() ?? 0;
         const totalBookings = bookings.length;
         const confirmedBookings = bookings.filter(
-          (b) => b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'CHECKED_OUT',
+          (b) =>
+            b.status === 'CONFIRMED' ||
+            b.status === 'CHECKED_IN' ||
+            b.status === 'CHECKED_OUT',
         ).length;
-        const cancelledBookings = bookings.filter((b) => b.status === 'CANCELLED').length;
+        const cancelledBookings = bookings.filter(
+          (b) => b.status === 'CANCELLED',
+        ).length;
 
         const kpiCards: ReportKpiCard[] = [
           {
@@ -1144,7 +1252,10 @@ export class AdminReportingService {
           {
             label: 'Cancellations',
             value: cancelledBookings,
-            subtext: totalBookings > 0 ? `${((cancelledBookings / totalBookings) * 100).toFixed(1)}% rate` : '0%',
+            subtext:
+              totalBookings > 0
+                ? `${((cancelledBookings / totalBookings) * 100).toFixed(1)}% rate`
+                : '0%',
           },
           {
             label: 'Total Rooms',
@@ -1154,9 +1265,22 @@ export class AdminReportingService {
         ];
 
         // Room category summary
-        const roomTypeMap = new Map<string, { type: string; inventory: number; bookedCount: number; revenue: number }>();
+        const roomTypeMap = new Map<
+          string,
+          {
+            type: string;
+            inventory: number;
+            bookedCount: number;
+            revenue: number;
+          }
+        >();
         for (const room of hotel.rooms) {
-          const entry = roomTypeMap.get(room.type) ?? { type: room.type, inventory: 0, bookedCount: 0, revenue: 0 };
+          const entry = roomTypeMap.get(room.type) ?? {
+            type: room.type,
+            inventory: 0,
+            bookedCount: 0,
+            revenue: 0,
+          };
           entry.inventory += 1;
           roomTypeMap.set(room.type, entry);
         }
@@ -1170,19 +1294,23 @@ export class AdminReportingService {
             }
           }
         }
-        const roomRows: ReportRow[] = Array.from(roomTypeMap.values()).map((r) => ({
-          roomType: r.type,
-          inventoryUnits: r.inventory,
-          reservationsCount: r.bookedCount,
-          revenueGenerated: formatETB(r.revenue),
-        }));
+        const roomRows: ReportRow[] = Array.from(roomTypeMap.values()).map(
+          (r) => ({
+            roomType: r.type,
+            inventoryUnits: r.inventory,
+            reservationsCount: r.bookedCount,
+            revenueGenerated: formatETB(r.revenue),
+          }),
+        );
 
         // Reservations manifest
         const manifestRows: ReportRow[] = bookings.slice(0, 100).map((b) => ({
           bookingRef: b.bookingRef,
           guest: b.user.fullName,
           phone: b.user.phone || '—',
-          room: b.details?.[0]?.room?.roomNumber ? `Rm ${b.details[0].room.roomNumber} (${b.details[0].room.type})` : 'Assigned at Check-in',
+          room: b.details?.[0]?.room?.roomNumber
+            ? `Rm ${b.details[0].room.roomNumber} (${b.details[0].room.type})`
+            : 'Assigned at Check-in',
           checkIn: b.checkIn.toISOString().slice(0, 10),
           checkOut: b.checkOut.toISOString().slice(0, 10),
           status: b.status,
@@ -1199,7 +1327,8 @@ export class AdminReportingService {
           sections: [
             {
               title: 'Room Category Performance',
-              description: 'Room inventory performance and distribution during this period.',
+              description:
+                'Room inventory performance and distribution during this period.',
               rows: roomRows,
             },
             {
@@ -1223,10 +1352,18 @@ export class AdminReportingService {
 
         const total = bookings.length;
         const confirmed = bookings.filter(
-          (b) => b.status === 'CONFIRMED' || b.status === 'CHECKED_IN' || b.status === 'CHECKED_OUT',
+          (b) =>
+            b.status === 'CONFIRMED' ||
+            b.status === 'CHECKED_IN' ||
+            b.status === 'CHECKED_OUT',
         ).length;
-        const cancelled = bookings.filter((b) => b.status === 'CANCELLED').length;
-        const grossValue = bookings.reduce((sum, b) => sum + b.totalPrice.toNumber(), 0);
+        const cancelled = bookings.filter(
+          (b) => b.status === 'CANCELLED',
+        ).length;
+        const grossValue = bookings.reduce(
+          (sum, b) => sum + b.totalPrice.toNumber(),
+          0,
+        );
 
         const kpiCards: ReportKpiCard[] = [
           { label: 'Total Bookings', value: total },
@@ -1259,7 +1396,10 @@ export class AdminReportingService {
 
       case 'revenue': {
         const payments = await this.db.payment.findMany({
-          where: { booking: { hotelId: hotel.id }, createdAt: { gte: start, lte: end } },
+          where: {
+            booking: { hotelId: hotel.id },
+            createdAt: { gte: start, lte: end },
+          },
           include: {
             booking: {
               include: {
@@ -1271,12 +1411,18 @@ export class AdminReportingService {
         });
 
         const succeeded = payments.filter((p) => p.status === 'SUCCEEDED');
-        const grossRevenue = succeeded.reduce((sum, p) => sum + p.amount.toNumber(), 0);
+        const grossRevenue = succeeded.reduce(
+          (sum, p) => sum + p.amount.toNumber(),
+          0,
+        );
 
         const kpiCards: ReportKpiCard[] = [
           { label: 'Gross Revenue', value: formatETB(grossRevenue) },
           { label: 'Paid Transactions', value: succeeded.length },
-          { label: 'Pending Payments', value: payments.filter((p) => p.status === 'PENDING').length },
+          {
+            label: 'Pending Payments',
+            value: payments.filter((p) => p.status === 'PENDING').length,
+          },
         ];
 
         const rows: ReportRow[] = payments.map((p) => ({
@@ -1305,7 +1451,10 @@ export class AdminReportingService {
         const kpiCards: ReportKpiCard[] = [
           { label: 'Total Rooms', value: occ.totalRooms },
           { label: 'Occupied Today', value: occ.occupiedToday },
-          { label: 'Occupancy Rate', value: `${(occ.occupancyRate * 100).toFixed(1)}%` },
+          {
+            label: 'Occupancy Rate',
+            value: `${(occ.occupancyRate * 100).toFixed(1)}%`,
+          },
         ];
 
         const rows: ReportRow[] = hotel.rooms.map((r) => ({
@@ -1328,14 +1477,21 @@ export class AdminReportingService {
 
       case 'cancellation': {
         const cancelled = await this.db.booking.findMany({
-          where: { hotelId: hotel.id, status: 'CANCELLED', updatedAt: { gte: start, lte: end } },
+          where: {
+            hotelId: hotel.id,
+            status: 'CANCELLED',
+            updatedAt: { gte: start, lte: end },
+          },
           include: {
             user: { select: { fullName: true, email: true, phone: true } },
           },
           orderBy: { updatedAt: 'desc' },
         });
 
-        const lostValue = cancelled.reduce((s, b) => s + b.totalPrice.toNumber(), 0);
+        const lostValue = cancelled.reduce(
+          (s, b) => s + b.totalPrice.toNumber(),
+          0,
+        );
         const kpiCards: ReportKpiCard[] = [
           { label: 'Cancelled Bookings', value: cancelled.length },
           { label: 'Lost Revenue Value', value: formatETB(lostValue) },
@@ -1365,14 +1521,22 @@ export class AdminReportingService {
         const bookings = await this.db.booking.findMany({
           where: { hotelId: hotel.id, createdAt: { gte: start, lte: end } },
           include: {
-            user: { select: { id: true, fullName: true, email: true, phone: true } },
+            user: {
+              select: { id: true, fullName: true, email: true, phone: true },
+            },
             payment: { select: { status: true, amount: true } },
           },
         });
 
         const byCustomer = new Map<
           string,
-          { customer: string; email: string; phone: string; bookings: number; spend: number }
+          {
+            customer: string;
+            email: string;
+            phone: string;
+            bookings: number;
+            spend: number;
+          }
         >();
         for (const b of bookings) {
           const entry = byCustomer.get(b.user.id) ?? {
@@ -1389,7 +1553,9 @@ export class AdminReportingService {
           byCustomer.set(b.user.id, entry);
         }
 
-        const customerList = Array.from(byCustomer.values()).sort((a, b) => b.spend - a.spend);
+        const customerList = Array.from(byCustomer.values()).sort(
+          (a, b) => b.spend - a.spend,
+        );
         const totalSpend = customerList.reduce((s, c) => s + c.spend, 0);
 
         const kpiCards: ReportKpiCard[] = [
@@ -1397,7 +1563,10 @@ export class AdminReportingService {
           { label: 'Total Spend', value: formatETB(totalSpend) },
           {
             label: 'Avg Spend / Guest',
-            value: customerList.length > 0 ? formatETB(totalSpend / customerList.length) : '—',
+            value:
+              customerList.length > 0
+                ? formatETB(totalSpend / customerList.length)
+                : '—',
           },
         ];
 

@@ -26,9 +26,11 @@ describe('NotificationService', () => {
       notificationPreference: { findUnique: jest.fn().mockResolvedValue(null) },
       notification: {
         findFirst: jest.fn().mockResolvedValue(null),
-        create: jest.fn().mockImplementation((args) =>
-          Promise.resolve({ id: 'notif-1', ...args.data }),
-        ),
+        create: jest
+          .fn()
+          .mockImplementation((args) =>
+            Promise.resolve({ id: 'notif-1', ...args.data }),
+          ),
         count: jest.fn().mockResolvedValue(0),
         findMany: jest.fn().mockResolvedValue([]),
         updateMany: jest.fn().mockResolvedValue({ count: 1 }),
@@ -38,12 +40,14 @@ describe('NotificationService', () => {
     };
 
     pushProvider = {
-      send: jest.fn().mockResolvedValue({ success: true, messageId: 'msg-123' }),
+      send: jest
+        .fn()
+        .mockResolvedValue({ success: true, messageId: 'msg-123' }),
     };
 
     service = new NotificationService(
       db as unknown as PrismaService,
-      pushProvider as unknown as PushNotificationProvider,
+      pushProvider,
     );
   });
 

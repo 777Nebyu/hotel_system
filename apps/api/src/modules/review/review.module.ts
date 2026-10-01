@@ -15,5 +15,3 @@ import { AuditService } from '../../common/services/audit.service';
   providers: [ReviewService, ResourceScopeHelper, AuditService],
 })
 export class ReviewModule {}
-
-

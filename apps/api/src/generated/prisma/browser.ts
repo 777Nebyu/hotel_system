@@ -202,3 +202,48 @@ export type ContactThread = Prisma.ContactThreadModel
  * 
  */
 export type ContactMessage = Prisma.ContactMessageModel
+/**
+ * Model AiConversation
+ * 
+ */
+export type AiConversation = Prisma.AiConversationModel
+/**
+ * Model AiMessage
+ * 
+ */
+export type AiMessage = Prisma.AiMessageModel
+/**
+ * Model AiKnowledgeDocument
+ * 
+ */
+export type AiKnowledgeDocument = Prisma.AiKnowledgeDocumentModel
+/**
+ * Model AiAuditLog
+ * 
+ */
+export type AiAuditLog = Prisma.AiAuditLogModel
+/**
+ * Model Source
+ * 
+ */
+export type Source = Prisma.SourceModel
+/**
+ * Model Place
+ * 
+ */
+export type Place = Prisma.PlaceModel
+/**
+ * Model Trip
+ * 
+ */
+export type Trip = Prisma.TripModel
+/**
+ * Model TripItem
+ * 
+ */
+export type TripItem = Prisma.TripItemModel
+/**
+ * Model EmergencyContact
+ * 
+ */
+export type EmergencyContact = Prisma.EmergencyContactModel

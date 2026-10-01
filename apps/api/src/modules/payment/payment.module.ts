@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuditService } from '../../common/services/audit.service';
 import { PaymentGatewayRegistry } from './infrastructure/gateway-registry';
 import {
@@ -7,10 +8,13 @@ import {
   CreditCardGateway,
   PayPalGateway,
   TelebirrGateway,
+  ChapaPaymentGateway,
+  MockPaymentGateway,
   ChapaMockProvider,
   BankMockProvider,
   MockSmsService,
 } from './infrastructure/gateways';
+import { ChapaService } from './infrastructure/chapa/chapa.service';
 import { OtpService } from './application/otp.service';
 import { PaymentController } from './presentation/payment.controller';
 import { MockSmsController } from './presentation/mock-sms.controller';
@@ -20,16 +24,15 @@ import { FraudModule } from '../fraud/fraud.module';
 
 @Module({
   imports: [FraudModule],
-  controllers: [
-    PaymentController,
-    MockSmsController,
-    AdminSandboxController,
-  ],
+  controllers: [PaymentController, MockSmsController, AdminSandboxController],
   providers: [
     PaymentService,
     AuditService,
     OtpService,
     MockSmsService,
+    ChapaService,
+    ChapaPaymentGateway,
+    MockPaymentGateway,
     CreditCardGateway,
     PayPalGateway,
     TelebirrGateway,
@@ -37,6 +40,18 @@ import { FraudModule } from '../fraud/fraud.module';
     CashGateway,
     BankMockProvider,
     ChapaMockProvider,
+    {
+      provide: 'ACTIVE_PAYMENT_GATEWAY',
+      useFactory: (
+        config: ConfigService,
+        chapaGateway: ChapaPaymentGateway,
+        mockGateway: MockPaymentGateway,
+      ) => {
+        const provider = config.get<string>('payment.provider') ?? 'mock';
+        return provider === 'chapa' ? chapaGateway : mockGateway;
+      },
+      inject: [ConfigService, ChapaPaymentGateway, MockPaymentGateway],
+    },
     {
       provide: PaymentGatewayRegistry,
       useFactory: (
@@ -66,6 +81,10 @@ import { FraudModule } from '../fraud/fraud.module';
     PaymentService,
     OtpService,
     MockSmsService,
+    ChapaService,
+    ChapaPaymentGateway,
+    MockPaymentGateway,
+    'ACTIVE_PAYMENT_GATEWAY',
     ChapaMockProvider,
     BankMockProvider,
     PaymentGatewayRegistry,

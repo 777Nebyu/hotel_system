@@ -6,6 +6,8 @@ import { MailProducer } from './mail.producer';
 import { MailProcessor } from './mail.processor';
 import { CheckInReminderScheduler } from './checkin-reminder.scheduler';
 import { CheckInReminderProcessor } from './checkin-reminder.processor';
+import { TripReminderScheduler } from './trip-reminder.scheduler';
+import { TripReminderProcessor } from './trip-reminder.processor';
 import { BookingExpirationScheduler } from './booking-expiration.scheduler';
 import { BookingExpirationProcessor } from './booking-expiration.processor';
 import { NoShowScheduler } from './noshow.scheduler';
@@ -60,6 +62,8 @@ export {
     MailProcessor,
     CheckInReminderScheduler,
     CheckInReminderProcessor,
+    TripReminderScheduler,
+    TripReminderProcessor,
     BookingExpirationScheduler,
     BookingExpirationProcessor,
     NoShowScheduler,

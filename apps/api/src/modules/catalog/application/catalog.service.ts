@@ -28,7 +28,10 @@ function stableHash(obj: Record<string, unknown>): string {
       .filter(([, v]) => v !== undefined)
       .sort(([a], [b]) => a.localeCompare(b)),
   );
-  return createHash('sha256').update(JSON.stringify(sorted)).digest('hex').slice(0, 16);
+  return createHash('sha256')
+    .update(JSON.stringify(sorted))
+    .digest('hex')
+    .slice(0, 16);
 }
 
 const SEARCH_CACHE_TTL = 60; // seconds
@@ -66,19 +69,44 @@ const roomDetailInclude = {
   seasonalPricing: true,
 } satisfies Prisma.RoomInclude;
 
+import { DiscoverService } from '../../discover/application/discover.service';
+import { PlaceCategory } from '../../../generated/prisma/client';
+
 @Injectable()
 export class CatalogService {
   constructor(
     private readonly db: PrismaService,
     private readonly cache: CacheService,
+    private readonly discover: DiscoverService,
   ) {}
+
+  async hotelNearby(
+    hotelId: string,
+    query: { radiusKm?: number; category?: PlaceCategory; limit?: number },
+  ) {
+    const hotel = await this.db.hotel.findUnique({
+      where: { id: hotelId },
+      select: { id: true, name: true, lat: true, lng: true },
+    });
+    if (!hotel) throw new NotFoundException('Hotel not found');
+    if (hotel.lat == null || hotel.lng == null) {
+      return { center: { hotelId, lat: null, lng: null }, total: 0, data: [] };
+    }
+    return this.discover.getNearby({
+      lat: hotel.lat,
+      lng: hotel.lng,
+      radiusKm: query.radiusKm || 5,
+      category: query.category,
+      limit: query.limit || 20,
+    });
+  }
 
   async search(query: SearchHotelsQuery): Promise<Paginated<HotelSummary>> {
     const page = query.page;
     const pageSize = query.pageSize;
 
     // ── Cache layer ───────────────────────────────────────────────────────
-    const cacheKey = `hotel:search:${stableHash(query as unknown as Record<string, unknown>)}`;
+    const cacheKey = `hotel:search:${stableHash(query)}`;
     const cached = await this.cache.get<HotelSummary[]>(cacheKey);
     if (cached) {
       const total = cached.length;

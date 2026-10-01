@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { PushMessage, PushNotificationProvider, PushSendResult } from './push.provider';
+import type {
+  PushMessage,
+  PushNotificationProvider,
+  PushSendResult,
+} from './push.provider';
 
 @Injectable()
 export class ExpoPushProvider implements PushNotificationProvider {
@@ -37,12 +41,19 @@ export class ExpoPushProvider implements PushNotificationProvider {
 
       if (!response.ok) {
         const errorText = await response.text();
-        this.logger.error(`Expo push API returned error ${response.status}: ${errorText}`);
+        this.logger.error(
+          `Expo push API returned error ${response.status}: ${errorText}`,
+        );
         return { success: false, error: `Expo API error: ${response.status}` };
       }
 
       const data = (await response.json()) as {
-        data?: Array<{ status: string; id?: string; message?: string; details?: { error?: string } }>;
+        data?: Array<{
+          status: string;
+          id?: string;
+          message?: string;
+          details?: { error?: string };
+        }>;
         errors?: Array<{ message: string }>;
       };
 
@@ -54,7 +65,10 @@ export class ExpoPushProvider implements PushNotificationProvider {
       if (ticket?.status === 'error') {
         return {
           success: false,
-          error: ticket.message || ticket.details?.error || 'Failed to deliver push ticket',
+          error:
+            ticket.message ||
+            ticket.details?.error ||
+            'Failed to deliver push ticket',
         };
       }
 
@@ -63,7 +77,8 @@ export class ExpoPushProvider implements PushNotificationProvider {
         messageId: ticket?.id,
       };
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unknown push delivery failure';
+      const msg =
+        err instanceof Error ? err.message : 'Unknown push delivery failure';
       this.logger.error(`Failed to send push notification: ${msg}`);
       return { success: false, error: msg };
     }

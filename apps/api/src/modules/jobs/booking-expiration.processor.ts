@@ -51,7 +51,9 @@ export class BookingExpirationProcessor extends WorkerHost {
       },
     });
 
-    this.logger.log(`Found ${expiredBookings.length} pending bookings exceeding 30m timeout`);
+    this.logger.log(
+      `Found ${expiredBookings.length} pending bookings exceeding 30m timeout`,
+    );
 
     for (const booking of expiredBookings) {
       await this.db.$transaction(async (tx) => {
@@ -78,7 +80,11 @@ export class BookingExpirationProcessor extends WorkerHost {
 
       this.emitter.emit(
         BookingEventNames.CANCELLED,
-        new BookingCancelledEvent(booking.id, booking.user.id, booking.hotel.id),
+        new BookingCancelledEvent(
+          booking.id,
+          booking.user.id,
+          booking.hotel.id,
+        ),
       );
 
       await this.audit.record(

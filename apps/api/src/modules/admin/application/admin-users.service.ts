@@ -3,10 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { hashPassword } from '../../../common/security/password-hasher';
+import { randomBytes } from 'crypto';
 import { Prisma, Role, UserStatus } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../../common/services/audit.service';
+import { MailProducer } from '../../jobs/mail.producer';
 import type {
   AdminUsersQuery,
   SetUserActive,
@@ -18,11 +20,12 @@ export class AdminUsersService {
   constructor(
     private readonly db: PrismaService,
     private readonly audit: AuditService,
+    private readonly mail: MailProducer,
   ) {}
 
   async list(query: AdminUsersQuery) {
     const where: Prisma.UserWhereInput = {};
-    if (query.role) where.role = query.role as Role;
+    if (query.role) where.role = query.role;
     if (query.isActive !== undefined) where.isActive = query.isActive;
     if (query.search) {
       where.OR = [
@@ -118,7 +121,10 @@ export class AdminUsersService {
       userId,
       {
         isActive: { from: user.isActive, to: dto.isActive },
-        status: { from: user.status, to: dto.isActive ? 'ACTIVE' : 'SUSPENDED' },
+        status: {
+          from: user.status,
+          to: dto.isActive ? 'ACTIVE' : 'SUSPENDED',
+        },
         reason: dto.reason,
       },
     );
@@ -199,7 +205,11 @@ export class AdminUsersService {
     return updated;
   }
 
-  async unflagUser(userId: string, reason: string | undefined, actorId: string) {
+  async unflagUser(
+    userId: string,
+    reason: string | undefined,
+    actorId: string,
+  ) {
     await this.db.user.findUniqueOrThrow({
       where: { id: userId },
     });
@@ -262,10 +272,14 @@ export class AdminUsersService {
     }
 
     // 3. Hash password
-    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const passwordHash = await hashPassword(dto.password);
 
-    // 4. Create user with pre-verified status
+    // 4. Create an unverified account and invite the user to prove mailbox ownership.
     const targetRole = (dto.role as Role) || Role.MANAGER;
+    const verificationToken = randomBytes(32).toString('hex');
+    const verificationTokenExpiresAt = new Date(
+      Date.now() + 24 * 60 * 60 * 1000,
+    );
     const user = await this.db.user.create({
       data: {
         fullName: dto.fullName.trim(),
@@ -273,9 +287,11 @@ export class AdminUsersService {
         passwordHash,
         phone: dto.phone?.trim() || null,
         role: targetRole,
-        status: UserStatus.ACTIVE,
+        status: UserStatus.EMAIL_UNVERIFIED,
         isActive: true,
-        emailVerifiedAt: new Date(),
+        emailVerified: false,
+        verificationToken,
+        verificationTokenExpiresAt,
       },
       select: {
         id: true,
@@ -288,6 +304,8 @@ export class AdminUsersService {
         createdAt: true,
       },
     });
+
+    void this.mail.enqueueVerification(normalizedEmail, verificationToken);
 
     // 5. If hotelId provided, assign accordingly
     let assignedHotel: { id: string; name: string } | null = null;

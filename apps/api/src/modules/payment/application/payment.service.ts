@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -20,13 +21,21 @@ import { AuditService } from '../../../common/services/audit.service';
 import { FraudService } from '../../fraud/application/fraud.service';
 import { OtpService } from './otp.service';
 import { ChapaMockProvider } from '../infrastructure/gateways/chapa-mock.provider';
+import { ChapaPaymentGateway } from '../infrastructure/gateways/chapa-payment.gateway';
+import { MockPaymentGateway } from '../infrastructure/gateways/mock-payment.gateway';
+import { ChapaService } from '../infrastructure/chapa/chapa.service';
+import type { IPaymentGateway } from '../domain/payment-gateway.interface';
 import {
   PaymentCompletedEvent,
   PaymentFailedEvent,
   PaymentRefundedEvent,
   PaymentEventNames,
 } from '../../events/payment.events';
-import type { MarkCashPaidInput, MockGatewayCallback, PaymentMethod } from '@repo/shared-types';
+import type {
+  MarkCashPaidInput,
+  MockGatewayCallback,
+  PaymentMethod,
+} from '@repo/shared-types';
 
 function calculateRefundAmount(
   paidAmount: number,
@@ -57,6 +66,15 @@ export class PaymentService {
     private readonly otpService?: OtpService,
     @Optional()
     private readonly chapa?: ChapaMockProvider,
+    @Optional()
+    private readonly chapaGateway?: ChapaPaymentGateway,
+    @Optional()
+    private readonly mockGateway?: MockPaymentGateway,
+    @Optional()
+    private readonly chapaService?: ChapaService,
+    @Optional()
+    @Inject('ACTIVE_PAYMENT_GATEWAY')
+    private readonly activeGateway?: IPaymentGateway,
   ) {}
 
   async createIntent(bookingId: string, method: PaymentMethod, userId: string) {
@@ -158,6 +176,9 @@ export class PaymentService {
     body: MockGatewayCallback,
     webhookSecret: string | undefined,
   ) {
+    if (this.config.get<string>('nodeEnv') === 'production') {
+      throw new NotFoundException('Not found');
+    }
     this.assertMockWebhookSecret(webhookSecret);
     const payment = await this.db.payment.findUnique({
       where: { bookingId },
@@ -193,7 +214,10 @@ export class PaymentService {
 
     if (approved) {
       const changed = await this.db.payment.updateMany({
-        where: { id: payment.id, status: { in: ['PENDING', 'PENDING_AT_HOTEL', 'FAILED'] } },
+        where: {
+          id: payment.id,
+          status: { in: ['PENDING', 'PENDING_AT_HOTEL', 'FAILED'] },
+        },
         data: {
           status: 'SUCCEEDED',
           providerRef: body.transactionId ?? payment.providerRef ?? null,
@@ -250,7 +274,11 @@ export class PaymentService {
         'PAYMENT_COMPLETED',
         'Payment',
         payment.id,
-        { bookingId, method: updated.method, amount: payment.amount.toNumber() },
+        {
+          bookingId,
+          method: updated.method,
+          amount: payment.amount.toNumber(),
+        },
       );
       this.logger.log({
         message: 'Payment confirmed',
@@ -447,8 +475,7 @@ export class PaymentService {
       payment.booking.status === 'CANCELLED';
     const isPlatformOperator = ['STAFF', 'ADMIN'].includes(actor.role);
     const isHotelManager =
-      actor.role === 'MANAGER' &&
-      payment.booking.hotel.managerId === actor.sub;
+      actor.role === 'MANAGER' && payment.booking.hotel.managerId === actor.sub;
 
     if (!isOwner && !isPlatformOperator && !isHotelManager) {
       throw new ForbiddenException('You cannot refund this booking');
@@ -564,11 +591,12 @@ export class PaymentService {
 
       return {
         status: statusMap[result.reason!],
-        reason: result.reason === 'INVALID'
-          ? 'Incorrect verification code'
-          : result.reason === 'EXPIRED'
-            ? 'Verification code expired'
-            : 'Too many attempts',
+        reason:
+          result.reason === 'INVALID'
+            ? 'Incorrect verification code'
+            : result.reason === 'EXPIRED'
+              ? 'Verification code expired'
+              : 'Too many attempts',
         paymentId,
       };
     }
@@ -594,6 +622,7 @@ export class PaymentService {
       status: 'AUTHORIZED' | 'DECLINED' | 'INSUFFICIENT_BALANCE' | 'TIMEOUT';
       bankTransactionId?: string;
       pin?: string;
+      accountNumber?: string;
     },
   ): Promise<{
     status: 'SUCCEEDED' | 'FAILED';
@@ -620,7 +649,7 @@ export class PaymentService {
     }
 
     const bankCode = payment.bankCode ?? 'CBE';
-    const accountNumber = '100000'; // Default demo account
+    const accountNumber = body.accountNumber ?? '100000';
 
     const result = await this.chapa.handleBankAuthorization(
       paymentId,
@@ -631,7 +660,11 @@ export class PaymentService {
     );
 
     if (result.approved) {
-      await this.completePayment(paymentId, payment.bookingId, 'BANK_AUTHORIZED');
+      await this.completePayment(
+        paymentId,
+        payment.bookingId,
+        'BANK_AUTHORIZED',
+      );
       return { status: 'SUCCEEDED', paymentId };
     }
 
@@ -678,20 +711,38 @@ export class PaymentService {
   // ── Chapa Flow: Webhook Verification ────────────────────────────────────────
 
   /**
-   * Handle Chapa webhook with full server-side verification.
+   * Handle Chapa webhook with HMAC signature verification & server-to-server re-verification.
    * Idempotent — duplicate webhooks return the existing result.
    */
   async handleWebhook(
     txRef: string,
     body: {
-      status: 'SUCCESS' | 'FAILED' | 'CANCELLED';
+      status?: 'SUCCESS' | 'FAILED' | 'CANCELLED' | string;
       amount?: number;
       currency?: string;
     },
+    rawBody?: string | Buffer,
+    signature?: string,
   ): Promise<{
     status: 'SUCCEEDED' | 'FAILED' | 'CANCELLED' | 'ALREADY_PROCESSED';
     paymentId: string;
   }> {
+    // 1. Check HMAC signature if signature or raw body is available
+    if (this.chapaService && (signature || rawBody)) {
+      const isValid = this.chapaService.verifySignature(
+        rawBody ?? JSON.stringify(body),
+        signature,
+      );
+      if (!isValid) {
+        this.logger.warn({
+          message: 'Invalid Chapa webhook signature',
+          txRef,
+          signature,
+        });
+        throw new UnauthorizedException('Invalid Chapa webhook signature');
+      }
+    }
+
     const payment = await this.db.payment.findFirst({
       where: { txRef },
       include: { booking: true },
@@ -709,23 +760,82 @@ export class PaymentService {
       throw new ConflictException('A refunded payment cannot be modified');
     }
 
-    // Validate amount (never trust frontend)
-    if (body.amount !== undefined) {
-      const bookingTotal = payment.booking.totalPrice.toNumber();
-      if (Math.abs(body.amount - bookingTotal) > 0.01) {
+    let verifiedStatus = body.status;
+    let verifiedAmount = body.amount;
+    let verifiedCurrency = body.currency ?? 'ETB';
+
+    // 2. Authoritative server-to-server verification with Chapa API if configured
+    if (
+      payment.provider === 'CHAPA' &&
+      this.chapaService &&
+      this.config.get<string>('payment.chapaSecretKey')
+    ) {
+      try {
+        const verifyRes = await this.chapaService.verify(txRef);
+        if (verifyRes.status === 'success' && verifyRes.data) {
+          if (verifyRes.data.status === 'success') {
+            verifiedStatus = 'SUCCESS';
+          } else if (verifyRes.data.status === 'pending') {
+            verifiedStatus = 'PENDING';
+          } else if (verifyRes.data.status === 'cancelled') {
+            verifiedStatus = 'CANCELLED';
+          } else {
+            verifiedStatus = 'FAILED';
+          }
+          verifiedAmount = Number(verifyRes.data.amount);
+          verifiedCurrency = verifyRes.data.currency || 'ETB';
+        }
+      } catch (err) {
         this.logger.error({
-          message: 'Webhook amount mismatch',
+          message: 'Chapa server verification failed during webhook',
           txRef,
-          webhookAmount: body.amount,
-          bookingTotal,
-          paymentId: payment.id,
+          error: (err as Error).message,
         });
-        throw new BadRequestException('PAYMENT_AMOUNT_MISMATCH');
+        throw new BadRequestException('Chapa transaction verification failed');
       }
     }
 
+    // Validate amount strictly (never trust unverified values).
+    // When the Chapa secret key is not configured (sandbox/mock mode) the
+    // server-side re-verify block above is skipped, so `verifiedAmount` might
+    // be undefined if Chapa's webhook omitted it. In that case we fall back to
+    // trusting the body loosely — acceptable only in non-live mode.
+    const bookingTotal = payment.booking.totalPrice.toNumber();
+    const chapaKeyConfigured = !!this.config.get<string>(
+      'payment.chapaSecretKey',
+    );
+
+    if (verifiedAmount === undefined) {
+      if (chapaKeyConfigured) {
+        // Live mode: an undefined amount after server verification is a bug.
+        this.logger.error({
+          message: 'Webhook amount missing after server verification',
+          txRef,
+          bookingTotal,
+          paymentId: payment.id,
+        });
+        throw new BadRequestException('PAYMENT_AMOUNT_MISSING');
+      }
+      // Sandbox/mock mode: log a warning and continue without amount check.
+      this.logger.warn({
+        message:
+          'Webhook amount not provided — skipping amount check (sandbox mode)',
+        txRef,
+        paymentId: payment.id,
+      });
+    } else if (Math.abs(Number(verifiedAmount) - bookingTotal) > 0.01) {
+      this.logger.error({
+        message: 'Webhook amount mismatch',
+        txRef,
+        verifiedAmount,
+        bookingTotal,
+        paymentId: payment.id,
+      });
+      throw new BadRequestException('PAYMENT_AMOUNT_MISMATCH');
+    }
+
     // Validate currency
-    if (body.currency && body.currency !== payment.currency) {
+    if (verifiedCurrency && verifiedCurrency !== payment.currency) {
       throw new BadRequestException('PAYMENT_CURRENCY_MISMATCH');
     }
 
@@ -734,25 +844,34 @@ export class PaymentService {
       data: {
         paymentId: payment.id,
         eventType: 'WEBHOOK_RECEIVED',
-        status: body.status,
-        payload: { txRef, amount: body.amount, currency: body.currency },
+        status: verifiedStatus ?? 'UNKNOWN',
+        payload: { txRef, amount: verifiedAmount, currency: verifiedCurrency },
       },
     });
 
-    if (body.status === 'SUCCESS') {
+    if (verifiedStatus === 'SUCCESS') {
       await this.completePayment(payment.id, payment.bookingId, 'WEBHOOK');
       return { status: 'SUCCEEDED', paymentId: payment.id };
     }
 
-    if (body.status === 'FAILED' || body.status === 'CANCELLED') {
-      const status = body.status === 'FAILED' ? 'FAILED' : 'CANCELLED';
+    if (verifiedStatus === 'PENDING') {
+      await this.db.payment.update({
+        where: { id: payment.id },
+        data: { status: 'PROCESSING' },
+      });
+      return { status: 'PENDING' as any, paymentId: payment.id };
+    }
+
+    if (verifiedStatus === 'FAILED' || verifiedStatus === 'CANCELLED') {
+      const status = verifiedStatus === 'FAILED' ? 'FAILED' : 'CANCELLED';
       await this.db.payment.update({
         where: { id: payment.id },
         data: {
           status,
-          failureReason: body.status === 'FAILED'
-            ? 'Payment failed via webhook'
-            : 'Payment cancelled via webhook',
+          failureReason:
+            verifiedStatus === 'FAILED'
+              ? 'Payment failed via webhook'
+              : 'Payment cancelled via webhook',
         },
       });
 
@@ -783,6 +902,69 @@ export class PaymentService {
     }
 
     return { status: 'FAILED', paymentId: payment.id };
+  }
+
+  // ── Chapa Flow: Verify Callback ─────────────────────────────────────────────
+
+  /**
+   * Authoritative server-to-server verification on user return redirect callback.
+   */
+  async verifyChapaCallback(txRef: string) {
+    const payment = await this.db.payment.findFirst({
+      where: { txRef },
+      include: { booking: true },
+    });
+
+    if (!payment) {
+      throw new NotFoundException(`Payment not found for tx_ref: ${txRef}`);
+    }
+
+    if (payment.status === 'SUCCEEDED') {
+      return {
+        status: 'SUCCEEDED',
+        paymentId: payment.id,
+        bookingId: payment.bookingId,
+        txRef,
+        message: 'Payment already verified',
+      };
+    }
+
+    if (
+      this.chapaService &&
+      this.config.get<string>('payment.chapaSecretKey')
+    ) {
+      const verifyRes = await this.chapaService.verify(txRef);
+      if (
+        verifyRes.status === 'success' &&
+        verifyRes.data?.status === 'success'
+      ) {
+        const amount = Number(verifyRes.data.amount);
+        const bookingTotal = payment.booking.totalPrice.toNumber();
+        if (Math.abs(amount - bookingTotal) > 0.01) {
+          throw new BadRequestException('PAYMENT_AMOUNT_MISMATCH');
+        }
+        await this.completePayment(
+          payment.id,
+          payment.bookingId,
+          'CHAPA_CALLBACK',
+        );
+        return {
+          status: 'SUCCEEDED',
+          paymentId: payment.id,
+          bookingId: payment.bookingId,
+          txRef,
+          message: 'Payment verified and booking confirmed',
+        };
+      }
+    }
+
+    return {
+      status: payment.status,
+      paymentId: payment.id,
+      bookingId: payment.bookingId,
+      txRef,
+      message: 'Payment pending or verification incomplete',
+    };
   }
 
   // ── Chapa Flow: Payment Status ──────────────────────────────────────────────
@@ -876,12 +1058,105 @@ export class PaymentService {
       throw new ConflictException('This booking can no longer be paid');
     }
 
+    // Maintain stable tx_ref for existing pending payment session
+    // booking.payment is already loaded via `include: { payment: true }` above — no extra DB round-trip needed
+    const existingPayment = booking.payment;
+    const txRef =
+      existingPayment?.txRef &&
+      ['PENDING', 'PROCESSING', 'OTP_SENT'].includes(existingPayment.status)
+        ? existingPayment.txRef
+        : `CHP-YT-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+
+    const providerMode = this.config.get<string>('payment.provider') ?? 'mock';
+
+    // ── Live Chapa Flow (when PAYMENT_PROVIDER=chapa) ───────────────────────
+    if (providerMode === 'chapa' && method !== 'CASH' && this.chapaGateway) {
+      const user = await this.db.user.findUnique({ where: { id: userId } });
+      const customerEmail =
+        details.email || user?.email || 'customer@yayetech.com';
+      const customerName = user?.fullName || 'Guest User';
+      const [firstName, ...restName] = customerName.split(' ');
+      const lastName = restName.join(' ') || 'Customer';
+
+      const origin =
+        this.config.get<string>('webOrigin') || 'http://localhost:3000';
+      const callbackUrl = `${origin}/payments/callback?tx_ref=${txRef}`;
+      const returnUrl = `${origin}/payments/result?tx_ref=${txRef}`;
+
+      const initResult = await this.chapaGateway.initializePayment({
+        paymentId: booking.id,
+        bookingId: booking.id,
+        txRef,
+        amount: booking.totalPrice.toNumber(),
+        currency: 'ETB',
+        email: customerEmail,
+        firstName,
+        lastName,
+        phone: details.phone ?? user?.phone ?? undefined,
+        callbackUrl,
+        returnUrl,
+        customization: {
+          title: 'Hotel Booking Payment',
+          description: `Booking ref: ${booking.bookingRef}`,
+        },
+      });
+
+      const payment = await this.db.payment.upsert({
+        where: { bookingId: booking.id },
+        create: {
+          bookingId: booking.id,
+          userId,
+          provider: 'CHAPA',
+          method,
+          amount: booking.totalPrice,
+          currency: 'ETB',
+          status: 'PENDING',
+          txRef,
+          providerRef: txRef,
+          idempotencyKey: `YT-${booking.id.slice(0, 8)}-PAYMENT-01`,
+          metadata: {
+            checkoutUrl: initResult.checkoutUrl,
+            phone: details.phone,
+          },
+        },
+        update: {
+          method,
+          status: 'PENDING',
+          txRef,
+          providerRef: txRef,
+          metadata: {
+            checkoutUrl: initResult.checkoutUrl,
+            phone: details.phone,
+          },
+        },
+      });
+
+      this.logger.log({
+        message: 'Live Chapa payment initiated',
+        paymentId: payment.id,
+        bookingId,
+        method,
+        txRef,
+        amount: booking.totalPrice.toNumber(),
+        checkoutUrl: initResult.checkoutUrl,
+        correlationId: getRequestId(),
+      });
+
+      return {
+        paymentId: payment.id,
+        bookingId: booking.id,
+        method,
+        txRef,
+        amount: payment.amount.toNumber(),
+        status: payment.status,
+        checkoutUrl: initResult.checkoutUrl,
+      };
+    }
+
+    // ── Local Mock / Sandbox Flow ───────────────────────────────────────────
     if (!this.chapa) {
       throw new BadRequestException('Chapa provider not available');
     }
-
-    // Generate tx_ref
-    const txRef = `CHP-YT-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
     // Chapa methods (Telebirr + bank methods) are handled directly by ChapaMockProvider,
     // not through the legacy gateway registry. Only use the registry for non-Chapa methods.
@@ -901,7 +1176,8 @@ export class PaymentService {
     }
 
     // Determine initial status based on method
-    let initialStatus: 'PENDING' | 'PENDING_AT_HOTEL' | 'PROCESSING' | 'OTP_SENT';
+    let initialStatus:
+      'PENDING' | 'PENDING_AT_HOTEL' | 'PROCESSING' | 'OTP_SENT';
     if (method === 'CASH') {
       initialStatus = 'PENDING_AT_HOTEL';
     } else if (method === 'TELEBIRR') {
@@ -1032,7 +1308,18 @@ export class PaymentService {
     if (!payment) return;
 
     const changed = await this.db.payment.updateMany({
-      where: { id: paymentId, status: { in: ['PENDING', 'PENDING_AT_HOTEL', 'OTP_SENT', 'PROCESSING', 'FAILED'] } },
+      where: {
+        id: paymentId,
+        status: {
+          in: [
+            'PENDING',
+            'PENDING_AT_HOTEL',
+            'OTP_SENT',
+            'PROCESSING',
+            'FAILED',
+          ],
+        },
+      },
       data: {
         status: 'SUCCEEDED',
         completedAt: new Date(),
@@ -1093,7 +1380,12 @@ export class PaymentService {
       'PAYMENT_COMPLETED',
       'Payment',
       paymentId,
-      { bookingId, method: payment.method, amount: payment.amount.toNumber(), trigger },
+      {
+        bookingId,
+        method: payment.method,
+        amount: payment.amount.toNumber(),
+        trigger,
+      },
     );
 
     this.logger.log({
@@ -1108,8 +1400,11 @@ export class PaymentService {
   }
 
   private assertMockWebhookSecret(received: string | undefined) {
-    const expected = this.config.getOrThrow<string>('payment.mockWebhookSecret');
-    if (!received) throw new UnauthorizedException('Missing payment webhook secret');
+    const expected = this.config.getOrThrow<string>(
+      'payment.mockWebhookSecret',
+    );
+    if (!received)
+      throw new UnauthorizedException('Missing payment webhook secret');
     const receivedBuffer = Buffer.from(received);
     const expectedBuffer = Buffer.from(expected);
     if (

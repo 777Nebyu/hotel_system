@@ -58,7 +58,8 @@ describe('OtpService', () => {
         }),
       });
       // Hash should not be the plaintext code
-      const storedHash = db.payment.update.mock.calls[0][0].data.verificationCodeHash;
+      const storedHash =
+        db.payment.update.mock.calls[0][0].data.verificationCodeHash;
       expect(storedHash).not.toBe(code);
     });
 
@@ -66,7 +67,9 @@ describe('OtpService', () => {
       await service.generateOtp('payment-1');
       const updateCall = db.payment.update.mock.calls[0][0];
       expect(updateCall.data.verificationExpiresAt).toBeInstanceOf(Date);
-      expect(updateCall.data.verificationExpiresAt.getTime()).toBeGreaterThan(Date.now());
+      expect(updateCall.data.verificationExpiresAt.getTime()).toBeGreaterThan(
+        Date.now(),
+      );
     });
 
     it('should record OTP_SENT event', async () => {
@@ -109,7 +112,8 @@ describe('OtpService', () => {
     it('should return EXPIRED when OTP has expired', async () => {
       db.payment.findUnique.mockResolvedValue({
         ...mockPayment,
-        verificationCodeHash: '$2b$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012',
+        verificationCodeHash:
+          '$2b$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012',
         verificationExpiresAt: new Date(Date.now() - 1000), // 1 second ago
         verificationAttempts: 0,
       });
@@ -121,7 +125,8 @@ describe('OtpService', () => {
     it('should return MAX_ATTEMPTS when too many attempts', async () => {
       db.payment.findUnique.mockResolvedValue({
         ...mockPayment,
-        verificationCodeHash: '$2b$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012',
+        verificationCodeHash:
+          '$2b$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012',
         verificationExpiresAt: new Date(Date.now() + 300000),
         verificationAttempts: 5,
       });

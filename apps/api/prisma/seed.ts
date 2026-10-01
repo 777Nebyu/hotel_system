@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient, Role, RoomStatus, DiscountType } from '../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import * as bcrypt from 'bcrypt';
+import { hashPassword } from '../src/common/security/password-hasher';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL ?? '' }),
@@ -54,55 +54,59 @@ async function main() {
   });
 
   // ── 2. Users (Admin, Manager, Staff, Customer) ───────────────────────────
-  const adminPassword = await bcrypt.hash('AdminPass123!', 12);
-  const managerPassword = await bcrypt.hash('ManagerPass123!', 12);
-  const staffPassword = await bcrypt.hash('StaffPass123!', 12);
-  const customerPassword = await bcrypt.hash('CustomerPass123!', 12);
+  const adminPassword = await hashPassword('AdminPass123!');
+  const managerPassword = await hashPassword('ManagerPass123!');
+  const staffPassword = await hashPassword('StaffPass123!');
+  const customerPassword = await hashPassword('CustomerPass123!');
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@yayetech.com' },
-    update: {},
+    update: { emailVerified: true, emailVerifiedAt: new Date(), status: 'ACTIVE' },
     create: {
       email: 'admin@yayetech.com',
       fullName: 'System Admin',
       passwordHash: adminPassword,
       role: Role.ADMIN,
+      emailVerified: true,
       emailVerifiedAt: new Date(),
     },
   });
 
   const manager = await prisma.user.upsert({
     where: { email: 'manager@yayetech.com' },
-    update: {},
+    update: { emailVerified: true, emailVerifiedAt: new Date(), status: 'ACTIVE' },
     create: {
       email: 'manager@yayetech.com',
       fullName: 'Hotel Manager',
       passwordHash: managerPassword,
       role: Role.MANAGER,
+      emailVerified: true,
       emailVerifiedAt: new Date(),
     },
   });
 
   const staff = await prisma.user.upsert({
     where: { email: 'staff@yayetech.com' },
-    update: {},
+    update: { emailVerified: true, emailVerifiedAt: new Date(), status: 'ACTIVE' },
     create: {
       email: 'staff@yayetech.com',
       fullName: 'Hotel Staff',
       passwordHash: staffPassword,
       role: Role.STAFF,
+      emailVerified: true,
       emailVerifiedAt: new Date(),
     },
   });
 
   const customer = await prisma.user.upsert({
     where: { email: 'customer@yayetech.com' },
-    update: {},
+    update: { emailVerified: true, emailVerifiedAt: new Date(), status: 'ACTIVE' },
     create: {
       email: 'customer@yayetech.com',
       fullName: 'Kibru Guest',
       passwordHash: customerPassword,
       role: Role.CUSTOMER,
+      emailVerified: true,
       emailVerifiedAt: new Date(),
     },
   });
@@ -279,12 +283,278 @@ async function main() {
     },
   });
 
+  // ── 8. Discover Pillar (Sources, Verified Places & Emergency Contacts) ──
+  console.log('🏛️ Seeding verified Discover & Heritage places...');
+
+  const heritageAuthoritySource = await prisma.source.upsert({
+    where: { id: 'source-ethiopian-heritage' },
+    update: {},
+    create: {
+      id: 'source-ethiopian-heritage',
+      name: 'Ethiopian Heritage Authority',
+      url: 'https://heritage.gov.et',
+      license: 'Official Public Record / Open Government Data',
+      verifiedBy: 'Cultural Heritage Field Review Team',
+    },
+  });
+
+  const tourismMinistrySource = await prisma.source.upsert({
+    where: { id: 'source-tourism-ministry' },
+    update: {},
+    create: {
+      id: 'source-tourism-ministry',
+      name: 'Ministry of Tourism Ethiopia (Land of Origins)',
+      url: 'https://tourism.gov.et',
+      license: 'Public Domain / Verified Tourism Directory',
+      verifiedBy: 'Addis Ababa Tourism Information Desk',
+    },
+  });
+
+  const addisAdministrationSource = await prisma.source.upsert({
+    where: { id: 'source-addis-admin' },
+    update: {},
+    create: {
+      id: 'source-addis-admin',
+      name: 'Addis Ababa City Administration & Emergency Services',
+      url: 'https://addisababa.gov.et',
+      license: 'Official Civic Registry',
+      verifiedBy: 'City Administration Public Safety Board',
+    },
+  });
+
+  // Verified Places in Addis Ababa
+  const placesData = [
+    {
+      id: 'place-national-museum',
+      name: 'National Museum of Ethiopia',
+      amharicName: 'የኢትዮጵያ ብሔራዊ ሙዚየም',
+      description: 'Home to the famous 3.2-million-year-old fossilized hominid remains of Lucy (Dinknesh), ancient Aksumite relics, and royal ceremonial attire.',
+      amharicDescription: 'ድንቅነሽ (ሉሲ) የተገኘችበት፣ ጥንታዊ የአክሱም ቅርሶችና የንጉሣውያን አልባሳት የሚገኙበት ታሪካዊ ሙዚየም።',
+      category: 'MUSEUM' as const,
+      address: 'King George VI St, Arat Kilo, Addis Ababa',
+      lat: 9.0384,
+      lng: 38.7618,
+      phone: '+251 11 111 7150',
+      website: 'https://heritage.gov.et/national-museum',
+      openingHours: 'Mon-Sun 09:00 - 17:00',
+      hoursVerified: true,
+      priceLevel: 1,
+      rating: 4.8,
+      images: [
+        'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800',
+      ],
+      sourceId: heritageAuthoritySource.id,
+      cityId: addis.id,
+    },
+    {
+      id: 'place-holy-trinity',
+      name: 'Holy Trinity Cathedral (Kidist Selassie)',
+      amharicName: 'ቅድስት ሥላሴ ካቴድራል',
+      description: 'Architectural jewel with soaring stained-glass windows, hand-carved imperial thrones, and the final resting place of Emperor Haile Selassie and patriots of the liberation struggle.',
+      amharicDescription: 'የቀዳማዊ ኃይለ ሥላሴና የሀገር አርበኞች መካነ መቃብር የሚገኝበት፣ ውብ ጥንታዊ ህንፃ ጥበብ የተላበሰ ቅዱስ ስፍራ።',
+      category: 'HERITAGE' as const,
+      address: 'Arat Kilo, Queen Elizabeth II St, Addis Ababa',
+      lat: 9.0315,
+      lng: 38.7663,
+      phone: '+251 11 123 3582',
+      openingHours: 'Mon-Sun 08:00 - 18:00',
+      hoursVerified: true,
+      priceLevel: 1,
+      rating: 4.7,
+      images: [
+        'https://images.unsplash.com/photo-1590076215667-875d4ef2d7ee?w=800',
+      ],
+      sourceId: heritageAuthoritySource.id,
+      cityId: addis.id,
+    },
+    {
+      id: 'place-entoto-park',
+      name: 'Entoto Natural & Eco Park',
+      amharicName: 'የእንጦጦ የተፈጥሮ ፓርክ',
+      description: 'Mountain retreat 3,200m above sea level with aromatic eucalyptus forests, horseback riding, ziplining, craft coffee lounges, and panoramic views of Addis Ababa.',
+      amharicDescription: 'በንጹሕ አየር፣ በፈረስ ግልቢያና በአዲስ አበባ ከተማ ሙሉ ገጽታ የሚታይበት ውብ ተራራማ የተፈጥሮ መናፈሻ።',
+      category: 'ATTRACTION' as const,
+      address: 'Mount Entoto Ridge, Addis Ababa',
+      lat: 9.0792,
+      lng: 38.7635,
+      phone: '+251 11 869 9999',
+      openingHours: 'Mon-Sun 06:00 - 20:00',
+      hoursVerified: true,
+      priceLevel: 2,
+      rating: 4.9,
+      images: [
+        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800',
+      ],
+      sourceId: tourismMinistrySource.id,
+      cityId: addis.id,
+    },
+    {
+      id: 'place-tomoca-coffee',
+      name: 'Tomoca Coffee (Historic Piazza)',
+      amharicName: 'ቶሞካ ቡና (ፒያሳ)',
+      description: 'Founded in 1953, Addis Ababa’s most iconic Italian-style espresso bar roasting high-altitude Harar, Sidama, and Yirgacheffe beans.',
+      amharicDescription: 'ከ1953 ዓ.ም ጀምሮ ጥራት ያለው የኢትዮጵያ ሀረር እና ሲዳማ ቡና የሚቀርብበት አንጋፋው የፒያሳ ካፌ።',
+      category: 'CAFE' as const,
+      address: 'Wavel St, Piazza, Addis Ababa',
+      lat: 9.0348,
+      lng: 38.7516,
+      phone: '+251 11 111 2781',
+      website: 'https://tomocacoffee.com',
+      openingHours: 'Mon-Sat 06:30 - 20:30, Sun 08:00 - 18:00',
+      hoursVerified: true,
+      priceLevel: 1,
+      rating: 4.8,
+      images: [
+        'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800',
+      ],
+      sourceId: tourismMinistrySource.id,
+      cityId: addis.id,
+    },
+    {
+      id: 'place-yod-abyssinia',
+      name: 'Yod Abyssinia Cultural Restaurant',
+      amharicName: 'ዮድ አቢሲኒያ የባህል ምግብ ቤት',
+      description: 'World-renowned Ethiopian traditional dining featuring injera feasts, traditional honey mead (Tej), and live tribal music and dance from all 10+ Ethiopian regions.',
+      amharicDescription: 'የተለያዩ የኢትዮጵያ ብሔረሰቦች ባህላዊ ሙዚቃና ውዝዋዜ፣ ጠጅና ምርጥ የባህል ምግቦች የሚቀርቡበት የታወቀ ስፍራ።',
+      category: 'RESTAURANT' as const,
+      address: 'Bole Medhanialem Area, Addis Ababa',
+      lat: 8.9950,
+      lng: 38.7885,
+      phone: '+251 11 661 2179',
+      openingHours: 'Mon-Sun 12:00 - 23:30',
+      hoursVerified: true,
+      priceLevel: 3,
+      rating: 4.7,
+      images: [
+        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+      ],
+      sourceId: tourismMinistrySource.id,
+      cityId: addis.id,
+    },
+    {
+      id: 'place-addis-mercato',
+      name: 'Addis Mercato (Merkato)',
+      amharicName: 'አዲስ መርካቶ',
+      description: 'The largest open-air marketplace in Africa. An energetic sensory kaleidoscope offering authentic spices (berbere), handwoven fabrics (shemma), and silver filigree jewelry.',
+      amharicDescription: 'በአፍሪካ ግዙፉ ክፍት የገበያ ማዕከል፤ ባህላዊ ቅመማ ቅመሞች፣ የሀገር ባህል ልብሶች እና ጥበቦች መገኛ።',
+      category: 'SHOPPING' as const,
+      address: 'Addis Ketema District, Addis Ababa',
+      lat: 9.0300,
+      lng: 38.7390,
+      openingHours: 'Mon-Sat 08:30 - 18:30 (Closed Sundays)',
+      hoursVerified: true,
+      priceLevel: 1,
+      rating: 4.5,
+      images: [
+        'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=800',
+      ],
+      sourceId: tourismMinistrySource.id,
+      cityId: addis.id,
+    },
+    {
+      id: 'place-tikur-anbessa',
+      name: 'Tikur Anbessa (Black Lion) Hospital',
+      amharicName: 'ጥቁር አንበሳ ስፔሻላይዝድ ሆስፒታል',
+      description: 'Premier tertiary referral and teaching hospital with 24/7 emergency medicine trauma care unit.',
+      amharicDescription: 'የ24 ሰዓት የድንገተኛ አደጋ ህክምና ክፍል ያለው ቀዳሚው የመንግስት ስፔሻላይዝድ ሆስፒታል።',
+      category: 'HOSPITAL' as const,
+      address: 'Zambia St, Lideta, Addis Ababa',
+      lat: 9.0186,
+      lng: 38.7492,
+      phone: '+251 11 551 1211',
+      openingHours: '24 Hours Emergency Service',
+      hoursVerified: true,
+      priceLevel: 1,
+      rating: 4.3,
+      images: [
+        'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800',
+      ],
+      sourceId: addisAdministrationSource.id,
+      cityId: addis.id,
+    },
+  ];
+
+  const unattributedPlaces = placesData.filter((place) => !place.sourceId);
+  if (unattributedPlaces.length > 0) {
+    throw new Error(
+      `ROAD-001 violation: every seeded place must have a sourceId (${unattributedPlaces.map((place) => place.id).join(', ')})`,
+    );
+  }
+
+  for (const p of placesData) {
+    await prisma.place.upsert({
+      where: { id: p.id },
+      update: {},
+      create: p,
+    });
+  }
+
+  // Emergency Contacts (Curated official phone numbers with source verification)
+  const emergencyData = [
+    {
+      id: 'emg-police-991',
+      city: 'Addis Ababa',
+      kind: 'POLICE',
+      name: 'Ethiopian Federal Police Emergency Dispatch',
+      phone: '991',
+      sourceId: addisAdministrationSource.id,
+      status: 'PUBLISHED',
+    },
+    {
+      id: 'emg-ambulance-907',
+      city: 'Addis Ababa',
+      kind: 'AMBULANCE',
+      name: 'Ethiopian Red Cross National Ambulance',
+      phone: '907',
+      sourceId: addisAdministrationSource.id,
+      status: 'PUBLISHED',
+    },
+    {
+      id: 'emg-fire-939',
+      city: 'Addis Ababa',
+      kind: 'FIRE',
+      name: 'City Fire & Emergency Rescue Service',
+      phone: '939',
+      sourceId: addisAdministrationSource.id,
+      status: 'PUBLISHED',
+    },
+    {
+      id: 'emg-hospital-tikur',
+      city: 'Addis Ababa',
+      kind: 'HOSPITAL',
+      name: 'Tikur Anbessa Emergency Trauma Desk',
+      phone: '+251 11 551 1211',
+      sourceId: addisAdministrationSource.id,
+      status: 'PUBLISHED',
+    },
+    {
+      id: 'emg-hotel-skylight',
+      city: 'Addis Ababa',
+      hotelId: skylightHotel.id,
+      kind: 'HOTEL',
+      name: 'Grand Skylight Front Desk & Guest Safety',
+      phone: '+251 11 681 8181',
+      sourceId: tourismMinistrySource.id,
+      status: 'PUBLISHED',
+    },
+  ];
+
+  for (const emg of emergencyData) {
+    await prisma.emergencyContact.upsert({
+      where: { id: emg.id },
+      update: {},
+      create: emg,
+    });
+  }
+
   console.log('✅ Seeding complete!');
   console.log(`   Admin:    ${admin.email} (AdminPass123!)`);
   console.log(`   Manager:  ${manager.email} (ManagerPass123!)`);
   console.log(`   Staff:    ${staff.email} (StaffPass123!)`);
   console.log(`   Customer: ${customer.email} (CustomerPass123!)`);
   console.log(`   Hotels:   ${skylightHotel.name}, ${haileResort.name}`);
+  console.log(`   Places:   ${placesData.length} verified places seeded`);
+  console.log(`   Contacts: ${emergencyData.length} emergency contacts seeded`);
 }
 
 main()
