@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next"
 import { Inter, Playfair_Display, Noto_Sans_Ethiopic } from "next/font/google"
 import "./globals.css"
+import { Suspense } from "react"
 import NavBar from "@/components/NavBar"
+import { NavigationProgressBar } from "@/components/NavigationProgressBar"
 import AIChat from "@/components/AIChat"
 import { AppProviders } from "@/providers/AppProviders"
 
@@ -70,6 +72,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} ${notoSansEthiopic.variable}`}>
       <body className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans selection:bg-[#D4AF37]/30 selection:text-[#0F2942]">
+        <Suspense fallback={null}>
+          <NavigationProgressBar />
+        </Suspense>
         <AppProviders>
           <NavBar />
           <main className="pt-18">{children}</main>

@@ -354,7 +354,7 @@ function BookingWizardContent() {
           {
             fullName: guestName.trim(),
             email: guestEmail.trim(),
-            ...(guestPhone ? { phone: guestPhone.trim() } : {}),
+            phone: guestPhone.trim() || 'N/A',
           },
         ],
         paymentMethod,

@@ -133,6 +133,23 @@ export const blockMaintenanceSchema = z
   });
 export type BlockMaintenanceInput = z.infer<typeof blockMaintenanceSchema>;
 
+export const releaseMaintenanceSchema = z
+  .object({
+    roomId: id.optional(),
+    roomIds: z.array(id).min(1).max(50).optional(),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+  })
+  .refine((d) => d.endDate >= d.startDate, {
+    message: 'endDate must be on or after startDate',
+    path: ['endDate'],
+  })
+  .refine((d) => Boolean(d.roomId || (d.roomIds && d.roomIds.length > 0)), {
+    message: 'Either roomId or roomIds must be provided',
+    path: ['roomId'],
+  });
+export type ReleaseMaintenanceInput = z.infer<typeof releaseMaintenanceSchema>;
+
 export const upsertHotelPolicySchema = z.object({
   checkInTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Must be HH:mm').default('14:00'),
   checkOutTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Must be HH:mm').default('11:00'),

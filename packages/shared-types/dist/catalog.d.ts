@@ -295,6 +295,43 @@ export declare const blockMaintenanceSchema: z.ZodEffects<z.ZodEffects<z.ZodObje
     reason?: string | undefined;
 }>;
 export type BlockMaintenanceInput = z.infer<typeof blockMaintenanceSchema>;
+export declare const releaseMaintenanceSchema: z.ZodEffects<z.ZodEffects<z.ZodObject<{
+    roomId: z.ZodOptional<z.ZodString>;
+    roomIds: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    startDate: z.ZodDate;
+    endDate: z.ZodDate;
+}, "strip", z.ZodTypeAny, {
+    startDate: Date;
+    endDate: Date;
+    roomIds?: string[] | undefined;
+    roomId?: string | undefined;
+}, {
+    startDate: Date;
+    endDate: Date;
+    roomIds?: string[] | undefined;
+    roomId?: string | undefined;
+}>, {
+    startDate: Date;
+    endDate: Date;
+    roomIds?: string[] | undefined;
+    roomId?: string | undefined;
+}, {
+    startDate: Date;
+    endDate: Date;
+    roomIds?: string[] | undefined;
+    roomId?: string | undefined;
+}>, {
+    startDate: Date;
+    endDate: Date;
+    roomIds?: string[] | undefined;
+    roomId?: string | undefined;
+}, {
+    startDate: Date;
+    endDate: Date;
+    roomIds?: string[] | undefined;
+    roomId?: string | undefined;
+}>;
+export type ReleaseMaintenanceInput = z.infer<typeof releaseMaintenanceSchema>;
 export declare const upsertHotelPolicySchema: z.ZodObject<{
     checkInTime: z.ZodDefault<z.ZodString>;
     checkOutTime: z.ZodDefault<z.ZodString>;

@@ -3,8 +3,11 @@ import { fileURLToPath } from "node:url"
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  allowedDevOrigins: ["http://192.168.1.10:4000"],
-  outputFileTracingRoot: fileURLToPath(new URL(".", import.meta.url)),
+  allowedDevOrigins: [
+    "http://192.168.1.12:4000",
+    "http://192.168.1.19:4000",
+  ],
+  outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
   images: {
     remotePatterns: [
       {
@@ -23,6 +26,9 @@ const nextConfig = {
       { protocol: "https", hostname: "**" },
       { protocol: "http", hostname: "**" },
     ],
+  },
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion', '@tanstack/react-query'],
   },
 }
 

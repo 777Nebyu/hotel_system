@@ -141,9 +141,14 @@ export const hotelApi = {
   getPolicy: (hotelId: string) =>
     api.get<HotelPolicy>(`/catalog/hotels/${hotelId}/policy`, getAuthToken()),
   countries: () =>
-    api.get<Array<{ id: string; name: string; code: string }>>(
-      "/catalog/countries",
-    ),
+    api.get<
+      Array<{
+        id: string
+        name: string
+        code: string
+        cities?: Array<{ id: string; name: string }>
+      }>
+    >("/catalog/countries"),
   cities: (country?: string) =>
     api.get<Array<{ id: string; name: string }>>(
       `/catalog/cities${query({ country })}`,
@@ -675,6 +680,12 @@ export const adminApi = {
     api.post(`/admin/hotels/${hotelId}/approve`, undefined, getAuthToken()),
   rejectHotel: (hotelId: string, reason: string) =>
     api.post(`/admin/hotels/${hotelId}/reject`, { reason }, getAuthToken()),
+  createHotel: (data: any) => api.post<Hotel>('/catalog/hotels', data, getAuthToken()),
+  addHotelImages: (hotelId: string, files: File[]) => {
+    const form = new FormData()
+    files.forEach((f) => form.append('images', f))
+    return api.postForm(`/catalog/hotels/${hotelId}/images`, form, getAuthToken())
+  },
   reassignManager: (hotelId: string, managerId: string) =>
     api.patch(
       `/admin/hotels/${hotelId}/manager`,
