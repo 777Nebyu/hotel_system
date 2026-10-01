@@ -14,8 +14,9 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unflagUserSchema = exports.flagUserSchema = exports.sessionIdParamsSchema = exports.deactivateAccountSchema = exports.exportQuerySchema = exports.userStatusSchema = exports.forgotPasswordSchema = exports.updateProfileSchema = exports.resetPasswordSchema = exports.emailSchema = exports.refreshTokenSchema = exports.loginSchema = exports.registerSchema = exports.passwordSchema = exports.userRoleSchema = void 0;
+exports.unflagUserSchema = exports.flagUserSchema = exports.sessionIdParamsSchema = exports.deactivateAccountSchema = exports.exportQuerySchema = exports.userStatusSchema = exports.forgotPasswordSchema = exports.updateProfileSchema = exports.resetPasswordSchema = exports.resendVerificationSchema = exports.emailSchema = exports.refreshTokenSchema = exports.mfaVerifySchema = exports.mfaCodeSchema = exports.loginSchema = exports.authPortalSchema = exports.registerSchema = exports.passwordSchema = exports.userRoleSchema = void 0;
 const zod_1 = require("zod");
+const email_1 = require("./email");
 exports.userRoleSchema = zod_1.z.enum(['CUSTOMER', 'STAFF', 'MANAGER', 'ADMIN']);
 // Passwords must be long enough and contain a number.  Keep this shared so
 // registration, login/reset validation, and the API enforce the same rule.
@@ -25,20 +26,32 @@ exports.passwordSchema = zod_1.z
     .max(72)
     .regex(/\d/, 'Password must contain at least one number');
 exports.registerSchema = zod_1.z.object({
-    email: zod_1.z.string().email(),
+    email: email_1.emailFieldSchema,
     password: exports.passwordSchema,
     fullName: zod_1.z.string().min(2).max(100),
     phone: zod_1.z.string().min(6).max(32).optional(),
 });
+exports.authPortalSchema = zod_1.z.enum(['CUSTOMER', 'STAFF', 'ADMIN']);
 exports.loginSchema = zod_1.z.object({
-    email: zod_1.z.string().email(),
+    email: email_1.emailFieldSchema,
     password: exports.passwordSchema,
+    // Portal is an authorization hint, never a role claim. The API validates
+    // it against the authenticated account role before issuing tokens.
+    portal: exports.authPortalSchema.optional(),
+});
+exports.mfaCodeSchema = zod_1.z.string().regex(/^\d{6}$/, 'MFA code must be 6 digits');
+exports.mfaVerifySchema = zod_1.z.object({
+    challengeToken: zod_1.z.string().min(32),
+    code: exports.mfaCodeSchema,
 });
 exports.refreshTokenSchema = zod_1.z.object({
     refreshToken: zod_1.z.string().min(1),
 });
 exports.emailSchema = zod_1.z.object({
-    email: zod_1.z.string().email(),
+    email: email_1.emailFieldSchema,
+});
+exports.resendVerificationSchema = zod_1.z.object({
+    email: email_1.emailFieldSchema,
 });
 exports.resetPasswordSchema = zod_1.z.object({
     token: zod_1.z.string().min(1),
@@ -82,6 +95,7 @@ exports.flagUserSchema = zod_1.z.object({
 exports.unflagUserSchema = zod_1.z.object({
     reason: zod_1.z.string().min(3).max(500).optional(),
 });
+__exportStar(require("./email"), exports);
 __exportStar(require("./catalog"), exports);
 __exportStar(require("./booking"), exports);
 __exportStar(require("./review"), exports);
@@ -90,3 +104,5 @@ __exportStar(require("./coupon"), exports);
 __exportStar(require("./admin"), exports);
 __exportStar(require("./staff"), exports);
 __exportStar(require("./contact"), exports);
+__exportStar(require("./ai"), exports);
+__exportStar(require("./discover"), exports);

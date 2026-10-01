@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { emailFieldSchema } from './email';
 
 export const userRoleSchema = z.enum(['CUSTOMER', 'STAFF', 'MANAGER', 'ADMIN']);
 export type UserRole = z.infer<typeof userRoleSchema>;
@@ -12,18 +13,31 @@ export const passwordSchema = z
   .regex(/\d/, 'Password must contain at least one number');
 
 export const registerSchema = z.object({
-  email: z.string().email(),
+  email: emailFieldSchema,
   password: passwordSchema,
   fullName: z.string().min(2).max(100),
   phone: z.string().min(6).max(32).optional(),
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 
+export const authPortalSchema = z.enum(['CUSTOMER', 'STAFF', 'ADMIN']);
+export type AuthPortal = z.infer<typeof authPortalSchema>;
+
 export const loginSchema = z.object({
-  email: z.string().email(),
+  email: emailFieldSchema,
   password: passwordSchema,
+  // Portal is an authorization hint, never a role claim. The API validates
+  // it against the authenticated account role before issuing tokens.
+  portal: authPortalSchema.optional(),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
+
+export const mfaCodeSchema = z.string().regex(/^\d{6}$/, 'MFA code must be 6 digits');
+export const mfaVerifySchema = z.object({
+  challengeToken: z.string().min(32),
+  code: mfaCodeSchema,
+});
+export type MfaVerifyInput = z.infer<typeof mfaVerifySchema>;
 
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1),
@@ -31,9 +45,14 @@ export const refreshTokenSchema = z.object({
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
 
 export const emailSchema = z.object({
-  email: z.string().email(),
+  email: emailFieldSchema,
 });
 export type EmailInput = z.infer<typeof emailSchema>;
+
+export const resendVerificationSchema = z.object({
+  email: emailFieldSchema,
+});
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(1),
@@ -98,6 +117,7 @@ export const unflagUserSchema = z.object({
 });
 export type UnflagUserInput = z.infer<typeof unflagUserSchema>;
 
+export * from './email';
 export * from './catalog';
 export * from './booking';
 export * from './review';
@@ -106,3 +126,5 @@ export * from './coupon';
 export * from './admin';
 export * from './staff';
 export * from './contact';
+export * from './ai';
+export * from './discover';

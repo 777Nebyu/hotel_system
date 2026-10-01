@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { emailFieldSchema } from './email';
 
 const id = z.string().min(1);
 const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be YYYY-MM-DD');
@@ -69,7 +70,7 @@ export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
 export const bookingGuestSchema = z.object({
   fullName: z.string().min(2).max(120),
-  email: z.string().email(),
+  email: emailFieldSchema,
   phone: z.string().min(3).max(30).optional(),
   nationality: z.string().max(80).optional(),
   idType: z
@@ -220,7 +221,7 @@ export const createWalkInBookingSchema = z
     checkOut: dateOnly,
     guests: guestsSchema.default({ adults: 1, children: 0 }),
     guestName: z.string().min(2).max(120),
-    guestEmail: z.string().email(),
+    guestEmail: emailFieldSchema.optional(),
     guestPhone: z.string().min(3).max(30),
     guestIdNumber: z.string().min(3).max(50).optional(),
     paymentMethod: paymentMethodSchema.default('CASH'),
@@ -241,13 +242,14 @@ export const bankCallbackSchema = z.object({
   status: z.enum(['AUTHORIZED', 'DECLINED', 'INSUFFICIENT_BALANCE', 'TIMEOUT']),
   bankTransactionId: z.string().optional(),
   pin: z.string().min(4).max(6).optional(),
+  accountNumber: z.string().optional(),
 });
 export type BankCallbackInput = z.infer<typeof bankCallbackSchema>;
 
 export const chapaIntentSchema = z.object({
   method: paymentMethodSchema,
   phone: z.string().optional(),
-  email: z.string().email().optional(),
+  email: emailFieldSchema.optional(),
   bankCode: z.string().optional(),
   accountNumber: z.string().optional(),
 });

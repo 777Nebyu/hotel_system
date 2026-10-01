@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.chapaWebhookSchema = exports.chapaIntentSchema = exports.bankCallbackSchema = exports.verifyOtpSchema = exports.createWalkInBookingSchema = exports.relocateRoomSchema = exports.modifyBookingSchema = exports.lateCheckOutActionSchema = exports.earlyCheckInActionSchema = exports.stayRequestIdParamsSchema = exports.decideStayRequestSchema = exports.createStayRequestSchema = exports.stayRequestStatusSchema = exports.stayRequestTypeSchema = exports.roomHoldIdParamsSchema = exports.createRoomHoldSchema = exports.markCashPaidSchema = exports.cancelRoomSchema = exports.invoiceParamsSchema = exports.mockGatewayCallbackSchema = exports.paymentMethodSchemaInput = exports.manageBookingsQuerySchema = exports.myBookingsQuerySchema = exports.bookingIdParamsSchema = exports.createBookingSchema = exports.bookingGuestSchema = exports.checkoutSchema = exports.bookingSourceSchema = exports.paymentMethodSchema = exports.paymentStatusSchema = exports.bookingStatusSchema = void 0;
 const zod_1 = require("zod");
+const email_1 = require("./email");
 const id = zod_1.z.string().min(1);
 const dateOnly = zod_1.z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be YYYY-MM-DD');
 exports.bookingStatusSchema = zod_1.z.enum([
@@ -58,7 +59,7 @@ exports.checkoutSchema = zod_1.z
     .refine((d) => d.checkOut > d.checkIn, stayRefine);
 exports.bookingGuestSchema = zod_1.z.object({
     fullName: zod_1.z.string().min(2).max(120),
-    email: zod_1.z.string().email(),
+    email: email_1.emailFieldSchema,
     phone: zod_1.z.string().min(3).max(30).optional(),
     nationality: zod_1.z.string().max(80).optional(),
     idType: zod_1.z
@@ -163,7 +164,7 @@ exports.createWalkInBookingSchema = zod_1.z
     checkOut: dateOnly,
     guests: guestsSchema.default({ adults: 1, children: 0 }),
     guestName: zod_1.z.string().min(2).max(120),
-    guestEmail: zod_1.z.string().email(),
+    guestEmail: email_1.emailFieldSchema.optional(),
     guestPhone: zod_1.z.string().min(3).max(30),
     guestIdNumber: zod_1.z.string().min(3).max(50).optional(),
     paymentMethod: exports.paymentMethodSchema.default('CASH'),
@@ -179,11 +180,12 @@ exports.bankCallbackSchema = zod_1.z.object({
     status: zod_1.z.enum(['AUTHORIZED', 'DECLINED', 'INSUFFICIENT_BALANCE', 'TIMEOUT']),
     bankTransactionId: zod_1.z.string().optional(),
     pin: zod_1.z.string().min(4).max(6).optional(),
+    accountNumber: zod_1.z.string().optional(),
 });
 exports.chapaIntentSchema = zod_1.z.object({
     method: exports.paymentMethodSchema,
     phone: zod_1.z.string().optional(),
-    email: zod_1.z.string().email().optional(),
+    email: email_1.emailFieldSchema.optional(),
     bankCode: zod_1.z.string().optional(),
     accountNumber: zod_1.z.string().optional(),
 });

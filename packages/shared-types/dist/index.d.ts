@@ -3,7 +3,7 @@ export declare const userRoleSchema: z.ZodEnum<["CUSTOMER", "STAFF", "MANAGER", 
 export type UserRole = z.infer<typeof userRoleSchema>;
 export declare const passwordSchema: z.ZodString;
 export declare const registerSchema: z.ZodObject<{
-    email: z.ZodString;
+    email: z.ZodEffects<z.ZodString, string, string>;
     password: z.ZodString;
     fullName: z.ZodString;
     phone: z.ZodOptional<z.ZodString>;
@@ -19,17 +19,34 @@ export declare const registerSchema: z.ZodObject<{
     phone?: string | undefined;
 }>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export declare const authPortalSchema: z.ZodEnum<["CUSTOMER", "STAFF", "ADMIN"]>;
+export type AuthPortal = z.infer<typeof authPortalSchema>;
 export declare const loginSchema: z.ZodObject<{
-    email: z.ZodString;
+    email: z.ZodEffects<z.ZodString, string, string>;
     password: z.ZodString;
+    portal: z.ZodOptional<z.ZodEnum<["CUSTOMER", "STAFF", "ADMIN"]>>;
 }, "strip", z.ZodTypeAny, {
     email: string;
     password: string;
+    portal?: "CUSTOMER" | "STAFF" | "ADMIN" | undefined;
 }, {
     email: string;
     password: string;
+    portal?: "CUSTOMER" | "STAFF" | "ADMIN" | undefined;
 }>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export declare const mfaCodeSchema: z.ZodString;
+export declare const mfaVerifySchema: z.ZodObject<{
+    challengeToken: z.ZodString;
+    code: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    code: string;
+    challengeToken: string;
+}, {
+    code: string;
+    challengeToken: string;
+}>;
+export type MfaVerifyInput = z.infer<typeof mfaVerifySchema>;
 export declare const refreshTokenSchema: z.ZodObject<{
     refreshToken: z.ZodString;
 }, "strip", z.ZodTypeAny, {
@@ -39,13 +56,21 @@ export declare const refreshTokenSchema: z.ZodObject<{
 }>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
 export declare const emailSchema: z.ZodObject<{
-    email: z.ZodString;
+    email: z.ZodEffects<z.ZodString, string, string>;
 }, "strip", z.ZodTypeAny, {
     email: string;
 }, {
     email: string;
 }>;
 export type EmailInput = z.infer<typeof emailSchema>;
+export declare const resendVerificationSchema: z.ZodObject<{
+    email: z.ZodEffects<z.ZodString, string, string>;
+}, "strip", z.ZodTypeAny, {
+    email: string;
+}, {
+    email: string;
+}>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 export declare const resetPasswordSchema: z.ZodObject<{
     token: z.ZodString;
     password: z.ZodString;
@@ -85,7 +110,7 @@ export declare const updateProfileSchema: z.ZodEffects<z.ZodObject<{
 }>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export declare const forgotPasswordSchema: z.ZodObject<{
-    email: z.ZodString;
+    email: z.ZodEffects<z.ZodString, string, string>;
 }, "strip", z.ZodTypeAny, {
     email: string;
 }, {
@@ -146,6 +171,7 @@ export declare const unflagUserSchema: z.ZodObject<{
     reason?: string | undefined;
 }>;
 export type UnflagUserInput = z.infer<typeof unflagUserSchema>;
+export * from './email';
 export * from './catalog';
 export * from './booking';
 export * from './review';
@@ -154,4 +180,6 @@ export * from './coupon';
 export * from './admin';
 export * from './staff';
 export * from './contact';
+export * from './ai';
+export * from './discover';
 //# sourceMappingURL=index.d.ts.map

@@ -10,48 +10,48 @@ export declare const createCouponSchema: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     usageLimit: z.ZodDefault<z.ZodNumber>;
     minBookingAmount: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    value: number;
     code: string;
+    value: number;
     discountType: "PERCENTAGE" | "FIXED_AMOUNT";
     validFrom: Date;
     validTo: Date;
     usageLimit: number;
     minBookingAmount?: number | undefined;
 }, {
-    value: number;
     code: string;
+    value: number;
     validFrom: Date;
     validTo: Date;
     discountType?: "PERCENTAGE" | "FIXED_AMOUNT" | undefined;
     usageLimit?: number | undefined;
     minBookingAmount?: number | undefined;
 }>, {
-    value: number;
     code: string;
+    value: number;
     discountType: "PERCENTAGE" | "FIXED_AMOUNT";
     validFrom: Date;
     validTo: Date;
     usageLimit: number;
     minBookingAmount?: number | undefined;
 }, {
-    value: number;
     code: string;
+    value: number;
     validFrom: Date;
     validTo: Date;
     discountType?: "PERCENTAGE" | "FIXED_AMOUNT" | undefined;
     usageLimit?: number | undefined;
     minBookingAmount?: number | undefined;
 }>, {
-    value: number;
     code: string;
+    value: number;
     discountType: "PERCENTAGE" | "FIXED_AMOUNT";
     validFrom: Date;
     validTo: Date;
     usageLimit: number;
     minBookingAmount?: number | undefined;
 }, {
-    value: number;
     code: string;
+    value: number;
     validFrom: Date;
     validTo: Date;
     discountType?: "PERCENTAGE" | "FIXED_AMOUNT" | undefined;
@@ -69,8 +69,8 @@ export declare const updateCouponSchema: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     isActive: z.ZodOptional<z.ZodBoolean>;
     minBookingAmount: z.ZodOptional<z.ZodNullable<z.ZodNumber>>;
 }, "strip", z.ZodTypeAny, {
-    value?: number | undefined;
     code?: string | undefined;
+    value?: number | undefined;
     isActive?: boolean | undefined;
     discountType?: "PERCENTAGE" | "FIXED_AMOUNT" | undefined;
     validFrom?: Date | undefined;
@@ -78,8 +78,8 @@ export declare const updateCouponSchema: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     usageLimit?: number | undefined;
     minBookingAmount?: number | null | undefined;
 }, {
-    value?: number | undefined;
     code?: string | undefined;
+    value?: number | undefined;
     isActive?: boolean | undefined;
     discountType?: "PERCENTAGE" | "FIXED_AMOUNT" | undefined;
     validFrom?: Date | undefined;
@@ -87,8 +87,8 @@ export declare const updateCouponSchema: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     usageLimit?: number | undefined;
     minBookingAmount?: number | null | undefined;
 }>, {
-    value?: number | undefined;
     code?: string | undefined;
+    value?: number | undefined;
     isActive?: boolean | undefined;
     discountType?: "PERCENTAGE" | "FIXED_AMOUNT" | undefined;
     validFrom?: Date | undefined;
@@ -96,8 +96,8 @@ export declare const updateCouponSchema: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     usageLimit?: number | undefined;
     minBookingAmount?: number | null | undefined;
 }, {
-    value?: number | undefined;
     code?: string | undefined;
+    value?: number | undefined;
     isActive?: boolean | undefined;
     discountType?: "PERCENTAGE" | "FIXED_AMOUNT" | undefined;
     validFrom?: Date | undefined;
@@ -105,8 +105,8 @@ export declare const updateCouponSchema: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     usageLimit?: number | undefined;
     minBookingAmount?: number | null | undefined;
 }>, {
-    value?: number | undefined;
     code?: string | undefined;
+    value?: number | undefined;
     isActive?: boolean | undefined;
     discountType?: "PERCENTAGE" | "FIXED_AMOUNT" | undefined;
     validFrom?: Date | undefined;
@@ -114,8 +114,8 @@ export declare const updateCouponSchema: z.ZodEffects<z.ZodEffects<z.ZodObject<{
     usageLimit?: number | undefined;
     minBookingAmount?: number | null | undefined;
 }, {
-    value?: number | undefined;
     code?: string | undefined;
+    value?: number | undefined;
     isActive?: boolean | undefined;
     discountType?: "PERCENTAGE" | "FIXED_AMOUNT" | undefined;
     validFrom?: Date | undefined;

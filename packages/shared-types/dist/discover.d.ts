@@ -1,0 +1,270 @@
+import { z } from 'zod';
+export declare const placeCategorySchema: z.ZodEnum<["RESTAURANT", "CAFE", "HERITAGE", "MUSEUM", "ATTRACTION", "NIGHTLIFE", "SHOPPING", "HOSPITAL", "CLINIC", "PHARMACY", "EMERGENCY", "OTHER"]>;
+export type PlaceCategory = z.infer<typeof placeCategorySchema>;
+export declare const placeStatusSchema: z.ZodEnum<["DRAFT", "PENDING_REVIEW", "PUBLISHED", "ARCHIVED"]>;
+export type PlaceStatus = z.infer<typeof placeStatusSchema>;
+export declare const sourceSchema: z.ZodObject<{
+    id: z.ZodString;
+    name: z.ZodString;
+    url: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    license: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    verifiedBy: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    createdAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+    updatedAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    name: string;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    url?: string | null | undefined;
+    license?: string | null | undefined;
+    verifiedBy?: string | null | undefined;
+}, {
+    id: string;
+    name: string;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    url?: string | null | undefined;
+    license?: string | null | undefined;
+    verifiedBy?: string | null | undefined;
+}>;
+export type Source = z.infer<typeof sourceSchema>;
+export declare const placeSchema: z.ZodObject<{
+    id: z.ZodString;
+    name: z.ZodString;
+    amharicName: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    description: z.ZodString;
+    amharicDescription: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    category: z.ZodEnum<["RESTAURANT", "CAFE", "HERITAGE", "MUSEUM", "ATTRACTION", "NIGHTLIFE", "SHOPPING", "HOSPITAL", "CLINIC", "PHARMACY", "EMERGENCY", "OTHER"]>;
+    status: z.ZodEnum<["DRAFT", "PENDING_REVIEW", "PUBLISHED", "ARCHIVED"]>;
+    address: z.ZodString;
+    lat: z.ZodNumber;
+    lng: z.ZodNumber;
+    cityId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    phone: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    website: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    openingHours: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    hoursVerified: z.ZodBoolean;
+    priceLevel: z.ZodOptional<z.ZodNullable<z.ZodNumber>>;
+    rating: z.ZodOptional<z.ZodNullable<z.ZodNumber>>;
+    images: z.ZodOptional<z.ZodNullable<z.ZodArray<z.ZodString, "many">>>;
+    sourceId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    source: z.ZodOptional<z.ZodNullable<z.ZodObject<{
+        id: z.ZodString;
+        name: z.ZodString;
+        url: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+        license: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+        verifiedBy: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+        createdAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+        updatedAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+        name: string;
+        createdAt: string | Date;
+        updatedAt: string | Date;
+        url?: string | null | undefined;
+        license?: string | null | undefined;
+        verifiedBy?: string | null | undefined;
+    }, {
+        id: string;
+        name: string;
+        createdAt: string | Date;
+        updatedAt: string | Date;
+        url?: string | null | undefined;
+        license?: string | null | undefined;
+        verifiedBy?: string | null | undefined;
+    }>>>;
+    lastVerifiedAt: z.ZodOptional<z.ZodNullable<z.ZodUnion<[z.ZodString, z.ZodDate]>>>;
+    distanceKm: z.ZodOptional<z.ZodNumber>;
+    walkingTimeMin: z.ZodOptional<z.ZodNumber>;
+    createdAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+    updatedAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+}, "strip", z.ZodTypeAny, {
+    status: "DRAFT" | "PENDING_REVIEW" | "PUBLISHED" | "ARCHIVED";
+    id: string;
+    name: string;
+    description: string;
+    address: string;
+    lat: number;
+    lng: number;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    category: "RESTAURANT" | "CAFE" | "HERITAGE" | "MUSEUM" | "ATTRACTION" | "NIGHTLIFE" | "SHOPPING" | "HOSPITAL" | "CLINIC" | "PHARMACY" | "EMERGENCY" | "OTHER";
+    hoursVerified: boolean;
+    phone?: string | null | undefined;
+    cityId?: string | null | undefined;
+    amharicName?: string | null | undefined;
+    amharicDescription?: string | null | undefined;
+    website?: string | null | undefined;
+    openingHours?: string | null | undefined;
+    priceLevel?: number | null | undefined;
+    rating?: number | null | undefined;
+    images?: string[] | null | undefined;
+    sourceId?: string | null | undefined;
+    source?: {
+        id: string;
+        name: string;
+        createdAt: string | Date;
+        updatedAt: string | Date;
+        url?: string | null | undefined;
+        license?: string | null | undefined;
+        verifiedBy?: string | null | undefined;
+    } | null | undefined;
+    lastVerifiedAt?: string | Date | null | undefined;
+    distanceKm?: number | undefined;
+    walkingTimeMin?: number | undefined;
+}, {
+    status: "DRAFT" | "PENDING_REVIEW" | "PUBLISHED" | "ARCHIVED";
+    id: string;
+    name: string;
+    description: string;
+    address: string;
+    lat: number;
+    lng: number;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    category: "RESTAURANT" | "CAFE" | "HERITAGE" | "MUSEUM" | "ATTRACTION" | "NIGHTLIFE" | "SHOPPING" | "HOSPITAL" | "CLINIC" | "PHARMACY" | "EMERGENCY" | "OTHER";
+    hoursVerified: boolean;
+    phone?: string | null | undefined;
+    cityId?: string | null | undefined;
+    amharicName?: string | null | undefined;
+    amharicDescription?: string | null | undefined;
+    website?: string | null | undefined;
+    openingHours?: string | null | undefined;
+    priceLevel?: number | null | undefined;
+    rating?: number | null | undefined;
+    images?: string[] | null | undefined;
+    sourceId?: string | null | undefined;
+    source?: {
+        id: string;
+        name: string;
+        createdAt: string | Date;
+        updatedAt: string | Date;
+        url?: string | null | undefined;
+        license?: string | null | undefined;
+        verifiedBy?: string | null | undefined;
+    } | null | undefined;
+    lastVerifiedAt?: string | Date | null | undefined;
+    distanceKm?: number | undefined;
+    walkingTimeMin?: number | undefined;
+}>;
+export type Place = z.infer<typeof placeSchema>;
+export declare const emergencyContactSchema: z.ZodObject<{
+    id: z.ZodString;
+    city: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    hotelId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    kind: z.ZodString;
+    name: z.ZodString;
+    phone: z.ZodString;
+    sourceId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    source: z.ZodOptional<z.ZodNullable<z.ZodObject<{
+        id: z.ZodString;
+        name: z.ZodString;
+        url: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+        license: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+        verifiedBy: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+        createdAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+        updatedAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+        name: string;
+        createdAt: string | Date;
+        updatedAt: string | Date;
+        url?: string | null | undefined;
+        license?: string | null | undefined;
+        verifiedBy?: string | null | undefined;
+    }, {
+        id: string;
+        name: string;
+        createdAt: string | Date;
+        updatedAt: string | Date;
+        url?: string | null | undefined;
+        license?: string | null | undefined;
+        verifiedBy?: string | null | undefined;
+    }>>>;
+    lastVerifiedAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+    status: z.ZodString;
+    createdAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+    updatedAt: z.ZodUnion<[z.ZodString, z.ZodDate]>;
+}, "strip", z.ZodTypeAny, {
+    status: string;
+    phone: string;
+    id: string;
+    name: string;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    lastVerifiedAt: string | Date;
+    kind: string;
+    hotelId?: string | null | undefined;
+    city?: string | null | undefined;
+    sourceId?: string | null | undefined;
+    source?: {
+        id: string;
+        name: string;
+        createdAt: string | Date;
+        updatedAt: string | Date;
+        url?: string | null | undefined;
+        license?: string | null | undefined;
+        verifiedBy?: string | null | undefined;
+    } | null | undefined;
+}, {
+    status: string;
+    phone: string;
+    id: string;
+    name: string;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    lastVerifiedAt: string | Date;
+    kind: string;
+    hotelId?: string | null | undefined;
+    city?: string | null | undefined;
+    sourceId?: string | null | undefined;
+    source?: {
+        id: string;
+        name: string;
+        createdAt: string | Date;
+        updatedAt: string | Date;
+        url?: string | null | undefined;
+        license?: string | null | undefined;
+        verifiedBy?: string | null | undefined;
+    } | null | undefined;
+}>;
+export type EmergencyContact = z.infer<typeof emergencyContactSchema>;
+export declare const nearbyPlacesQuerySchema: z.ZodObject<{
+    lat: z.ZodNumber;
+    lng: z.ZodNumber;
+    radiusKm: z.ZodDefault<z.ZodNumber>;
+    category: z.ZodOptional<z.ZodEnum<["RESTAURANT", "CAFE", "HERITAGE", "MUSEUM", "ATTRACTION", "NIGHTLIFE", "SHOPPING", "HOSPITAL", "CLINIC", "PHARMACY", "EMERGENCY", "OTHER"]>>;
+    limit: z.ZodDefault<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    lat: number;
+    lng: number;
+    radiusKm: number;
+    limit: number;
+    category?: "RESTAURANT" | "CAFE" | "HERITAGE" | "MUSEUM" | "ATTRACTION" | "NIGHTLIFE" | "SHOPPING" | "HOSPITAL" | "CLINIC" | "PHARMACY" | "EMERGENCY" | "OTHER" | undefined;
+}, {
+    lat: number;
+    lng: number;
+    category?: "RESTAURANT" | "CAFE" | "HERITAGE" | "MUSEUM" | "ATTRACTION" | "NIGHTLIFE" | "SHOPPING" | "HOSPITAL" | "CLINIC" | "PHARMACY" | "EMERGENCY" | "OTHER" | undefined;
+    radiusKm?: number | undefined;
+    limit?: number | undefined;
+}>;
+export type NearbyPlacesQuery = z.infer<typeof nearbyPlacesQuerySchema>;
+export declare const searchPlacesQuerySchema: z.ZodObject<{
+    q: z.ZodString;
+    category: z.ZodOptional<z.ZodEnum<["RESTAURANT", "CAFE", "HERITAGE", "MUSEUM", "ATTRACTION", "NIGHTLIFE", "SHOPPING", "HOSPITAL", "CLINIC", "PHARMACY", "EMERGENCY", "OTHER"]>>;
+    cityId: z.ZodOptional<z.ZodString>;
+    limit: z.ZodDefault<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    limit: number;
+    q: string;
+    cityId?: string | undefined;
+    category?: "RESTAURANT" | "CAFE" | "HERITAGE" | "MUSEUM" | "ATTRACTION" | "NIGHTLIFE" | "SHOPPING" | "HOSPITAL" | "CLINIC" | "PHARMACY" | "EMERGENCY" | "OTHER" | undefined;
+}, {
+    q: string;
+    cityId?: string | undefined;
+    category?: "RESTAURANT" | "CAFE" | "HERITAGE" | "MUSEUM" | "ATTRACTION" | "NIGHTLIFE" | "SHOPPING" | "HOSPITAL" | "CLINIC" | "PHARMACY" | "EMERGENCY" | "OTHER" | undefined;
+    limit?: number | undefined;
+}>;
+export type SearchPlacesQuery = z.infer<typeof searchPlacesQuerySchema>;
+//# sourceMappingURL=discover.d.ts.map

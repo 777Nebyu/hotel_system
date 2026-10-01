@@ -67,7 +67,7 @@ export declare const checkoutSchema: z.ZodEffects<z.ZodObject<{
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 export declare const bookingGuestSchema: z.ZodObject<{
     fullName: z.ZodString;
-    email: z.ZodString;
+    email: z.ZodEffects<z.ZodString, string, string>;
     phone: z.ZodOptional<z.ZodString>;
     nationality: z.ZodOptional<z.ZodString>;
     idType: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["PASSPORT", "NATIONAL_ID", "DRIVERS_LICENSE"]>, z.ZodString]>>;
@@ -105,7 +105,7 @@ export declare const createBookingSchema: z.ZodEffects<z.ZodObject<{
     }>>;
     guestInfos: z.ZodArray<z.ZodObject<{
         fullName: z.ZodString;
-        email: z.ZodString;
+        email: z.ZodEffects<z.ZodString, string, string>;
         phone: z.ZodOptional<z.ZodString>;
         nationality: z.ZodOptional<z.ZodString>;
         idType: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["PASSPORT", "NATIONAL_ID", "DRIVERS_LICENSE"]>, z.ZodString]>>;
@@ -384,7 +384,7 @@ export declare const modifyBookingSchema: z.ZodEffects<z.ZodObject<{
     roomIds: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     guestInfos: z.ZodOptional<z.ZodArray<z.ZodObject<{
         fullName: z.ZodString;
-        email: z.ZodString;
+        email: z.ZodEffects<z.ZodString, string, string>;
         phone: z.ZodOptional<z.ZodString>;
         nationality: z.ZodOptional<z.ZodString>;
         idType: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["PASSPORT", "NATIONAL_ID", "DRIVERS_LICENSE"]>, z.ZodString]>>;
@@ -489,7 +489,7 @@ export declare const createWalkInBookingSchema: z.ZodEffects<z.ZodObject<{
         children?: number | undefined;
     }>>;
     guestName: z.ZodString;
-    guestEmail: z.ZodString;
+    guestEmail: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
     guestPhone: z.ZodString;
     guestIdNumber: z.ZodOptional<z.ZodString>;
     paymentMethod: z.ZodDefault<z.ZodEnum<["CREDIT_CARD", "PAYPAL", "TELEBIRR", "CBE_BIRR", "CASH", "CHAPA", "AWASH_BANK", "ENAT_BANK", "AMHARA_BANK", "COOP_BANK"]>>;
@@ -506,10 +506,10 @@ export declare const createWalkInBookingSchema: z.ZodEffects<z.ZodObject<{
     };
     paymentMethod: "CREDIT_CARD" | "PAYPAL" | "TELEBIRR" | "CBE_BIRR" | "CASH" | "CHAPA" | "AWASH_BANK" | "ENAT_BANK" | "AMHARA_BANK" | "COOP_BANK";
     guestName: string;
-    guestEmail: string;
     guestPhone: string;
     paidImmediately: boolean;
     promoCode?: string | undefined;
+    guestEmail?: string | undefined;
     guestIdNumber?: string | undefined;
 }, {
     checkOut: string;
@@ -517,7 +517,6 @@ export declare const createWalkInBookingSchema: z.ZodEffects<z.ZodObject<{
     roomIds: string[];
     checkIn: string;
     guestName: string;
-    guestEmail: string;
     guestPhone: string;
     guests?: {
         adults?: number | undefined;
@@ -525,6 +524,7 @@ export declare const createWalkInBookingSchema: z.ZodEffects<z.ZodObject<{
     } | undefined;
     promoCode?: string | undefined;
     paymentMethod?: "CREDIT_CARD" | "PAYPAL" | "TELEBIRR" | "CBE_BIRR" | "CASH" | "CHAPA" | "AWASH_BANK" | "ENAT_BANK" | "AMHARA_BANK" | "COOP_BANK" | undefined;
+    guestEmail?: string | undefined;
     guestIdNumber?: string | undefined;
     paidImmediately?: boolean | undefined;
 }>, {
@@ -538,10 +538,10 @@ export declare const createWalkInBookingSchema: z.ZodEffects<z.ZodObject<{
     };
     paymentMethod: "CREDIT_CARD" | "PAYPAL" | "TELEBIRR" | "CBE_BIRR" | "CASH" | "CHAPA" | "AWASH_BANK" | "ENAT_BANK" | "AMHARA_BANK" | "COOP_BANK";
     guestName: string;
-    guestEmail: string;
     guestPhone: string;
     paidImmediately: boolean;
     promoCode?: string | undefined;
+    guestEmail?: string | undefined;
     guestIdNumber?: string | undefined;
 }, {
     checkOut: string;
@@ -549,7 +549,6 @@ export declare const createWalkInBookingSchema: z.ZodEffects<z.ZodObject<{
     roomIds: string[];
     checkIn: string;
     guestName: string;
-    guestEmail: string;
     guestPhone: string;
     guests?: {
         adults?: number | undefined;
@@ -557,6 +556,7 @@ export declare const createWalkInBookingSchema: z.ZodEffects<z.ZodObject<{
     } | undefined;
     promoCode?: string | undefined;
     paymentMethod?: "CREDIT_CARD" | "PAYPAL" | "TELEBIRR" | "CBE_BIRR" | "CASH" | "CHAPA" | "AWASH_BANK" | "ENAT_BANK" | "AMHARA_BANK" | "COOP_BANK" | undefined;
+    guestEmail?: string | undefined;
     guestIdNumber?: string | undefined;
     paidImmediately?: boolean | undefined;
 }>;
@@ -573,34 +573,37 @@ export declare const bankCallbackSchema: z.ZodObject<{
     status: z.ZodEnum<["AUTHORIZED", "DECLINED", "INSUFFICIENT_BALANCE", "TIMEOUT"]>;
     bankTransactionId: z.ZodOptional<z.ZodString>;
     pin: z.ZodOptional<z.ZodString>;
+    accountNumber: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     status: "TIMEOUT" | "AUTHORIZED" | "DECLINED" | "INSUFFICIENT_BALANCE";
     bankTransactionId?: string | undefined;
     pin?: string | undefined;
+    accountNumber?: string | undefined;
 }, {
     status: "TIMEOUT" | "AUTHORIZED" | "DECLINED" | "INSUFFICIENT_BALANCE";
     bankTransactionId?: string | undefined;
     pin?: string | undefined;
+    accountNumber?: string | undefined;
 }>;
 export type BankCallbackInput = z.infer<typeof bankCallbackSchema>;
 export declare const chapaIntentSchema: z.ZodObject<{
     method: z.ZodEnum<["CREDIT_CARD", "PAYPAL", "TELEBIRR", "CBE_BIRR", "CASH", "CHAPA", "AWASH_BANK", "ENAT_BANK", "AMHARA_BANK", "COOP_BANK"]>;
     phone: z.ZodOptional<z.ZodString>;
-    email: z.ZodOptional<z.ZodString>;
+    email: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
     bankCode: z.ZodOptional<z.ZodString>;
     accountNumber: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     method: "CREDIT_CARD" | "PAYPAL" | "TELEBIRR" | "CBE_BIRR" | "CASH" | "CHAPA" | "AWASH_BANK" | "ENAT_BANK" | "AMHARA_BANK" | "COOP_BANK";
     email?: string | undefined;
     phone?: string | undefined;
-    bankCode?: string | undefined;
     accountNumber?: string | undefined;
+    bankCode?: string | undefined;
 }, {
     method: "CREDIT_CARD" | "PAYPAL" | "TELEBIRR" | "CBE_BIRR" | "CASH" | "CHAPA" | "AWASH_BANK" | "ENAT_BANK" | "AMHARA_BANK" | "COOP_BANK";
     email?: string | undefined;
     phone?: string | undefined;
-    bankCode?: string | undefined;
     accountNumber?: string | undefined;
+    bankCode?: string | undefined;
 }>;
 export type ChapaIntentInput = z.infer<typeof chapaIntentSchema>;
 export declare const chapaWebhookSchema: z.ZodObject<{
